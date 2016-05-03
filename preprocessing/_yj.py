@@ -7,6 +7,7 @@ from scipy import optimize
 
 
 __all__ = ['YeoJohnsonTransformer']
+ZERO = 1e-12
 
 
 class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
@@ -151,6 +152,24 @@ def _yj_inv_transform_y(y, lam):
 
     return np.array(z)
 
+def _yj_trans_single_x(x, lam):
+    if x >= 0:
+        ## Case 1: x >= 0 and lambda is not 0
+        if not _eqls(lam, ZERO):
+            return (np.power(x + 1, lam) - 1.0) / lam
+
+        ## Case 2: x >= 0 and lambda is zero
+        return np.log(x + 1)
+    else :
+        ## Case 2: x < 0 and lambda is not two
+        if not _eqls(lam, 2.0):
+            denom = 2.0 - lam
+            numer = np.power((-x + 1), (2.0 - lam)) - 1.0
+            return -numer / denom
+
+        ## Case 4: x < 0 and lambda is two
+        return -np.log(-x + 1)
+
 def _yj_transform_y(y, lam):
     """Transform a single y, given a single lambda value.
     No validation performed.
@@ -163,18 +182,7 @@ def _yj_transform_y(y, lam):
     lam : ndarray, shape (n_lambdas,)
        The lambda value used for the transformation
     """
-    z = []
-    for x in y:
-        if not lam == 0 and x >= 0:
-            z.append((np.power(x + 1, lam) - 1.0) / lam)
-        elif lam == 0 and x >= 0:
-            z.append(np.log(x + 1))
-        elif not lam == 2 and x < 0:
-            z.append(-(np.power(-x + 1, 2 - lam) - 1.0) / (2.0 - lam))
-        else:
-            z.append(-np.log(-x + 1))
-
-    return np.array(z)
+    return np.array([_yj_trans_single_x(x, lam) for x in y])
 
 def _yj_estimate_lambda_single_y(y):
     """Estimate lambda for a single y, given a range of lambdas
@@ -192,7 +200,7 @@ def _yj_estimate_lambda_single_y(y):
     ## Use customlog-likelihood estimator
     return _yj_normmax(y)
 
-def _yj_normmax(x, brack = (-2.0, 2.0)):
+def _yj_normmax(x, brack = (-2, 2)):
     """Compute optimal YJ transform parameter for input data.
 
     Parameters
@@ -216,7 +224,7 @@ def _yj_normmax(x, brack = (-2.0, 2.0)):
 def _yj_llf(data, lmb):
     """Transform a y vector given a single lambda value,
     and compute the log-likelihood function. No validation
-    is used.
+    is applied to the input.
 
     Parameters
     ----------
@@ -230,11 +238,59 @@ def _yj_llf(data, lmb):
     data = np.asarray(data)
     N = data.shape[0]
     if 0 == N:
-        return np.nan
+        raise ValueError('data is empty')
+        #return np.nan
 
     y = _yj_transform_y(data, lmb)
+
+    ## We can't take the log of data, as there could be
+    ## zeros or negatives. Thus, we need to shift both distributions
+    ## up by some artbitrary factor just for the LLF computation
+    min_d, min_y = np.min(data), np.min(y)
+    if min_d < ZERO:
+        shift = np.abs(min_d) + 1
+        data += shift
+
+    ## Same goes for Y
+    if min_y < ZERO:
+        shift = np.abs(min_y) + 1
+        y += shift
+
+    ## Compute mean on potentially shifted data
     y_mean = np.mean(y, axis = 0)
-    llf = (lmb - 1) * np.sum(np.log(data), axis = 0)
-    llf -= N / 2.0 * np.log(np.sum((y - y_mean)**2. / N, axis = 0))
+    var = np.sum((y - y_mean)**2. / N, axis = 0)
+
+    ## If var is 0.0, we'll get a warning. Means all the 
+    ## values were nearly identical in y, so we will return
+    ## NaN so we don't optimize for this value of lam
+    if 0 == var:
+        return np.nan
+
+    llf = (lmb - 1) * np.sum(np.log(data), axis=0)
+    llf -= N / 2.0 * np.log(var)
 
     return llf
+
+def _eqls(lam, v):
+    return np.abs(lam) <= v
+
+
+
+## TESTING
+from sklearn.datasets import load_iris
+from numpy.random import poisson as ps
+from numpy.random import normal as nm
+
+sz = (150,4)
+X = ps(size = sz) * nm(size = sz)
+X = load_iris().data
+
+trans = YeoJohnsonTransformer().fit(X)
+transformed = trans.transform(X)
+
+print "Transformed:"
+print transformed
+
+print "Inverse transformed:"
+print trans.inverse_transform(transformed)
+
