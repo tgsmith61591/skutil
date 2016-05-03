@@ -27,5 +27,10 @@ def test_basic():
 	## Assert exact shifts
 	assert_array_equal(transformer.shift_, np.array([ 5.700001,  8.000001,  9.000001,  9.900001]))
 
+	## If we inverse transform, it should be nearly the same as the input matrix
+	transformed = transformer.transform(X)
+	inversed = transformer.inverse_transform(transformed)
+	assert_array_almost_equal(X, inversed)
+
 if __name__ == '__main__':
 	test_basic()
