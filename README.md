@@ -1,6 +1,6 @@
 ### pynorm
 
-A succinct set of sklearn-esque transformer classes. Including the Box-Cox transformation and the Yeo-Johnson transformation.
+A succinct set of sklearn-esque transformer classes. Including the Box-Cox transformation and the Yeo-Johnson transformation (still under development).
 
 ```python
 from scipy import stats
