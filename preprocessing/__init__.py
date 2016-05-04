@@ -9,5 +9,6 @@ the Box-Cox transformation and the Yeo-Johnson transformation.
 
 from .bc import *
 from .ss import *
+from .yj import *
 
 __all__ = [s for s in dir() if not s.startswith("_")] ## Remove hiddens

@@ -7,7 +7,7 @@ from scipy import optimize
 
 
 __all__ = ['YeoJohnsonTransformer']
-ZERO = 1e-12
+ZERO = 1e-16
 
 
 class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
@@ -121,6 +121,33 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
         return np.array([_yj_inv_transform_y(X[:,i], lambdas_[i])\
                          for i in xrange(n_features)]).transpose()
 
+def _yj_inv_trans_single_x(x, lam):
+    ## This is where it gets messy, but we can theorize that
+    ## if the x is < 0 and the lambda meets the appropriate conditions,
+    ## that the x was sub-zero to begin with.
+    if x >= 0:
+        ## Case 1: x >= 0 and lambda is not 0
+        if not _eqls(lam, ZERO):
+            x *= lam
+            x += 1
+            x = np.power(x, 1.0 / lam)
+            return x - 1
+
+        ## Case 2: x >= 0 and lambda is 0
+        return np.exp(x) - 1
+    else:
+        ## Case 3: lambda does not equal 2
+        if not lam == 2.0:
+            x *= -(2.0 - lam)
+            x += 1
+            x = np.pow(x, 1.0 / (2.0 - lam))
+            x -= 1
+            return -x
+
+        ## Case 4: lambda equals 2
+        return -(np.exp(-x) - 1)
+
+
 def _yj_inv_transform_y(y, lam):
     """Inverse transform a single y, given a single
     lambda value. No validation performed.
@@ -133,24 +160,7 @@ def _yj_inv_transform_y(y, lam):
     lam : ndarray, shape (n_lambdas,)
        The lambda value used for the inverse operation
     """
-    z = []
-
-    ## This is where it gets messy, but we can theorize that
-    ## if the y is < 0 and the lambda meets the appropriate conditions,
-    ## that the x was sub-zero to begin with.
-    for x in y:
-        if not lam == 0 and x >= 0:
-            z.append(np.power(x * lam + 1, 1.0 / lam) - 1)
-        elif lam == 0 and x >= 0:
-            z.append(np.exp(x) - 1)
-        elif not lam == 2 and x < 0:
-            nmr = -(x * (2 - lam)) + 1
-            z.append(-np.power(nmr, 1.0 / (2.0 - lam)) - 1)
-        else:
-            p_log = -x
-            z.append(-(np.exp(p_log) - 1))
-
-    return np.array(z)
+    return np.array([_yj_inv_trans_single_x(x, lam) for x in y])
 
 def _yj_trans_single_x(x, lam):
     if x >= 0:
@@ -160,9 +170,9 @@ def _yj_trans_single_x(x, lam):
 
         ## Case 2: x >= 0 and lambda is zero
         return np.log(x + 1)
-    else :
+    else:
         ## Case 2: x < 0 and lambda is not two
-        if not _eqls(lam, 2.0):
+        if not lam == 2.0:
             denom = 2.0 - lam
             numer = np.power((-x + 1), (2.0 - lam)) - 1.0
             return -numer / denom
@@ -212,12 +222,23 @@ def _yj_normmax(x, brack = (-2, 2)):
     """
 
     ## Use MLE to compute the optimal YJ parameter
-    def _mle(x, brack):
-        def _eval_mle(lmb, data):
-            ## Function to minimize
-            return -_yj_llf(data, lmb)
+    #def _mle(x, brack):
+    #    def _eval_mle(lmb, data):
+    #        ## Function to minimize
+    #        return -_yj_llf(data, lmb)
+    #
+    #    return optimize.brent(_eval_mle, brack = brack, args = (x,))
 
-        return optimize.brent(_eval_mle, brack = brack, args = (x,))
+    def _mle(x, brack):
+        rng = np.arange(brack[0], brack[1], 0.05)
+        min_llf, best_lam = np.inf, None
+
+        for lam in rng:
+            llf = _yj_llf(x, lam)
+            if llf < min_llf:
+                min_llf = llf
+                best_lam = lam
+        return best_lam
 
     return _mle(x, brack)
 
@@ -273,24 +294,4 @@ def _yj_llf(data, lmb):
 
 def _eqls(lam, v):
     return np.abs(lam) <= v
-
-
-
-## TESTING
-from sklearn.datasets import load_iris
-from numpy.random import poisson as ps
-from numpy.random import normal as nm
-
-sz = (150,4)
-X = ps(size = sz) * nm(size = sz)
-X = load_iris().data
-
-trans = YeoJohnsonTransformer().fit(X)
-transformed = trans.transform(X)
-
-print "Transformed:"
-print transformed
-
-print "Inverse transformed:"
-print trans.inverse_transform(transformed)
 
