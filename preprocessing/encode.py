@@ -13,16 +13,22 @@ __all__ = [
 ]
 
 
+def get_unseen():
+    """Basically just a static method
+    instead of a class attribute to avoid
+    someone accidentally changing it."""
+    return 99999
+
+
 class SafeLabelEncoder(LabelEncoder):
     """An extension of LabelEncoder that will
     not throw an exception for unseen data, but will
-    instead return a default value
+    instead return a default value of 99999
     
     Attributes
     ----------
-    __default__ : int, default val = 999999
+    classes_ : the classes that are encoded
     """
-    __default__ = 999999
         
     def transform(self, y):
         check_is_fitted(self, 'classes_')
@@ -31,9 +37,14 @@ class SafeLabelEncoder(LabelEncoder):
         classes = np.unique(y)
         _check_numpy_unicode_bug(classes)
         
+        ## Check not too many:
+        unseen = get_unseen()
+        if len(classes) >= unseen:
+            raise ValueError('Too many factor levels in feature. Max is %i' % unseen)
+        
         return np.array([np.searchsorted(self.classes_, x)\
                          if x in self.classes_\
-                         else self.__default__\
+                         else unseen\
                          for x in y])
 
 
@@ -54,10 +65,6 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
     ----------
     fill_ : see above
     
-    self.__unseen__ : int, default = 999999
-        If transforming data encounters a value it hasn't seen before,
-        it will set it to this
-    
     obj_cols_ : array_like
         The list of object-type (categorical) features
     lab_encoders_ : array_like
@@ -65,8 +72,6 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
     one_hot_ : an instance of a OneHotEncoder
     trans_nms_ : the dummified names
     """
-    
-    __unseen__ = 999999
     
     def __init__(self, fill = 'Missing'):
         self.fill_ = fill
@@ -89,36 +94,43 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
         
         ## If we need to fill in the NAs, take care of it
         if not self.fill_ is None:
-            X = X[obj_cols_].fillna(self.fill_)
+            X[obj_cols_] = X[obj_cols_].fillna(self.fill_)
         
-        ## Get array of label encoders
-        lab_encoders_ = [SafeLabelEncoder().fit(X[nm]) for nm in obj_cols_]
-
-        ## Check no factor levels over 999999
-        for encoder in lab_encoders_:
-            if len(encoder.classes_) >= self.__unseen__:
-                raise ValueError('too many factor levels in feature')
-        
-        ## Use the fit encoders to get the encoded matrix
-        trans = np.array([v.transform(X[obj_cols_[i]]) for\
-                          i,v in enumerate(lab_encoders_)]).transpose()
-        
-        ## We add a row of the unseen values so the onehotencoder
-        ## has seen the unseen values before, and won't throw an
-        ## exception later with new data. This will expand the matrix
-        ## by N columns, but if there's no new values, they will be
-        ## entirely zero and can be dropped later.
-        trans = np.vstack((trans, np.ones(trans.shape[1]) * self.__unseen__))
-        
-        ## Set the trans, dummy-level feature names
+        ## Set an array of uninitialized label encoders
+        ## Then use fit_transform for effiency purposes
+        ## We can also set the dummy-level feature names in the same pass
+        lab_encoders_ = []
+        trans_array = []
         tnms = []
-        for i,v in enumerate(lab_encoders_):
-            nm = obj_cols_[i]
-            n_classes = len(set(v.classes_))
-            tnms.append(['%s.%i' % (nm,i) for i in range(n_classes)])
+        
+        unseen = get_unseen()
+        for nm in obj_cols_:
+            encoder = SafeLabelEncoder()
+            lab_encoders_.append(encoder)
             
-        ## flatten that array
-        self.trans_nms_= reduce(lambda i,j: i + j, tnms)
+            ## This fits the reference to the encoder, and gets
+            ## the transformation. We then append a single unseen
+            ## value to the end as a safety for the transform method.
+            ## After the transpose, this is tantamount to appending a row
+            ## of unseen values so each feature can handle the 99999
+            ## This will expand the matrix by N columns, but if there's 
+            ## no new values, they will be entirely zero and can be dropped later.
+            encoded_array = np.append(encoder.fit_transform(X[nm]), unseen)
+            
+            ## Add the transformed row
+            trans_array.append(encoded_array) ## Updates in array
+            
+            ## Update the names
+            n_classes = len(encoder.classes_)
+            tnms.append(['%s.%i' % (nm,i) for i in range(n_classes)])
+        
+        ## Get the transpose
+        trans = np.array(trans_array).transpose()
+            
+        ## flatten the name array, append numeric names prior
+        num_nms = [n for n in X.columns.values if not n in obj_cols_]
+        trans_nms_= [item for sublist in tnms for item in sublist]
+        self.trans_nms_ = num_nms + trans_nms_
         
         ## Now we can do the actual one hot encoding, set internal state
         self.one_hot_ = OneHotEncoder().fit(trans)
@@ -127,8 +139,7 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
         
         return self
         
-        
-    def transform(self, X, y = None):
+    def transform(self, X):
         """Transform X, a DataFrame, by stripping
         out the object columns, dummifying them, and
         re-appending them to the end.
@@ -136,7 +147,6 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
         Parameters
         ----------
         X : pandas dataframe
-        y : passthrough for Pipeline
         """
         check_is_fitted(self, 'obj_cols_')
         if not isinstance(X, pd.DataFrame):
