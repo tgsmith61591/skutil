@@ -214,7 +214,11 @@ def _estimate_lambda_single_y(y):
        The vector of lambdas to estimate with
     """
 
-    if _all_sparse(y):
+    ## We have to subtract one, because dummied fields will have 0s which will
+    ## get shifted up to 1s with the BoxCox shift to positive. In the rare case
+    ## that a single factor level was passed and the column is all 1s, they will
+    ## get shifted to zeros which will be caught by the _all_sparse method
+    if _all_sparse(y - 1):
         return np.nan
     
     ## Use scipy's log-likelihood estimator
