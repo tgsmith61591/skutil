@@ -29,7 +29,11 @@ def _all_sparse(x):
     """
     us = get_unseen()
     sparse = np.array([0, 1, us]) ## have minus one in the mix as well since we shift down potentially...
-    return all([any([np.isclose(v,i) for i in sparse]) for v in x])
+
+    for v in np.unique(x):
+        if not any([np.isclose(v,i) for i in sparse]):
+            return False ## Break early
+    return True
 
 def _eqls(lam, v):
     return np.abs(lam) <= v
