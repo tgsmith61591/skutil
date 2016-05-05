@@ -4,15 +4,15 @@ A succinct set of sklearn extension classes.
 
 #### Encoders
 Currently implemented encoders:
-- `OneHotCategoricalTransformer`:
+- `OneHotCategoricalEncoder`:
   - Should be the first phase in your `Pipeline` object. Takes a Pandas dataframe, imputes missing categorical data with a provided string and dummies out the object (string) columns. Finally, returns a `numpy.ndarray` transformed array.
 - `SafeLabelEncoder`:
   - Wraps sklearn's `LabelEncoder`, but encodes unseen data in your test set as a default factor-level value (99999).
 
 ```python
-## Example use of OneHotCategoricalTransformer
+## Example use of OneHotCategoricalEncoder
 import numpy as np
-from pynorm.preprocessing import SafeLabelEncoder, OneHotCategoricalTransformer
+from pynorm.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
 import pandas as pd
 
 ## An array of strings
@@ -25,7 +25,7 @@ x = pd.DataFrame.from_records(data = X, columns = ['A','B','C'])
 x['n'] = np.array([5,6,7])
 
 ## Fit the encoder
-o = OneHotCategoricalTransformer().fit(x)
+o = OneHotCategoricalEncoder().fit(x)
 
 ## Notice that the numeric data is now BEFORE the dummies
 >>> o.transform(x)

@@ -9,7 +9,7 @@ import pandas as pd
 
 __all__ = [
     'SafeLabelEncoder',
-    'OneHotCategoricalTransformer'
+    'OneHotCategoricalEncoder'
 ]
 
 
@@ -48,7 +48,7 @@ class SafeLabelEncoder(LabelEncoder):
                          for x in y])
 
 
-class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
+class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     """This class achieves three things: first, it will fill in 
     any NaN values with a provided surrogate (if desired). Second,
     it will dummy out any categorical features using OneHotEncoding
