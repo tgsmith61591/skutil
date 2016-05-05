@@ -22,9 +22,14 @@ ZERO = 1e-16
 def _all_sparse(x):
     """Often, if all elements are sparse they are generated
     by the OneHotCategoricalTransformer, and we want to ignore them.
+    This is challenging since the BoxCoxTransformer is casting everything
+    to float already and we're going to get poor precision. If we merely
+    cast everything straight to int, we may turn a -0.8 into a 0 (try on
+    the last column of iris and see what happens).
     """
-    sparse = np.array([0,1,get_unseen()])
-    return np.in1d(np.unique(x), sparse).all()
+    us = get_unseen()
+    sparse = np.array([0, 1, us]) ## have minus one in the mix as well since we shift down potentially...
+    return all([any([np.isclose(v,i) for i in sparse]) for v in x])
 
 def _eqls(lam, v):
     return np.abs(lam) <= v
@@ -73,12 +78,19 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         y : Passthrough for Pipeline compatibility
         """
         X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
+                       ensure_2d = True, warn_on_dtype = False,
                        estimator = self, dtype = FLOAT_DTYPES)
         
         n_samples, n_features = X.shape
         if n_samples < 2:
             raise ValueError('n_samples should be at least two, but was %i' % n_samples)
+            
+            
+        ## Check for sparse BEFORE shift
+        sparse_cols_ = Parallel(n_jobs = self.n_jobs)(
+            delayed(_all_sparse)
+            (i) for i in X.transpose())
+            
 
         ## First step is to compute all the shifts needed, then add back to X...
         min_Xs = X.min(axis = 0)
@@ -87,9 +99,10 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         
         
         ## Now estimate the lambdas in parallel
+        Xt = X.transpose()
         self.lambda_ = Parallel(n_jobs=self.n_jobs)(
             delayed(_estimate_lambda_single_y)
-            (y) for y in X.transpose())
+            (Xt[i], sparse_cols_[i]) for i in range(n_features))
         
         return self
     
@@ -201,7 +214,7 @@ def _transform_y(y, lam):
 
     return np.array(map(lambda x: (np.power(x, lam)-1)/lam if not _eqls(lam,ZERO) else np.log(x), y))
     
-def _estimate_lambda_single_y(y):
+def _estimate_lambda_single_y(y, is_sparse):
     """Estimate lambda for a single y, given a range of lambdas
     through which to search. No validation performed.
     
@@ -213,12 +226,9 @@ def _estimate_lambda_single_y(y):
     lambdas : ndarray, shape (n_lambdas,)
        The vector of lambdas to estimate with
     """
-
-    ## We have to subtract one, because dummied fields will have 0s which will
-    ## get shifted up to 1s with the BoxCox shift to positive. In the rare case
-    ## that a single factor level was passed and the column is all 1s, they will
-    ## get shifted to zeros which will be caught by the _all_sparse method
-    if _all_sparse(y - 1):
+    
+    ## If not an array, then was identified as a sparse col
+    if is_sparse:
         return np.nan
     
     ## Use scipy's log-likelihood estimator
