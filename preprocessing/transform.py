@@ -453,13 +453,14 @@ def _yj_normmax(x, brack = (-2, 2)):
     """
 
     ## Use MLE to compute the optimal YJ parameter
-    #def _mle(x, brack):
-    #    def _eval_mle(lmb, data):
-    #        ## Function to minimize
-    #        return -_yj_llf(data, lmb)
-    #
-    #    return optimize.brent(_eval_mle, brack = brack, args = (x,))
+    def _mle_opt(x, brack):
+        def _eval_mle(lmb, data):
+            ## Function to minimize
+            return -_yj_llf(data, lmb)
+    
+        return optimize.brent(_eval_mle, brack = brack, args = (x,))
 
+    ## If we don't want to use the optimizer...
     def _mle(x, brack):
         rng = np.arange(brack[0], brack[1], 0.05)
         min_llf, best_lam = np.inf, None
@@ -471,7 +472,7 @@ def _yj_normmax(x, brack = (-2, 2)):
                 best_lam = lam
         return best_lam
 
-    return _mle(x, brack)
+    return _mle_opt(x, brack) #_mle(x, brack)
 
 def _yj_llf(data, lmb):
     """Transform a y vector given a single lambda value,
