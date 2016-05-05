@@ -122,7 +122,11 @@ class OneHotCategoricalTransformer(BaseEstimator, TransformerMixin):
             
             ## Update the names
             n_classes = len(encoder.classes_)
-            tnms.append(['%s.%i' % (nm,i) for i in range(n_classes)])
+            sequential_nms = ['%s.%i' % (nm,i) for i in range(n_classes)]
+            
+            ## Remember to append the NA col
+            sequential_nms.append('%s.NA' % nm)
+            tnms.append(sequential_nms)
         
         ## Get the transpose
         trans = np.array(trans_array).transpose()
