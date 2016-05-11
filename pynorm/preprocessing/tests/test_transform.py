@@ -46,9 +46,8 @@ def test_bc():
 def test_yj():
 	transformer = YeoJohnsonTransformer().fit(X)
 
-	## Assert transform and inverse yields original
+	## Assert transform works...
 	transformed = transformer.transform(X)
-	
 
 	inverse = transformer.inverse_transform(transformed)
 	assert inverse is NotImplemented, 'expected NotImplemented'

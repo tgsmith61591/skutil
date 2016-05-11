@@ -1,4 +1,6 @@
+from __future__ import print_function
 from pynorm.preprocessing.tests import *
+
 
 __test_modules = [
 	test_util,
@@ -19,11 +21,11 @@ def _test_runner():
 				method()
 			except AssertionError as ae:
 				pfx = 'ERROR'
-				msg = 'FAILED! (%s)' % (ae.message if not ae.message == '' else 'no message provided')
+				msg = 'FAILED! (%s)' % (ae.message if not ae.message == '' else 'assertion error; no message provided')
 
 
 			## Print just so we can see that it passed...
-			print '[%s]  %.5f (sec) - %s %s' % (pfx, time() - t, a, msg)
+			print('[%s]  %.5f (sec) - %s %s' % (pfx, time() - t, a, msg))
 
 if __name__ == '__main__':
 	_test_runner()

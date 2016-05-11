@@ -3,7 +3,7 @@ sklearn-esque transformers for python
 '''
 import sys, warnings
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 try:
     # This variable is injected in the __builtins__ by the build
