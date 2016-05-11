@@ -6,6 +6,7 @@ from sklearn.externals.joblib import Parallel, delayed
 from scipy.stats import boxcox
 from scipy import optimize
 from .encode import get_unseen
+from .util import *
 
 
 __all__ = [
@@ -339,6 +340,8 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
         X : array-like, shape [n_samples, n_features]
             The data to inverse transform
         """
+
+        '''
         check_is_fitted(self, 'lambda_')
 
         X = check_array(X, accept_sparse = False, copy = True,
@@ -353,6 +356,10 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
 
         return np.array([_yj_inv_transform_y(X[:,i], lambdas_[i])\
                          for i in xrange(n_features)]).transpose()
+        '''
+
+        ## This is imperfect, so we're just going to not implement for now.
+        return NotImplemented
 
 def _yj_inv_trans_single_x(x, lam):
     ## This is where it gets messy, but we can theorize that
@@ -656,4 +663,9 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin):
 
 def _sq_norm_single(x):
     return np.dot(x, x)
+
+
+
+
+
 

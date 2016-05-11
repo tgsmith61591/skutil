@@ -18,7 +18,9 @@ except NameError:
 if __PYNORM_SETUP__:
     sys.stderr.write('Partial import of pynorm during the build process.\n')
 else:
-    __all__ = ['preprocessing']
+    __all__ = [
+        'preprocessing'
+    ]
 
 
 def setup_module(module):

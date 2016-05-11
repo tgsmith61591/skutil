@@ -3,10 +3,15 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from pynorm.preprocessing import *
 
+__all__ = [
+	'test_bc',
+	'test_yj',
+	'test_ss'
+]
+
+
 ## Def data for testing
 X = load_iris().data
-
-
 
 
 def test_bc():
@@ -43,8 +48,11 @@ def test_yj():
 
 	## Assert transform and inverse yields original
 	transformed = transformer.transform(X)
+	
+
 	inverse = transformer.inverse_transform(transformed)
-	# TODO: fix assert_array_almost_equal(X, inverse)
+	assert inverse is NotImplemented, 'expected NotImplemented'
+
 	## TODO: more
 
 
@@ -73,8 +81,3 @@ def test_ss():
 	## Assert all Inf
 	l = len(transformer.sq_nms_[transformer.sq_nms_ == np.inf])
 	assert l == 5, 'expected len == 5, but got %i' % l
-
-if __name__ == '__main__':
-	test_bc()
-	test_yj()
-	test_ss()

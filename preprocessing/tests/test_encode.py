@@ -4,6 +4,11 @@ from sklearn.datasets import load_iris
 from pynorm.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
 import pandas as pd
 
+__all__ = [
+	'test_basic'
+]
+
+
 ## Def data for testing
 X = np.array([['USA','RED','a'],
               ['MEX','GRN','b'],
@@ -11,6 +16,7 @@ X = np.array([['USA','RED','a'],
 x = pd.DataFrame.from_records(data = X, columns = ['A','B','C'])
 ## Tack on a numeric col:
 x['n'] = np.array([5,6,7])
+
 
 def test_basic():
 	o = OneHotCategoricalEncoder().fit(x)
@@ -31,6 +37,3 @@ def test_basic():
 		[ 7.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.]]))
 
 	assert isinstance(t, np.ndarray), 'expected np.ndarray'
-
-if __name__ == '__main__':
-	test_basic()
