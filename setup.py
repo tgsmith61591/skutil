@@ -1,8 +1,11 @@
-import os, sys
+import os, sys, shutil
 from os.path import join
 import warnings
 import subprocess
 from pkg_resources import parse_version
+
+## For cleaning build artifacts
+from distutils.command.clean import clean as Clean
 
 
 if sys.version_info[0] < 3:
@@ -28,9 +31,32 @@ VERSION = pynorm.__version__
 
 ## Version requirements
 pandas_min_version = '0.18'
-sklearn_min_version= '0.17'
+sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
 scipy_min_version  = '0.17'
+
+
+## Custom class to clean build artifacts
+class CleanCommand(Clean):
+	description = 'Remove build artifacts from the source tree'
+	
+	def run(self):
+		Clean.run(self)
+
+		if os.path.exists('build'):
+			shutil.rmtree('build')
+		for dirpath, dirnames, filenames in os.walk('pynorm'):
+			for filename in filenames:
+				if any(filename.endswith(suffix) for suffix in ('.so','.pyd','.dll','.pyc')):
+					os.unlink(os.path.join(dirpath, filename))
+					continue
+				extension = os.path.splitext(filename)[1]
+			for dirname in dirnames:
+				if dirname == '__pycache__':
+					shutil.rmtree(os.path.join(dirpath, dirname))
+
+
+cmdclass = {'clean' : CleanCommand}
 
 
 def get_pandas_status():
@@ -102,7 +128,12 @@ def check_statuses(pkg_nm, status, rs):
 
 
 def setup_package():
-	metadata = dict(name=DISTNAME, maintainer=MAINTAINER, maintainer_email=MAINTAINER_EMAIL, description=DESCRIPTION, version=VERSION)
+	metadata = dict(name=DISTNAME, 
+			maintainer=MAINTAINER, 
+			maintainer_email=MAINTAINER_EMAIL, 
+			description=DESCRIPTION, 
+			version=VERSION,
+			cmdclass=cmdclass)
 
 	pandas_status = get_pandas_status()
 	sklearn_status=get_sklearn_status()

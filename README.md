@@ -83,4 +83,4 @@ prob = stats.probplot(transformer.transform(X)[:,0], dist=stats.norm, plot=ax2)
 ax2.set_title('Probplot after Box-Cox transformation')
 ```
 
-![Transformed vs. Non-transformed](img/ex1.png)
+![Transformed vs. Non-transformed](doc/images/bc_ex1.png)
