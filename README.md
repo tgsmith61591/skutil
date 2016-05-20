@@ -70,6 +70,7 @@ All transformers in pynorm will take the arg `cols=None` (None being the default
 
 ```python
 ## Example using BoxCoxTransformer
+import pandas as pd
 from pynorm.preprocessing import BoxCoxTransformer
 from scipy import stats
 
