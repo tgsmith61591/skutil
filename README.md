@@ -2,6 +2,15 @@
 A succinct set of sklearn extension classes.  
 
 
+#### Installation:
+```bash
+git clone https://github.com/tgsmith61591/pynorm.git
+cd pynorm
+python setup.py install
+```
+
+
+
 #### Encoders
 Currently implemented encoders:
 - `OneHotCategoricalEncoder`:
