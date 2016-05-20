@@ -15,8 +15,16 @@ def configuration(parent_package = '', top_path = None):
 		libs.append('m')
 
 	config = Configuration('pynorm', parent_package, top_path)
+
+	## modules
 	config.add_subpackage('preprocessing')
+	config.add_subpackage('decomposition')
+	config.add_subpackage('utils')
+
+	## module tests
 	config.add_subpackage('preprocessing/tests')
+	config.add_subpackage('decomposition/tests')
+	config.add_subpackage('utils/tests')
 
 	return config
 

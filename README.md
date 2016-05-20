@@ -83,9 +83,10 @@ prob = stats.probplot(X[:,0], dist=stats.norm, plot=ax1)
 ax1.set_xlabel('')
 ax1.set_title('Probplot against normal distribution')
 
-transformer = BoxCoxTransformer(as_df=False).fit(X)
+Xdf = pd.DataFrame.from_records(data=X)
+transformer = BoxCoxTransformer(as_df=False).fit(Xdf)
 ax2 = fig.add_subplot(212)
-prob = stats.probplot(transformer.transform(X)[:,0], dist=stats.norm, plot=ax2)
+prob = stats.probplot(transformer.transform(Xdf)[:,0], dist=stats.norm, plot=ax2)
 ax2.set_title('Probplot after Box-Cox transformation')
 ```
 

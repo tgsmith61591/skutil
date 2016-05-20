@@ -1,11 +1,14 @@
 from __future__ import print_function
 from pynorm.preprocessing.tests import *
+from pynorm.decomposition.tests import *
+from pynorm.utils.tests import *
 
 
 __test_modules = [
-	test_util,
+	test_decompose,
 	test_encode,
-	test_transform
+	test_transform,
+	test_util
 ]
 
 def _test_runner():

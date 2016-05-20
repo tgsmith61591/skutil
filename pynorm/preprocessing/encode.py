@@ -67,7 +67,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     Attributes
     ----------
     fill_ : see above
-    as_df_ : see above
+    as_df : see above
     
     obj_cols_ : array_like
         The list of object-type (categorical) features
@@ -79,7 +79,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     
     def __init__(self, fill='Missing', as_df=True):
         self.fill_ = fill
-        self.as_df_ = as_df
+        self.as_df = as_df
         
         
     def fit(self, X, y = None):
@@ -179,5 +179,5 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         oh = self.one_hot_.transform(trans).todense()
         x = np.array(np.hstack((numers, oh)))
 
-        return x if not self.as_df_ else pd.DataFrame.from_records(data=x, columns=self.trans_nms_)
+        return x if not self.as_df else pd.DataFrame.from_records(data=x, columns=self.trans_nms_)
 

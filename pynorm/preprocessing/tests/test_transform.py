@@ -9,8 +9,7 @@ __all__ = [
 	'test_yj',
 	'test_ss',
 	'test_selective_impute',
-	'test_selective_scale',
-	'test_selective_pca'
+	'test_selective_scale'
 ]
 
 
@@ -107,21 +106,6 @@ def test_selective_impute():
 
 	assert not pd.isnull(df.iloc[0, 3])
 	assert pd.isnull(df.iloc[1, 2])
-
-
-def test_selective_pca():
-	original = X
-	cols = [original.columns[0]] ## Only perform on first...
-	compare_cols = np.array(original[['sepal width (cm)','petal length (cm)','petal width (cm)']].as_matrix()) ## should be the same as the trans cols
-
-	transformer = SelectivePCA(cols=cols, n_components=0.85).fit(original)
-	transformed = transformer.transform(original)
-
-	untouched_cols = np.array(transformed[['sepal width (cm)','petal length (cm)','petal width (cm)']].as_matrix())
-	assert_array_almost_equal(compare_cols, untouched_cols)
-	assert 'PC1' in transformed.columns
-	assert transformed.shape[1] == 4
-
 
 
 def test_selective_scale():
