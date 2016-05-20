@@ -1,5 +1,7 @@
+import six
 import numpy as np
 import pandas as pd
+
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.decomposition import PCA
@@ -25,22 +27,6 @@ ZERO = 1e-16
 
 
 ## Helper funtions:
-def _all_sparse(x):
-    """Often, if all elements are sparse they are generated
-    by the OneHotCategoricalTransformer, and we want to ignore them.
-    This is challenging since the BoxCoxTransformer is casting everything
-    to float already and we're going to get poor precision. If we merely
-    cast everything straight to int, we may turn a -0.8 into a 0 (try on
-    the last column of iris and see what happens).
-    """
-    us = get_unseen()
-    sparse = np.array([0, 1, us]) ## have minus one in the mix as well since we shift down potentially...
-
-    for v in np.unique(x):
-        if not any([np.isclose(v,i) for i in sparse]):
-            return False ## Break early
-    return True
-
 def _eqls(lam, v):
     return np.abs(lam) <= v
 
@@ -82,13 +68,17 @@ class SelectiveImputer(BaseEstimator, TransformerMixin):
 
     """
 
-    def __init__(self, cols, missing_values = 'NaN', strategy = 'mean'):
+    def __init__(self, cols=None, missing_values = 'NaN', strategy = 'mean'):
         self.cols_ = cols
         self.missing_values = missing_values
         self.strategy = strategy
 
     def fit(self, X, y = None):
         _validate_is_pd(X)
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
 
         ## fails if columns don't exist
         self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[self.cols_])
@@ -131,13 +121,17 @@ class SelectiveScaler(BaseEstimator, TransformerMixin):
         the scaler
     """
 
-    def __init__(self, cols, scaler = StandardScaler()):
+    def __init__(self, cols=None, scaler = StandardScaler()):
         self.cols_ = cols
         self.scaler_ = scaler
 
     def fit(self, X, y = None):
         """Fit the scaler"""
         _validate_is_pd(X)
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
 
         ## throws exception if the cols don't exist
         self.scaler_.fit(X[self.cols_])
@@ -199,13 +193,17 @@ class SelectivePCA(BaseEstimator, TransformerMixin):
     pca_ : the PCA object
     """
 
-    def __init__(self, cols, n_components=None, whiten=False):
+    def __init__(self, cols=None, n_components=None, whiten=False):
         self.cols_ = cols
         self.n_components = n_components
         self.whiten = whiten
 
     def fit(self, X, y = None):
         _validate_is_pd(X)
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
 
         ## fails thru if names don't exist:
         self.pca_ = PCA(
@@ -239,6 +237,9 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
        
     Parameters
     ----------
+    cols : array_like, str
+       The columns which to transform
+
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
        estimating each of the feature lambdas in parallel.
@@ -248,57 +249,61 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
+    as_df : boolean, def True
+       Whether to return a dataframe
+
 
     Attributes
     ----------
-    shift_ : ndarray, shape (n_features,)
+    shift_ : dict
        The shifts for each feature needed to shift the min value in 
        the feature up to at least 0.0, as every element must be positive
 
-    lambda_ : ndarray, shape (n_features,)
+    lambda_ : dict
        The lambda values corresponding to each feature
     """
     
-    def __init__(self, n_jobs = 1):
+    def __init__(self, cols=None, n_jobs=1, as_df=True):
+        self.cols_ = cols
         self.n_jobs = n_jobs
+        self.as_df = as_df
         
     def fit(self, X, y = None):
         """Estimate the lambdas, provided X
         
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
         
         y : Passthrough for Pipeline compatibility
         """
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = False,
-                       estimator = self, dtype = FLOAT_DTYPES)
+        _validate_is_pd(X)
+        X = X.copy()
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
         
         n_samples, n_features = X.shape
         if n_samples < 2:
             raise ValueError('n_samples should be at least two, but was %i' % n_samples)
-            
-            
-        ## Check for sparse BEFORE shift
-        sparse_cols_ = Parallel(n_jobs = self.n_jobs)(
-            delayed(_all_sparse)
-            (i) for i in X.transpose())
-            
+        
 
         ## First step is to compute all the shifts needed, then add back to X...
-        min_Xs = X.min(axis = 0)
-        self.shift_ = np.array([np.abs(x) + 1e-6 if x <= 0.0 else 0.0 for x in min_Xs])
-        X += self.shift_
-        
+        min_Xs = X[self.cols_].min(axis = 0)
+        shift = np.array([np.abs(x) + 1e-6 if x <= 0.0 else 0.0 for x in min_Xs])
+        X[self.cols_] += shift
+
+        ## now put shift into a dict
+        self.shift_ = dict(zip(self.cols_, shift))
         
         ## Now estimate the lambdas in parallel
-        Xt = X.transpose()
-        self.lambda_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(_estimate_lambda_single_y)
-            (Xt[i], sparse_cols_[i]) for i in range(n_features))
-        
+        self.lambda_ = dict(zip(self.cols_, 
+            Parallel(n_jobs=self.n_jobs)(
+                delayed(_estimate_lambda_single_y)
+                (X[i].tolist()) for i in self.cols_)))
+
         return self
     
     def transform(self, X, y = None):
@@ -306,76 +311,30 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
         
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pandas DF, shape [n_samples, n_features]
             The data to transform
         """
         check_is_fitted(self, 'shift_')
-        
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
+        _validate_is_pd(X)
+
+        X = X.copy()
         
         _, n_features = X.shape
         lambdas_, shifts_ = self.lambda_, self.shift_
-        
-        if not n_features == shifts_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
             
         ## Add the shifts in, and if they're too low,
         ## we have to truncate at some low value: 1e-6
-        X += shifts_
+        for nm in self.cols_:
+            X[nm] += shifts_[nm]
         
         ## If the shifts are too low, truncate...
-        X[X <= 0.0] = 1e-16
-        
-        return np.array([_transform_y(X[:,i], lambdas_[i])\
-                         for i in xrange(n_features)]).transpose()
-    
-    def inverse_transform(self, X):
-        """Transform back to the original representation
-        
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data to inverse transform
-        """
-        check_is_fitted(self, 'shift_')
-        
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
-        
-        _, n_features = X.shape
-        lambdas_, shifts_ = self.lambda_, self.shift_
-        
-        if not n_features == shifts_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
-        
-        X = np.array([_inv_transform_y(X[:,i], lambdas_[i])\
-                         for i in xrange(n_features)]).transpose()
-        
-        ## Remember to subtract out the shifts
-        return X - shifts_
+        X[X[self.cols_] <= 0.0][self.cols_] = 1e-6
 
-def _inv_transform_y(y, lam):
-    """Inverse transform a single y, given a single 
-    lambda value. No validation performed.
-    
-    Parameters
-    ----------
-    y : ndarray, shape (n_samples,)
-       The vector being inverse transformed
-       
-    lam : ndarray, shape (n_lambdas,)
-       The lambda value used for the inverse operation
-    """
+        ## do transformations
+        for nm in self.cols_:
+            X[nm] = _transform_y(X[nm], lambdas_[nm])
 
-    ## If lam is nan, then it was a sparse column:
-    if np.isnan(lam):
-        return y
-
-    ool = 1.0 / lam
-    return np.array(map(lambda x: np.power(((x*lam)+1), ool) if not _eqls(lam,ZERO) else np.exp(x), y))
+        return X if self.as_df else X.as_matrix()
 
 def _transform_y(y, lam):
     """Transform a single y, given a single lambda value.
@@ -389,14 +348,12 @@ def _transform_y(y, lam):
     lam : ndarray, shape (n_lambdas,)
        The lambda value used for the transformation
     """
-
-    ## If lam is nan, then it was a sparse column:
-    if np.isnan(lam):
-        return y
+    ## ensure np array
+    y = np.array(y)
 
     return np.array(map(lambda x: (np.power(x, lam)-1)/lam if not _eqls(lam,ZERO) else np.log(x), y))
     
-def _estimate_lambda_single_y(y, is_sparse):
+def _estimate_lambda_single_y(y):
     """Estimate lambda for a single y, given a range of lambdas
     through which to search. No validation performed.
     
@@ -409,10 +366,9 @@ def _estimate_lambda_single_y(y, is_sparse):
        The vector of lambdas to estimate with
     """
     
-    ## If not an array, then was identified as a sparse col
-    if is_sparse:
-        return np.nan
-    
+    ## ensure is array
+    y = np.array(y)
+
     ## Use scipy's log-likelihood estimator
     b = boxcox(y, lmbda = None)
     
@@ -424,6 +380,7 @@ def _estimate_lambda_single_y(y, is_sparse):
 
 
 
+###############################################################################
 class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
@@ -431,6 +388,9 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
+    cols : array_like, str
+       The columns which to transform
+
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
        estimating each of the feature lambdas in parallel.
@@ -440,29 +400,37 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
+    as_df : boolean, def True
+       Whether to return a dataframe
+
 
     Attributes
     ----------
-    lambda_ : ndarray, shape (n_features,)
+    lambda_ : dict
        The lambda values corresponding to each feature
     """
 
-    def __init__(self, n_jobs = 1):
+    def __init__(self, cols=None, n_jobs=1, as_df=True):
+        self.cols_ = cols
         self.n_jobs = n_jobs
+        self.as_df = as_df
 
     def fit(self, X, y = None):
         """Estimate the lambdas, provided X
 
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
 
         y : Passthrough for Pipeline compatibility
         """
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
+        _validate_is_pd(X)
+        X = X.copy()
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
 
         n_samples, n_features = X.shape
         if n_samples < 2:
@@ -470,121 +438,33 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
 
 
         ## Now estimate the lambdas in parallel
-        self.lambda_ = np.array(Parallel(n_jobs=self.n_jobs)(
-            delayed(_yj_estimate_lambda_single_y)
-            (y) for y in X.transpose()))
+        self.lambda_ = dict(zip(self.cols_,
+            Parallel(n_jobs=self.n_jobs)(
+                delayed(_yj_estimate_lambda_single_y)
+                (X[nm]) for nm in self.cols_)))
 
         return self
-
-    def fit_transform(self, X, y = None):
-        """Estimate the lambdas, provided X, and then
-        return the transformed copy of X.
-
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-
-        y : Passthrough for Pipeline compatibility
-        """
-        return self.fit(X, y).transform(X, y)
 
     def transform(self, X, y = None):
         """Perform Yeo-Johnson transformation
 
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pandas DF, shape [n_samples, n_features]
             The data to transform
         """
         check_is_fitted(self, 'lambda_')
+        _validate_is_pd(X)
+        X = X.copy()
 
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
-
-        _, n_features = X.shape
         lambdas_ = self.lambda_
 
-        if not n_features == lambdas_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
+        ## do transformations
+        for nm in self.cols_:
+            X[nm] = _yj_transform_y(X[nm], lambdas_[nm])
 
-        return np.array([_yj_transform_y(X[:,i], lambdas_[i])\
-                         for i in xrange(n_features)]).transpose()
+        return X if self.as_df else X.as_matrix()
 
-    def inverse_transform(self, X):
-        """Transform back to the original representation
-
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data to inverse transform
-        """
-
-        '''
-        check_is_fitted(self, 'lambda_')
-
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
-
-        _, n_features = X.shape
-        lambdas_ = self.lambda_
-
-        if not n_features == lambdas_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
-
-        return np.array([_yj_inv_transform_y(X[:,i], lambdas_[i])\
-                         for i in xrange(n_features)]).transpose()
-        '''
-
-        ## This is imperfect, so we're just going to not implement for now.
-        return NotImplemented
-
-def _yj_inv_trans_single_x(x, lam):
-    ## This is where it gets messy, but we can theorize that
-    ## if the x is < 0 and the lambda meets the appropriate conditions,
-    ## that the x was sub-zero to begin with.
-    if x >= 0:
-        ## Case 1: x >= 0 and lambda is not 0
-        if not _eqls(lam, ZERO):
-            x *= lam
-            x += 1
-            x = np.power(x, 1.0 / lam)
-            return x - 1
-
-        ## Case 2: x >= 0 and lambda is 0
-        return np.exp(x) - 1
-    else:
-        ## Case 3: lambda does not equal 2
-        if not lam == 2.0:
-            x *= -(2.0 - lam)
-            x += 1
-            x = np.pow(x, 1.0 / (2.0 - lam))
-            x -= 1
-            return -x
-
-        ## Case 4: lambda equals 2
-        return -(np.exp(-x) - 1)
-
-
-def _yj_inv_transform_y(y, lam):
-    """Inverse transform a single y, given a single
-    lambda value. No validation performed.
-
-    Parameters
-    ----------
-    y : ndarray, shape (n_samples,)
-       The vector being inverse transformed
-
-    lam : ndarray, shape (n_lambdas,)
-       The lambda value used for the inverse operation
-    """
-    ## If lam is nan, then it was a sparse column:
-    if np.isnan(lam):
-        return y
-
-    return np.array([_yj_inv_trans_single_x(x, lam) for x in y])
 
 def _yj_trans_single_x(x, lam):
     if x >= 0:
@@ -616,10 +496,7 @@ def _yj_transform_y(y, lam):
     lam : ndarray, shape (n_lambdas,)
        The lambda value used for the transformation
     """
-    ## If lam is nan, then it was a sparse column:
-    if np.isnan(lam):
-        return y
-
+    y = np.array(y)
     return np.array([_yj_trans_single_x(x, lam) for x in y])
 
 def _yj_estimate_lambda_single_y(y):
@@ -634,11 +511,7 @@ def _yj_estimate_lambda_single_y(y):
     lambdas : ndarray, shape (n_lambdas,)
        The vector of lambdas to estimate with
     """
-
-    ## If all sparse, likely came from a OneHotCategoricalTransformer
-    if _all_sparse(y):
-        return np.nan
-
+    y = np.array(y)
     ## Use customlog-likelihood estimator
     return _yj_normmax(y)
 
@@ -736,6 +609,9 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin):
        
     Parameters
     ----------
+    cols : array_like, str
+       The columns which to transform
+
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
        estimating each of the feature lambdas in parallel.
@@ -745,106 +621,73 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
+    as_df : boolean, def True
+       Whether to return a dataframe
+
 
     Attributes
     ----------
-    sq_nms_ : array_like, shape (n_features,)
+    sq_nms_ : dict
        The squared norms for each feature
     """
     
-    def __init__(self, n_jobs = 1):
+    def __init__(self, cols=None, n_jobs=1, as_df=True):
+        self.cols_ = cols
         self.n_jobs = n_jobs
+        self.as_df = as_df
         
     def fit(self, X, y = None):
         """Estimate the squared norms for each feature, provided X
         
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pd DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
         
         y : Passthrough for Pipeline compatibility
         """
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
+        _validate_is_pd(X)
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns
         
         ## Now estimate the lambdas in parallel
-        self.sq_nms_ = np.array(Parallel(n_jobs=self.n_jobs)(
-                    delayed(_sq_norm_single)
-                    (y) for y in X.transpose()))
+        self.sq_nms_ = dict(zip(self.cols_,
+            Parallel(n_jobs=self.n_jobs)(
+                delayed(_sq_norm_single)
+                (X[nm]) for nm in self.cols_)))
 
         ## What if a squared norm is zero? We want to avoid a divide-by-zero situation...
-        self.sq_nms_[self.sq_nms_ == 0.0] = np.inf
+        for k,v in six.iteritems(self.sq_nms_):
+            if v == 0.0:
+                self.sq_nms_[k] = np.inf
         
         return self
-
-    def fit_transform(self, X, y = None):
-        """Estimate the squared norms, provided X, and then
-        return the transformed copy of X.
-        
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
-        """
-        return self.fit(X, y).transform(X, y)
 
     def transform(self, X, y = None):
         """Perform spatial sign transformation
         
         Parameters
         ----------
-        X : array-like, shape [n_samples, n_features]
+        X : pd DF, shape [n_samples, n_features]
             The data to transform
         """
         check_is_fitted(self, 'sq_nms_')
+        _validate_is_pd(X)
         
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
-        
-        _, n_features = X.shape
+        X = X.copy()
         sq_nms_ = self.sq_nms_
-        
-        if not n_features == sq_nms_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
-        
-        ## Return scaled by norms
-        return X / sq_nms_
 
-    def inverse_transform(self, X):
-        """Transform back to the original representation
+        ## scale by norms
+        for nm in self.cols_:
+            X[nm] /= sq_nms_[nm]
         
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data to inverse transform
-        """
-        check_is_fitted(self, 'sq_nms_')
-        
-        X = check_array(X, accept_sparse = False, copy = True,
-                       ensure_2d = True, warn_on_dtype = True,
-                       estimator = self, dtype = FLOAT_DTYPES)
-        
-        _, n_features = X.shape
-
-        ## If we have any infs in the output data, it's because
-        ## the squared norm was 0 and we forced it to Inf...
-        ## This will only happen if all elements in the feature
-        ## were 0 to begin with:
-        sq_nms_ = np.array([s if not s == np.inf else 0.0 for s in self.sq_nms_])
-        
-        if not n_features == sq_nms_.shape[0]:
-            raise ValueError('dim mismatch in n_features')
-        
-        ## Re-multiply by the norms
-        return X * sq_nms_
+        return X if self.as_df else X.as_matrix()
 
 
 def _sq_norm_single(x):
+    x = np.array(x)
     return np.dot(x, x)
 
 

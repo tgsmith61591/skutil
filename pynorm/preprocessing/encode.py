@@ -61,7 +61,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     fill : str, optional (default = 'Missing')
         The value that will fill the missing values in the column
 
-    as_df : boolean, default = False
+    as_df : boolean, default = True
         Whether to return a pandas dataframe
         
     Attributes
@@ -77,7 +77,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     trans_nms_ : the dummified names
     """
     
-    def __init__(self, fill = 'Missing', as_df = False):
+    def __init__(self, fill='Missing', as_df=True):
         self.fill_ = fill
         self.as_df_ = as_df
         
@@ -179,5 +179,5 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         oh = self.one_hot_.transform(trans).todense()
         x = np.array(np.hstack((numers, oh)))
 
-        return x if not self.as_df_ else pd.DataFrame.from_records(data = x, columns = self.trans_nms_)
+        return x if not self.as_df_ else pd.DataFrame.from_records(data=x, columns=self.trans_nms_)
 

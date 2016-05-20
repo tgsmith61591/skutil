@@ -24,8 +24,8 @@ x = pd.DataFrame.from_records(data = X, columns = ['A','B','C'])
 ## Tack on a numeric col:
 x['n'] = np.array([5,6,7])
 
-## Fit the encoder
-o = OneHotCategoricalEncoder().fit(x)
+## Fit the encoder -- default return is pandas DataFrame
+o = OneHotCategoricalEncoder(as_df=False).fit(x)
 
 ## Notice that the numeric data is now BEFORE the dummies
 >>> o.transform(x)
@@ -61,6 +61,12 @@ Currently implemented `TransformerMixin` classes:
 - `YeoJohnsonTransformer`
   - Will ignore sparse dummy columns produced by Encoder classes
 - `SpatialSignTransformer`
+- `SelectiveImputer`
+- `SelectivePCA`
+- `SelectiveScaler`
+
+All transformers in pynorm will take the arg `cols=None` (None being the default, which will automatically use all columns), which allows transformers to operate only on a subset of columns rather than the entire matrix.
+
 
 ```python
 ## Example using BoxCoxTransformer
@@ -77,7 +83,7 @@ prob = stats.probplot(X[:,0], dist=stats.norm, plot=ax1)
 ax1.set_xlabel('')
 ax1.set_title('Probplot against normal distribution')
 
-transformer = BoxCoxTransformer().fit(X)
+transformer = BoxCoxTransformer(as_df=False).fit(X)
 ax2 = fig.add_subplot(212)
 prob = stats.probplot(transformer.transform(X)[:,0], dist=stats.norm, plot=ax2)
 ax2.set_title('Probplot after Box-Cox transformation')

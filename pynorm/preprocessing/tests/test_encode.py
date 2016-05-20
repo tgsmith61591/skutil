@@ -19,7 +19,7 @@ x['n'] = np.array([5,6,7])
 
 
 def test_basic():
-	o = OneHotCategoricalEncoder().fit(x)
+	o = OneHotCategoricalEncoder(as_df=False).fit(x)
 	t = o.transform(x)
 
 	assert_array_equal(t, np.array([
@@ -38,5 +38,6 @@ def test_basic():
 
 	assert isinstance(t, np.ndarray), 'expected np.ndarray'
 
-	o = OneHotCategoricalEncoder(as_df = True).fit(x)
+	## assert default is pd DF
+	o = OneHotCategoricalEncoder().fit(x)
 	assert isinstance(o.transform(x), pd.DataFrame)

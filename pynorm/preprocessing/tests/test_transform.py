@@ -16,46 +16,49 @@ __all__ = [
 
 ## Def data for testing
 iris = load_iris()
-X = iris.data
+X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
 
 
 def test_bc():
-	transformer = BoxCoxTransformer().fit(X)
+	transformer = BoxCoxTransformer().fit(X) ## Will fit on all cols
 
 	## Assert similar lambdas
-	assert_array_almost_equal(transformer.lambda_,
-		np.array([-0.14475082666963388, 0.26165380763371671, 0.93129521538860016, 0.64441777772515185]))
+	assert_array_almost_equal(sorted(transformer.lambda_.values()),
+		np.array([-0.14475082666963388, 0.26165380763371671, 0.64441777772515185, 0.93129521538860016]))
 
 	## Assert exact shifts
-	assert_array_equal(transformer.shift_, np.array([ 0.,  0.,  0.,  0.]))
+	assert_array_equal(transformer.shift_.values(), np.array([ 0.,  0.,  0.,  0.]))
 
 	## Now subtract out some fixed amt from X, assert we get different values:
 	x = X - 10
 	transformer = BoxCoxTransformer().fit(x)
 
 	## Assert similar lambdas
-	assert_array_almost_equal(transformer.lambda_,
-		np.array([0.59843688208993162, 0.69983717204250795, 0.5928185584100969, 0.42501980692063013]))
+	assert_array_almost_equal(sorted(transformer.lambda_.values()),
+		np.array([0.42501980692063013, 0.5928185584100969, 0.59843688208993162, 0.69983717204250795]))
 
 	## Assert exact shifts
-	assert_array_equal(transformer.shift_, np.array([ 5.700001,  8.000001,  9.000001,  9.900001]))
+	assert_array_equal(sorted(transformer.shift_.values()), np.array([ 5.700001,  8.000001,  9.000001,  9.900001]))
 
-	## If we inverse transform, it should be nearly the same as the input matrix
+	## assert transform works
 	transformed = transformer.transform(X)
-	inversed = transformer.inverse_transform(transformed)
-	assert_array_almost_equal(X, inversed)
+	assert isinstance(transformed, pd.DataFrame)
+
+	## assert as df false yields array
+	assert isinstance(BoxCoxTransformer(as_df=False).fit_transform(X), np.ndarray)
 
 
 
 
 def test_yj():
-	transformer = YeoJohnsonTransformer().fit(X)
+	transformer = YeoJohnsonTransformer().fit(X) ## will fit on all cols
 
 	## Assert transform works...
 	transformed = transformer.transform(X)
+	assert isinstance(transformed, pd.DataFrame)
 
-	inverse = transformer.inverse_transform(transformed)
-	assert inverse is NotImplemented, 'expected NotImplemented'
+	## assert as df false yields array
+	assert isinstance(YeoJohnsonTransformer(as_df=False).fit_transform(X), np.ndarray)
 
 	## TODO: more
 
@@ -63,28 +66,31 @@ def test_yj():
 
 
 def test_ss():
-	transformer = SpatialSignTransformer().fit(X)
+	transformer = SpatialSignTransformer().fit(X) ## will fit to all cols
 
-	## Assert transform and inverse yields original
+	## Assert transform works
 	transformed = transformer.transform(X)
-	inverse = transformer.inverse_transform(transformed)
-	assert_array_almost_equal(X, inverse)
 
-	l = len(transformer.sq_nms_[transformer.sq_nms_ == np.inf])
+	vals = np.array(transformer.sq_nms_.values())
+	l = len(vals[vals == np.inf])
 	assert l == 0, 'expected len == 0, but got %i' % l
 
 	## Force inf as the sq norm
 	x = np.zeros((5,5))
-	transformer.fit(x)
+	xdf= pd.DataFrame.from_records(data=x)
+	transformer = SpatialSignTransformer().fit(xdf)
 
-	## Assert transform and inverse yields original
-	transformed = transformer.transform(x)
-	inverse = transformer.inverse_transform(transformed) ## returns to zero internally
-	assert_array_almost_equal(x, inverse)
+	## Assert transform works
+	transformed = transformer.transform(xdf)
+	assert isinstance(transformed, pd.DataFrame)
 
 	## Assert all Inf
-	l = len(transformer.sq_nms_[transformer.sq_nms_ == np.inf])
+	vals = np.array(transformer.sq_nms_.values())
+	l = len(vals[vals == np.inf])
 	assert l == 5, 'expected len == 5, but got %i' % l
+
+	## assert as df false yields array
+	assert isinstance(SpatialSignTransformer(as_df=False).fit_transform(X), np.ndarray)
 
 
 def test_selective_impute():
@@ -104,7 +110,7 @@ def test_selective_impute():
 
 
 def test_selective_pca():
-	original = pd.DataFrame.from_records(data = X, columns = iris.feature_names)
+	original = X
 	cols = [original.columns[0]] ## Only perform on first...
 	compare_cols = np.array(original[['sepal width (cm)','petal length (cm)','petal width (cm)']].as_matrix()) ## should be the same as the trans cols
 
@@ -119,7 +125,7 @@ def test_selective_pca():
 
 
 def test_selective_scale():
-	original = pd.DataFrame.from_records(data = X, columns = iris.feature_names)
+	original = X
 	cols = [original.columns[0]] ## Only perform on first...
 
 	original_means = np.mean(X, axis=0) ## array([ 5.84333333,  3.054     ,  3.75866667,  1.19866667])
