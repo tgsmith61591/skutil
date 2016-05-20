@@ -37,3 +37,6 @@ def test_basic():
 		[ 7.,  0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  1.]]))
 
 	assert isinstance(t, np.ndarray), 'expected np.ndarray'
+
+	o = OneHotCategoricalEncoder(as_df = True).fit(x)
+	assert isinstance(o.transform(x), pd.DataFrame)

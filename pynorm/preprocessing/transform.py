@@ -1,5 +1,8 @@
-from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import Imputer, StandardScaler
+from sklearn.decomposition import PCA
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted, FLOAT_DTYPES
 from sklearn.externals.joblib import Parallel, delayed
@@ -11,12 +14,14 @@ from .util import *
 
 __all__ = [
     'BoxCoxTransformer',
+    'SelectiveImputer',
+    'SelectivePCA',
+    'SelectiveScaler',
+    'SpatialSignTransformer',
     'YeoJohnsonTransformer',
-    'SpatialSignTransformer'
 ]
 
 ZERO = 1e-16
-
 
 
 ## Helper funtions:
@@ -40,7 +45,192 @@ def _eqls(lam, v):
     return np.abs(lam) <= v
 
 
+def _validate_is_pd(X):
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError('expected pandas DataFrame')
 
+
+
+
+###############################################################################
+class SelectiveImputer(BaseEstimator, TransformerMixin):
+    """An imputer class that can operate across a select
+    group of columns. Useful for data that contains categorical features
+    that have not yet been dummied, for dummied features that we
+    may not want to scale, or for any already-in-scale features.
+
+    Parameters
+    ----------
+    cols : array_like (string)
+        names of columns on which to apply scaling
+
+    missing_values : str, default 'NaN'
+        the missing value representation
+
+    strategy : str, default 'mean'
+        the strategy for imputation
+
+    Attributes
+    ----------
+    cols_ : array_like (string)
+        the columns
+
+    imputer_ : the fit imputer
+
+    missing_values : see above
+    strategy : see above
+
+    """
+
+    def __init__(self, cols, missing_values = 'NaN', strategy = 'mean'):
+        self.cols_ = cols
+        self.missing_values = missing_values
+        self.strategy = strategy
+
+    def fit(self, X, y = None):
+        _validate_is_pd(X)
+
+        ## fails if columns don't exist
+        self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[self.cols_])
+        return self
+
+    def transform(self, X, y = None):
+        check_is_fitted(self, 'imputer_')
+        _validate_is_pd(X)
+
+        X = X.copy()
+        X[self.cols_] = self.imputer_.transform(X[self.cols_])
+        return X
+
+
+
+###############################################################################
+class SelectiveScaler(BaseEstimator, TransformerMixin):
+    """A class that will apply scaling only to a select group
+    of columns. Useful for data that contains categorical features
+    that have not yet been dummied, for dummied features that we
+    may not want to scale, or for any already-in-scale features.
+    Perhaps, even, there are some features you'd like to impute in
+    a different manner than others. This, then, allows two back-to-back
+    SelectiveScalers with different columns & strategies in a pipeline object.
+
+    Parameters
+    ----------
+    cols : array_like (string)
+        names of columns on which to apply scaling
+
+    scaler : instance of a sklearn Scaler, default StandardScaler
+
+
+    Attributes
+    ----------
+    cols_ : array_like (string)
+        the columns
+
+    scaler_ : instance of a sklearn Scaler
+        the scaler
+    """
+
+    def __init__(self, cols, scaler = StandardScaler()):
+        self.cols_ = cols
+        self.scaler_ = scaler
+
+    def fit(self, X, y = None):
+        """Fit the scaler"""
+        _validate_is_pd(X)
+
+        ## throws exception if the cols don't exist
+        self.scaler_.fit(X[self.cols_])
+        return self
+
+    def transform(self, X, y = None):
+        """Transform on new data, return a pd DataFrame"""
+        _validate_is_pd(X)
+
+        X = X.copy()
+
+        ## Fails through if cols don't exist or if the scaler isn't fit yet
+        X[self.cols_] = self.scaler_.transform(X[self.cols_])
+        return X
+
+
+
+
+###############################################################################
+class SelectivePCA(BaseEstimator, TransformerMixin):
+    """A class that will apply PCA only to a select group
+    of columns. Useful for data that contains categorical features
+    that have not yet been dummied, for dummied features that we
+    may not want to scale, or for any already-in-scale features.
+
+    Parameters
+    ----------
+    cols : array_like (string)
+        names of columns on which to apply scaling
+
+    n_components : int, float, None or string
+        Number of components to keep.
+        if n_components is not set all components are kept:
+
+            n_components == min(n_samples, n_features)
+
+        if n_components == 'mle' and svd_solver == 'full', Minka\'s MLE is used
+        to guess the dimension
+        if ``0 < n_components < 1`` and svd_solver == 'full', select the number
+        of components such that the amount of variance that needs to be
+        explained is greater than the percentage specified by n_components
+        n_components cannot be equal to n_features for svd_solver == 'arpack'.
+
+    whiten : bool, optional (default False)
+        When True (False by default) the `components_` vectors are multiplied
+        by the square root of n_samples and then divided by the singular values
+        to ensure uncorrelated outputs with unit component-wise variances.
+        Whitening will remove some information from the transformed signal
+        (the relative variance scales of the components) but can sometime
+        improve the predictive accuracy of the downstream estimators by
+        making their data respect some hard-wired assumptions.
+
+
+    Attributes
+    ----------
+    cols_ : array_like (string)
+        the columns
+
+    pca_ : the PCA object
+    """
+
+    def __init__(self, cols, n_components=None, whiten=False):
+        self.cols_ = cols
+        self.n_components = n_components
+        self.whiten = whiten
+
+    def fit(self, X, y = None):
+        _validate_is_pd(X)
+
+        ## fails thru if names don't exist:
+        self.pca_ = PCA(
+            n_components=self.n_components,
+            whiten=self.whiten).fit(X[self.cols_])
+
+        return self
+
+    def transform(self, X, y = None):
+        check_is_fitted(self, 'pca_')
+        _validate_is_pd(X)
+
+        X = X.copy()
+        other_nms = [nm for nm in X.columns if not nm in self.cols_]
+
+        ## don't check fit, does internally in PCA object
+        transform = self.pca_.transform(X[self.cols_])
+        left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
+
+        return pd.concat([left, X[other_nms]], axis=1)
+
+
+
+
+###############################################################################
 class BoxCoxTransformer(BaseEstimator, TransformerMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
@@ -110,19 +300,6 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
             (Xt[i], sparse_cols_[i]) for i in range(n_features))
         
         return self
-    
-    def fit_transform(self, X, y = None):
-        """Estimate the lambdas, provided X, and then
-        return the transformed copy of X.
-        
-        Parameters
-        ----------
-        X : array-like, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
-        """
-        return self.fit(X, y).transform(X, y)
     
     def transform(self, X, y = None):
         """Perform Box-Cox transformation
@@ -241,6 +418,9 @@ def _estimate_lambda_single_y(y, is_sparse):
     
     ## Return lambda corresponding to maximum P
     return b[1]
+
+
+
 
 
 
@@ -544,6 +724,9 @@ def _yj_llf(data, lmb):
     llf -= N / 2.0 * np.log(var)
 
     return llf
+
+
+
 
 
 
