@@ -1,3 +1,5 @@
+[![Build status](https://travis-ci.org/tgsmith61591/skutil.svg?branch=master)](https://travis-ci.org/tgsmith61591/skutil)
+
 ### skutil
 A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes.  
 
