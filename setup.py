@@ -176,12 +176,11 @@ def setup_package():
 	skrs = 'skutil requires sklearn >= {0}.\n'.format(sklearn_min_version)
 	nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
 	scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
-
 	
+	check_statuses('numpy', numpy_status, nprs) ## Needs to happen before anything
+	check_statuses('scipy', scipy_status, scrs) ## Needs to happen before sklearn
 	check_statuses('pandas', pandas_status, pdrs)
 	check_statuses('scikit-learn',sklearn_status, skrs)
-	check_statuses('numpy', numpy_status, nprs)
-	check_statuses('scipy', scipy_status, scrs)
 
 	## We know numpy is installed at this point
 	from numpy.distutils.core import setup
