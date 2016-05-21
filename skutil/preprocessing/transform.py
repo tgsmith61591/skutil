@@ -16,7 +16,6 @@ from ..base import *
 
 __all__ = [
     'BoxCoxTransformer',
-    'FeatureSelector',
     'SelectiveImputer',
     'SelectiveScaler',
     'SpatialSignTransformer',
@@ -29,39 +28,6 @@ ZERO = 1e-16
 ## Helper funtions:
 def _eqls(lam, v):
     return np.abs(lam) <= v
-
-
-###############################################################################
-class FeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):
-    """A very simple class to be used at the beginning of a Pipeline that will
-    only propagte the given features throughout the remainder of the pipe
-
-    Parameters
-    ----------
-    cols : array_like (string)
-        The features to select
-    """
-
-    def __init__(self, cols=None):
-        self.cols_ = cols
-
-    def fit(self, X, y = None):
-        validate_is_pd(X)
-
-        ## If cols is None, then apply to all by default
-        if not self.cols_:
-            self.cols_ = X.columns.tolist()
-
-        return self
-
-    def transform(self, X, y = None):
-        validate_is_pd(X)
-
-        if not self.cols_:
-            raise ValueError('model has not been fit')
-
-        return X[self.cols_]
-
 
 
 ###############################################################################

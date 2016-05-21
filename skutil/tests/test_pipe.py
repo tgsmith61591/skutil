@@ -5,6 +5,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from skutil.preprocessing import *
 from skutil.decomposition import *
+from skutil.feature_selection import *
 import pandas as pd
 
 

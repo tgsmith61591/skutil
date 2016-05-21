@@ -17,13 +17,15 @@ def configuration(parent_package = '', top_path = None):
 	config = Configuration('skutil', parent_package, top_path)
 
 	## modules
-	config.add_subpackage('preprocessing')
 	config.add_subpackage('decomposition')
+	config.add_subpackage('feature_selection')
+	config.add_subpackage('preprocessing')
 	config.add_subpackage('utils')
 
 	## module tests
-	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('decomposition/tests')
+	config.add_subpackage('feature_selection/tests')
+	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('utils/tests')
 
 	## misc repo tests

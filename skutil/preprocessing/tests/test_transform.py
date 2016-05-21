@@ -6,7 +6,6 @@ from skutil.preprocessing import *
 
 __all__ = [
 	'test_boxcox',
-	'test_feature_selector',
 	'test_yeo_johnson',
 	'test_spatial_sign',
 	'test_selective_impute',
@@ -51,21 +50,6 @@ def test_boxcox():
 	assert isinstance(transformer.get_features(), list)
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
-
-
-def test_feature_selector():
-	transformer = FeatureSelector().fit(X)
-	assert transformer.transform(X).shape[1] == 4
-
-	cols = ['sepal length (cm)', 'sepal width (cm)']
-	transformer = FeatureSelector(cols=cols).fit(X)
-	assert transformer.transform(X).shape[1] == 2
-
-	# test the selective mixin
-	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
-	assert transformer.get_features() is None
-
 
 
 def test_yeo_johnson():
