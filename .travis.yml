@@ -1,16 +1,14 @@
-sudo: false
+sudo: true
 language: python
+python:
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
+  - "3.5"
 
-# Pre-install packages for the ubuntu distribution:
-cache:
-    apt: true
-    
-    # Use three different cache directories to work
-    # around a Travis bug with multi-platform cache dirs
-    - $HOME/pynorm_build_ubuntu
-    - $HOME/download
-
-addons:
-    apt:
-        packages:
-            - python-scipy
+## command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - python setup.py install
+script: nosetests

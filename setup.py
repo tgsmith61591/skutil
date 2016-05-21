@@ -61,7 +61,7 @@ class CleanCommand(Clean):
 			shutil.rmtree('build')
 		for dirpath, dirnames, filenames in os.walk('skutil'):
 			for filename in filenames:
-				if any(filename.endswith(suffix) for suffix in ('.so','.pyd','.dll','.pyc')):
+				if any(filename.endswith(suffix) for suffix in ('.so','.pyd','.dll','.pyc', '.DS_Store')):
 					os.unlink(os.path.join(dirpath, filename))
 					continue
 				extension = os.path.splitext(filename)[1]
@@ -142,9 +142,15 @@ def configuration(parent_package = '', top_path = None):
 def check_statuses(pkg_nm, status, rs):
 	if status['up_to_date'] is False:
 		if status['version']:
-			raise ImportError('Your installation of {0} {1} is out-of-date.\n{2}'.format(pkg_nm, status['version'], rs))
+			try:
+				subprocess.call(['pip', 'install', '--upgrade', ('%s' % pkg_nm)])
+			except:
+				raise ValueError('Your installation of {0} {1} is out-of-date.\n{2}'.format(pkg_nm, status['version'], rs))
 		else:
-			raise ImportError('{0} is not installed.\n{1}'.format(pkg_nm, rs))
+			try:
+				subprocess.call(['pip', 'install', ('%s' % pkg_nm)])
+			except:
+				raise ImportError('{0} is not installed.\n{1}'.format(pkg_nm, rs))
 
 
 def setup_package():
@@ -166,6 +172,7 @@ def setup_package():
 	nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
 	scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
 
+	
 	check_statuses('Pandas', pandas_status, pdrs)
 	check_statuses('sklearn',sklearn_status, skrs)
 	check_statuses('NumPy', numpy_status, nprs)

@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 __all__ = [
 	'get_numeric',
 	'is_numeric',
-	'perfect_collinearity_test',
+	'perfect_collinearity_check',
 	'validate_is_pd'
 ]
 
@@ -38,8 +38,8 @@ def is_numeric(x):
 	return isinstance(x, (int, float, long, np.int, np.float, np.long))
 
 
-def perfect_collinearity_test(X, min_rows="infer", max_rows=None):
-    """Test input data for any perfect correlations by running a regression
+def perfect_collinearity_check(X, min_rows="infer", max_rows=None):
+    """Check input data for any perfect correlations by running a regression
     against every x on all other x features. This is adaptive; it starts with
     a small dataset and if any R^2 == 1, will double the size of the dataset
     ad nauseum.

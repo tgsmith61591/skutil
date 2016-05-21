@@ -24,7 +24,7 @@ X['perfect'] = X[[1]]
 
 def test_perfect_collinearity():
 	## This interally ensures that this method can handle categorical data
-	series = perfect_collinearity_test(X)
+	series = perfect_collinearity_check(X)
 	assert series.perfect == 1.0, 'expected perfect collinearity'
 
 	## Test that all categorical won't work
@@ -33,7 +33,7 @@ def test_perfect_collinearity():
 	failed = False
 
 	try:
-		perfect_collinearity_test(b)
+		perfect_collinearity_check(b)
 	except ValueError as v:
 		failed = True
 	assert failed, 'expected the collinearity test to fail'
@@ -41,7 +41,7 @@ def test_perfect_collinearity():
 	## Test that adding just two numeric cols will make it work
 	b['b'] = [1,2,3]
 	b['c'] = [3,2,1]
-	series = perfect_collinearity_test(b)
+	series = perfect_collinearity_check(b)
 
 	assert series.b == 1.0, 'expected perfect collinearity'
 	assert series.c == 1.0, 'expected perfect collinearity'
