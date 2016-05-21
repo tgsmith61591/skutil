@@ -30,10 +30,10 @@ VERSION = skutil.__version__
 
 
 ## Version requirements
-pandas_min_version = '0.18'
+pandas_min_version = '0.17'
 sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
-scipy_min_version  = '0.17'
+scipy_min_version  = '0.9'
 
 
 ## Define setup tools early
