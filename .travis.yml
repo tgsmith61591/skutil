@@ -2,10 +2,10 @@ sudo: true
 language: python
 python:
   - "2.7"
-  - "3.2"
-  - "3.3"
-  - "3.4"
-  - "3.5"
+  #- "3.2"
+  #- "3.3"
+  #- "3.4"
+  #- "3.5"
 
 ## Install the packages
 install:
@@ -40,4 +40,5 @@ script:
   - nosetests --with-cov --cov skutil --cov-config .coveragerc --logging-level=INFO
 
 ## Compute coverage
+after_success:
   - coveralls --config_file .coveragerc
