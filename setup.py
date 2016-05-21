@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, sys, shutil
 from os.path import join
 import warnings
@@ -30,10 +31,10 @@ VERSION = skutil.__version__
 
 
 ## Version requirements
-pandas_min_version = '0.17'
+pandas_min_version = '0.18'
 sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
-scipy_min_version  = '0.9'
+scipy_min_version  = '0.17'
 
 
 ## Define setup tools early
@@ -142,15 +143,19 @@ def configuration(parent_package = '', top_path = None):
 def check_statuses(pkg_nm, status, rs):
 	if status['up_to_date'] is False:
 		if status['version']:
+			warning_msg = 'Your installation of {0} {1} is out-of-date.\n{2}'.format(pkg_nm, status['version'], rs)
 			try:
+				print(warning_msg, 'Attempting to upgrade.\n')
 				subprocess.call(['pip', 'install', '--upgrade', ('%s' % pkg_nm)])
 			except:
-				raise ValueError('Your installation of {0} {1} is out-of-date.\n{2}'.format(pkg_nm, status['version'], rs))
+				raise ValueError('cannot upgrade')
 		else:
+			warning_msg = '{0} is not installed.\n{1}'.format(pkg_nm, rs)
 			try:
+				print(warning_msg, 'Attempting to install.\n')
 				subprocess.call(['pip', 'install', ('%s' % pkg_nm)])
 			except:
-				raise ImportError('{0} is not installed.\n{1}'.format(pkg_nm, rs))
+				raise ImportError('cannot install')
 
 
 def setup_package():
@@ -163,7 +168,7 @@ def setup_package():
 			**extra_setuptools_args)
 
 	pandas_status = get_pandas_status()
-	sklearn_status=get_sklearn_status()
+	sklearn_status= get_sklearn_status()
 	numpy_status  = get_numpy_status()
 	scipy_status  = get_scipy_status()
 
@@ -173,10 +178,10 @@ def setup_package():
 	scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
 
 	
-	check_statuses('Pandas', pandas_status, pdrs)
-	check_statuses('sklearn',sklearn_status, skrs)
-	check_statuses('NumPy', numpy_status, nprs)
-	check_statuses('SciPy', scipy_status, scrs)
+	check_statuses('pandas', pandas_status, pdrs)
+	check_statuses('scikit-learn',sklearn_status, skrs)
+	check_statuses('numpy', numpy_status, nprs)
+	check_statuses('scipy', scipy_status, scrs)
 
 	## We know numpy is installed at this point
 	from numpy.distutils.core import setup
