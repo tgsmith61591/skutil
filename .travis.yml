@@ -25,7 +25,8 @@ install:
   - python setup.py install
 
 ## Run tests
-script: -nosetests --with-cov --cov skutil --cov-config .coveragerc --logging-level=INFO
+script: 
+  - nosetests --with-cov --cov skutil --cov-config .coveragerc --logging-level=INFO
 
 ## Compute coverage
   - coveralls --config_file .coveragerc
