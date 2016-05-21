@@ -11,4 +11,6 @@ python:
 install:
   - pip install -r requirements.txt
   - python setup.py install
+
+## Run tests
 script: nosetests
