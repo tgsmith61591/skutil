@@ -1,5 +1,0 @@
-###### Requirements with Version Specifiers ######
-pandas >= 0.18
-scikit-learn >= 0.16
-numpy >= 1.6
-scipy >= 0.17
