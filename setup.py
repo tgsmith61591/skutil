@@ -94,38 +94,38 @@ def get_pandas_status():
 def get_sklearn_status():
 	sk_status = {}
 	try:
-                import sklearn as sk
-                sk_version = sk.__version__
-                sk_status['up_to_date'] = parse_version(sk_version) >= parse_version(sklearn_min_version)
-                sk_status['version'] = sk_version
-        except ImportError:
-                sk_status['up_to_date'] = False
-                sk_status['version'] = ""
-        return sk_status
+        import sklearn as sk
+        sk_version = sk.__version__
+        sk_status['up_to_date'] = parse_version(sk_version) >= parse_version(sklearn_min_version)
+        sk_status['version'] = sk_version
+    except ImportError:
+        sk_status['up_to_date'] = False
+        sk_status['version'] = ""
+    return sk_status
 
 def get_numpy_status():
 	np_status = {}
-        try:
-                import numpy as np
-                np_version = np.__version__
-                np_status['up_to_date'] = parse_version(np_version) >= parse_version(numpy_min_version)
-                np_status['version'] = np_version
-        except ImportError:
-                np_status['up_to_date'] = False
-                np_status['version'] = ""
-        return np_status
+    try:
+        import numpy as np
+        np_version = np.__version__
+        np_status['up_to_date'] = parse_version(np_version) >= parse_version(numpy_min_version)
+        np_status['version'] = np_version
+    except ImportError:
+        np_status['up_to_date'] = False
+        np_status['version'] = ""
+    return np_status
 
 def get_scipy_status():
 	sc_status = {}
-        try:
-                import scipy as sc
-                sc_version = sc.__version__
-                sc_status['up_to_date'] = parse_version(sc_version) >= parse_version(scipy_min_version)
-                sc_status['version'] = sc_version
-        except ImportError:
-                sc_status['up_to_date'] = False
-                sc_status['version'] = ""
-        return sc_status
+    try:
+        import scipy as sc
+        sc_version = sc.__version__
+        sc_status['up_to_date'] = parse_version(sc_version) >= parse_version(scipy_min_version)
+        sc_status['version'] = sc_version
+    except ImportError:
+        sc_status['up_to_date'] = False
+        sc_status['version'] = ""
+    return sc_status
 
 ## DEFINE CONFIG
 def configuration(parent_package = '', top_path = None):
