@@ -1,0 +1,16 @@
+sudo: false
+language: python
+
+# Pre-install packages for the ubuntu distribution:
+cache:
+    apt: true
+    
+    # Use three different cache directories to work
+    # around a Travis bug with multi-platform cache dirs
+    - $HOME/pynorm_build_ubuntu
+    - $HOME/download
+
+addons:
+    apt:
+        packages:
+            - python-scipy

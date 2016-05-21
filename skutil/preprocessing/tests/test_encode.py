@@ -1,11 +1,11 @@
 import numpy as np
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-from pynorm.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
+from skutil.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
 import pandas as pd
 
 __all__ = [
-	'test_basic'
+	'test_encode_1'
 ]
 
 
@@ -18,7 +18,7 @@ x = pd.DataFrame.from_records(data = X, columns = ['A','B','C'])
 x['n'] = np.array([5,6,7])
 
 
-def test_basic():
+def test_encode_1():
 	o = OneHotCategoricalEncoder(as_df=False).fit(x)
 	t = o.transform(x)
 

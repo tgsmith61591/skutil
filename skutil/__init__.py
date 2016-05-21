@@ -2,21 +2,22 @@
 sklearn-esque transformers for python
 '''
 import sys, warnings
+from .base import *
 
-__version__ = '0.0.2'
+__version__ = '0.0.4'
 
 try:
     # This variable is injected in the __builtins__ by the build
-    # process. It used to enable importing subpackages of pynorm when
+    # process. It used to enable importing subpackages of skutil when
     # the binaries are not built
-    __PYNORM_SETUP__
+    __SKUTIL_SETUP__
 except NameError:
-    __PYNORM_SETUP__ = False
+    __SKUTIL_SETUP__ = False
 
 
 
-if __PYNORM_SETUP__:
-    sys.stderr.write('Partial import of pynorm during the build process.\n')
+if __SKUTIL_SETUP__:
+    sys.stderr.write('Partial import of skutil during the build process.\n')
 else:
     __all__ = [
         'preprocessing'

@@ -1,14 +1,16 @@
 from __future__ import print_function
-from pynorm.preprocessing.tests import *
-from pynorm.decomposition.tests import *
-from pynorm.utils.tests import *
+from skutil.preprocessing.tests import *
+from skutil.decomposition.tests import *
+from skutil.utils.tests import *
+from skutil.tests import *
 
 
 __test_modules = [
 	test_decompose,
 	test_encode,
 	test_transform,
-	test_util
+	test_util,
+	test_pipe
 ]
 
 def _test_runner():
@@ -18,12 +20,12 @@ def _test_runner():
 		for a in module.__all__:
 			method = getattr(module, a)
 
-			pfx, msg = 'INFO ', 'passed'
+			pfx, msg = 'PASS', 'passed'
 			t = time()
 			try:
 				method()
 			except AssertionError as ae:
-				pfx = 'ERROR'
+				pfx = 'FAIL'
 				msg = 'FAILED! (%s)' % (ae.message if not ae.message == '' else 'assertion error; no message provided')
 
 

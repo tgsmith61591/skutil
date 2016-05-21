@@ -1,6 +1,6 @@
 """
 ===========================
-Statistical transformations
+Matrix decompositions
 ===========================
 
 Provides sklearn-esque decompositions

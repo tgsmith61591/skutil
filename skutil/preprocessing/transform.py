@@ -11,10 +11,12 @@ from scipy.stats import boxcox
 from scipy import optimize
 from .encode import get_unseen
 from ..utils import *
+from ..base import *
 
 
 __all__ = [
     'BoxCoxTransformer',
+    'FeatureSelector',
     'SelectiveImputer',
     'SelectiveScaler',
     'SpatialSignTransformer',
@@ -29,9 +31,41 @@ def _eqls(lam, v):
     return np.abs(lam) <= v
 
 
+###############################################################################
+class FeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):
+    """A very simple class to be used at the beginning of a Pipeline that will
+    only propagte the given features throughout the remainder of the pipe
+
+    Parameters
+    ----------
+    cols : array_like (string)
+        The features to select
+    """
+
+    def __init__(self, cols=None):
+        self.cols_ = cols
+
+    def fit(self, X, y = None):
+        validate_is_pd(X)
+
+        ## If cols is None, then apply to all by default
+        if not self.cols_:
+            self.cols_ = X.columns.tolist()
+
+        return self
+
+    def transform(self, X, y = None):
+        validate_is_pd(X)
+
+        if not self.cols_:
+            raise ValueError('model has not been fit')
+
+        return X[self.cols_]
+
+
 
 ###############################################################################
-class SelectiveImputer(BaseEstimator, TransformerMixin):
+class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """An imputer class that can operate across a select
     group of columns. Useful for data that contains categorical features
     that have not yet been dummied, for dummied features that we
@@ -70,7 +104,7 @@ class SelectiveImputer(BaseEstimator, TransformerMixin):
 
         ## If cols is None, then apply to all by default
         if not self.cols_:
-            self.cols_ = X.columns
+            self.cols_ = X.columns.tolist()
 
         ## fails if columns don't exist
         self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[self.cols_])
@@ -87,7 +121,7 @@ class SelectiveImputer(BaseEstimator, TransformerMixin):
 
 
 ###############################################################################
-class SelectiveScaler(BaseEstimator, TransformerMixin):
+class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
     """A class that will apply scaling only to a select group
     of columns. Useful for data that contains categorical features
     that have not yet been dummied, for dummied features that we
@@ -123,7 +157,7 @@ class SelectiveScaler(BaseEstimator, TransformerMixin):
 
         ## If cols is None, then apply to all by default
         if not self.cols_:
-            self.cols_ = X.columns
+            self.cols_ = X.columns.tolist()
 
         ## throws exception if the cols don't exist
         self.scaler_.fit(X[self.cols_])
@@ -142,7 +176,7 @@ class SelectiveScaler(BaseEstimator, TransformerMixin):
 
 
 ###############################################################################
-class BoxCoxTransformer(BaseEstimator, TransformerMixin):
+class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Box-Cox transformation. By default, will ignore sparse
@@ -196,7 +230,7 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin):
 
         ## If cols is None, then apply to all by default
         if not self.cols_:
-            self.cols_ = X.columns
+            self.cols_ = X.columns.tolist()
         
         n_samples, n_features = X.shape
         if n_samples < 2:
@@ -294,7 +328,7 @@ def _estimate_lambda_single_y(y):
 
 
 ###############################################################################
-class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
+class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Yeo-Johnson transformation.
@@ -343,7 +377,7 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin):
 
         ## If cols is None, then apply to all by default
         if not self.cols_:
-            self.cols_ = X.columns
+            self.cols_ = X.columns.tolist()
 
         n_samples, n_features = X.shape
         if n_samples < 2:
@@ -516,7 +550,7 @@ def _yj_llf(data, lmb):
 
 
 
-class SpatialSignTransformer(BaseEstimator, TransformerMixin):
+class SpatialSignTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Project the feature space of a matrix into a multi-dimensional sphere
     by dividing each feature by its squared norm.
        
@@ -563,7 +597,7 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin):
 
         ## If cols is None, then apply to all by default
         if not self.cols_:
-            self.cols_ = X.columns
+            self.cols_ = X.columns.tolist()
         
         ## Now estimate the lambdas in parallel
         self.sq_nms_ = dict(zip(self.cols_,

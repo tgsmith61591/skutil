@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-from pynorm.utils import *
+from skutil.utils import *
 
 __all__ = [
 	'test_perfect_collinearity',

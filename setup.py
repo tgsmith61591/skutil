@@ -15,18 +15,18 @@ else:
 
 
 ## Hacky, adopted from sklearn
-builtins.__PYNORM_SETUP__ = True
+builtins.__SKUTIL_SETUP__ = True
 
 ## Metadata
-DISTNAME = 'pynorm'
+DISTNAME = 'skutil'
 DESCRIPTION = 'A set of sklearn-esque extension modules'
 MAINTAINER = 'Taylor Smith'
 MAINTAINER_EMAIL = 'tgsmith61591@gmail.com'
 
 
 ## Import the restricted version that doesn't need compiled code
-import pynorm
-VERSION = pynorm.__version__
+import skutil
+VERSION = skutil.__version__
 
 
 ## Version requirements
@@ -35,6 +35,20 @@ sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
 scipy_min_version  = '0.17'
 
+
+## Define setup tools early
+SETUPTOOLS_COMMANDS = set([
+	'develop','release','bdist_egg','bdist_rpm',
+	'bdist_wininst','install_egg_info','build_sphinx',
+	'egg_info','easy_install','upload','bdist_wheel',
+	'--single-version-externally-managed'
+])
+
+if SETUPTOOLS_COMMANDS.intersection(sys.argv):
+	import setuptools
+	extra_setuptools_args = dict(zip_safe=False, include_package_data=True)
+else:
+	extra_setuptools_args = dict()
 
 ## Custom class to clean build artifacts
 class CleanCommand(Clean):
@@ -45,7 +59,7 @@ class CleanCommand(Clean):
 
 		if os.path.exists('build'):
 			shutil.rmtree('build')
-		for dirpath, dirnames, filenames in os.walk('pynorm'):
+		for dirpath, dirnames, filenames in os.walk('skutil'):
 			for filename in filenames:
 				if any(filename.endswith(suffix) for suffix in ('.so','.pyd','.dll','.pyc')):
 					os.unlink(os.path.join(dirpath, filename))
@@ -57,6 +71,12 @@ class CleanCommand(Clean):
 
 
 cmdclass = {'clean' : CleanCommand}
+
+
+WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts','upload_all'])
+if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
+	import wheelhouse_uploader.cmd
+	cmdclass.update(vars(wheelhouse_uploader.cmd))
 
 
 def get_pandas_status():
@@ -115,7 +135,7 @@ def configuration(parent_package = '', top_path = None):
 	## Avoid non-useful msg
 	config.set_options(ignore_setup_xxx_py=True, assume_default_configuration=True, delegate_options_to_subpackages=True, quiet=True)
 
-	config.add_subpackage('pynorm')
+	config.add_subpackage('skutil')
 	return config
 
 
@@ -133,17 +153,18 @@ def setup_package():
 			maintainer_email=MAINTAINER_EMAIL, 
 			description=DESCRIPTION, 
 			version=VERSION,
-			cmdclass=cmdclass)
+			cmdclass=cmdclass,
+			**extra_setuptools_args)
 
 	pandas_status = get_pandas_status()
 	sklearn_status=get_sklearn_status()
 	numpy_status  = get_numpy_status()
 	scipy_status  = get_scipy_status()
 
-	pdrs = 'pynorm requires Pandas >= {0}.\n'.format(pandas_min_version)
-	skrs = 'pynorm requires sklearn >= {0}.\n'.format(sklearn_min_version)
-	nprs = 'pynorm requires NumPy >= {0}.\n'.format(numpy_min_version)
-	scrs = 'pynorm requires SciPy >= {0}.\n'.format(scipy_min_version)
+	pdrs = 'skutil requires Pandas >= {0}.\n'.format(pandas_min_version)
+	skrs = 'skutil requires sklearn >= {0}.\n'.format(sklearn_min_version)
+	nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
+	scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
 
 	check_statuses('Pandas', pandas_status, pdrs)
 	check_statuses('sklearn',sklearn_status, skrs)

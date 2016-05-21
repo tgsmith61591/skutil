@@ -1,11 +1,11 @@
-### pynorm
-A succinct set of sklearn extension classes.  
+### skutil
+A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes.  
 
 
 #### Installation:
 ```bash
-git clone https://github.com/tgsmith61591/pynorm.git
-cd pynorm
+git clone https://github.com/tgsmith61591/skutil.git
+cd skutil
 python setup.py install
 ```
 
@@ -21,7 +21,7 @@ Currently implemented encoders:
 ```python
 ## Example use of OneHotCategoricalEncoder
 import numpy as np
-from pynorm.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
+from skutil.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
 import pandas as pd
 
 ## An array of strings
@@ -74,13 +74,13 @@ Currently implemented `TransformerMixin` classes:
 - `SelectivePCA`
 - `SelectiveScaler`
 
-All transformers in pynorm will take the arg `cols=None` (None being the default, which will automatically use all columns), which allows transformers to operate only on a subset of columns rather than the entire matrix.
+All transformers in skutil will take the arg `cols=None` (None being the default, which will automatically use all columns), which allows transformers to operate only on a subset of columns rather than the entire matrix.
 
 
 ```python
 ## Example using BoxCoxTransformer
 import pandas as pd
-from pynorm.preprocessing import BoxCoxTransformer
+from skutil.preprocessing import BoxCoxTransformer
 from scipy import stats
 
 ## Create a matrix of two-columns

@@ -2,12 +2,13 @@ import numpy as np
 import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-from pynorm.preprocessing import *
+from skutil.preprocessing import *
 
 __all__ = [
-	'test_bc',
-	'test_yj',
-	'test_ss',
+	'test_boxcox',
+	'test_feature_selector',
+	'test_yeo_johnson',
+	'test_spatial_sign',
 	'test_selective_impute',
 	'test_selective_scale'
 ]
@@ -18,7 +19,7 @@ iris = load_iris()
 X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
 
 
-def test_bc():
+def test_boxcox():
 	transformer = BoxCoxTransformer().fit(X) ## Will fit on all cols
 
 	## Assert similar lambdas
@@ -46,10 +47,28 @@ def test_bc():
 	## assert as df false yields array
 	assert isinstance(BoxCoxTransformer(as_df=False).fit_transform(X), np.ndarray)
 
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
+
+
+def test_feature_selector():
+	transformer = FeatureSelector().fit(X)
+	assert transformer.transform(X).shape[1] == 4
+
+	cols = ['sepal length (cm)', 'sepal width (cm)']
+	transformer = FeatureSelector(cols=cols).fit(X)
+	assert transformer.transform(X).shape[1] == 2
+
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
 
 
 
-def test_yj():
+def test_yeo_johnson():
 	transformer = YeoJohnsonTransformer().fit(X) ## will fit on all cols
 
 	## Assert transform works...
@@ -59,12 +78,17 @@ def test_yj():
 	## assert as df false yields array
 	assert isinstance(YeoJohnsonTransformer(as_df=False).fit_transform(X), np.ndarray)
 
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
+	
 	## TODO: more
 
 
 
 
-def test_ss():
+def test_spatial_sign():
 	transformer = SpatialSignTransformer().fit(X) ## will fit to all cols
 
 	## Assert transform works
@@ -91,6 +115,11 @@ def test_ss():
 	## assert as df false yields array
 	assert isinstance(SpatialSignTransformer(as_df=False).fit_transform(X), np.ndarray)
 
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
+
 
 def test_selective_impute():
 	a = np.random.rand(5, 5)
@@ -106,6 +135,11 @@ def test_selective_impute():
 
 	assert not pd.isnull(df.iloc[0, 3])
 	assert pd.isnull(df.iloc[1, 2])
+
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
 
 
 def test_selective_scale():
@@ -123,5 +157,10 @@ def test_selective_scale():
 
 	assert_array_almost_equal(new_means, np.array([ 0.  ,  3.054     ,  3.75866667,  1.19866667]))
 	assert_array_almost_equal(new_std,   np.array([ 1.  ,  0.43214658,  1.75852918,  0.76061262]))
+
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
 
 

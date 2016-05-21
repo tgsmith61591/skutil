@@ -14,7 +14,7 @@ def configuration(parent_package = '', top_path = None):
 	if os.name == 'posix':
 		libs.append('m')
 
-	config = Configuration('pynorm', parent_package, top_path)
+	config = Configuration('skutil', parent_package, top_path)
 
 	## modules
 	config.add_subpackage('preprocessing')
@@ -25,6 +25,9 @@ def configuration(parent_package = '', top_path = None):
 	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('decomposition/tests')
 	config.add_subpackage('utils/tests')
+
+	## misc repo tests
+	config.add_subpackage('tests')
 
 	return config
 
