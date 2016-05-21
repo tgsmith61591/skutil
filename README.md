@@ -1,5 +1,5 @@
 [![Build status](https://travis-ci.org/tgsmith61591/skutil.svg?branch=master)](https://travis-ci.org/tgsmith61591/skutil)
-![Supported versions](https://img.shields.io/badge/python-2.7+-blue.svg) 
+![Supported versions](https://img.shields.io/badge/python-2.7-blue.svg) 
 
 ### skutil
 A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes.  

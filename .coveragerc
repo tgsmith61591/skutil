@@ -1,5 +1,5 @@
 [run]
-source = YOUR_PACKAGE_NAME_HERE
+source = skutil
 omit =
     */python?.?/*
     */lib-python/?.?/*.py
