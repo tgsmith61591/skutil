@@ -20,7 +20,7 @@ X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
 
 def test_pipeline_basic():
 	pipe = Pipeline([
-			('selector', FeatureSelector(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
+			('selector', FeatureRetainer(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
 			('scaler', SelectiveScaler()),
 			('model', RandomForestClassifier())
 		])
@@ -30,7 +30,7 @@ def test_pipeline_basic():
 
 def test_pipeline_complex():
 	pipe = Pipeline([
-			('selector', FeatureSelector(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
+			('selector', FeatureRetainer(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
 			('scaler', SelectiveScaler()),
 			('boxcox', BoxCoxTransformer()),
 			('pca', SelectivePCA()),

@@ -16,6 +16,7 @@ from ..base import *
 
 __all__ = [
     'BoxCoxTransformer',
+    'FunctionMapper',
     'SelectiveImputer',
     'SelectiveScaler',
     'SpatialSignTransformer',
@@ -28,6 +29,77 @@ ZERO = 1e-16
 ## Helper funtions:
 def _eqls(lam, v):
     return np.abs(lam) <= v
+
+
+
+###############################################################################
+class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
+    """Apply a function to a column or set of columns.
+
+    Parameters
+    ----------
+    cols : string or array_like, default None
+        The columns to apply a function to
+
+    fun : function, default None
+        The function to apply to the feature(s)
+    """
+
+    def __init__(self, cols=None, fun=None, **kwargs):
+        self.cols_ = cols
+        self.fun = fun
+        self.kwargs = kwargs
+
+    def fit(self, X, y = None):
+        """Validate the args
+        
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data used for estimating the lambdas
+        
+        y : Passthrough for Pipeline compatibility
+        """
+        validate_is_pd(X)
+
+        # validate the cols
+        if not self.cols_:
+            self.cols_ = X.columns.values
+        # if is string, make it a list
+        elif isinstance(self.cols_, str):
+            self.cols_ = [self.cols_]
+
+        # validate the function. If none, make it a passthrough
+        if not self.fun:
+            def pass_through(x, **kwargs):
+                return x
+
+            self.fun = pass_through
+        else:
+            # check whether is function
+            if not hasattr(self.fun, '__call__'):
+                raise ValueError('passed fun arg is not a function')
+
+        return self
+
+    def transform(self, X, y = None):
+        """Apply the function to the new data.
+        
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data used for estimating the lambdas
+        
+        y : Passthrough for Pipeline compatibility
+        """
+        validate_is_pd(X)
+
+        X = X.copy()
+
+        # apply the function
+        X[self.cols_] = X[self.cols_].apply(lambda x: self.fun(x, **self.kwargs))
+        return X
+
 
 
 ###############################################################################
@@ -66,6 +138,15 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
         self.strategy = strategy
 
     def fit(self, X, y = None):
+        """Fit the imputers.
+        
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data used for estimating the lambdas
+        
+        y : Passthrough for Pipeline compatibility
+        """
         validate_is_pd(X)
 
         ## If cols is None, then apply to all by default
@@ -77,6 +158,15 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
         return self
 
     def transform(self, X, y = None):
+        """Transform the incoming data.
+        
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data used for estimating the lambdas
+        
+        y : Passthrough for Pipeline compatibility
+        """
         check_is_fitted(self, 'imputer_')
         validate_is_pd(X)
 

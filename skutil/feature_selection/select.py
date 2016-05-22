@@ -7,16 +7,45 @@ from ..utils import validate_is_pd
 
 
 __all__ = [
-	'FeatureSelector',
+	'FeatureDropper',
+	'FeatureRetainer',
 	'MulticollinearityFilterer',
 	'NearZeroVarianceFilterer'
 ]
 
 
 ###############################################################################
-class FeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):
+class FeatureDropper(BaseEstimator, TransformerMixin, SelectiveMixin):
+	"""A very simple class to be used at the beginning or any stage of a 
+	Pipeline that will drop the given features from the remainder of the pipe
+
+	Parameters
+	----------
+	cols : array_like (string)
+		The features to drop
+	"""
+
+	def __init__(self, cols=None):
+		self.cols_ = cols
+
+	def fit(self, X, y = None):
+		validate_is_pd(X)
+
+		## If cols is None, then apply to none by default
+		if not self.cols_:
+			self.cols_ = []
+
+		return self
+
+	def transform(self, X, y = None):
+		validate_is_pd(X)
+		return X.drop(self.cols_, axis=1)
+
+
+###############################################################################
+class FeatureRetainer(BaseEstimator, TransformerMixin, SelectiveMixin):
 	"""A very simple class to be used at the beginning of a Pipeline that will
-	only propagte the given features throughout the remainder of the pipe
+	only propagate the given features throughout the remainder of the pipe
 
 	Parameters
 	----------

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
@@ -6,6 +7,7 @@ from skutil.preprocessing import *
 
 __all__ = [
 	'test_boxcox',
+	'test_function_mapper',
 	'test_yeo_johnson',
 	'test_spatial_sign',
 	'test_selective_impute',
@@ -16,6 +18,7 @@ __all__ = [
 ## Def data for testing
 iris = load_iris()
 X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+
 
 
 def test_boxcox():
@@ -50,6 +53,24 @@ def test_boxcox():
 	assert isinstance(transformer.get_features(), list)
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
+
+
+def test_function_mapper():
+	Y = np.array([['USA','RED','a'],
+                  ['MEX','GRN','b'],
+                  ['FRA','RED','b']])
+	y = pd.DataFrame.from_records(data = Y, columns = ['A','B','C'])
+	# Tack on a pseudo-numeric col
+	y['D'] = np.array(['$5,000','$6,000','$7'])
+	y['E'] = np.array(['8%','52%','0.3%'])
+
+	def fun(x):
+		return x.replace('[\$,%]', '', regex=True).astype(float)
+
+	transformer = FunctionMapper(cols=['D','E'], fun=fun).fit(y)
+	transformed = transformer.transform(y)
+	assert transformed['D'].dtype == float
+
 
 
 def test_yeo_johnson():
