@@ -7,7 +7,8 @@ from skutil.feature_selection import *
 
 __all__ = [
 	'test_feature_selector',
-	'test_multi_collinearity'
+	'test_multi_collinearity',
+	'test_nzv_filterer'
 ]
 
 ## Def data for testing
@@ -32,6 +33,7 @@ def test_feature_selector():
 def test_multi_collinearity():
 	transformer = MulticollinearityFilterer()
 
+	# Test fit_transform
 	x = transformer.fit_transform(X)
 	assert x.shape[1] == 3
 
@@ -45,3 +47,38 @@ def test_multi_collinearity():
 	assert isinstance(transformer.get_features(), list)
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
+
+	# Test fit, then transform
+	transformer = MulticollinearityFilterer().fit(X)
+	x = transformer.transform(X)
+	assert x.shape[1] == 3
+
+	col_nms = x.columns
+	assert col_nms[0] == 'sepal length (cm)'
+	assert col_nms[1] == 'sepal width (cm)'
+	assert col_nms[2] == 'petal width (cm)'
+	assert len(transformer.drop_) == 1
+
+	# Check as_df false
+	transformer.as_df = False
+	assert isinstance(transformer.transform(X), np.ndarray)
+
+
+def test_nzv_filterer():
+	transformer = NearZeroVarianceFilterer().fit(X)
+	assert transformer.drop_ is None
+
+	y = X.copy()
+	y['zeros'] = np.zeros(150)
+
+	transformer = NearZeroVarianceFilterer().fit(y)
+	assert len(transformer.drop_) == 1
+	assert transformer.drop_[0] == 'zeros'
+	assert transformer.transform(y).shape[1] == 4
+
+	# test the selective mixin
+	assert isinstance(transformer.get_features(), list)
+	transformer.set_features(cols=None)
+	assert transformer.get_features() is None
+
+
