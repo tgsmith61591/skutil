@@ -4,10 +4,6 @@ from sklearn.datasets import load_iris
 from skutil.preprocessing import SafeLabelEncoder, OneHotCategoricalEncoder
 import pandas as pd
 
-__all__ = [
-	'test_encode_1'
-]
-
 
 ## Def data for testing
 X = np.array([['USA','RED','a'],

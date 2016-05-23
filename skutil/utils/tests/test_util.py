@@ -4,11 +4,6 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from skutil.utils import *
 
-__all__ = [
-	'test_is_numeric',
-	'test_get_numeric'
-]
-
 
 ## Def data for testing
 iris = load_iris()

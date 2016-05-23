@@ -6,12 +6,6 @@ from sklearn.decomposition import PCA, TruncatedSVD
 from skutil.decomposition import *
 
 
-__all__ = [
-	'test_selective_pca',
-	'test_selective_tsvd'
-]
-
-
 
 ## Def data for testing
 iris = load_iris()

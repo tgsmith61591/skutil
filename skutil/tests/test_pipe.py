@@ -9,11 +9,6 @@ from skutil.feature_selection import *
 import pandas as pd
 
 
-__all__ = [
-	'test_pipeline_basic',
-	'test_pipeline_complex'
-]
-
 ## Def data for testing
 iris = load_iris()
 X = pd.DataFrame(data=iris.data, columns=iris.feature_names)

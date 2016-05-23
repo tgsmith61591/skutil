@@ -5,12 +5,6 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from skutil.feature_selection import *
 
-__all__ = [
-	'test_feature_dropper',
-	'test_feature_selector',
-	'test_multi_collinearity',
-	'test_nzv_filterer'
-]
 
 ## Def data for testing
 iris = load_iris()

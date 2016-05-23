@@ -5,15 +5,6 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 
-__all__ = [
-	'test_boxcox',
-	'test_function_mapper',
-	'test_yeo_johnson',
-	'test_spatial_sign',
-	'test_selective_impute',
-	'test_selective_scale'
-]
-
 
 ## Def data for testing
 iris = load_iris()
