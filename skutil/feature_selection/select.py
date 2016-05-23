@@ -29,28 +29,14 @@ class FeatureDropper(BaseEstimator, TransformerMixin, SelectiveMixin):
 		self.cols = cols
 
 	def fit(self, X, y = None):
-		revert_cols_to_none = self.cols is None
-
 		# check on state of X and cols
 		_, self.cols = validate_is_pd(X, self.cols)
-
-		# if we revert, it's because we accidentally set a None to all
-		if revert_cols_to_none:
-			self.cols = []
-
 		return self
 
 	def transform(self, X, y = None):
 		# check on state of X and cols
 		X, _ = validate_is_pd(X, self.cols)
-
-		# if the model hasn't been fit, cols could be None
-		# we need to explicitly check for None, as "if not self.cols"
-		# returns True for an empty list
-		if self.cols is None:
-			raise RuntimeError('model has not been fit yet!')
-
-		return X.drop(self.cols, axis=1)
+		return X if not self.cols else X.drop(self.cols, axis=1)
 
 
 ###############################################################################
@@ -75,12 +61,7 @@ class FeatureRetainer(BaseEstimator, TransformerMixin, SelectiveMixin):
 	def transform(self, X, y = None):
 		# check on state of X and cols
 		X, _ = validate_is_pd(X, self.cols)
-
-		# if the model hasn't been fit, cols could be None
-		if not self.cols:
-			raise RuntimeError('model has not been fit yet!')
-
-		return X[self.cols]
+		return X[self.cols or X.columns] # if cols is None, returns all
 
 
 ###############################################################################
@@ -151,14 +132,14 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 
 		# check on state of X and cols
 		X, self.cols = validate_is_pd(X, self.cols)
-		if len(self.cols) < 2:
+		if self.cols is not None and len(self.cols) < 2:
 			raise ValueError('too few features')
 
 		## init drops list
 		drops = []
 
 		## Generate correlation matrix
-		c = X[self.cols].corr(method=self.method).apply(lambda x: np.abs(x))
+		c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
 		## Iterate over each feature
 		finished = False
@@ -248,8 +229,9 @@ class NearZeroVarianceFilterer(BaseEstimator, TransformerMixin, SelectiveMixin):
 		# check on state of X and cols
 		X, self.cols = validate_is_pd(X, self.cols)
 
-		srs = X[self.cols].apply(lambda x: np.var(x) < self.threshold)
-		drops = X[self.cols].columns[srs]
+		# if cols is None, applies over everything
+		srs = X[self.cols or X.columns].apply(lambda x: np.var(x) < self.threshold)
+		drops = X[self.cols or X.columns].columns[srs]
 
 		if drops.shape[0] == 0:
 			self.drop = None

@@ -43,6 +43,10 @@ def validate_is_pd(X, cols, warn=True):
     tuple, (DataFrame: X, list: cols)
     """
 
+    # first check hard-to detect case:
+    if isinstance(X, pd.Series):
+        raise ValueError('expected DataFrame but got Series')
+
     # case 1, we have names but the X is not a frame
     if not isinstance(X, pd.DataFrame) and cols is not None:
         try:
@@ -53,11 +57,7 @@ def validate_is_pd(X, cols, warn=True):
 
     # case 2, we have a DF but no cols
     elif not cols:
-        try:
-            return X.copy(), X.columns.values.tolist()
-        except AttributeError as e:
-            # this happens if the X is a series, and not actually a frame
-            raise ValueError('got Series but expected DataFrame')
+        return X.copy(), None
 
     # case 3, we have a DF AND cols
     elif cols is not None:
@@ -71,8 +71,7 @@ def validate_is_pd(X, cols, warn=True):
             warnings.warn('X is not a DataFrame, and y is None', SelectiveWarning)
 
         try:
-            df = pd.DataFrame.from_records(data=X)
-            return df, df.columns.values.tolist()
+            return pd.DataFrame.from_records(data=X), None
         except Exception as e:
             raise ValueError('cannot create dataframe from X')
 

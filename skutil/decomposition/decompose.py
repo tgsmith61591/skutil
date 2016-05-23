@@ -86,11 +86,12 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
     def fit(self, X, y = None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
         ## fails thru if names don't exist:
         self.pca_ = PCA(
             n_components=self.n_components,
-            whiten=self.whiten).fit(X[self.cols])
+            whiten=self.whiten).fit(X[cols])
 
         return self
 
@@ -98,9 +99,10 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
         check_is_fitted(self, 'pca_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in self.cols]
-        transform = self.pca_.transform(X[self.cols])
+        other_nms = [nm for nm in X.columns if not nm in cols]
+        transform = self.pca_.transform(X[cols])
         left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
 
         x = pd.concat([left, X[other_nms]], axis=1)
@@ -164,7 +166,7 @@ class SelectiveTruncatedSVD(BaseEstimator, TransformerMixin, SelectiveMixin, Bas
         self.svd_ = TruncatedSVD(
             n_components=self.n_components,
             algorithm=self.algorithm,
-            n_iter=self.n_iter).fit(X[self.cols])
+            n_iter=self.n_iter).fit(X[self.cols or X.columns])
 
         return self
 
@@ -172,9 +174,10 @@ class SelectiveTruncatedSVD(BaseEstimator, TransformerMixin, SelectiveMixin, Bas
         check_is_fitted(self, 'svd_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in self.cols]
-        transform = self.svd_.transform(X[self.cols])
+        other_nms = [nm for nm in X.columns if not nm in cols]
+        transform = self.svd_.transform(X[cols])
         left = pd.DataFrame.from_records(data=transform, columns=[('Concept%i'%(i+1)) for i in range(transform.shape[1])])
 
         x = pd.concat([left, X[other_nms]], axis=1)

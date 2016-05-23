@@ -98,7 +98,7 @@ class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
         X, _ = validate_is_pd(X, self.cols)
 
         # apply the function
-        X[self.cols] = X[self.cols].apply(lambda x: self.fun(x, **self.kwargs))
+        X[self.cols or X.columns] = X[self.cols or X.columns].apply(lambda x: self.fun(x, **self.kwargs))
         return X
 
 
@@ -154,9 +154,10 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
         ## fails if columns don't exist
-        self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[self.cols])
+        self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[cols])
         return self
 
     def transform(self, X, y = None):
@@ -173,7 +174,7 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
 
-        X[self.cols] = self.imputer_.transform(X[self.cols])
+        X[self.cols or X.columns] = self.imputer_.transform(X[self.cols or X.columns])
         return X if self.as_df else X.as_matrix()
 
 
@@ -217,18 +218,20 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
         """Fit the scaler"""
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
         ## throws exception if the cols don't exist
-        self.scaler.fit(X[self.cols])
+        self.scaler.fit(X[cols])
         return self
 
     def transform(self, X, y = None):
         """Transform on new data, return a pd DataFrame"""
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
         ## Fails through if cols don't exist or if the scaler isn't fit yet
-        X[self.cols] = self.scaler.transform(X[self.cols])
+        X[cols] = self.scaler.transform(X[cols])
         return X if self.as_df else X.as_matrix()
 
 
@@ -285,24 +288,25 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
         
         # ensure enough rows
         _validate_rows(X)
         
 
         ## First step is to compute all the shifts needed, then add back to X...
-        min_Xs = X[self.cols].min(axis = 0)
+        min_Xs = X[cols].min(axis = 0)
         shift = np.array([np.abs(x) + 1e-6 if x <= 0.0 else 0.0 for x in min_Xs])
-        X[self.cols] += shift
+        X[cols] += shift
 
         ## now put shift into a dict
-        self.shift_ = dict(zip(self.cols, shift))
+        self.shift_ = dict(zip(cols, shift))
         
         ## Now estimate the lambdas in parallel
-        self.lambda_ = dict(zip(self.cols, 
+        self.lambda_ = dict(zip(cols, 
             Parallel(n_jobs=self.n_jobs)(
                 delayed(_estimate_lambda_single_y)
-                (X[i].tolist()) for i in self.cols)))
+                (X[i].tolist()) for i in cols)))
 
         return self
     
@@ -320,17 +324,18 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         
         _, n_features = X.shape
         lambdas_, shifts_ = self.lambda_, self.shift_
+        cols = X.columns if not self.cols else self.cols
             
         ## Add the shifts in, and if they're too low,
         ## we have to truncate at some low value: 1e-6
-        for nm in self.cols:
+        for nm in cols:
             X[nm] += shifts_[nm]
         
         ## If the shifts are too low, truncate...
         X = X.apply(lambda x: x.apply(lambda y: np.maximum(1e-6, y)))
 
         ## do transformations
-        for nm in self.cols:
+        for nm in cols:
             X[nm] = _transform_y(X[nm].tolist(), lambdas_[nm])
 
         return X if self.as_df else X.as_matrix()
@@ -428,16 +433,17 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
 
         # ensure enough rows
         _validate_rows(X)
 
 
         ## Now estimate the lambdas in parallel
-        self.lambda_ = dict(zip(self.cols,
+        self.lambda_ = dict(zip(cols,
             Parallel(n_jobs=self.n_jobs)(
                 delayed(_yj_estimate_lambda_single_y)
-                (X[nm]) for nm in self.cols)))
+                (X[nm]) for nm in cols)))
 
         return self
 
@@ -451,12 +457,13 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         """
         check_is_fitted(self, 'lambda_')
         # check on state of X and cols
-        X, _ = validate_is_pd(X, self.cols)
+        X, cols = validate_is_pd(X, self.cols)
+        cols = cols if not cols is None else X.columns
 
         lambdas_ = self.lambda_
 
         ## do transformations
-        for nm in self.cols:
+        for nm in cols:
             X[nm] = _yj_transform_y(X[nm], lambdas_[nm])
 
         return X if self.as_df else X.as_matrix()
@@ -628,12 +635,13 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
         
         ## Now estimate the lambdas in parallel
-        self.sq_nms_ = dict(zip(self.cols,
+        self.sq_nms_ = dict(zip(cols,
             Parallel(n_jobs=self.n_jobs)(
                 delayed(_sq_norm_single)
-                (X[nm]) for nm in self.cols)))
+                (X[nm]) for nm in cols)))
 
         ## What if a squared norm is zero? We want to avoid a divide-by-zero situation...
         for k,v in six.iteritems(self.sq_nms_):
@@ -655,9 +663,10 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
         sq_nms_ = self.sq_nms_
+        cols = X.columns if not self.cols else self.cols
 
         ## scale by norms
-        for nm in self.cols:
+        for nm in cols:
             X[nm] /= sq_nms_[nm]
         
         return X if self.as_df else X.as_matrix()

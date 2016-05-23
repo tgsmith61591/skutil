@@ -13,13 +13,11 @@ X = pd.DataFrame.from_records(data = iris.data, columns = iris.feature_names)
 
 def test_feature_dropper():
 	transformer = FeatureDropper().fit(X)
-	assert len(transformer.cols) == 0
+	assert not transformer.cols
 	assert transformer.transform(X).shape[1] == 4
 	assert FeatureDropper(['sepal length (cm)', 'sepal width (cm)']).fit_transform(X).shape[1] == 2
 
 	# test the selective mixin
-	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
 
 
@@ -33,8 +31,6 @@ def test_feature_selector():
 
 	# test the selective mixin
 	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
-	assert transformer.get_features() is None
 
 
 def test_multi_collinearity():
@@ -51,8 +47,6 @@ def test_multi_collinearity():
 	assert len(transformer.drop) == 1
 
 	# test the selective mixin
-	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
 
 	# Test fit, then transform
@@ -84,8 +78,6 @@ def test_nzv_filterer():
 	assert transformer.transform(y).shape[1] == 4
 
 	# test the selective mixin
-	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
 
 

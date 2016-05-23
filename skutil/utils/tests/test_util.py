@@ -34,10 +34,4 @@ def test_get_numeric():
 
 def test_validate_on_non_df():
 	x = iris.data
-
-	failed = False
-	try:
-		validate_is_pd(x, None, False)
-	except ValueError as e:
-		failed = True
-	assert failed
+	validate_is_pd(x, None, False)
