@@ -3,7 +3,8 @@ import abc
 __all__ = [
 	'BalancerMixin',
 	'SamplingWarning',
-	'SelectiveMixin'
+	'SelectiveMixin',
+	'SelectiveWarning'
 ]
 
 ###############################################################################
@@ -26,18 +27,24 @@ class SamplingWarning(UserWarning):
 	one instance will cause this warning to be thrown.
 	"""
 
+class SelectiveWarning(UserWarning):
+	"""Custom warning used to notify user when a structure implementing SelectiveMixin
+	operates improperly. A common usecase is when the fit method receives a non-DataFrame
+	X, and no cols.
+	"""
+
 class SelectiveMixin:
 	"""A mixin class that all selective transformers
 	should implement. Returns the columns used to transform on.
 
 	Attributes
 	----------
-	cols_ : array_like
+	cols : array_like
 		The columns transformed
 	"""
 
 	def get_features(self):
-		return self.cols_
+		return self.cols
 
 	def set_features(self, cols=None):
-		self.cols_ = cols
+		self.cols = cols

@@ -1,3 +1,4 @@
+
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
@@ -5,6 +6,7 @@ from sklearn.utils import column_or_1d
 from sklearn.preprocessing.label import _check_numpy_unicode_bug
 import numpy as np
 import pandas as pd
+from skutil.utils import validate_is_pd
 
 
 __all__ = [
@@ -66,7 +68,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         
     Attributes
     ----------
-    fill_ : see above
+    fill : see above
     as_df : see above
     
     obj_cols_ : array_like
@@ -78,7 +80,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     """
     
     def __init__(self, fill='Missing', as_df=True):
-        self.fill_ = fill
+        self.fill = fill
         self.as_df = as_df
         
         
@@ -90,16 +92,15 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         X : pandas dataframe
         y : passthrough for Pipeline
         """
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError('expected Pandas DataFrame')
+        # check on state of X, don't care about cols or the warning
+        X, _ = validate_is_pd(X, None, False)
             
         ## Extract the object columns
-        X = X.copy()
         obj_cols_ = X.select_dtypes(include = ['object']).columns.values
         
         ## If we need to fill in the NAs, take care of it
-        if not self.fill_ is None:
-            X[obj_cols_] = X[obj_cols_].fillna(self.fill_)
+        if not self.fill is None:
+            X[obj_cols_] = X[obj_cols_].fillna(self.fill)
         
         ## Set an array of uninitialized label encoders
         ## Then use fit_transform for effiency purposes
@@ -158,18 +159,16 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         X : pandas dataframe
         """
         check_is_fitted(self, 'obj_cols_')
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError('expected Pandas DataFrame')
-        
-        X = X.copy()
+        # check on state of X, don't care about cols or warning
+        X, _ = validate_is_pd(X, None, False)
         
         ## Retain just the numers
         numers = X[[nm for nm in X.columns.values if not nm in self.obj_cols_]]
         objs = X[self.obj_cols_]
         
         ## If we need to fill in the NAs, take care of it
-        if not self.fill_ is None:
-            objs = objs.fillna(self.fill_)
+        if not self.fill is None:
+            objs = objs.fillna(self.fill)
             
         ## Do label encoding using the safe label encoders
         trans = np.array([v.transform(objs[self.obj_cols_[i]]) for\

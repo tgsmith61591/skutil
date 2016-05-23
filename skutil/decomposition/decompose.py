@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -70,40 +71,36 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
 
     Attributes
     ----------
-    cols_ : array_like (string)
+    cols : array_like (string)
         the columns
 
     pca_ : the PCA object
     """
 
     def __init__(self, cols=None, n_components=None, whiten=False, as_df=True):
-        self.cols_ = cols
+        self.cols = cols
         self.n_components = n_components
         self.whiten = whiten
         self.as_df = as_df
 
     def fit(self, X, y = None):
-        validate_is_pd(X)
-
-        ## If cols is None, then apply to all by default
-        if not self.cols_:
-            self.cols_ = X.columns
+        # check on state of X and cols
+        X, self.cols = validate_is_pd(X, self.cols)
 
         ## fails thru if names don't exist:
         self.pca_ = PCA(
             n_components=self.n_components,
-            whiten=self.whiten).fit(X[self.cols_])
+            whiten=self.whiten).fit(X[self.cols])
 
         return self
 
     def transform(self, X, y = None):
         check_is_fitted(self, 'pca_')
-        validate_is_pd(X)
+        # check on state of X and cols
+        X, _ = validate_is_pd(X, self.cols)
 
-        X = X.copy()
-        other_nms = [nm for nm in X.columns if not nm in self.cols_]
-
-        transform = self.pca_.transform(X[self.cols_])
+        other_nms = [nm for nm in X.columns if not nm in self.cols]
+        transform = self.pca_.transform(X[self.cols])
         left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
 
         x = pd.concat([left, X[other_nms]], axis=1)
@@ -146,42 +143,38 @@ class SelectiveTruncatedSVD(BaseEstimator, TransformerMixin, SelectiveMixin, Bas
 
     Attributes
     ----------
-    cols_ : array_like (string)
+    cols : array_like (string)
         the columns
 
     svd_ : the SVD object
     """
 
     def __init__(self, cols=None, n_components=2, algorithm='randomized', n_iter=5, as_df=True):
-        self.cols_ = cols
+        self.cols = cols
         self.n_components = n_components
         self.algorithm = algorithm
         self.n_iter = n_iter
         self.as_df = as_df
 
     def fit(self, X, y = None):
-        validate_is_pd(X)
-
-        ## If cols is None, then apply to all by default
-        if not self.cols_:
-            self.cols_ = X.columns
+        # check on state of X and cols
+        X, self.cols = validate_is_pd(X, self.cols)
 
         ## fails thru if names don't exist:
         self.svd_ = TruncatedSVD(
             n_components=self.n_components,
             algorithm=self.algorithm,
-            n_iter=self.n_iter).fit(X[self.cols_])
+            n_iter=self.n_iter).fit(X[self.cols])
 
         return self
 
     def transform(self, X, y = None):
         check_is_fitted(self, 'svd_')
-        validate_is_pd(X)
+        # check on state of X and cols
+        X, _ = validate_is_pd(X, self.cols)
 
-        X = X.copy()
-        other_nms = [nm for nm in X.columns if not nm in self.cols_]
-
-        transform = self.svd_.transform(X[self.cols_])
+        other_nms = [nm for nm in X.columns if not nm in self.cols]
+        transform = self.svd_.transform(X[self.cols])
         left = pd.DataFrame.from_records(data=transform, columns=[('Concept%i'%(i+1)) for i in range(transform.shape[1])])
 
         x = pd.concat([left, X[other_nms]], axis=1)

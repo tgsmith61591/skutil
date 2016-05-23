@@ -37,7 +37,7 @@ def test_validate_on_non_df():
 
 	failed = False
 	try:
-		validate_is_pd(x)
+		validate_is_pd(x, None, False)
 	except ValueError as e:
 		failed = True
 	assert failed

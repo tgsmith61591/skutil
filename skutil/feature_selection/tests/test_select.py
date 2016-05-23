@@ -13,7 +13,7 @@ X = pd.DataFrame.from_records(data = iris.data, columns = iris.feature_names)
 
 def test_feature_dropper():
 	transformer = FeatureDropper().fit(X)
-	assert len(transformer.cols_) == 0
+	assert len(transformer.cols) == 0
 	assert transformer.transform(X).shape[1] == 4
 	assert FeatureDropper(['sepal length (cm)', 'sepal width (cm)']).fit_transform(X).shape[1] == 2
 
@@ -48,7 +48,7 @@ def test_multi_collinearity():
 	assert col_nms[0] == 'sepal length (cm)'
 	assert col_nms[1] == 'sepal width (cm)'
 	assert col_nms[2] == 'petal width (cm)'
-	assert len(transformer.drop_) == 1
+	assert len(transformer.drop) == 1
 
 	# test the selective mixin
 	assert isinstance(transformer.get_features(), list)
@@ -64,7 +64,7 @@ def test_multi_collinearity():
 	assert col_nms[0] == 'sepal length (cm)'
 	assert col_nms[1] == 'sepal width (cm)'
 	assert col_nms[2] == 'petal width (cm)'
-	assert len(transformer.drop_) == 1
+	assert len(transformer.drop) == 1
 
 	# Check as_df false
 	transformer.as_df = False
@@ -73,14 +73,14 @@ def test_multi_collinearity():
 
 def test_nzv_filterer():
 	transformer = NearZeroVarianceFilterer().fit(X)
-	assert transformer.drop_ is None
+	assert transformer.drop is None
 
 	y = X.copy()
 	y['zeros'] = np.zeros(150)
 
 	transformer = NearZeroVarianceFilterer().fit(y)
-	assert len(transformer.drop_) == 1
-	assert transformer.drop_[0] == 'zeros'
+	assert len(transformer.drop) == 1
+	assert transformer.drop[0] == 'zeros'
 	assert transformer.transform(y).shape[1] == 4
 
 	# test the selective mixin
