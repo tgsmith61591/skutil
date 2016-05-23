@@ -127,7 +127,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
             
             ## Update the names
             n_classes = len(encoder.classes_)
-            sequential_nms = ['%s.%i' % (nm,i) for i in range(n_classes)]
+            sequential_nms = ['%s.%s' % (nm,str(encoder.classes_[i])) for i in range(n_classes)]
             
             ## Remember to append the NA col
             sequential_nms.append('%s.NA' % nm)
