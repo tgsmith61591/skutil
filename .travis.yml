@@ -28,11 +28,12 @@ install:
   - conda info -a
 
   # dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage coveralls
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage
   - source activate test-environment
 
-  # Coverage packages are on my binstar channel
+  # Coverage packages
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  - pip install coveralls
   - python setup.py install
 
 ## Run tests
