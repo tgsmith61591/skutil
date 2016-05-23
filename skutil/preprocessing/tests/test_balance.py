@@ -34,6 +34,54 @@ def test_oversample():
 	assert cts[1] == expected_2_ct
 	assert cts[2] == expected_2_ct
 
+	# test what happens when non-string passed as col name
+	failed = False
+	try:
+		OversamplingClassBalancer(y=1).balance(X)
+	except ValueError as v:
+		failed = True
+	assert failed
+
+	# test with too many classes
+	Y = X.copy()
+	Y['class'] = np.arange(Y.shape[0])
+	failed = False
+	try:
+		OversamplingClassBalancer(y='class').balance(Y)
+	except ValueError as v:
+		failed = True
+	assert failed
+
+	# test with one class
+	Y['class'] = np.zeros(Y.shape[0])
+	failed = False
+	try:
+		OversamplingClassBalancer(y='class').balance(Y)
+	except ValueError as v:
+		failed = True
+	assert failed
+
+	# test with bad ratio
+	for r in [0.0, 1.1, 'string']:
+		failed = False
+		try:
+			OversamplingClassBalancer(y='target', ratio=r).balance(X)
+		except ValueError as v:
+			failed=True
+		assert failed
+
+
+	# test where two classes are equally represented, and one has only a few
+	Y = X.iloc[:105]
+	d = OversamplingClassBalancer(y='target', ratio=1.0).balance(Y)
+	assert d.shape[0] == 150
+
+	cts= d.target.value_counts()
+	assert cts[0] == 50
+	assert cts[1] == 50
+	assert cts[2] == 50
+
+
 
 def test_smote():
 	a, b, c = _get_three_results(SMOTEClassBalancer(y='target', ratio=0.5))

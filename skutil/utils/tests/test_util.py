@@ -32,3 +32,12 @@ def test_get_numeric():
 
 	assert len(get_numeric(b)) == 0, 'expected empty'
 
+def test_validate_on_non_df():
+	x = iris.data
+
+	failed = False
+	try:
+		validate_is_pd(x)
+	except ValueError as e:
+		failed = True
+	assert failed

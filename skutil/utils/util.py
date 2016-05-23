@@ -21,9 +21,7 @@ def get_numeric(X):
     X : pandas DF
         The dataframe
     """
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError('expected pandas DF')
-
+    validate_is_pd(X)
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int", "bool")))].index.tolist()
 
 

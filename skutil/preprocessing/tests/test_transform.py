@@ -45,6 +45,14 @@ def test_boxcox():
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
 
+	# Test on only one row...
+	failed = False
+	try:
+		BoxCoxTransformer().fit(X.iloc[0])
+	except ValueError as v:
+		failed = True
+	assert failed
+
 
 def test_function_mapper():
 	Y = np.array([['USA','RED','a'],
@@ -62,6 +70,26 @@ def test_function_mapper():
 	transformed = transformer.transform(y)
 	assert transformed['D'].dtype == float
 
+	# test on all, assert all columns captured
+	x = y[['D','E']]
+	t = FunctionMapper(fun=fun).fit_transform(x)
+	assert t['D'].dtype == float and t['E'].dtype == float
+
+	# Try on just one column
+	t = FunctionMapper(cols='D', fun=fun).fit_transform(x)
+	assert t['D'].dtype == float and t['E'].dtype == object
+
+	# Try on no function
+	assert x.equals(FunctionMapper().fit_transform(x))
+
+	# Test on non-function
+	failed = False
+	try:
+		FunctionMapper(fun='woo-hoo').fit(x)
+	except ValueError as v:
+		failed = True
+	assert failed
+
 
 
 def test_yeo_johnson():
@@ -78,6 +106,14 @@ def test_yeo_johnson():
 	assert isinstance(transformer.get_features(), list)
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
+	
+	# Test on only one row...
+	failed = False
+	try:
+		YeoJohnsonTransformer().fit(X.iloc[0])
+	except ValueError as v:
+		failed = True
+	assert failed
 	
 	## TODO: more
 
@@ -136,6 +172,11 @@ def test_selective_impute():
 	assert isinstance(transformer.get_features(), list)
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
+
+	# test on no cols provided (all)
+	t = SelectiveImputer(as_df=False).fit_transform(df)
+	assert t[0, 3] == np.nanmean(a[:,3])
+	assert t[1, 2] == np.nanmean(a[:,2])
 
 
 def test_selective_scale():

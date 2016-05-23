@@ -30,6 +30,11 @@ ZERO = 1e-16
 def _eqls(lam, v):
     return np.abs(lam) <= v
 
+def _validate_rows(X):
+    m,n = X.shape
+    if m < 2:
+        raise ValueError('n_samples should be at least two, but got %i' % m)
+
 
 
 ###############################################################################
@@ -71,7 +76,7 @@ class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
 
         # validate the function. If none, make it a passthrough
         if not self.fun:
-            def pass_through(x, **kwargs):
+            def pass_through(x):
                 return x
 
             self.fun = pass_through
@@ -120,6 +125,9 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
     strategy : str, default 'mean'
         the strategy for imputation
 
+    as_df : boolean, default True
+        Whether to return a dataframe
+
     Attributes
     ----------
     cols_ : array_like (string)
@@ -132,10 +140,11 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
 
     """
 
-    def __init__(self, cols=None, missing_values = 'NaN', strategy = 'mean'):
+    def __init__(self, cols=None, missing_values = 'NaN', strategy = 'mean', as_df=True):
         self.cols_ = cols
         self.missing_values = missing_values
         self.strategy = strategy
+        self.as_df = as_df
 
     def fit(self, X, y = None):
         """Fit the imputers.
@@ -172,7 +181,7 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
 
         X = X.copy()
         X[self.cols_] = self.imputer_.transform(X[self.cols_])
-        return X
+        return X if self.as_df else X.as_matrix()
 
 
 
@@ -193,6 +202,9 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
 
     scaler : instance of a sklearn Scaler, default StandardScaler
 
+    as_df : boolean, default True
+        Whether to return a dataframe
+
 
     Attributes
     ----------
@@ -203,9 +215,10 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
         the scaler
     """
 
-    def __init__(self, cols=None, scaler = StandardScaler()):
+    def __init__(self, cols=None, scaler = StandardScaler(), as_df=True):
         self.cols_ = cols
         self.scaler_ = scaler
+        self.as_df = as_df
 
     def fit(self, X, y = None):
         """Fit the scaler"""
@@ -227,7 +240,7 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
 
         ## Fails through if cols don't exist or if the scaler isn't fit yet
         X[self.cols_] = self.scaler_.transform(X[self.cols_])
-        return X
+        return X if self.as_df else X.as_matrix()
 
 
 
@@ -288,9 +301,8 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         if not self.cols_:
             self.cols_ = X.columns.tolist()
         
-        n_samples, n_features = X.shape
-        if n_samples < 2:
-            raise ValueError('n_samples should be at least two, but was %i' % n_samples)
+        # ensure enough rows
+        _validate_rows(X)
         
 
         ## First step is to compute all the shifts needed, then add back to X...
@@ -435,9 +447,8 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
         if not self.cols_:
             self.cols_ = X.columns.tolist()
 
-        n_samples, n_features = X.shape
-        if n_samples < 2:
-            raise ValueError('n_samples should be at least two, but was %i' % n_samples)
+        # ensure enough rows
+        _validate_rows(X)
 
 
         ## Now estimate the lambdas in parallel
@@ -537,18 +548,6 @@ def _yj_normmax(x, brack = (-2, 2)):
     
         return optimize.brent(_eval_mle, brack = brack, args = (x,))
 
-    ## If we don't want to use the optimizer...
-    def _mle(x, brack):
-        rng = np.arange(brack[0], brack[1], 0.05)
-        min_llf, best_lam = np.inf, None
-
-        for lam in rng:
-            llf = _yj_llf(x, lam)
-            if llf < min_llf:
-                min_llf = llf
-                best_lam = lam
-        return best_lam
-
     return _mle_opt(x, brack) #_mle(x, brack)
 
 def _yj_llf(data, lmb):
@@ -567,10 +566,6 @@ def _yj_llf(data, lmb):
 
     data = np.asarray(data)
     N = data.shape[0]
-    if 0 == N:
-        raise ValueError('data is empty')
-        #return np.nan
-
     y = _yj_transform_y(data, lmb)
 
     ## We can't take the log of data, as there could be
