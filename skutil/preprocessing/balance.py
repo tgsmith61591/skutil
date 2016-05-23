@@ -1,22 +1,37 @@
 from __future__ import division, print_function
-import abc, warnings
+import warnings
 import pandas as pd
 import numpy as np
 from numpy.random import choice
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
 from sklearn.neighbors import NearestNeighbors
-from ..base import SelectiveMixin
+from ..base import *
 from ..utils import *
 
 
 __all__ = [
 	'OversamplingClassBalancer',
-	'SMOTEClassBalancer'
+	'SMOTEClassBalancer',
+	'UndersamplingClassBalancer'
 ]
 
 
 def _validate_x_y_ratio(X, y, ratio):
+	"""Validates the following, given that X is
+	already validated a pandas DataFrame:
+
+	1. That y is a string
+	2. That the number of classes does not exceed __max_classes__
+	   as defined by the BalancerMixin class
+	3. That the number of classes is at least 2
+	4. That ratio is a float that falls between 0.0 (exclusive) and
+	   1.0 (inclusive)
+
+	Return
+	------
+	(cts, n_classes), a tuple with the sorted class value_counts and the number of classes
+	"""
 	mc = BalancerMixin.__max_classes__
 
 	# validate y
@@ -27,7 +42,9 @@ def _validate_x_y_ratio(X, y, ratio):
 	cts = X[y].value_counts().sort_values()
 	n_classes = cts.shape[0]
 	if n_classes > mc:
-		raise RuntimeError('class balancing can only handle <= %i classes, but got %i' % (mc, n_classes))
+		raise ValueError('class balancing can only handle <= %i classes, but got %i' % (mc, n_classes))
+	elif n_classes < 2:
+		raise ValueError('class balancing requires at least 2 classes')
 
 	# validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
 	if not isinstance(ratio, float) or ratio <= 0 or ratio > 1:
@@ -36,25 +53,6 @@ def _validate_x_y_ratio(X, y, ratio):
 	return cts, n_classes
 
 
-###############################################################################
-class SamplingWarning(UserWarning):
-	"""Custom warning used to notify the user that sub-optimal sampling behavior
-	has occurred. For instance, performing oversampling on a minority class with only
-	one instance will cause this warning to be thrown.
-	"""
-
-class BalancerMixin:
-	"""A mixin class for all balancer classes.
-	Balancers are not like TransformerMixins or
-	BaseEstimators, and do not implement fit or predict.
-	"""
-	# the max classes handled by class balancers
-	__max_classes__ = 20
-	__metaclass__ = abc.ABCMeta
-
-	@abc.abstractmethod
-	def balance(self, X):
-		return
 
 
 ###############################################################################
@@ -232,4 +230,78 @@ class SMOTEClassBalancer(BalancerMixin):
 		return X
 
 
+###############################################################################
+class UndersamplingClassBalancer(BalancerMixin):
+	"""Undersample the majority class until it is represented
+	at the target proportion to the most-represented minority class.
+	For example, give the follow pd.Series:
 
+	0  150
+	1  30
+	2  10
+
+	and the ratio 0.5, the majority class (0) will be undersampled until
+	the second most-populous class (1) is represented at a ratio of 0.5:
+
+	0  60
+	1  30
+	2  10
+
+	Parameters
+	----------
+	y : str, def None
+		The name of the response column. The response column must be
+		biclass, no more or less.
+
+	ratio : float, def 0.2
+		The target ratio of the minority records to the majority records. If the
+		existing ratio is >= the provided ratio, the return value will merely be
+		a copy of the input matrix, otherwise SMOTE will impute records until the
+		target ratio is reached.
+	"""
+
+	def __init__(self, y=None, ratio=0.2):
+		self.y_ = y
+		self.ratio = ratio
+
+	def balance(self, X):
+		"""Apply the undersampling balance operation. Undersamples
+		the majority class to the provided ratio over the second-most-
+		populous class label.
+		
+		Parameters
+		----------
+		X : pandas DF, shape [n_samples, n_features]
+			The data used for estimating the lambdas
+		"""
+		validate_is_pd(X)
+		X = X.copy()
+		mc = BalancerMixin.__max_classes__
+
+		# since we rely on indexing X, we need to reset indices
+		# in case X is the result of a slice and they're out of order.
+		X.index = np.arange(0,X.shape[0])
+		ratio = self.ratio
+		cts, n_classes = _validate_x_y_ratio(X, self.y_, ratio)
+
+
+		# get the maj class
+		majority = cts.index[-1]
+		next_most= cts.index[-2] # the next-most-populous class label
+		n_required = int((1/ratio) * cts[next_most]) # i.e., if ratio == 0.5 and next_most == 30, n_required = 60
+
+		# check the exit condition (that majority class <= n_required)
+		if cts[majority] <= n_required:
+			return X
+
+		# if not returned early, drop some indices
+		majority_recs = X[X[self.y_] == majority]
+		idcs = choice(majority_recs.index, n_required, replace=False)
+
+		# get the rows that were not included in the keep sample
+		x_drop_rows = majority_recs.drop(idcs, axis=0).index
+
+		# now the only rows remaining in x_drop_rows are the ones
+		# that were not selected in the random choice.
+		# drop all those rows (from the copy)
+		return X.drop(x_drop_rows, axis=0)

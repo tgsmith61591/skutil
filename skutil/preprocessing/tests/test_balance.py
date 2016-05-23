@@ -50,3 +50,23 @@ def test_smote():
 	cts = c.target.value_counts()
 	assert cts[1] == expected_2_ct
 	assert cts[2] == expected_2_ct
+
+def test_undersample():
+	# since all classes are equal, should be no change here
+	b = UndersamplingClassBalancer(y='target').balance(X)
+	assert b.shape[0] == X.shape[0]
+
+	x = X.iloc[:60] # 50 zeros, 10 ones
+	b = UndersamplingClassBalancer(y='target', ratio=0.5).balance(x)
+
+	assert b.shape[0] == 30
+	cts = b.target.value_counts()
+	assert cts[0] == 20
+	assert cts[1] == 10
+
+	b = UndersamplingClassBalancer(y='target', ratio=0.25).balance(x)
+
+	assert b.shape[0] == 50
+	cts = b.target.value_counts()
+	assert cts[0] == 40
+	assert cts[1] == 10

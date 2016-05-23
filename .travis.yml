@@ -28,7 +28,7 @@ install:
   - conda info -a
 
   # dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage coveralls
   - source activate test-environment
 
   # Coverage packages are on my binstar channel
@@ -37,8 +37,8 @@ install:
 
 ## Run tests
 script: 
-  - nosetests #--with-cov --cov skutil --cov-config .coveragerc --logging-level=INFO
+  - nosetests --with-coverage --cover-package=skutil --logging-level=INFO
 
 ## Compute coverage
-#after_success:
-#  - coveralls --config_file .coveragerc
+after_success:
+  - coveralls --config_file .coveragerc
