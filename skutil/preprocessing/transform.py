@@ -327,11 +327,11 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
             X[nm] += shifts_[nm]
         
         ## If the shifts are too low, truncate...
-        X[X[self.cols] <= 0.0][self.cols] = 1e-6
+        X = X.apply(lambda x: x.apply(lambda y: np.maximum(1e-6, y)))
 
         ## do transformations
         for nm in self.cols:
-            X[nm] = _transform_y(X[nm], lambdas_[nm])
+            X[nm] = _transform_y(X[nm].tolist(), lambdas_[nm])
 
         return X if self.as_df else X.as_matrix()
 
@@ -349,8 +349,10 @@ def _transform_y(y, lam):
     """
     ## ensure np array
     y = np.array(y)
+    y_prime = np.array(map(lambda x: (np.power(x, lam)-1)/lam if not _eqls(lam,ZERO) else np.log(x), y))
 
-    return np.array(map(lambda x: (np.power(x, lam)-1)/lam if not _eqls(lam,ZERO) else np.log(x), y))
+    ## rarely -- very rarely -- we can get a NaN. Why?
+    return y_prime
     
 def _estimate_lambda_single_y(y):
     """Estimate lambda for a single y, given a range of lambdas
