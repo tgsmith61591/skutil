@@ -8,6 +8,7 @@ the Box-Cox transformation and the Yeo-Johnson transformation.
 Also includes selective scalers and other transformers.
 """
 
+from .balance import *
 from .transform import *
 from .encode import *
 
