@@ -7,6 +7,7 @@ from ..base import SelectiveWarning
 __all__ = [
 	'get_numeric',
 	'is_numeric',
+    'report_grid_score_detail',
 	'validate_is_pd'
 ]
 
@@ -98,3 +99,38 @@ def is_numeric(x):
     x : anytype
     """
 	return isinstance(x, (int, float, long, np.int, np.float, np.long))
+
+def report_grid_score_detail(random_search, charts=True):
+    """Input fit grid search estimator. Returns df of scores with details"""
+
+    if charts:
+        try:
+            from matplotlib import pyplot as plt
+        except:
+            raise ImportError('please install matplotlib for charts functionality')
+
+    df_list = []
+
+    for line in random_search.grid_scores_:
+        results_dict = dict(line.parameters)
+        results_dict["score"] = line.mean_validation_score
+        results_dict["std"] = line.cv_validation_scores.std()*1.96
+        df_list.append(results_dict)
+
+    result_df = pd.DataFrame(df_list)
+    result_df = result_df.sort_values("score", ascending=False)
+    
+    if charts:
+        for col in get_numeric(result_df):
+            if col not in ["score", "std"]:
+                plt.scatter(result_df[col], result_df.score)
+                plt.title(col)
+                plt.show()
+
+        for col in list(result_df.columns[result_df.dtypes == "object"]):
+            cat_plot = result_df.score.groupby(result_df[col]).mean()
+            cat_plot.sort()
+            cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
+            plt.show()
+
+    return result_df
