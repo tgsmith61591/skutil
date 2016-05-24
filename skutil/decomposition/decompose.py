@@ -105,8 +105,8 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
         transform = self.pca_.transform(X[cols])
         left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
 
-        x = pd.concat([left, X[other_nms]], axis=1)
-
+        # concat if needed
+        x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
         return x if self.as_df else x.as_matrix()
 
 
