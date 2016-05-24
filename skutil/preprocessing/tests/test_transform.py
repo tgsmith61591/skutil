@@ -4,6 +4,8 @@ import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
+from skutil.decomposition import *
+from skutil.utils import validate_is_pd
 
 
 ## Def data for testing
@@ -141,6 +143,25 @@ def test_spatial_sign():
 	## assert as df false yields array
 	assert isinstance(SpatialSignTransformer(as_df=False).fit_transform(X), np.ndarray)
 	assert transformer.get_features() is None
+
+def test_strange_input():
+	# test numpy array input with numeric cols
+	x = iris.data
+	cols = [0,2]
+
+	SelectiveScaler(cols=cols).fit_transform(x)
+	SelectiveScaler(cols=[]).fit_transform(x)
+
+	SelectivePCA(cols=cols).fit_transform(x)
+	SelectivePCA(cols=[]).fit_transform(x)
+
+	# test bad input
+	failed = False
+	try:
+		print(validate_is_pd("bad", None))
+	except ValueError as v:
+		failed = True
+	assert failed
 
 
 def test_selective_impute():

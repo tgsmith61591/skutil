@@ -54,7 +54,7 @@ def test_grid():
         ('scaler'      , SelectiveScaler()),
         ('boxcox'      , BoxCoxTransformer()),
         ('pca'         , PCA(n_components=0.9)),
-        ('model'       , RandomForestClassifier(n_jobs=-1))
+        ('model'       , RandomForestClassifier(n_jobs=1))
     ])
 
     # let's define a set of hyper-parameters over which to search
@@ -73,7 +73,7 @@ def test_grid():
 
 	# define the gridsearch
 	search = RandomizedSearchCV(pipe, hp,
-	                            n_iter=3, # just to test it even works
+	                            n_iter=1, # just to test it even works
 	                            scoring='accuracy',
 	                            cv=custom_cv,
 	                            random_state=42)
