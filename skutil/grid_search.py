@@ -136,7 +136,7 @@ class BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
                           "scoring parameter is now used."
                           "".format(self.__class__.__name__),
                           UserWarning)
-        return self.scorer_(self.best_estimator_, X if not is_df else X.as_matrix(), y)
+        return self.scorer_(self.best_estimator_, X, y)
 
     @if_delegate_has_method(delegate='estimator')
     def predict(self, X):

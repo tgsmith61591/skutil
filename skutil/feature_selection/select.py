@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -181,7 +182,7 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 
 		# Assign attributes, return
 		self.drop = drops
-		dropped = X.drop(drops, axis=1)
+		dropped = X.drop(self.drop, axis=1)
 
 		return dropped if self.as_df else dropped.as_matrix()
 

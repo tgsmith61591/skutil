@@ -14,12 +14,10 @@ except:
 
 
 __all__ = [
-    'add_metaclass',
 	'get_numeric',
 	'is_numeric',
     'report_grid_score_detail',
-	'validate_is_pd',
-    'with_metaclass'
+	'validate_is_pd'
 ]
 
 def _val_cols(cols):
@@ -31,6 +29,9 @@ def _val_cols(cols):
     if not hasattr(cols, '__iter__'):
         raise ValueError('cols must be an iterable sequence')
     return [c for c in cols] # make it a list implicitly
+
+def _def_headers(X):
+    return ['V%i' %  (i+1) for i in range(X.shape[1])]
 
 def validate_is_pd(X, cols, warn=False):
     """Used within each SelectiveMixin fit method to determine whether
@@ -80,7 +81,7 @@ def validate_is_pd(X, cols, warn=False):
             # so, we hope they either passed what the col names WILL be
             # or that they passed numeric cols... they should handle that
             # validation on their end, though.
-            return pd.DataFrame.from_records(data=X), cols
+            return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), cols
         except Exception as e:
             print(e)
             raise ValueError('expected pandas DataFrame if passed cols arg')
@@ -101,12 +102,12 @@ def validate_is_pd(X, cols, warn=False):
 
         # we'll do two tests here... either that it's a np ndarray or a list of lists
         if isinstance(X, np.ndarray):
-            return pd.DataFrame.from_records(data=X), None
+            return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
 
         # otherwise check for list of lists...
         if hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X):
             try:
-                return pd.DataFrame.from_records(data=X), None
+                return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
             except Exception as e:
                 raise ValueError('cannot create dataframe from X')
 
@@ -164,19 +165,3 @@ def report_grid_score_detail(random_search, charts=True):
             plt.show()
 
     return result_df
-
-# Utils derived from sklearn externals
-def with_metaclass(meta, *bases):
-    """Create a base class with a metaclass."""
-    return meta("NewBase", bases, {})
-
-def add_metaclass(metaclass):
-    """Class decorator for creating a class with a metaclass."""
-    def wrapper(cls):
-        orig_vars = cls.__dict__.copy()
-        orig_vars.pop('__dict__', None)
-        orig_vars.pop('__weakref__', None)
-        for slots_var in orig_vars.get('__slots__', ()):
-            orig_vars.pop(slots_var)
-        return metaclass(cls.__name__, cls.__bases__, orig_vars)
-    return wrapper
