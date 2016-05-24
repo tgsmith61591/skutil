@@ -148,6 +148,8 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 			# Whenever there's a break, this loop will start over
 			for i,nm in enumerate(c.columns):
 				this_col = c[nm].drop(nm).sort_values()
+				this_col_nms = this_col.index.tolist()
+				this_col = np.array(this_col)
 
 				# check if last value is over thresh
 				if this_col[-1] < self.threshold or this_col.shape[0] == 1:
@@ -158,7 +160,7 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 					continue
 
 				# gets the current col, and drops the same row, sorts asc and gets other col
-				other_col_nm = this_col.index[-1]
+				other_col_nm = this_col_nms[-1]
 				that_col = c[other_col_nm].drop(other_col_nm)
 
 				# get the mean absolute correlations of each

@@ -14,10 +14,12 @@ except:
 
 
 __all__ = [
+    'add_metaclass',
 	'get_numeric',
 	'is_numeric',
     'report_grid_score_detail',
-	'validate_is_pd'
+	'validate_is_pd',
+    'with_metaclass'
 ]
 
 def _val_cols(cols):
@@ -162,3 +164,19 @@ def report_grid_score_detail(random_search, charts=True):
             plt.show()
 
     return result_df
+
+# Utils derived from sklearn externals
+def with_metaclass(meta, *bases):
+    """Create a base class with a metaclass."""
+    return meta("NewBase", bases, {})
+
+def add_metaclass(metaclass):
+    """Class decorator for creating a class with a metaclass."""
+    def wrapper(cls):
+        orig_vars = cls.__dict__.copy()
+        orig_vars.pop('__dict__', None)
+        orig_vars.pop('__weakref__', None)
+        for slots_var in orig_vars.get('__slots__', ()):
+            orig_vars.pop(slots_var)
+        return metaclass(cls.__name__, cls.__bases__, orig_vars)
+    return wrapper

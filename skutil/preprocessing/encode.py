@@ -142,8 +142,12 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         trans_nms_= [item for sublist in tnms for item in sublist]
         self.trans_nms_ = num_nms + trans_nms_
         
+        # we might get an empty set of object cols
+        shape_tup = trans.shape
+        is_empty = len(shape_tup) < 2 or shape_tup[1] == 0 # zero cols
+
         ## Now we can do the actual one hot encoding, set internal state
-        self.one_hot_ = OneHotEncoder().fit(trans)
+        self.one_hot_ = None if is_empty else OneHotEncoder().fit(trans)
         self.obj_cols_ = obj_cols_
         self.lab_encoders_ = lab_encoders_
         
@@ -161,6 +165,10 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         check_is_fitted(self, 'obj_cols_')
         # check on state of X, don't care about cols or warning
         X, _ = validate_is_pd(X, None, False)
+
+        # if there is no encoder to speak of, just bail early
+        if not self.one_hot_:
+            return X if self.as_df else X.as_matrix()
         
         ## Retain just the numers
         numers = X[[nm for nm in X.columns.values if not nm in self.obj_cols_]]

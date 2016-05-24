@@ -163,6 +163,14 @@ def test_strange_input():
 		failed = True
 	assert failed
 
+	# test bad cols input
+	failed = False
+	try:
+		print(validate_is_pd(x, 'blah'))
+	except ValueError as v:
+		failed = True
+	assert failed
+
 
 def test_selective_impute():
 	a = np.random.rand(5, 5)
