@@ -4,7 +4,7 @@ sklearn-esque transformers for python
 import sys, warnings
 from .base import *
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 try:
     # This variable is injected in the __builtins__ by the build
