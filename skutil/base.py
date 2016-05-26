@@ -2,6 +2,7 @@ import abc
 
 __all__ = [
 	'BalancerMixin',
+	'ModuleImportWarning',
 	'SamplingWarning',
 	'SelectiveMixin',
 	'SelectiveWarning'
@@ -20,6 +21,11 @@ class BalancerMixin:
 	@abc.abstractmethod
 	def balance(self, X):
 		return
+
+class ModuleImportWarning(UserWarning):
+	"""Custom warning used to notify user a non-critical import failed, and to
+	suggest the installation of the module for optimal results.
+	"""
 
 class SamplingWarning(UserWarning):
 	"""Custom warning used to notify the user that sub-optimal sampling behavior

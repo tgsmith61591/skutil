@@ -2,18 +2,22 @@ import pandas as pd
 import numpy as np
 import warnings
 from sklearn.linear_model import LinearRegression
-from ..base import SelectiveWarning
+from ..base import SelectiveWarning, ModuleImportWarning
 
 
 # check if matplotlib exists
+__can_chart__ = True
 try:
     from matplotlib import pyplot as plt
 except:
-    warnings.warn('no module matplotlib, cannot display charts', UserWarning)
+    __can_chart__ = False
+    warnings.warn('no module matplotlib, cannot display charts', ModuleImportWarning)
     #raise ImportError('please install matplotlib for charts functionality')
 
 
 __all__ = [
+    'flatten_all',
+    'flatten_all_generator',
 	'get_numeric',
 	'is_numeric',
     'report_grid_score_detail',
@@ -32,6 +36,33 @@ def _val_cols(cols):
 
 def _def_headers(X):
     return ['V%i' %  (i+1) for i in range(X.shape[1])]
+
+def flatten_all(container):
+    """Recursively flattens an arbitrarily nested iterable.
+    WARNING: this function does may produce a list of mixed types.
+
+    Usage:
+    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    >>> flatten_all(a)
+    [3,4,'1','a',1,1,2]
+    """
+    return [x for x in flatten_all_generator(container)]
+
+def flatten_all_generator(container):
+    """Recursively flattens an arbitrarily nested iterable.
+    WARNING: this function does may produce a list of mixed types.
+
+    Usage:
+    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    >>> flatten_all_generator(a)
+    [3,4,'1','a',1,1,2] # returns a generator for this iterable
+    """
+    for i in container:
+        if hasattr(i, '__iter__'):
+            for j in flatten_all_generator(i):
+                yield j
+        else:
+            yield i
 
 def validate_is_pd(X, cols, warn=False):
     """Used within each SelectiveMixin fit method to determine whether
@@ -151,7 +182,8 @@ def report_grid_score_detail(random_search, charts=True):
     result_df = pd.DataFrame(df_list)
     result_df = result_df.sort_values("score", ascending=False)
     
-    if charts:
+    # if the import failed, we won't be able to chart here
+    if charts and __can_chart__:
         for col in get_numeric(result_df):
             if col not in ["score", "std"]:
                 plt.scatter(result_df[col], result_df.score)

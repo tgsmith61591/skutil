@@ -15,6 +15,14 @@ X['target'] = ['A' if x == 1 else 'B' if x == 2 else 'C' for x in iris.target]
 # exact copy of second col
 X['perfect'] = X[[1]]
 
+def _check_equal(L1, L2):
+    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+
+
+def test_flatten():
+	a = [[[],3,4],['1','a'],[[[1]]],1,2]
+	b = flatten_all(a)
+	assert _check_equal(b, [3,4,'1','a',1,1,2])
 
 def test_is_numeric():
 	assert is_numeric(1)
