@@ -33,7 +33,7 @@ def _validate_X(X):
 
 def _validate_y(y):
     """Returns y if y isn't a series, otherwise the array"""
-    if y is None:
+    if y is None: # unsupervised
         return y
 
     # if it's a series
@@ -231,6 +231,7 @@ class BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
         assert not isinstance(X, pd.DataFrame)
         assert not isinstance(y, pd.DataFrame)
 
+        # begin sklearn code
         estimator = self.estimator
         cv = self.cv
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)

@@ -39,7 +39,7 @@ def _def_headers(X):
 
 def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
-    WARNING: this function does may produce a list of mixed types.
+    WARNING: this function may produce a list of mixed types.
 
     Usage:
     a = [[[],3,4],['1','a'],[[[1]]],1,2]
@@ -50,7 +50,7 @@ def flatten_all(container):
 
 def flatten_all_generator(container):
     """Recursively flattens an arbitrarily nested iterable.
-    WARNING: this function does may produce a list of mixed types.
+    WARNING: this function may produce a list of mixed types.
 
     Usage:
     a = [[[],3,4],['1','a'],[[[1]]],1,2]
@@ -90,7 +90,7 @@ def validate_is_pd(X, cols, warn=False):
     tuple, (DataFrame: X, list: cols)
     """
 
-    # first check hard-to detect case:
+    # first check hard-to-detect case:
     if isinstance(X, pd.Series):
         raise ValueError('expected DataFrame but got Series')
 
@@ -161,7 +161,7 @@ def get_numeric(X):
 
 
 def is_numeric(x):
-	"""Determines whether the X is numeric
+	"""Determines whether the arg is numeric
 
     Parameters
     ----------
