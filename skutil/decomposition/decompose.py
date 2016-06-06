@@ -116,7 +116,13 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
 
         # do weighting if necessary
         if self.weight:
-            pass # todo
+            # get the weight vals
+            weights = self.pca_.explained_variance_ratio_
+            weights -= np.median(weights)
+            weights += 1
+
+            # now add to the transformed features
+            transform *= weights
 
         left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
 

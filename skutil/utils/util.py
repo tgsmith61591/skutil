@@ -128,8 +128,10 @@ def validate_is_pd(X, cols, warn=False):
     # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
     else:
         # in balancers, the names won't matter so disable warn
-        if warn:
-            warnings.warn('X is not a DataFrame, and y is None', SelectiveWarning)
+        # TODO: do we want to warn? What if the selective transformer comes after
+        # a normal sklearn class? We don't always want to warn for that...
+        #if warn:
+        #    warnings.warn('X is not a DataFrame, and y is None', SelectiveWarning)
 
         # we'll do two tests here... either that it's a np ndarray or a list of lists
         if isinstance(X, np.ndarray):

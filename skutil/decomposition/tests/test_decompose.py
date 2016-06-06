@@ -30,6 +30,20 @@ def test_selective_pca():
 	transformer.set_features(cols=None)
 	assert transformer.get_features() is None
 
+	# what if we want to weight it?
+	pca_df = SelectivePCA(weight=True, n_components=0.99, as_df=False).fit_transform(original)
+	pca_arr= SelectivePCA(weight=True, n_components=0.99, as_df=False).fit_transform(iris.data)
+	assert_array_equal(pca_df, pca_arr)
+
+	# hack to assert they are not equal if weighted
+	failed = False
+	try:
+		pca_arr = SelectivePCA(weight=False, n_components=0.99, as_df=False).fit_transform(iris.data)
+		assert_array_equal(pca_df, pca_arr)
+	except AssertionError as ae:
+		failed= True
+	assert failed
+
 
 def test_selective_tsvd():
 	original = X
