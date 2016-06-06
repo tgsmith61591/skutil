@@ -68,6 +68,15 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
         improve the predictive accuracy of the downstream estimators by
         making their data respect some hard-wired assumptions.
 
+    weight : bool, optional (default False)
+        When True (False by default) the `explained_variance_` vector is used to weight
+        the features post-transformation. This is especially useful in clustering contexts,
+        where features are all implicitly assigned the same importance, even though PCA
+        by nature orders the features by importance (i.e., not all components are created equally).
+        When True, weighting will subtract the median variance from the weighting vector, and add one
+        (so as not to down sample or upsample everything), then multiply the weights across the
+        transformed features.
+
 
     Attributes
     ----------
@@ -77,10 +86,11 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
     pca_ : the PCA object
     """
 
-    def __init__(self, cols=None, n_components=None, whiten=False, as_df=True):
+    def __init__(self, cols=None, n_components=None, whiten=False, weight=False, as_df=True):
         self.cols = cols
         self.n_components = n_components
         self.whiten = whiten
+        self.weight = weight
         self.as_df = as_df
 
     def fit(self, X, y = None):
@@ -103,6 +113,11 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
 
         other_nms = [nm for nm in X.columns if not nm in cols]
         transform = self.pca_.transform(X[cols])
+
+        # do weighting if necessary
+        if self.weight:
+            pass # todo
+
         left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
 
         # concat if needed
