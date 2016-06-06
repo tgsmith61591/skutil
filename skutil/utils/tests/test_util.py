@@ -42,4 +42,4 @@ def test_get_numeric():
 
 def test_validate_on_non_df():
 	x = iris.data
-	validate_is_pd(x, None, False)
+	validate_is_pd(x, None)

@@ -118,6 +118,9 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
         if self.weight:
             # get the weight vals
             weights = self.pca_.explained_variance_ratio_
+
+            # rather than subtracting the median (O(N)) and then adding a scalar (O(N))
+            # we can just subtract 1 from the median and do the entire op in one pass of N
             weights -= np.median(weights)
             weights += 1
 

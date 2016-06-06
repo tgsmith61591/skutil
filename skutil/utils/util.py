@@ -64,22 +64,24 @@ def flatten_all_generator(container):
         else:
             yield i
 
-def validate_is_pd(X, cols, warn=False):
+def validate_is_pd(X, cols):
     """Used within each SelectiveMixin fit method to determine whether
     the passed X is a dataframe, and whether the cols is appropriate.
     There are four scenarios (in the order in which they're checked):
 
     1) Names is not None, but X is not a dataframe.
         Resolution: the method will attempt to return a DataFrame from the
-        args provided (with the cols arg as the column names), but catches any
+        args provided (with default names), but catches any
         exception and raises a ValueError. A common case where this would work
-        may be a numpy.ndarray as X, and a list as cols.
+        may be a numpy.ndarray as X, and a list as cols (where the list is either
+        int indices or default names that the dataframe will take on).
 
     2) X is a DataFrame, but cols is None.
         Resolution: return a copy of the dataframe, and use all column names.
 
     3) X is a DataFrame and cols is not None.
-        Return a copy of the dataframe, and use only the names provided.
+        Return a copy of the dataframe, and use only the names provided. This is
+        the typical use case.
 
     4) X is not a DataFrame, and cols is None.
         Resolution: this case will only work if the X can be built into a DataFrame.
@@ -158,7 +160,7 @@ def get_numeric(X):
     X : pandas DF
         The dataframe
     """
-    validate_is_pd(X, None, False) # don't want warning
+    validate_is_pd(X, None) # don't want warning
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int", "bool")))].index.tolist()
 
 

@@ -88,7 +88,7 @@ class OversamplingClassBalancer(BalancerMixin):
 			The data used for estimating the lambdas
 		"""
 		# check on state of X
-		X, _ = validate_is_pd(X, None, False) # there are no cols, and we don't want warnings
+		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
 		mc = BalancerMixin.__max_classes__
 
 		# since we rely on indexing X, we need to reset indices
@@ -168,7 +168,7 @@ class SMOTEClassBalancer(BalancerMixin):
 			The data used for estimating the lambdas
 		"""
 		# check on state of X
-		X, _ = validate_is_pd(X, None, False) # there are no cols, and we don't want warnings
+		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
 
 		# since we rely on indexing X, we need to reset indices
 		# in case X is the result of a slice and they're out of order.
@@ -275,7 +275,7 @@ class UndersamplingClassBalancer(BalancerMixin):
 			The data used for estimating the lambdas
 		"""
 		# check on state of X
-		X, _ = validate_is_pd(X, None, False) # there are no cols, and we don't want warnings
+		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
 		mc = BalancerMixin.__max_classes__
 
 		# since we rely on indexing X, we need to reset indices

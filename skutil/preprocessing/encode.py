@@ -93,7 +93,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         y : passthrough for Pipeline
         """
         # check on state of X, don't care about cols or the warning
-        X, _ = validate_is_pd(X, None, False)
+        X, _ = validate_is_pd(X, None)
             
         ## Extract the object columns
         obj_cols_ = X.select_dtypes(include = ['object']).columns.values
@@ -164,7 +164,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self, 'obj_cols_')
         # check on state of X, don't care about cols or warning
-        X, _ = validate_is_pd(X, None, False)
+        X, _ = validate_is_pd(X, None)
 
         # if there is no encoder to speak of, just bail early
         if not self.one_hot_:
