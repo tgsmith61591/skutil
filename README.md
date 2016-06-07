@@ -17,5 +17,5 @@ python setup.py install
 
 #### Examples:
 See the [wiki](https://github.com/tgsmith61591/skutil/wiki)
-See the [example ipython notebooks]((https://github.com/tgsmith61591/skutil/doc/examples))
+See the [example ipython notebooks](https://github.com/tgsmith61591/skutil/tree/master/doc/examples)
 
