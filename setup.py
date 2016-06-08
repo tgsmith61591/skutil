@@ -36,6 +36,9 @@ sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
 scipy_min_version  = '0.17'
 
+# optional, but if installed and lower version, warn
+matplotlib_version = '1.5'
+
 
 ## Define setup tools early
 SETUPTOOLS_COMMANDS = set([
@@ -166,6 +169,18 @@ def setup_package():
 			version=VERSION,
 			cmdclass=cmdclass,
 			**extra_setuptools_args)
+
+	# check on MPL
+	try:
+		import matplotlib
+		mplv = matplotlib.__version__
+		mpl_uptodate = parse_version(mplv) >= parse_version(matplotlib_version)
+		
+		if not mpl_uptodate:
+			warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
+	except ImportError as i:
+		pass # not required, doesn't matter
+
 
 	pandas_status = get_pandas_status()
 	sklearn_status= get_sklearn_status()

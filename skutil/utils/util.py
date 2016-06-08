@@ -8,20 +8,22 @@ from ..base import SelectiveWarning, ModuleImportWarning
 # check if matplotlib exists
 __can_chart__ = True
 try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    import matplotlib as mpl
+    mpl.use('TkAgg') # set backend
     from matplotlib import pyplot as plt
-except:
+except ImportError as ie:
     __can_chart__ = False
-    warnings.warn('no module matplotlib, cannot display charts', ModuleImportWarning)
-    #raise ImportError('please install matplotlib for charts functionality')
+    warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 
 
 __all__ = [
     'flatten_all',
     'flatten_all_generator',
-	'get_numeric',
-	'is_numeric',
+    'get_numeric',
+    'is_numeric',
     'report_grid_score_detail',
-	'validate_is_pd'
+    'validate_is_pd'
 ]
 
 def _val_cols(cols):
@@ -32,7 +34,7 @@ def _val_cols(cols):
     # try to make cols a list
     if not hasattr(cols, '__iter__'):
         raise ValueError('cols must be an iterable sequence')
-    return [c for c in cols] # make it a list implicitly
+    return [c for c in cols] # make it a list implicitly, make no guarantees about elements
 
 def _def_headers(X):
     return ['V%i' %  (i+1) for i in range(X.shape[1])]
@@ -119,7 +121,7 @@ def validate_is_pd(X, cols):
             print(e)
             raise ValueError('expected pandas DataFrame if passed cols arg')
 
-    # case 2, we have a DF but no cols
+    # case 2, we have a DF but no cols, def behavior: use all
     elif is_df and cols is None:
         return X.copy(), None
 
@@ -129,12 +131,6 @@ def validate_is_pd(X, cols):
 
     # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
     else:
-        # in balancers, the names won't matter so disable warn
-        # TODO: do we want to warn? What if the selective transformer comes after
-        # a normal sklearn class? We don't always want to warn for that...
-        #if warn:
-        #    warnings.warn('X is not a DataFrame, and y is None', SelectiveWarning)
-
         # we'll do two tests here... either that it's a np ndarray or a list of lists
         if isinstance(X, np.ndarray):
             return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
@@ -165,13 +161,13 @@ def get_numeric(X):
 
 
 def is_numeric(x):
-	"""Determines whether the arg is numeric
+    """Determines whether the arg is numeric
 
     Parameters
     ----------
     x : anytype
     """
-	return isinstance(x, (int, float, long, np.int, np.float, np.long))
+    return isinstance(x, (int, float, long, np.int, np.float, np.long))
 
 def report_grid_score_detail(random_search, charts=True):
     """Input fit grid search estimator. Returns df of scores with details"""
@@ -201,3 +197,5 @@ def report_grid_score_detail(random_search, charts=True):
             plt.show()
 
     return result_df
+
+    

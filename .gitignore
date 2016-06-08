@@ -1,6 +1,11 @@
+# Ignore all of these
 .DS_Store
 .ipynb_checkpoints
 build/
 *.pyc
 skutil.egg-info/
 .coverage
+*.png
+
+# But not these
+!doc/images/*.png

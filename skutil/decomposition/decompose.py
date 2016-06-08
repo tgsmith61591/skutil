@@ -16,7 +16,7 @@ __all__ = [
 
 
 ###############################################################################
-class BaseSelectiveDecomposer:
+class _BaseSelectiveDecomposer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Any decomposing class should implement
     this mixin. It will return the SVD or PCA decomposition.
     """
@@ -32,7 +32,7 @@ class BaseSelectiveDecomposer:
 
 
 ###############################################################################
-class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiveDecomposer):
+class SelectivePCA(_BaseSelectiveDecomposer):
     """A class that will apply PCA only to a select group
     of columns. Useful for data that contains categorical features
     that have not yet been dummied, or for dummied features we don't want
@@ -118,9 +118,6 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
         if self.weight:
             # get the weight vals
             weights = self.pca_.explained_variance_ratio_
-
-            # rather than subtracting the median (O(N)) and then adding a scalar (O(N))
-            # we can just subtract 1 from the median and do the entire op in one pass of N
             weights -= np.median(weights)
             weights += 1
 
@@ -135,7 +132,7 @@ class SelectivePCA(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiv
 
 
 ###############################################################################
-class SelectiveTruncatedSVD(BaseEstimator, TransformerMixin, SelectiveMixin, BaseSelectiveDecomposer):
+class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     """A class that will apply truncated SVD (LSA) only to a select group
     of columns. Useful for data that contains categorical features
     that have not yet been dummied, or for dummied features we don't want
