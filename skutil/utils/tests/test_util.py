@@ -43,3 +43,15 @@ def test_get_numeric():
 def test_validate_on_non_df():
 	x = iris.data
 	validate_is_pd(x, None)
+
+	failed = False
+	try:
+		validate_is_pd("asdf", "asdf")
+	except ValueError as e:
+		failed = True
+	assert failed
+
+	# try on list of list and no cols
+	x = [[1,2,3],[4,5,6],[7,8,9]]
+	validate_is_pd(x, None)
+

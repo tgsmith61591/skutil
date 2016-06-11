@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import warnings
 import pandas as pd
 import numpy as np
+import abc
 from numpy.random import choice
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
@@ -19,11 +20,11 @@ __all__ = [
 
 def _validate_x_y_ratio(X, y, ratio):
 	"""Validates the following, given that X is
-	already validated a pandas DataFrame:
+	already a validated pandas DataFrame:
 
 	1. That y is a string
 	2. That the number of classes does not exceed __max_classes__
-	   as defined by the BalancerMixin class
+	   as defined by the _BaseBalancer class
 	3. That the number of classes is at least 2
 	4. That ratio is a float that falls between 0.0 (exclusive) and
 	   1.0 (inclusive)
@@ -32,7 +33,7 @@ def _validate_x_y_ratio(X, y, ratio):
 	------
 	(cts, n_classes), a tuple with the sorted class value_counts and the number of classes
 	"""
-	mc = BalancerMixin.__max_classes__
+	mc = _BaseBalancer.__max_classes__
 
 	# validate y
 	if (not y) or (not isinstance(y, str)):
@@ -54,9 +55,26 @@ def _validate_x_y_ratio(X, y, ratio):
 
 
 
-
 ###############################################################################
-class OversamplingClassBalancer(BalancerMixin):
+class _BaseBalancer:
+	"""A super class for all balancer classes. Balancers are not like TransformerMixins 
+	or BaseEstimators, and do not implement fit or predict. This is because Balancers
+	are ONLY applied to training data.
+	"""
+	# the max classes handled by class balancers
+	__max_classes__ = 20
+	__metaclass__ = abc.ABCMeta
+
+	def __init__(self, ratio=0.2, y=None):
+		self.ratio=ratio
+		self.y_ = y
+
+	@abc.abstractmethod
+	def balance(self, X):
+		return
+
+
+class OversamplingClassBalancer(_BaseBalancer):
 	"""Oversample the minority classes until they are represented
 	at the target proportion to the majority class.
 
@@ -74,8 +92,7 @@ class OversamplingClassBalancer(BalancerMixin):
 	"""
 
 	def __init__(self, y=None, ratio=0.2):
-		self.y_ = y
-		self.ratio = ratio
+		super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y)
 
 	def balance(self, X):
 		"""Apply the oversampling balance operation. Oversamples
@@ -89,7 +106,7 @@ class OversamplingClassBalancer(BalancerMixin):
 		"""
 		# check on state of X
 		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
-		mc = BalancerMixin.__max_classes__
+		mc = _BaseBalancer.__max_classes__
 
 		# since we rely on indexing X, we need to reset indices
 		# in case X is the result of a slice and they're out of order.
@@ -131,7 +148,7 @@ class OversamplingClassBalancer(BalancerMixin):
 
 
 ###############################################################################
-class SMOTEClassBalancer(BalancerMixin):
+class SMOTEClassBalancer(_BaseBalancer):
 	"""Transform a matrix with the SMOTE (Synthetic Minority Oversampling TEchnique)
 	method.
 
@@ -152,9 +169,8 @@ class SMOTEClassBalancer(BalancerMixin):
 	"""
 
 	def __init__(self, y=None, ratio=0.2, k=3):
-		self.y_ = y
+		super(SMOTEClassBalancer, self).__init__(ratio=ratio, y=y)
 		self.k = k
-		self.ratio = ratio
 
 	def balance(self, X):
 		"""Apply the SMOTE balancing operation. Oversamples
@@ -231,7 +247,7 @@ class SMOTEClassBalancer(BalancerMixin):
 
 
 ###############################################################################
-class UndersamplingClassBalancer(BalancerMixin):
+class UndersamplingClassBalancer(_BaseBalancer):
 	"""Undersample the majority class until it is represented
 	at the target proportion to the most-represented minority class.
 	For example, give the follow pd.Series:
@@ -261,8 +277,7 @@ class UndersamplingClassBalancer(BalancerMixin):
 	"""
 
 	def __init__(self, y=None, ratio=0.2):
-		self.y_ = y
-		self.ratio = ratio
+		super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y)
 
 	def balance(self, X):
 		"""Apply the undersampling balance operation. Undersamples
@@ -276,7 +291,7 @@ class UndersamplingClassBalancer(BalancerMixin):
 		"""
 		# check on state of X
 		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
-		mc = BalancerMixin.__max_classes__
+		mc = _BaseBalancer.__max_classes__
 
 		# since we rely on indexing X, we need to reset indices
 		# in case X is the result of a slice and they're out of order.

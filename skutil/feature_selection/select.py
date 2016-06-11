@@ -1,6 +1,8 @@
 from __future__ import print_function
 import pandas as pd
 import numpy as np
+import warnings
+from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from ..base import SelectiveMixin
@@ -16,7 +18,36 @@ __all__ = [
 
 
 ###############################################################################
-class FeatureDropper(BaseEstimator, TransformerMixin, SelectiveMixin):
+class _BaseFeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):
+	__metaclass__ = ABCMeta
+
+	@abstractmethod
+	def __init__(self, cols=None, as_df=True, **kwargs):
+		self.cols = cols
+		self.as_df = as_df
+		self.drop = None
+
+	def transform(self, X, y = None):
+		check_is_fitted(self, 'drop')
+		# check on state of X and cols
+		X, _ = validate_is_pd(X, self.cols)
+
+		if self.drop is None:
+			return X if self.as_df else X.as_matrix()
+		else:
+			# what if we don't want to throw this key error for a non-existent
+			# column that we hope to drop anyways? We need to at least inform the
+			# user...
+			drops = [x for x in self.drop if x in X.columns]
+			if not len(drops) == len(self.drop):
+				warnings.warn('one of more features to drop not contained in input data feature names')
+
+			dropped = X.drop(drops, axis=1)
+			return dropped if self.as_df else dropped.as_matrix()
+
+
+###############################################################################
+class FeatureDropper(_BaseFeatureSelector):
 	"""A very simple class to be used at the beginning or any stage of a 
 	Pipeline that will drop the given features from the remainder of the pipe
 
@@ -24,24 +55,23 @@ class FeatureDropper(BaseEstimator, TransformerMixin, SelectiveMixin):
 	----------
 	cols : array_like (string)
 		The features to drop
+
+	as_df : boolean, optional (True default)
+		Whether to return a dataframe
 	"""
 
-	def __init__(self, cols=None):
-		self.cols = cols
+	def __init__(self, cols=None, as_df=True):
+		super(FeatureDropper, self).__init__(cols=cols, as_df=as_df)
 
 	def fit(self, X, y = None):
 		# check on state of X and cols
 		_, self.cols = validate_is_pd(X, self.cols)
+		self.drop = self.cols
 		return self
-
-	def transform(self, X, y = None):
-		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
-		return X if not self.cols else X.drop(self.cols, axis=1)
 
 
 ###############################################################################
-class FeatureRetainer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class FeatureRetainer(_BaseFeatureSelector):
 	"""A very simple class to be used at the beginning of a Pipeline that will
 	only propagate the given features throughout the remainder of the pipe
 
@@ -49,24 +79,33 @@ class FeatureRetainer(BaseEstimator, TransformerMixin, SelectiveMixin):
 	----------
 	cols : array_like (string)
 		The features to select
+
+	as_df : boolean, optional (True default)
+		Whether to return a dataframe
 	"""
 
-	def __init__(self, cols=None):
-		self.cols = cols
+	def __init__(self, cols=None, as_df=True):
+		super(FeatureRetainer, self).__init__(cols=cols, as_df=as_df)
 
 	def fit(self, X, y = None):
 		# check on state of X and cols
-		_, self.cols = validate_is_pd(X, self.cols)
+		X, self.cols = validate_is_pd(X, self.cols)
+
+		# set the drop as those not in cols
+		cols = self.cols if not self.cols is None else []
+		self.drop = X.drop(cols, axis=1).columns.values # these will be the left overs
+
 		return self
 
 	def transform(self, X, y = None):
 		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
-		return X[self.cols or X.columns] # if cols is None, returns all
+		X, _ = validate_is_pd(X, self.cols) # copy X
+		retained = X[self.cols or X.columns] # if cols is None, returns all
+		return retained if self.as_df else retained.as_matrix()
 
 
 ###############################################################################
-class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class MulticollinearityFilterer(_BaseFeatureSelector):
 	"""Filter out features with a correlation greater than the provided threshold.
 	When a pair of correlated features is identified, the mean absolute correlation (MAC)
 	of each feature is considered, and the feature with the highsest MAC is discarded.
@@ -98,11 +137,9 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 	"""
 
 	def __init__(self, cols=None, threshold=0.85, method='pearson', as_df=True):
-		self.cols = cols
+		super(MulticollinearityFilterer, self).__init__(cols=cols, as_df=as_df)
 		self.threshold = threshold
 		self.method = method
-		self.as_df = as_df
-
 
 	def fit(self, X, y = None):
 		"""Fit the multicollinearity filterer.
@@ -207,7 +244,7 @@ class MulticollinearityFilterer(BaseEstimator, TransformerMixin, SelectiveMixin)
 
 
 ###############################################################################
-class NearZeroVarianceFilterer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class NearZeroVarianceFilterer(_BaseFeatureSelector):
 	"""Identify and remove any features that have a variance below
 	a certain threshold.
 
@@ -224,9 +261,8 @@ class NearZeroVarianceFilterer(BaseEstimator, TransformerMixin, SelectiveMixin):
 	"""
 
 	def __init__(self, cols=None, threshold=1e-6, as_df=True):
-		self.cols = cols
+		super(NearZeroVarianceFilterer, self).__init__(cols=cols, as_df=as_df)
 		self.threshold = threshold
-		self.as_df = as_df
 
 	def fit(self, X, y = None):
 		# check on state of X and cols
@@ -242,16 +278,5 @@ class NearZeroVarianceFilterer(BaseEstimator, TransformerMixin, SelectiveMixin):
 			self.drop = drops
 
 		return self
-
-	def transform(self, X, y = None):
-		check_is_fitted(self, 'drop')
-		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
-
-		if self.drop is None:
-			return X if self.as_df else x.as_matrix()
-		else:
-			X.drop(self.drop, axis=1, inplace=True)
-			return X if self.as_df else x.as_matrix()
 
 

@@ -1,7 +1,8 @@
-import six
+from sklearn.externals import six
 import numpy as np
 import pandas as pd
 
+from abc import abstractmethod, ABCMeta
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import Imputer, StandardScaler
 from sklearn.utils import check_array
@@ -38,7 +39,18 @@ def _validate_rows(X):
 
 
 ###############################################################################
-class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
+class _BaseSelectiveTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
+    """Base class for skutil transformers"""
+
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def __init__(self, cols=None, as_df=True):
+        self.cols = cols
+        self.as_df= as_df
+
+
+class FunctionMapper(_BaseSelectiveTransformer):
     """Apply a function to a column or set of columns.
 
     Parameters
@@ -51,7 +63,8 @@ class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
 
     def __init__(self, cols=None, fun=None, **kwargs):
-        self.cols = cols
+        super(FunctionMapper, self).__init__(cols=cols)
+
         self.fun = fun
         self.kwargs = kwargs
 
@@ -104,7 +117,7 @@ class FunctionMapper(BaseEstimator, TransformerMixin, SelectiveMixin):
 
 
 ###############################################################################
-class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class SelectiveImputer(_BaseSelectiveTransformer):
     """An imputer class that can operate across a select
     group of columns. Useful for data that contains categorical features
     that have not yet been dummied, for dummied features that we
@@ -137,10 +150,9 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
 
     def __init__(self, cols=None, missing_values = 'NaN', strategy = 'mean', as_df=True):
-        self.cols = cols
+        super(SelectiveImputer, self).__init__(cols=cols, as_df=as_df)
         self.missing_values = missing_values
         self.strategy = strategy
-        self.as_df = as_df
 
     def fit(self, X, y = None):
         """Fit the imputers.
@@ -180,7 +192,7 @@ class SelectiveImputer(BaseEstimator, TransformerMixin, SelectiveMixin):
 
 
 ###############################################################################
-class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
+class SelectiveScaler(_BaseSelectiveTransformer):
     """A class that will apply scaling only to a select group
     of columns. Useful for data that contains categorical features
     that have not yet been dummied, for dummied features that we
@@ -210,9 +222,8 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
 
     def __init__(self, cols=None, scaler = StandardScaler(), as_df=True):
-        self.cols = cols
+        super(SelectiveScaler, self).__init__(cols=cols, as_df=as_df)
         self.scaler = scaler
-        self.as_df = as_df
 
     def fit(self, X, y = None, **kwargs):
         """Fit the scaler"""
@@ -237,7 +248,7 @@ class SelectiveScaler(BaseEstimator, TransformerMixin, SelectiveMixin):
 
 
 ###############################################################################
-class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class BoxCoxTransformer(_BaseSelectiveTransformer):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Box-Cox transformation. By default, will ignore sparse
@@ -272,9 +283,8 @@ class BoxCoxTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
     
     def __init__(self, cols=None, n_jobs=1, as_df=True):
-        self.cols = cols
+        super(BoxCoxTransformer, self).__init__(cols=cols, as_df=as_df)
         self.n_jobs = n_jobs
-        self.as_df = as_df
         
     def fit(self, X, y = None):
         """Estimate the lambdas, provided X
@@ -387,7 +397,7 @@ def _estimate_lambda_single_y(y):
 
 
 ###############################################################################
-class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class YeoJohnsonTransformer(_BaseSelectiveTransformer):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Yeo-Johnson transformation.
@@ -417,9 +427,8 @@ class YeoJohnsonTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
 
     def __init__(self, cols=None, n_jobs=1, as_df=True):
-        self.cols = cols
+        super(YeoJohnsonTransformer, self).__init__(cols=cols, as_df=as_df)
         self.n_jobs = n_jobs
-        self.as_df = as_df
 
     def fit(self, X, y = None):
         """Estimate the lambdas, provided X
@@ -590,7 +599,7 @@ def _yj_llf(data, lmb):
 
 
 
-class SpatialSignTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class SpatialSignTransformer(_BaseSelectiveTransformer):
     """Project the feature space of a matrix into a multi-dimensional sphere
     by dividing each feature by its squared norm.
        
@@ -619,9 +628,8 @@ class SpatialSignTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """
     
     def __init__(self, cols=None, n_jobs=1, as_df=True):
-        self.cols = cols
+        super(SpatialSignTransformer, self).__init__(cols=cols, as_df=as_df)
         self.n_jobs = n_jobs
-        self.as_df = as_df
         
     def fit(self, X, y = None):
         """Estimate the squared norms for each feature, provided X

@@ -37,7 +37,8 @@ def _val_cols(cols):
     return [c for c in cols] # make it a list implicitly, make no guarantees about elements
 
 def _def_headers(X):
-    return ['V%i' %  (i+1) for i in range(X.shape[1])]
+    m = X.shape[1] if hasattr(X, 'shape') else len(X)
+    return ['V%i' %  (i+1) for i in range(m)]
 
 def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
@@ -132,15 +133,8 @@ def validate_is_pd(X, cols):
     # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
     else:
         # we'll do two tests here... either that it's a np ndarray or a list of lists
-        if isinstance(X, np.ndarray):
+        if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
             return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
-
-        # otherwise check for list of lists...
-        if hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X):
-            try:
-                return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
-            except Exception as e:
-                raise ValueError('cannot create dataframe from X')
 
         # bail out:
         raise ValueError('cannot handle data of type %s' % type(X))

@@ -1,7 +1,5 @@
-import abc
 
 __all__ = [
-	'BalancerMixin',
 	'ModuleImportWarning',
 	'SamplingWarning',
 	'SelectiveMixin',
@@ -9,19 +7,6 @@ __all__ = [
 ]
 
 ###############################################################################
-class BalancerMixin:
-	"""A mixin class for all balancer classes.
-	Balancers are not like TransformerMixins or
-	BaseEstimators, and do not implement fit or predict.
-	"""
-	# the max classes handled by class balancers
-	__max_classes__ = 20
-	__metaclass__ = abc.ABCMeta
-
-	@abc.abstractmethod
-	def balance(self, X):
-		return
-
 class ModuleImportWarning(UserWarning):
 	"""Custom warning used to notify user a non-critical import failed, and to
 	suggest the installation of the module for optimal results.

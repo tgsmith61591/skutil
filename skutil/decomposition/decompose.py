@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import pandas as pd
+from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.utils.validation import check_is_fitted
@@ -17,17 +18,18 @@ __all__ = [
 
 ###############################################################################
 class _BaseSelectiveDecomposer(BaseEstimator, TransformerMixin, SelectiveMixin):
-    """Any decomposing class should implement
-    this mixin. It will return the SVD or PCA decomposition.
-    """
+    """Base class for selective decompositional transformers."""
+    __metaclass__ = ABCMeta
 
+    @abstractmethod
+    def __init__(self, cols=None, n_components=None, as_df=True):
+        self.cols = cols
+        self.n_components = n_components
+        self.as_df = as_df
+
+    @abstractmethod
     def get_decomposition(self):
-        if hasattr(self, 'pca_'):
-            return self.pca_
-        elif hasattr(self, 'svd_'):
-            return self.svd_
-        else:
-            raise ValueError('class does not have pca_ or svd_ attribute')
+        return NotImplemented
 
 
 
@@ -87,11 +89,9 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     """
 
     def __init__(self, cols=None, n_components=None, whiten=False, weight=False, as_df=True):
-        self.cols = cols
-        self.n_components = n_components
+        super(SelectivePCA, self).__init__(cols=cols, n_components=n_components, as_df=as_df)
         self.whiten = whiten
         self.weight = weight
-        self.as_df = as_df
 
     def fit(self, X, y = None):
         # check on state of X and cols
@@ -129,6 +129,9 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
         return x if self.as_df else x.as_matrix()
+
+    def get_decomposition(self):
+        return self.pca_ if hasattr(self, 'pca_') else None
 
 
 ###############################################################################
@@ -173,11 +176,9 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     """
 
     def __init__(self, cols=None, n_components=2, algorithm='randomized', n_iter=5, as_df=True):
-        self.cols = cols
-        self.n_components = n_components
+        super(SelectiveTruncatedSVD, self).__init__(cols=cols, n_components=n_components, as_df=as_df)
         self.algorithm = algorithm
         self.n_iter = n_iter
-        self.as_df = as_df
 
     def fit(self, X, y = None):
         # check on state of X and cols
@@ -205,6 +206,9 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
 
         return x if self.as_df else x.as_matrix()
+
+    def get_decomposition(self):
+        return self.svd_ if hasattr(self, 'svd_') else None
 
 
 

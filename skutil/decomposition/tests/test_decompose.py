@@ -24,6 +24,7 @@ def test_selective_pca():
 	assert 'PC1' in transformed.columns
 	assert transformed.shape[1] == 4
 	assert isinstance(transformer.get_decomposition(), PCA)
+	assert SelectivePCA().get_decomposition() is None
 
 	# test the selective mixin
 	assert isinstance(transformer.get_features(), list)
@@ -58,6 +59,7 @@ def test_selective_tsvd():
 	assert 'Concept1' in transformed.columns
 	assert transformed.shape[1] == 3
 	assert isinstance(transformer.get_decomposition(), TruncatedSVD)
+	assert SelectiveTruncatedSVD().get_decomposition() is None # default None
 
 	# test the selective mixin
 	assert isinstance(transformer.get_features(), list)
