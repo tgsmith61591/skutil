@@ -71,7 +71,7 @@ class _BaseBalancer:
 
 	@abc.abstractmethod
 	def balance(self, X):
-		return
+		return NotImplemented
 
 
 class OversamplingClassBalancer(_BaseBalancer):

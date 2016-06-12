@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import pandas as pd
+import warnings
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.feature_selection import *
@@ -79,5 +80,20 @@ def test_nzv_filterer():
 
 	# test the selective mixin
 	assert transformer.get_features() is None
+
+def test_feature_dropper_warning():
+	x = np.array([
+			[1,2,3],
+			[1,2,3],
+			[1,2,4]
+		])
+
+	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
+
+	# catch the warning
+	with warnings.catch_warnings(record=True) as w:
+		warnings.simplefilter('always')
+		FeatureDropper(cols=['d']).fit_transform(df)
+		assert len(w) == 1
 
 

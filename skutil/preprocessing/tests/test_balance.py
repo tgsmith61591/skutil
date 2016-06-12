@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
+import warnings
 
 
 ## Def data for testing
@@ -81,6 +82,35 @@ def test_oversample():
 	assert cts[1] == 50
 	assert cts[2] == 50
 
+def test_oversample_warning():
+	x = np.array([
+			[1,2,3],
+			[1,2,3],
+			[1,2,4]
+		])
+
+	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
+
+	# catch the warning
+	with warnings.catch_warnings(record=True) as w:
+		warnings.simplefilter('always')
+		OversamplingClassBalancer(y='c').balance(df)
+		assert len(w) == 1
+
+def test_smote_error():
+	x = np.array([
+			[1,2,3],
+			[1,2,3],
+			[1,2,4]
+		])
+
+	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
+	failed = False
+	try:
+		SMOTEClassBalancer(y='c').balance(df)
+	except ValueError as e:
+		failed = True
+	assert failed
 
 
 def test_smote():
