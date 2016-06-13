@@ -55,3 +55,27 @@ def test_validate_on_non_df():
 	x = [[1,2,3],[4,5,6],[7,8,9]]
 	validate_is_pd(x, None)
 
+def test_conf_matrix():
+	a = [0,1,0,1,1]
+	b = [0,1,1,1,0]
+
+	df, ser = report_confusion_matrix(a, b)
+	assert df.iloc[0,0] == 1
+	assert df.iloc[0,1] == 1
+	assert df.iloc[1,0] == 1
+	assert df.iloc[1,1] == 2
+	assert_almost_equal(ser['True Pos. Rate'], 0.666666666667)
+	assert_almost_equal(ser['Diagnostic odds ratio'], 2.00000)
+
+	# assert false yields None on series
+	df, ser = report_confusion_matrix(a, b, False)
+	assert ser is None
+
+	# assert fails with > 2 classes
+	a[0] = 2
+	failed = False
+	try:
+		report_confusion_matrix(a, b)
+	except ValueError as v:
+		failed = True
+	assert failed

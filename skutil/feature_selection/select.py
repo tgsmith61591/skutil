@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import warnings
 from abc import ABCMeta, abstractmethod
+from scipy.linalg import qr
+from numpy.linalg import matrix_rank as mr
+from numpy.linalg.linalg import LinAlgError
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from ..base import SelectiveMixin
@@ -15,6 +18,11 @@ __all__ = [
 	'MulticollinearityFilterer',
 	'NearZeroVarianceFilterer'
 ]
+
+
+def _validate_cols(cols):
+	if cols is not None and len(cols) < 2:
+		raise ValueError('too few features')
 
 
 ###############################################################################
@@ -104,6 +112,7 @@ class FeatureRetainer(_BaseFeatureSelector):
 		return retained if self.as_df else retained.as_matrix()
 
 
+
 ###############################################################################
 class MulticollinearityFilterer(_BaseFeatureSelector):
 	"""Filter out features with a correlation greater than the provided threshold.
@@ -141,7 +150,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		self.threshold = threshold
 		self.method = method
 
-	def fit(self, X, y = None):
+	def fit(self, X, y=None):
 		"""Fit the multicollinearity filterer.
 
 		Parameters
@@ -156,7 +165,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		return self
 
 
-	def fit_transform(self, X, y = None):
+	def fit_transform(self, X, y=None):
 		"""Fit the multicollinearity filterer and
 		return the filtered frame.
 
@@ -170,8 +179,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 
 		# check on state of X and cols
 		X, self.cols = validate_is_pd(X, self.cols)
-		if self.cols is not None and len(self.cols) < 2:
-			raise ValueError('too few features')
+		_validate_cols(self.cols)
 
 		## init drops list
 		drops = []

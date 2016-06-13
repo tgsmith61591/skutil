@@ -1,7 +1,9 @@
+from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 import warnings
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import confusion_matrix as cm
 from ..base import SelectiveWarning, ModuleImportWarning
 
 
@@ -22,6 +24,7 @@ __all__ = [
     'flatten_all_generator',
     'get_numeric',
     'is_numeric',
+    'report_confusion_matrix',
     'report_grid_score_detail',
     'validate_is_pd'
 ]
@@ -191,5 +194,87 @@ def report_grid_score_detail(random_search, charts=True):
             plt.show()
 
     return result_df
+
+def report_confusion_matrix(actual, pred, return_metrics=True):
+    """Return a dataframe with the confusion matrix, and a series
+    with the classification performance metrics.
+    """
+
+    # ensure only two classes in each
+    lens = [len(set(actual)), len(set(pred))]
+    max_len = np.max(lens)
+    if max_len > 2:
+        raise ValueError('max classes is 2, but got %i' % max_len)
+
+    cf = cm(actual, pred)
+    # format: (col = pred, index = act)
+    # array([[TN, FP],
+    #        [FN, TP]])
+
+    ser = None
+    if return_metrics:
+        total_pop = np.sum(cf)
+        condition_pos = np.sum(cf[1,:])
+        condition_neg = np.sum(cf[0,:])
+
+        # alias the elements in the matrix
+        tp = cf[1,1]
+        fp = cf[0,1]
+        tn = cf[0,0]
+        fn = cf[1,0]
+
+        # sums of the prediction cols
+        pred_pos = tp + fp
+        pred_neg = tn + fn
+
+        acc = (tp+tn) / total_pop       # accuracy
+        tpr = tp / condition_pos        # sensitivity, recall
+        fpr = fp / condition_neg        # fall-out
+        fnr = fn / condition_pos        # miss rate
+        tnr = tn / condition_neg        # specificity
+        prev= condition_pos / total_pop # prevalence
+        plr = tpr / fpr                 # positive likelihood ratio, LR+
+        nlr = fnr / tnr                 # negative likelihood ratio, LR-
+        dor = plr / nlr                 # diagnostic odds ratio
+        prc = tp / pred_pos             # precision, positive predictive value
+        fdr = fp / pred_pos             # false discovery rate
+        fomr= fn / pred_neg             # false omission rate
+        npv = tn / pred_neg             # negative predictive value
+
+        # define the series
+        d = {
+            'Accuracy'              : acc,
+            'Diagnostic odds ratio' : dor,
+            'Fall-out'              : fpr,
+            'False discovery rate'  : fdr,
+            'False Neg. Rate'       : fnr,
+            'False omission rate'   : fomr,
+            'False Pos. Rate'       : fpr,
+            'Miss rate'             : fnr,
+            'Neg. likelihood ratio' : nlr,
+            'Neg. predictive value' : npv,
+            'Pos. likelihood ratio' : plr,
+            'Pos. predictive value' : prc,
+            'Precision'             : prc,
+            'Prevalence'            : prev,
+            'Recall'                : tpr,
+            'Sensitivity'           : tpr,
+            'Specificity'           : tnr,
+            'True Pos. Rate'        : tpr,
+            'True Neg. Rate'        : tnr
+        }
+
+        ser = pd.Series(data=d)
+        ser.name = 'Metrics'
+
+
+    # create the DF
+    conf = pd.DataFrame.from_records(data=cf, columns=['Neg','Pos'])
+    conf.index = ['Neg','Pos']
+
+    return conf, ser
+
+
+
 
     
