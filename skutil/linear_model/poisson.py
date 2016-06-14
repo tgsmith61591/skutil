@@ -285,9 +285,6 @@ def poisson_regression(X, y, exposure=None, alpha=None, solver='cg', max_iter=10
         maxiter=max_iter,
         **optkwargs) # provides fprime, tolerance and verbose
 
-    for r in result:
-        print(r)
-
     return w0
 
 
@@ -322,6 +319,9 @@ class PoissonRegressor(LinearModel, RegressorMixin):
 
     def __init__(self, exposure=None, alpha=0., solver='cg', max_iter=1000, 
         tol=1e-4, verbose=0, fit_intercept=False):
+
+    	# set numpy stderr low, because can overflow on log/exp
+    	np.seterr(all='ignore')
 
     	self.exposure = exposure
         self.alpha = alpha
