@@ -57,6 +57,9 @@ def test_bagged_imputer_errors():
 	nms = ['a','b','c','d','e']
 	X = _random_X(500,5,nms)
 
+	# ensure works on just fit
+	BaggedImputer().fit(X)
+
 	# make all of a NaN
 	X.a = np.nan
 
@@ -71,7 +74,9 @@ def test_bagged_imputer_errors():
 	# test on just one col
 	failed = False
 	try:
-		imputer = BaggedImputer().fit(X.b)
+		u = pd.DataFrame()
+		u['b'] = X.b
+		imputer = BaggedImputer().fit(u)
 	except ValueError as v:
 		failed = True
 	assert failed, 'Expected fitting on one col to fail'

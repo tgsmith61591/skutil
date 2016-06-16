@@ -143,8 +143,6 @@ class BaggedImputer(_BaseImputer):
 		# we're imputing. In that case, there's too few cols on which to model
 		if numerics.shape[1] == 1:
 			raise ValueError('too few numeric columns on which to model')
-		elif numerics.shape[1] != X.shape[1]:
-			warnings.warn('not all features are numeric; will only model using numeric features', UserWarning)
 
 		# the core algorithm:
 		# - for each col to impute
