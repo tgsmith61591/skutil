@@ -6,6 +6,7 @@ build/
 skutil.egg-info/
 .coverage
 *.png
+*.so*
 
 # But not these
 !doc/images/*.png

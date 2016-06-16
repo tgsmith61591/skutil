@@ -224,6 +224,8 @@ class BaggedImputer(_BaseImputer):
 		for col, kv in six.iteritems(models):
 			features, model = kv['feature_names'], kv['model']
 			y = X[col] # the y we're predicting
+
+			# this will throw a key error if one of the features isn't there
 			X_test = X[features] # we need another copy
 
 			# if col is in the features, there's something wrong internally
