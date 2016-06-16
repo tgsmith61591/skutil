@@ -24,6 +24,11 @@ def test_flatten():
 	b = flatten_all(a)
 	assert _check_equal(b, [3,4,'1','a',1,1,2])
 
+def test_is_entirely_numeric():
+	x = pd.DataFrame.from_records(data=iris.data)
+	assert is_entirely_numeric(x)
+	assert not is_entirely_numeric(X)
+
 def test_is_numeric():
 	assert is_numeric(1)
 	assert is_numeric(1.)

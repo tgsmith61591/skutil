@@ -14,6 +14,12 @@ cd skutil
 python setup.py install
 ```
 
+Make sure you have Fortran installed, as you'll need a Fortran compiler to run `setup.py`:
+
+```bash
+brew install gcc
+```
+
 
 #### Examples:
   - See the [wiki](https://github.com/tgsmith61591/skutil/wiki)

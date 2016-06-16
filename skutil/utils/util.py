@@ -23,6 +23,7 @@ __all__ = [
     'flatten_all',
     'flatten_all_generator',
     'get_numeric',
+    'is_entirely_numeric',
     'is_numeric',
     'report_confusion_matrix',
     'report_grid_score_detail',
@@ -155,6 +156,18 @@ def get_numeric(X):
     """
     validate_is_pd(X, None) # don't want warning
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int", "bool")))].index.tolist()
+
+
+def is_entirely_numeric(X):
+    """Determines whether an entire pandas frame
+    is numeric in dtypes.
+
+    Parameters
+    ----------
+    X : pd DataFrame
+        The dataframe to test
+    """
+    return X.shape[1] == len(get_numeric(X))
 
 
 def is_numeric(x):
