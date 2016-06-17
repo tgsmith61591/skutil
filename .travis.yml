@@ -7,9 +7,12 @@ python:
   #- "3.4"
   #- "3.5"
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install gcc-4.8 -y
+
 ## Install the packages
 install:
-  - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
