@@ -9,7 +9,7 @@ python:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install gcc-4.8 -y
+  - sudo apt-get install gcc -y
 
 ## Install the packages
 install:
