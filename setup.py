@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, sys, shutil
+import os, sys, shutil, glob
 from os.path import join
 import warnings
 import subprocess
@@ -54,24 +54,61 @@ if SETUPTOOLS_COMMANDS.intersection(sys.argv):
 else:
 	extra_setuptools_args = dict()
 
+
+def _clean_compiled(suffixes):
+	# check on compiled files
+	for dirpath, dirnames, filenames in os.walk('skutil'):
+		for filename in filenames:
+			flnm = os.path.join(dirpath, filename)
+
+			# rm compiled files
+			if any(filename.endswith(suffix) for suffix in suffixes):
+				print('Removing %s' % flnm)
+				os.unlink(flnm)
+				continue
+
+			extension = os.path.splitext(filename)[1]
+		for dirname in dirnames:
+			if dirname == '__pycache__':
+				shutil.rmtree(os.path.join(dirpath, dirname))
+
+def _clean_fortran():
+	# check on fortran dirs
+	fortran_dirs = ['odr']
+	for dr in fortran_dirs:
+		fortrans = glob.glob(os.path.join('skutil',dr,'*.so.*'))
+		for fortran in fortrans:
+			print('Removing %s' % fortran)
+			shutil.rmtree(fortran)
+
+	# clean the compiled files
+	_clean_compiled(('.so'))
+
+
+def generate_fortran():
+	print("Generating Fortran modules")
+	cwd = os.path.abspath(os.path.dirname(__file__))
+	p = subprocess.call([sys.executable, os.path.join(cwd, 'build_tools', 'fortranize.py'), 'skutil'], cwd=cwd)
+	if p != 0:
+		raise RuntimeError("Running fortranize failed!")
+
+
 ## Custom class to clean build artifacts
 class CleanCommand(Clean):
 	description = 'Remove build artifacts from the source tree'
 	
 	def run(self):
+		print('Removing existing build artifacts')
 		Clean.run(self)
 
 		if os.path.exists('build'):
 			shutil.rmtree('build')
-		for dirpath, dirnames, filenames in os.walk('skutil'):
-			for filename in filenames:
-				if any(filename.endswith(suffix) for suffix in ('.so','.pyd','.dll','.pyc', '.DS_Store')):
-					os.unlink(os.path.join(dirpath, filename))
-					continue
-				extension = os.path.splitext(filename)[1]
-			for dirname in dirnames:
-				if dirname == '__pycache__':
-					shutil.rmtree(os.path.join(dirpath, dirname))
+
+		# check on fortran dirs
+		_clean_fortran()
+
+		# check on other compiled files
+		_clean_compiled(('.pyd','.dll','.pyc', '.DS_Store'))
 
 
 cmdclass = {'clean' : CleanCommand}
@@ -167,6 +204,19 @@ def setup_package():
 			maintainer_email=MAINTAINER_EMAIL, 
 			description=DESCRIPTION, 
 			version=VERSION,
+			classifiers=['Intended Audience :: Science/Research',
+						 'Intended Audience :: Developers',
+						 'Intended Audience :: Scikit-learn users',
+						 'Programming Language :: Fortran',
+						 'Programming Language :: Python',
+						 'Topic :: Software Development',
+						 'Topic :: Scientific/Engineering',
+						 'Operating System :: Microsoft :: Windows',
+						 'Operating System :: POSIX',
+						 'Operating System :: Unix',
+						 'Operating System :: MacOS',
+						 'Programming Language :: Python :: 2.7'
+						 ],
 			cmdclass=cmdclass,
 			**extra_setuptools_args)
 
@@ -201,7 +251,17 @@ def setup_package():
 	from numpy.distutils.core import setup
 	metadata['configuration'] = configuration
 
+	# we need to build our fortran
+	if len(sys.argv) >= 2 and sys.argv[1] not in 'config':
+		# FORTRANIZE (f2py)
+		print('Cleaning existing compiled Fortran files')
+		_clean_fortran()
+
+		# gen fortran modules
+		generate_fortran()
+
 	setup(**metadata)
+
 
 if __name__ == '__main__':
 	setup_package()

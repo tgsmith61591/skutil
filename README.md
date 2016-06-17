@@ -11,7 +11,11 @@ A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extens
 ```bash
 git clone https://github.com/tgsmith61591/skutil.git
 cd skutil
-python setup.py install
+python easy_setup.py
+
+# NOTE: easy_setup.py takes care of the following:
+# python setup.py clean --all
+# python setup.py install
 ```
 
 Make sure you have Fortran installed, as you'll need a Fortran compiler to run `setup.py`:

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+f2py -c -m dqrsl dqrsl.f

@@ -3,6 +3,7 @@ from .base import _BaseFeatureSelector
 from scipy.linalg import qr
 from numpy.linalg import matrix_rank as mr
 from numpy.linalg.linalg import LinAlgError
+from ..odr import dqrcf
 
 
 __all__ = [
@@ -150,6 +151,9 @@ def _qr_coef(qr_dec, y):
 	n, p = QR.shape
 	nx, ny = y.shape
 
+	if n * p > 2147483647:
+		raise ValueError('too many elements for LINPACK')
+
 	# ensure dims -- shouldn't be necessary, as this is an internal method
 	#if not nx == n:
 	#	raise ValueError('qr and y must have same number of rows')
@@ -171,6 +175,5 @@ def _qr_coef(qr_dec, y):
 		ix = np.arange(n)
 
 	# get z
+	#z = dqrcf(QR, n, k, )
 
-
-#def _dqrcf(QR, n, k, qraux, y, ny, coef):
