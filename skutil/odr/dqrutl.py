@@ -5,9 +5,14 @@ import dqrsl
 # and crashes may be caused by inappropriate usage. Use with care.
 
 __all__ = [
-	'dqrcf'
+	'dqrcf',
+	'dqrdc2'
 ]
 
 def dqrcf(x, n, k, qraux, y, ny, b, info):
+	print("TODO:")
+	pass
+
+def dqrdc2(x, ldx, n, p, tol, k, qraux, jpvt, work):
 	print("TODO:")
 	pass
