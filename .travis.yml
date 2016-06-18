@@ -9,7 +9,8 @@ python:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install gcc -y
+  - brew update
+  - brew install gcc
 
 ## Install the packages
 install:
