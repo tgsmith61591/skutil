@@ -13,7 +13,9 @@ before_install:
 addons:
   apt:
     packages:
-    - gcc-4.8
+    - gcc
+    - g++
+    - gfortran
 
 ## Install the packages
 install:
