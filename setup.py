@@ -73,6 +73,7 @@ def _clean_compiled(suffixes):
 				shutil.rmtree(os.path.join(dirpath, dirname))
 
 def _clean_fortran():
+	print('Cleaning existing compiled Fortran files')
 	# check on fortran dirs
 	fortran_dirs = ['odr']
 	for dr in fortran_dirs:
@@ -82,7 +83,7 @@ def _clean_fortran():
 			shutil.rmtree(fortran)
 
 	# clean the compiled files
-	_clean_compiled(('.so'))
+	_clean_compiled(('.so', '.pyf'))
 
 
 def generate_fortran():
@@ -252,9 +253,8 @@ def setup_package():
 	metadata['configuration'] = configuration
 
 	# we need to build our fortran
-	if len(sys.argv) >= 2 and sys.argv[1] not in 'config':
-		# FORTRANIZE (f2py)
-		print('Cleaning existing compiled Fortran files')
+	if len(sys.argv) >= 2 and sys.argv[1] not in ('config', 'clean'):
+		# clean up the .so files
 		_clean_fortran()
 
 		# gen fortran modules

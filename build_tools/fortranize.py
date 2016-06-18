@@ -29,10 +29,14 @@ def check_and_fortranize(root_dir):
 				# extract the first portion
 				canonical_name = filename.split('.')[0]
 				abs_file_name  = os.path.join(cur_dir, filename)
-
-				# construct the subprocess to call
+				signature_file = '%s.pyf' % canonical_name
 				print('Creating %s module from %s' % (canonical_name+'.so', abs_file_name))
-				subprocess.call(['f2py', '-c', '-m', canonical_name, abs_file_name])
+
+				# construct the subprocess to call -- this builds the signature file
+				subprocess.call(['f2py', abs_file_name, '-m', canonical_name, '-h', signature_file])
+
+				# this compiles the module from the signature file:
+				subprocess.call(['f2py', '-c', signature_file, abs_file_name])
 
 				# get the glob
 				g = glob.glob('%s*' % canonical_name)

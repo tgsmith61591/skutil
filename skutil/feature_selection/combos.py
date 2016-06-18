@@ -3,7 +3,7 @@ from .base import _BaseFeatureSelector
 from scipy.linalg import qr
 from numpy.linalg import matrix_rank as mr
 from numpy.linalg.linalg import LinAlgError
-from ..odr import dqrcf
+from ..odr import QRDecomposition
 
 
 __all__ = [
@@ -175,5 +175,5 @@ def _qr_coef(qr_dec, y):
 		ix = np.arange(n)
 
 	# get z
-	#z = dqrcf(QR, n, k, )
+	#z = dqrcf(QR, n, k, , y, ny)
 

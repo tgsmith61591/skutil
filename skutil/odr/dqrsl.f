@@ -1,3 +1,123 @@
+*  =========== DOCUMENTATION ===========
+*
+* Online html documentation available at 
+*            http://www.netlib.org/lapack/explore-html/ 
+*
+*  Definition:
+*  ===========
+*
+*       SUBROUTINE DSWAP(N,DX,INCX,DY,INCY)
+* 
+*       .. Scalar Arguments ..
+*       INTEGER INCX,INCY,N
+*       ..
+*       .. Array Arguments ..
+*       DOUBLE PRECISION DX(*),DY(*)
+*       ..
+*  
+*
+*> \par Purpose:
+*  =============
+*>
+*> \verbatim
+*>
+*>    interchanges two vectors.
+*>    uses unrolled loops for increments equal one.
+*> \endverbatim
+*
+*  Authors:
+*  ========
+*
+*> \author Univ. of Tennessee 
+*> \author Univ. of California Berkeley 
+*> \author Univ. of Colorado Denver 
+*> \author NAG Ltd. 
+*
+*> \date November 2011
+*
+*> \ingroup double_blas_level1
+*
+*> \par Further Details:
+*  =====================
+*>
+*> \verbatim
+*>
+*>     jack dongarra, linpack, 3/11/78.
+*>     modified 12/3/93, array(1) declarations changed to array(*)
+*> \endverbatim
+*>
+*  =====================================================================
+      subroutine dswap(n,dx,incx,dy,incy)
+*
+*  -- reference blas level1 routine (version 3.4.0) --
+*  -- reference blas is a software package provided by univ. of tennessee,    --
+*  -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
+*     november 2011
+*
+*     .. scalar arguments ..
+      integer incx,incy,n
+*     ..
+*     .. array arguments ..
+      double precision dx(*),dy(*)
+*     ..
+*
+*  =====================================================================
+*
+*     .. local scalars ..
+      double precision dtemp
+      integer i,ix,iy,m,mp1
+*     ..
+*     .. intrinsic functions ..
+      intrinsic mod
+*     ..
+      if (n.le.0) return
+      if (incx.eq.1 .and. incy.eq.1) then
+*
+*       code for both increments equal to 1
+*
+*
+*       clean-up loop
+*
+         m = mod(n,3)
+         if (m.ne.0) then
+            do i = 1,m
+               dtemp = dx(i)
+               dx(i) = dy(i)
+               dy(i) = dtemp
+            end do
+            if (n.lt.3) return
+         end if
+         mp1 = m + 1
+         do i = mp1,n,3
+            dtemp = dx(i)
+            dx(i) = dy(i)
+            dy(i) = dtemp
+            dtemp = dx(i+1)
+            dx(i+1) = dy(i+1)
+            dy(i+1) = dtemp
+            dtemp = dx(i+2)
+            dx(i+2) = dy(i+2)
+            dy(i+2) = dtemp
+         end do
+      else
+*
+*       code for unequal increments or equal increments not equal
+*         to 1
+*
+         ix = 1
+         iy = 1
+         if (incx.lt.0) ix = (-n+1)*incx + 1
+         if (incy.lt.0) iy = (-n+1)*incy + 1
+         do i = 1,n
+            dtemp = dx(ix)
+            dx(ix) = dy(iy)
+            dy(iy) = dtemp
+            ix = ix + incx
+            iy = iy + incy
+         end do
+      end if
+      return
+      end
 *  =====================================================================
       subroutine dscal(n,da,dx,incx)
 *
@@ -602,19 +722,23 @@ c
       return
       end
 c
-c     dqrdc2 uses householder transformations to compute the qr
-c     factorization of an n by p matrix x.  a limited column
-c     pivoting strategy based on the 2-norms of the reduced columns
-c     moves columns with near-zero norm to the right-hand edge of
-c     the x matrix.  this strategy means that sequential one
-c     degree-of-freedom effects can be computed in a natural way.
+      subroutine dqrdc(x,ldx,n,p,qraux,jpvt,work,job)
 c
-c     i am very nervous about modifying linpack code in this way.
-c     if you are a computational linear algebra guru and you really
-c     understand how to solve this problem please feel free to
-c     suggest improvements to this code.
+      integer ldx,n,p,job
+      integer jpvt(*)
+      double precision x(ldx,*),qraux(*),work(*)
 c
-c     Another change was to compute the rank.
+c     we want to affect these in place...   
+Cf2py intent(in) ldx  
+Cf2py intent(inplace) x
+Cf2py intent(inplace) qraux
+Cf2py intent(inplace) jpvt
+Cf2py depend(ldx) x
+c
+c     dqrdc uses householder transformations to compute the qr
+c     factorization of an n by p matrix x.  column pivoting
+c     based on the 2-norms of the reduced columns may be
+c     performed at the users option.
 c
 c     on entry
 c
@@ -631,19 +755,37 @@ c
 c        p       integer.
 c                p is the number of columns of the matrix x.
 c
-c        tol     double precision
-c                tol is the nonnegative tolerance used to
-c                determine the subset of the columns of x
-c                included in the solution.
-c
 c        jpvt    integer(p).
-c                integers which are swapped in the same way as the
-c                the columns of x during pivoting.  on entry these
-c                should be set equal to the column indices of the
-c                columns of the x matrix (typically 1 to p).
+c                jpvt contains integers that control the selection
+c                of the pivot columns.  the k-th column x(k) of x
+c                is placed in one of three classes according to the
+c                value of jpvt(k).
 c
-c        work    double precision(p,2).
-c                work is a work array.
+c                   if jpvt(k) .gt. 0, then x(k) is an initial
+c                                      column.
+c
+c                   if jpvt(k) .eq. 0, then x(k) is a free column.
+c
+c                   if jpvt(k) .lt. 0, then x(k) is a final column.
+c
+c                before the decomposition is computed, initial columns
+c                are moved to the beginning of the array x and final
+c                columns to the end.  both initial and final columns
+c                are frozen in place during the computation and only
+c                free columns are moved.  at the k-th stage of the
+c                reduction, if x(k) is occupied by a free column
+c                it is interchanged with the free column of largest
+c                reduced norm.  jpvt is not referenced if
+c                job .eq. 0.
+c
+c        work    double precision(p).
+c                work is a work array.  work is not referenced if
+c                job .eq. 0.
+c
+c        job     integer.
+c                job is an integer that initiates column pivoting.
+c                if job .eq. 0, no pivoting is done.
+c                if job .ne. 0, pivoting is done.
 c
 c     on return
 c
@@ -656,94 +798,101 @@ c                been requested, the decomposition is not that
 c                of the original matrix x but that of x
 c                with its columns permuted as described by jpvt.
 c
-c        k       integer.
-c                k contains the number of columns of x judged
-c                to be linearly independent.
-c
 c        qraux   double precision(p).
 c                qraux contains further information required to recover
 c                the orthogonal part of the decomposition.
 c
 c        jpvt    jpvt(k) contains the index of the column of the
 c                original matrix that has been interchanged into
-c                the k-th column.
+c                the k-th column, if pivoting was requested.
 c
-c     original (dqrdc.f) linpack version dated 08/14/78 .
+c     linpack. this version dated 08/14/78 .
 c     g.w. stewart, university of maryland, argonne national lab.
 c
-c     this version dated 22 august 1995
-c     ross ihaka
+c     dqrdc uses the following functions and subprograms.
 c
-c     bug fixes 29 September 1999 BDR (p > n case, inaccurate ranks)
-c
-c
-c     dqrdc2 uses the following functions and subprograms.
-c
-c     blas daxpy,ddot,dscal,dnrm2
+c     blas daxpy,ddot,dscal,dswap,dnrm2
 c     fortran dabs,dmax1,min0,dsqrt
-c
-      subroutine dqrdc2(x,ldx,n,p,tol,k,qraux,jpvt,work)
-      integer ldx,n,p
-      integer jpvt(*)
-      double precision x(ldx,*),qraux(*),work(p,2),tol
 c
 c     internal variables
 c
-      integer i,j,l,lp1,lup,k
-      double precision dnrm2,tt,ttt
+      integer j,jp,l,lp1,lup,maxj,pl,pu
+      double precision maxnrm,dnrm2,tt
       double precision ddot,nrmxl,t
+      logical negj,swapj
 c
 c
-c     compute the norms of the columns of x.
+      pl = 1
+      pu = 0
+      if (job .eq. 0) go to 60
 c
-      do 70 j = 1, p
+c        pivoting has been requested.  rearrange the columns
+c        according to jpvt.
+c
+         do 20 j = 1, p
+            swapj = jpvt(j) .gt. 0
+            negj = jpvt(j) .lt. 0
+            jpvt(j) = j
+            if (negj) jpvt(j) = -j
+            if (.not.swapj) go to 10
+               if (j .ne. pl) call dswap(n,x(1,pl),1,x(1,j),1)
+               jpvt(j) = jpvt(pl)
+               jpvt(pl) = j
+               pl = pl + 1
+   10       continue
+   20    continue
+         pu = p
+         do 50 jj = 1, p
+            j = p - jj + 1
+            if (jpvt(j) .ge. 0) go to 40
+               jpvt(j) = -jpvt(j)
+               if (j .eq. pu) go to 30
+                  call dswap(n,x(1,pu),1,x(1,j),1)
+                  jp = jpvt(pu)
+                  jpvt(pu) = jpvt(j)
+                  jpvt(j) = jp
+   30          continue
+               pu = pu - 1
+   40       continue
+   50    continue
+   60 continue
+c
+c     compute the norms of the free columns.
+c
+      if (pu .lt. pl) go to 80
+      do 70 j = pl, pu
          qraux(j) = dnrm2(n,x(1,j),1)
-         work(j,1) = qraux(j)
-         work(j,2) = qraux(j)
-         if(work(j,2) .eq. 0.0d0) work(j,2) = 1.0d0
+         work(j) = qraux(j)
    70 continue
+   80 continue
 c
 c     perform the householder reduction of x.
 c
       lup = min0(n,p)
-      k = p + 1
       do 200 l = 1, lup
+         if (l .lt. pl .or. l .ge. pu) go to 120
 c
-c     previous version only cycled l to lup
+c           locate the column of largest norm and bring it
+c           into the pivot position.
 c
-c     cycle the columns from l to p left-to-right until one
-c     with non-negligible norm is located.  a column is considered
-c     to have become negligible if its norm has fallen below
-c     tol times its original norm.  the check for l .le. k
-c     avoids infinite cycling.
-c
-   80    continue
-         if (l .ge. k .or. qraux(l) .ge. work(l,2)*tol) go to 120
-            lp1 = l+1
-            do 100 i=1,n
-               t = x(i,l)
-               do 90 j=lp1,p
-                  x(i,j-1) = x(i,j)
+            maxnrm = 0.0d0
+            maxj = l
+            do 100 j = l, pu
+               if (qraux(j) .le. maxnrm) go to 90
+                  maxnrm = qraux(j)
+                  maxj = j
    90          continue
-               x(i,p) = t
   100       continue
-            i = jpvt(l)
-            t = qraux(l)
-            tt = work(l,1)
-            ttt = work(l,2)
-            do 110 j=lp1,p
-               jpvt(j-1) = jpvt(j)
-               qraux(j-1) = qraux(j)
-               work(j-1,1) = work(j,1)
-               work(j-1,2) = work(j,2)
+            if (maxj .eq. l) go to 110
+               call dswap(n,x(1,l),1,x(1,maxj),1)
+               qraux(maxj) = qraux(l)
+               work(maxj) = work(l)
+               jp = jpvt(maxj)
+               jpvt(maxj) = jpvt(l)
+               jpvt(l) = jp
   110       continue
-            jpvt(p) = i
-            qraux(p) = t
-            work(p,1) = tt
-            work(p,2) = ttt
-            k = k - 1
-            go to 80
   120    continue
+         qraux(l) = 0.0d0
          if (l .eq. n) go to 190
 c
 c           compute the householder transformation for column l.
@@ -762,24 +911,18 @@ c
                do 160 j = lp1, p
                   t = -ddot(n-l+1,x(l,l),1,x(l,j),1)/x(l,l)
                   call daxpy(n-l+1,t,x(l,l),1,x(l,j),1)
+                  if (j .lt. pl .or. j .gt. pu) go to 150
                   if (qraux(j) .eq. 0.0d0) go to 150
                      tt = 1.0d0 - (dabs(x(l,j))/qraux(j))**2
                      tt = dmax1(tt,0.0d0)
                      t = tt
-c
-c modified 9/99 by BDR. Re-compute norms if there is large reduction
-c The tolerance here is on the squared norm
-c In this version we need accurate norms, so re-compute often.
-c  work(j,1) is only updated in one case: looks like a bug -- no longer used
-c
-c                     tt = 1.0d0 + 0.05d0*tt*(qraux(j)/work(j,1))**2
-c                     if (tt .eq. 1.0d0) go to 130
-                     if (dabs(t) .lt. 1d-6) go to 130
+                     tt = 1.0d0 + 0.05d0*tt*(qraux(j)/work(j))**2
+                     if (tt .eq. 1.0d0) go to 130
                         qraux(j) = qraux(j)*dsqrt(t)
                      go to 140
   130                continue
                         qraux(j) = dnrm2(n-l,x(l+1,j),1)
-                        work(j,1) = qraux(j)
+                        work(j) = qraux(j)
   140                continue
   150             continue
   160          continue
@@ -792,6 +935,5 @@ c
   180       continue
   190    continue
   200 continue
-      k = min0(k - 1, n)
       return
       end
