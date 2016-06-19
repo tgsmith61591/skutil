@@ -19,4 +19,4 @@ def test_qr():
 	assert q.get_R_rank() == 4
 
 	# next, let's test that we can get the coefficients:
-	#q.get_coef(X)
+	q.get_coef(X)

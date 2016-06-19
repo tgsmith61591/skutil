@@ -18,12 +18,19 @@ python easy_setup.py
 # python setup.py install
 ```
 
-Make sure you have Fortran installed, as you'll need a Fortran compiler to run `setup.py`:
-
+#### Troubleshooting Installation Issues
+Skutil depends on the ability to compile Fortran code. For different platforms, there are different ways to install `gcc`:
+  - Mac OS:
 ```bash
 brew install gcc
 ```
 
+  - Linux:
+```bash
+sudo apt-get install gcc
+```
+
+  - For Windows, follow [this tutorial](http://www.preshing.com/20141108/how-to-install-the-latest-gcc-on-windows/)
 
 #### Examples:
   - See the [wiki](https://github.com/tgsmith61591/skutil/wiki)

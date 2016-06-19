@@ -46,14 +46,14 @@ python module dqrsl ! in
             integer :: incy
         end subroutine daxpy
         subroutine dqrcf(x,n,k,qraux,y,ny,b,info) ! in :dqrsl:skutil/odr/dqrsl.f
-            double precision dimension(n,k) :: x
-            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
-            integer, optional,check(shape(x,1)==k),depend(x) :: k=shape(x,1)
-            double precision dimension(k),depend(k) :: qraux
-            double precision dimension(n,ny),depend(n) :: y
-            integer, optional,check(shape(y,1)==ny),depend(y) :: ny=shape(y,1)
-            double precision dimension(k,ny),depend(k,ny) :: b
-            integer :: info
+            double precision dimension(n,*),depend(k,n) :: x
+            integer, optional,intent(in),check(shape(y,0)==n),depend(y) :: n=shape(y,0)
+            integer, optional,intent(in),check(shape(b,0)==k),depend(b) :: k=shape(b,0)
+            double precision dimension(*) :: qraux
+            double precision dimension(n,*),intent(inplace),depend(ny) :: y
+            integer intent(in) :: ny
+            double precision dimension(k,*),intent(inplace) :: b
+            integer intent(inplace) :: info
         end subroutine dqrcf
         subroutine dqrsl(x,ldx,n,k,qraux,y,qy,qty,b,rsd,xb,job,info) ! in :dqrsl:skutil/odr/dqrsl.f
             double precision dimension(ldx,*) :: x

@@ -436,7 +436,21 @@ c
 c
       subroutine dqrcf(x, n, k, qraux, y, ny, b, info)
       integer n, k, ny, info
-      double precision x(n,k), qraux(k), y(n,ny), b(k,ny)
+c
+c do we need to make these * instead of specific?
+      double precision x(n,*), qraux(*), y(n,*), b(k,*)
+c declare explicit dependencies
+Cf2py intent(in) n
+Cf2py intent(in) k
+Cf2py intent(in) ny
+Cf2py intent(inplace) y
+Cf2py intent(inplace) b
+Cf2py intent(inplace) info
+Cf2py depend(n) x
+Cf2py depend(k) x
+Cf2py depend(ny) y
+c
+c
       integer j
       double precision dummy(1)
       do 10 j = 1,ny

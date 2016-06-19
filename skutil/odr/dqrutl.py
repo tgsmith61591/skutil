@@ -119,6 +119,10 @@ class QRDecomposition():
 		qr, qraux = self.qr, self.qraux
 		n, p = qr.shape
 
+		# sanity check
+		assert isinstance(qr, np.ndarray), 'internal error: QR should be a np.ndarray but got %s' % type(qr)
+		assert isinstance(qraux, np.ndarray), 'internal error: qraux should be a np.ndarray but got %s' % type(qraux)
+
 		# validate input array
 		X = check_array(X, dtype='numeric', copy=True, order='F')
 		nx, ny = X.shape
@@ -146,12 +150,11 @@ class QRDecomposition():
 			ix = np.arange(n)
 
 		# set up the structures to alter
-		coef, info, naok = (np.zeros((k, ny), dtype=np.double, order='F'),
-							np.zeros(1, dtype=np.int, order='F'),
-							True)
+		coef, info = (np.zeros((k, ny), dtype=np.double, order='F'),
+						np.zeros(1, dtype=np.int, order='F'))
 
 		# call the fortran module IN PLACE
-		_safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, info, naok)
+		_safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, info)
 
 
 
