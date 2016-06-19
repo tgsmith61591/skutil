@@ -20,7 +20,7 @@ python easy_setup.py
 
 #### Troubleshooting Installation Issues
 Skutil depends on the ability to compile Fortran code. For different platforms, there are different ways to install `gcc`:
-  - Mac OS:
+  - Mac OS (__note__: this can take a while):
 ```bash
 brew install gcc
 ```
