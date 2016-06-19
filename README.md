@@ -25,12 +25,19 @@ Skutil depends on the ability to compile Fortran code. For different platforms, 
 brew install gcc
 ```
 
+There is a bug in some setups that will still cause issues in symlinking the `gcc` files via homebrew. If this is the case, the following line should clear things up:
+```bash
+brew link --overwrite gcc
+```
+
   - Linux:
 ```bash
 sudo apt-get install gcc
 ```
 
   - For Windows, follow [this tutorial](http://www.preshing.com/20141108/how-to-install-the-latest-gcc-on-windows/)
+
+*To test whether your installation of `skutil` was successful, examine the `skutil/odr` folder contents; if you see any `.so` files, things ran correctly*
 
 #### Examples:
   - See the [wiki](https://github.com/tgsmith61591/skutil/wiki)
