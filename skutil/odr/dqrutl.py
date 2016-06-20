@@ -47,6 +47,7 @@ def qr_decomposition(X, job=1):
 
 	# check on size
 	_validate_matrix_size(n, p)
+	rank = matrix_rank(X)
 
 	# validate job:
 	job_ = 0 if not job else 1
@@ -66,8 +67,9 @@ def qr_decomposition(X, job=1):
 
 	# do returns
 	return (X,
+			rank,
 			qraux, 
-			pivot if job_ else None)
+			(pivot-1) if job_ else None) # subtract one because pivot started at 1 for the fortran
 
 
 def _qr_R(qr):
@@ -101,6 +103,9 @@ class QRDecomposition():
 
 	pivot : array_like, shape (n_features,)
 		The pivots, if pivot was set to 1, else None
+
+	rank : int
+		The rank of the input matrix
 	"""
 
 	def __init__(self, X, pivot=1):
@@ -110,10 +115,7 @@ class QRDecomposition():
 	def _decompose(self, X):
 		"""Decomposes the matrix"""
 		# perform the decomposition
-		self.qr, self.qraux, self.pivot = qr_decomposition(X, self.job_)
-
-		# get the rank
-		self.rank = matrix_rank(self.qr)
+		self.qr, self.rank, self.qraux, self.pivot = qr_decomposition(X, self.job_)
 
 	def get_coef(self, X):
 		qr, qraux = self.qr, self.qraux
@@ -133,12 +135,7 @@ class QRDecomposition():
 		_validate_matrix_size(n, p)
 
 		# get the rank of the decomposition
-		try:
-			k = matrix_rank(self.qr)        # the rank of the matrix, or num of independent cols
-		except LinAlgError as lae: # if is empty, will get this error
-			return None
-
-		# originally we checked for p == 0, k == 0 or ny == 0, but check_array will take care of this
+		k = self.rank
 
 		# get ix vector
 		#if p > n:
@@ -162,7 +159,7 @@ class QRDecomposition():
 
 	def get_rank(self):
 		"""Get the rank of the decomposition"""
-		return matrix_rank(self.qr)
+		return self.rank
 
 	def get_R(self):
 		"""Get the R matrix from the decomposition"""
