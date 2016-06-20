@@ -1,9 +1,9 @@
 from __future__ import division, print_function
+import numpy as np
 from .base import _BaseFeatureSelector
-from scipy.linalg import qr
-from numpy.linalg import matrix_rank as mr
 from numpy.linalg.linalg import LinAlgError
 from ..odr import QRDecomposition
+from ..utils import flatten_all
 
 
 __all__ = [
@@ -108,72 +108,44 @@ def _enumLC(decomp):
 
 	Parameters
 	----------
-	decomp : a QR decomposition object
+	qr_decomp : a QRDecomposition object
 		The QR decomposition of the matrix
 	"""
-	QR = decomp[1] # position 1 in the tuple
+	qr = decomp.qr # the decomposition matrix
 
 	# extract the R matrix
-	R = _qr_R(QR)              # the R matrix
+	R = decomp.get_R()         # the R matrix
 	n_features = R.shape[1]    # number of columns in R
 	is_zero = n_features == 0  # whether there are no features
 
 	try:
-		rank = mr(R)           # the rank of the matrix, or num of independent cols
-	except LinAlgError as lae: # if is empty, will get this error
+		rank = decomp.get_rank() # the rank of the matrix, or num of independent cols
+	except LinAlgError as lae:   # if is empty, will get this error
 		rank = 0
 
 	if not (is_zero or rank == n_features):
-		pivot = decomp[2]           # the pivot vector
-		xprime = R[:rank, :rank]    # extract the independent cols
-		yprime = R[:rank, rank+1:]  # extract the dependent columns
+		pivot = decomp.pivot        # the pivot vector
+		X = R[:rank, :rank]         # extract the independent cols
+		Y = R[:rank, rank:]#+1?     # extract the dependent columns
 
-		b = qr(xprime)              # factor the independent columns
-		b = _qr_coef(b, yprime)     # get regression coefficients of dependent cols
+		new_qr = QRDecomposition(X) # factor the independent columns
+		b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
 
 		# if b is None, then there were no dependent columns
 		if b is not None:
 			b[np.abs(b) < 1e-6] = 0 # zap small values
+			
+			# will return a dict of {dim : list of bad idcs}
+			d = {}
+			row_idcs = np.arange(pivot.shape[0])
+			for i in range(Y.shape[1]): # should only ever be 1, right?
+				nested = [ 
+							pivot[rank+i],
+							row_idcs[b[:,i] != 0] 
+						 ]
+				d[i] = flatten_all(nested)
 
-			## FIXME
+			return d
 
 	# if we get here, there are no linear combos to discover
 	return None
-
-def _qr_R(qr_dec):
-	"""Extract the R matrix from a QR decomposition"""
-	min_dim = min(qr_dec.shape)
-	return qr_dec[:min_dim+1,:]
-
-def _qr_coef(qr_dec, y):
-	"""Extract coefficients from a QR decomposition"""
-	QR = qr_dec[1]
-	n, p = QR.shape
-	nx, ny = y.shape
-
-	if n * p > 2147483647:
-		raise ValueError('too many elements for LINPACK')
-
-	# ensure dims -- shouldn't be necessary, as this is an internal method
-	#if not nx == n:
-	#	raise ValueError('qr and y must have same number of rows')
-
-	try:
-		k = mr(QR)             # the rank of the matrix, or num of independent cols
-	except LinAlgError as lae: # if is empty, will get this error
-		k = 0
-
-	# can't go any further
-	if 0 == p or 0 == ny or 0 == k:
-		return None
-
-	# get ix vector
-	if p > n:
-		ix = np.ones(n + (p - n)) * np.nan
-		ix[:n] = np.arange(n) # i.e., array([0,1,2,nan,nan,nan])
-	else:
-		ix = np.arange(n)
-
-	# get z
-	#z = dqrcf(QR, n, k, , y, ny)
-

@@ -19,4 +19,18 @@ def test_qr():
 	assert q.get_R_rank() == 4
 
 	# next, let's test that we can get the coefficients:
-	q.get_coef(X)
+	coef = q.get_coef(X)
+	assert_array_almost_equal(coef, np.array(
+		[[  1.00000000e+00,   1.96618714e-16,  -0.00000000e+00,  -2.00339858e-16],
+		 [  3.00642915e-16,   1.00000000e+00,  -0.00000000e+00,   1.75787325e-16],
+		 [ -4.04768123e-16,   4.83060041e-17,   1.00000000e+00,   4.23545747e-16],
+		 [ -1.19866575e-16,  -1.74365433e-17,   1.10216442e-17,   1.00000000e+00]]
+	))
+
+	# ensure dimension error
+	failed = False
+	try:
+		q.get_coef(X[:140,:])
+	except ValueError as v:
+		failed = True
+	assert failed

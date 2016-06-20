@@ -136,27 +136,29 @@ class QRDecomposition():
 		try:
 			k = matrix_rank(self.qr)        # the rank of the matrix, or num of independent cols
 		except LinAlgError as lae: # if is empty, will get this error
-			k = 0
-
-		# can't go any further
-		if 0 == p or 0 == ny or 0 == k:
 			return None
 
+		# originally we checked for p == 0, k == 0 or ny == 0, but check_array will take care of this
+
 		# get ix vector
-		if p > n:
-			ix = np.ones(n + (p - n)) * np.nan
-			ix[:n] = np.arange(n) # i.e., array([0,1,2,nan,nan,nan])
-		else:
-			ix = np.arange(n)
+		#if p > n:
+		#	ix = np.ones(n + (p - n)) * np.nan
+		#	ix[:n] = np.arange(n) # i.e., array([0,1,2,nan,nan,nan])
+		#else:
+		#	ix = np.arange(n)
 
 		# set up the structures to alter
 		coef, info = (np.zeros((k, ny), dtype=np.double, order='F'),
 						np.zeros(1, dtype=np.int, order='F'))
 
 		# call the fortran module IN PLACE
-		_safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, info)
-
-
+		_safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, 0)
+		
+		# post-processing
+		#if k < p:
+		#	cf = np.ones((p,ny)) * np.nan
+		#	cf[self.pivot[np.arange(k)], :] = coef
+		return coef if not k < p else coef[self.pivot[np.arange(k)], :]
 
 	def get_rank(self):
 		"""Get the rank of the decomposition"""

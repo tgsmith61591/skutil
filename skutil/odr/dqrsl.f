@@ -435,20 +435,21 @@
 c
 c
       subroutine dqrcf(x, n, k, qraux, y, ny, b, info)
-      integer n, k, ny, info
+      integer, intent(in) :: n
+      integer, intent(in) :: k
+      integer, intent(in) :: ny
+      integer, intent(in) :: info
 c
 c do we need to make these * instead of specific?
       double precision x(n,*), qraux(*), y(n,*), b(k,*)
+c
 c declare explicit dependencies
-Cf2py intent(in) n
-Cf2py intent(in) k
-Cf2py intent(in) ny
 Cf2py intent(inplace) y
 Cf2py intent(inplace) b
 Cf2py intent(inplace) info
 Cf2py depend(n) x
-Cf2py depend(k) x
-Cf2py depend(ny) y
+Cf2py depend(n) y
+Cf2py depend(k) b
 c
 c
       integer j
@@ -604,6 +605,13 @@ c
       double precision x(ldx,*),qraux(*),y(*),qy(*),qty(*),b(*),rsd(*),
      *                 xb(*)
 c
+c declare explicit dependencies
+Cf2py intent(in) ldx
+Cf2py intent(in) n
+Cf2py intent(in) k
+Cf2py intent(in) job
+Cf2py intent(inplace) b
+Cf2py depend(ldx) x
 c     internal variables
 c
       integer i,j,jj,ju,kp1

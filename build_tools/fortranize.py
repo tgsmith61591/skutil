@@ -45,6 +45,10 @@ def check_and_fortranize(root_dir):
 				for module in g:
 					shutil.move(module, cur_dir)
 
+				# check that the module exists there... if not, something broke
+				if not os.path.exists(os.path.join(cur_dir, '%s.so' % canonical_name)):
+					raise RuntimeError('failed to compile Fortran')
+
 def main(root_dir=DEFAULT_ROOT):
 	check_and_fortranize(root_dir)
 

@@ -46,28 +46,28 @@ python module dqrsl ! in
             integer :: incy
         end subroutine daxpy
         subroutine dqrcf(x,n,k,qraux,y,ny,b,info) ! in :dqrsl:skutil/odr/dqrsl.f
-            double precision dimension(n,*),depend(k,n) :: x
-            integer, optional,intent(in),check(shape(y,0)==n),depend(y) :: n=shape(y,0)
-            integer, optional,intent(in),check(shape(b,0)==k),depend(b) :: k=shape(b,0)
+            double precision dimension(n,*),depend(n) :: x
+            integer intent(in) :: n
+            integer intent(in) :: k
             double precision dimension(*) :: qraux
-            double precision dimension(n,*),intent(inplace),depend(ny) :: y
+            double precision dimension(n,*),intent(inplace),depend(n) :: y
             integer intent(in) :: ny
-            double precision dimension(k,*),intent(inplace) :: b
+            double precision dimension(k,*),intent(inplace),depend(k) :: b
             integer intent(inplace) :: info
         end subroutine dqrcf
         subroutine dqrsl(x,ldx,n,k,qraux,y,qy,qty,b,rsd,xb,job,info) ! in :dqrsl:skutil/odr/dqrsl.f
-            double precision dimension(ldx,*) :: x
-            integer, optional,check(shape(x,0)==ldx),depend(x) :: ldx=shape(x,0)
-            integer :: n
-            integer :: k
+            double precision dimension(ldx,*),depend(ldx) :: x
+            integer intent(in) :: ldx
+            integer intent(in) :: n
+            integer intent(in) :: k
             double precision dimension(*) :: qraux
             double precision dimension(*) :: y
             double precision dimension(*) :: qy
             double precision dimension(*) :: qty
-            double precision dimension(*) :: b
+            double precision dimension(*),intent(inplace) :: b
             double precision dimension(*) :: rsd
             double precision dimension(*) :: xb
-            integer :: job
+            integer intent(in) :: job
             integer :: info
         end subroutine dqrsl
         subroutine dqrdc(x,ldx,n,p,qraux,jpvt,work,job) ! in :dqrsl:skutil/odr/dqrsl.f
