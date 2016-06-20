@@ -5,7 +5,7 @@ import sys, warnings
 from .base import *
 from .utils import log, exp # want these visible at module level
 
-__version__ = '0.0.18'
+__version__ = '0.0.19'
 
 try:
     # This variable is injected in the __builtins__ by the build
