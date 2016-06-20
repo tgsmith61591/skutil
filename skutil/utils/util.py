@@ -11,25 +11,98 @@ from ..base import SelectiveWarning, ModuleImportWarning
 __can_chart__ = True
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
-    import matplotlib as mpl
-    mpl.use('TkAgg') # set backend
-    from matplotlib import pyplot as plt
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        # do actual import
+        import matplotlib as mpl
+        mpl.use('TkAgg') # set backend
+        from matplotlib import pyplot as plt
 except ImportError as ie:
     __can_chart__ = False
     warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 
 
 __all__ = [
+    'exp',
     'flatten_all',
     'flatten_all_generator',
     'get_numeric',
     'is_entirely_numeric',
     'is_numeric',
+    'log',
     'report_confusion_matrix',
     'report_grid_score_detail',
     'validate_is_pd'
 ]
 
+__max_exp__ = 1e19
+__min_log__ = -19
+
+
+######## MATHEMATICAL UTILITIES #############    
+def _log_single(x):
+    """Sanitized log function for a single element
+    Parameters
+    ----------
+    x : float
+        The number to log
+    Returns
+    -------
+    val : float
+        the log of x
+    """
+    x = max(0, x)
+    val = __min_log__ if x == 0 else max(__min_log__, np.log(x))  
+    return val
+
+def _exp_single(x):
+    """Sanitized exponential function
+    Parameters
+    ----------
+    x : float
+        The number to exp
+    Returns
+    -------
+    float
+        the exp of x
+    """
+    return min(__max_exp__, np.exp(x))
+
+def _vectorize(fun, x):
+    if hasattr(x, '__iter__'):
+        return np.array([fun(p) for p in x])
+    raise ValueError('Type %s does not have attr __iter__' % type(x))
+
+def exp(x):
+    """A safe mechanism for computing the exponential function"""
+    # check on single exp
+    if is_numeric(x):
+        return _exp_single(x)
+    # try vectorized
+    try:
+        return _vectorize(_exp_single, x)
+    except ValueError as v:
+        # bail
+        raise ValueError("don't know how to compute exp for type %s" % type(x))
+
+def log(x):
+    """A safe mechanism for computing a log"""
+    # check on single log
+    if is_numeric(x):
+        return _log_single(x)
+    # try vectorized
+    try:
+        return _vectorize(_log_single, x)
+    except ValueError as v:
+        # bail
+        raise ValueError("don't know how to compute log for type %s" % type(x))
+
+
+
+
+
+######### GENERAL UTILITIES #################
 def _val_cols(cols):
     # if it's None, return immediately
     if cols is None:

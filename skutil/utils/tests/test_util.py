@@ -3,6 +3,8 @@ import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.utils import *
+from skutil.utils.util import __min_log__, __max_exp__
+from .utils import assert_fails
 
 
 ## Def data for testing
@@ -17,6 +19,26 @@ X['perfect'] = X[[1]]
 
 def _check_equal(L1, L2):
     return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+
+
+
+def test_safe_log_exp():
+	assert log(0) == __min_log__
+	assert exp(1000000) == __max_exp__
+
+	l_res = log([1,2,3])
+	e_res = exp([1,2,3])
+	assert_array_almost_equal(l_res, np.array([ 0. , 0.69314718, 1.09861229]))
+	assert_array_almost_equal(e_res, np.array([  2.71828183, 7.3890561 , 20.08553692]))
+
+	assert isinstance(l_res, np.ndarray)
+	assert isinstance(e_res, np.ndarray)
+
+	# try something with no __iter__ attr
+	assert_fails(log, ValueError, 'A')
+	assert_fails(exp, ValueError, 'A')
+
+
 
 
 def test_flatten():
@@ -49,12 +71,7 @@ def test_validate_on_non_df():
 	x = iris.data
 	validate_is_pd(x, None)
 
-	failed = False
-	try:
-		validate_is_pd("asdf", "asdf")
-	except ValueError as e:
-		failed = True
-	assert failed
+	assert_fails(validate_is_pd, ValueError, 'asdf', 'asdf')
 
 	# try on list of list and no cols
 	x = [[1,2,3],[4,5,6],[7,8,9]]
@@ -78,9 +95,4 @@ def test_conf_matrix():
 
 	# assert fails with > 2 classes
 	a[0] = 2
-	failed = False
-	try:
-		report_confusion_matrix(a, b)
-	except ValueError as v:
-		failed = True
-	assert failed
+	assert_fails(report_confusion_matrix, ValueError, a, b)

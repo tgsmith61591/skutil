@@ -3,6 +3,7 @@ import numpy as np
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.odr import *
+from skutil.utils.tests import assert_fails
 
 X = load_iris().data
 
@@ -28,9 +29,4 @@ def test_qr():
 	))
 
 	# ensure dimension error
-	failed = False
-	try:
-		q.get_coef(X[:140,:])
-	except ValueError as v:
-		failed = True
-	assert failed
+	assert_fails(q.get_coef, ValueError, X[:140,:])

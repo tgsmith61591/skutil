@@ -24,12 +24,13 @@ __all__ = [
     'YeoJohnsonTransformer',
 ]
 
+EPS = 1e-12
 ZERO = 1e-16
 
 
 ## Helper funtions:
 def _eqls(lam, v):
-    return np.abs(lam) <= v
+    return np.abs(lam - v) <= EPS
 
 def _validate_rows(X):
     m,n = X.shape
@@ -41,7 +42,6 @@ def _validate_rows(X):
 ###############################################################################
 class _BaseSelectiveTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Base class for skutil transformers"""
-
     __metaclass__ = ABCMeta
 
     @abstractmethod
@@ -566,18 +566,18 @@ def _yj_llf(data, lmb):
     N = data.shape[0]
     y = _yj_transform_y(data, lmb)
 
-    ## We can't take the log of data, as there could be
+    ## We can't take the canonical log of data, as there could be
     ## zeros or negatives. Thus, we need to shift both distributions
     ## up by some artbitrary factor just for the LLF computation
-    min_d, min_y = np.min(data), np.min(y)
-    if min_d < ZERO:
-        shift = np.abs(min_d) + 1
-        data += shift
+    #min_d, min_y = np.min(data), np.min(y)
+    #if min_d < ZERO:
+    #    shift = np.abs(min_d) + 1
+    #    data += shift
 
     ## Same goes for Y
-    if min_y < ZERO:
-        shift = np.abs(min_y) + 1
-        y += shift
+    #if min_y < ZERO:
+    #    shift = np.abs(min_y) + 1
+    #    y += shift
 
     ## Compute mean on potentially shifted data
     y_mean = np.mean(y, axis = 0)
@@ -589,8 +589,9 @@ def _yj_llf(data, lmb):
     if 0 == var:
         return np.nan
 
-    llf = (lmb - 1) * np.sum(np.log(data), axis=0)
-    llf -= N / 2.0 * np.log(var)
+    ## Can't use canonical log due to maybe negatives, so use the truncated log function in utils
+    llf = (lmb - 1) * np.sum(log(data), axis=0)
+    llf -= N / 2.0 * log(var)
 
     return llf
 

@@ -4,6 +4,7 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA, TruncatedSVD
 from skutil.decomposition import *
+from skutil.utils.tests import assert_fails
 
 
 
@@ -37,13 +38,8 @@ def test_selective_pca():
 	assert_array_equal(pca_df, pca_arr)
 
 	# hack to assert they are not equal if weighted
-	failed = False
-	try:
-		pca_arr = SelectivePCA(weight=False, n_components=0.99, as_df=False).fit_transform(iris.data)
-		assert_array_equal(pca_df, pca_arr)
-	except AssertionError as ae:
-		failed= True
-	assert failed
+	pca_arr = SelectivePCA(weight=False, n_components=0.99, as_df=False).fit_transform(iris.data)
+	assert_fails(assert_array_equal, AssertionError, pca_df, pca_arr)
 
 
 def test_selective_tsvd():
