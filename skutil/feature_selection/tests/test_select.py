@@ -259,6 +259,20 @@ def test_linear_combos():
 	assert_array_equal(z.columns.values, ['A','B'])
 	assert (z.B == 1).all()
 
+	# test on no linear combos
+	lcf = LinearCombinationFilterer(cols=['A','B']).fit(Z)
+	assert not lcf.drop
+	assert Z.equals(lcf.transform(Z))
+
+	# test too few features
+	failed = False
+	try:
+		LinearCombinationFilterer(cols=['A']).fit(Z)
+	except ValueError as v:
+		failed= True
+	assert failed
+
+
 def test_enumLC():
 	Y = np.array([
 			[1, 2, 3 ],

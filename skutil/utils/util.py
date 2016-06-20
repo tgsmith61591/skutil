@@ -115,16 +115,13 @@ def validate_is_pd(X, cols):
 
     # case 1, we have names but the X is not a frame
     if not is_df and cols is not None:
-        try:
-            # this is tough, because they only pass cols if it's a subset
-            # and this frame is likely too large for the passed columns.
-            # so, we hope they either passed what the col names WILL be
-            # or that they passed numeric cols... they should handle that
-            # validation on their end, though.
-            return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), cols
-        except Exception as e:
-            print(e)
-            raise ValueError('expected pandas DataFrame if passed cols arg')
+        # this is tough, because they only pass cols if it's a subset
+        # and this frame is likely too large for the passed columns.
+        # so, we hope they either passed what the col names WILL be
+        # or that they passed numeric cols... they should handle that
+        # validation on their end, though. If this fails, we'll just let
+        # it fall through.
+        return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), cols
 
     # case 2, we have a DF but no cols, def behavior: use all
     elif is_df and cols is None:
