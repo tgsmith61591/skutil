@@ -2,7 +2,6 @@
 sklearn-esque transformers for python
 '''
 import sys, warnings
-from .base import *
 from .utils import log, exp # want these visible at module level
 
 __version__ = '0.0.18'
