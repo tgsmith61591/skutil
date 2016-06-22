@@ -30,16 +30,14 @@ def configuration(parent_package = '', top_path = None):
 	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('utils/tests')
 
+	## modules that have their own setup.py
+	config.add_subpackage('metrics')
+
 	## misc repo tests
 	config.add_subpackage('tests')
 
 	return config
 
 if __name__ == '__main__':
-	try:
-		from numpy.distutils.core import setup
-		setup(**configuration(top_path='').todict())
-		print 'setup completed successfully.'
-	except Exception as e:
-		print 'setup failed: '
-		print e
+	from numpy.distutils.core import setup
+	setup(**configuration(top_path='').todict())

@@ -2,11 +2,13 @@
 .DS_Store
 .ipynb_checkpoints
 build/
+dist/
 *.pyc
 skutil.egg-info/
 .coverage
 *.png
 *.so*
+cythonize.dat
 
 # But not these
 !doc/images/*.png

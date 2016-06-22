@@ -21,7 +21,7 @@ builtins.__SKUTIL_SETUP__ = True
 ## Metadata
 DISTNAME = 'skutil'
 DESCRIPTION = 'A set of sklearn-esque extension modules'
-MAINTAINER = 'Taylor Smith'
+MAINTAINER = 'Taylor G. Smith'
 MAINTAINER_EMAIL = 'tgsmith61591@gmail.com'
 
 
@@ -94,22 +94,38 @@ def generate_fortran():
 		raise RuntimeError("Running fortranize failed!")
 
 
+def generate_cython():
+	print("Generating Cython modules")
+	cwd = os.path.abspath(os.path.dirname(__file__))
+	p = subprocess.call([sys.executable, os.path.join(cwd, 'build_tools', 'cythonize.py'), 'skutil'], cwd=cwd)
+	if p != 0:
+		raise RuntimeError("Running cythonize failed!")
+
+def _clean_all():
+	print('Removing existing build artifacts')
+
+	if os.path.exists('build'):
+		shutil.rmtree('build')
+	if os.path.exists('dist'):
+		shutil.rmtree('dist')
+	if os.path.exists('%s.egg-info' % DISTNAME):
+		shutil.rmtree('%s.egg-info' % DISTNAME)
+
+
+	# check on fortran dirs
+	_clean_fortran()
+
+	# check on other compiled files
+	_clean_compiled(('.pyd','.dll','.pyc','.DS_Store'))
+
+
 ## Custom class to clean build artifacts
 class CleanCommand(Clean):
 	description = 'Remove build artifacts from the source tree'
 	
 	def run(self):
-		print('Removing existing build artifacts')
 		Clean.run(self)
-
-		if os.path.exists('build'):
-			shutil.rmtree('build')
-
-		# check on fortran dirs
-		_clean_fortran()
-
-		# check on other compiled files
-		_clean_compiled(('.pyd','.dll','.pyc', '.DS_Store'))
+		_clean_all()
 
 
 cmdclass = {'clean' : CleanCommand}
@@ -177,7 +193,7 @@ def configuration(parent_package = '', top_path = None):
 	## Avoid non-useful msg
 	config.set_options(ignore_setup_xxx_py=True, assume_default_configuration=True, delegate_options_to_subpackages=True, quiet=True)
 
-	config.add_subpackage('skutil')
+	config.add_subpackage(DISTNAME)
 	return config
 
 
@@ -252,13 +268,21 @@ def setup_package():
 	from numpy.distutils.core import setup
 	metadata['configuration'] = configuration
 
-	# we need to build our fortran
-	if len(sys.argv) >= 2 and sys.argv[1] not in ('config', 'clean'):
+	# we need to build our fortran and cython
+	if len(sys.argv) >= 2 and sys.argv[1] not in ('config'):
 		# clean up the .so files
-		_clean_fortran()
+		_clean_all()
 
 		# gen fortran modules
 		generate_fortran()
+
+		# gen cython sources (compile the .pyx files if needed)
+		cwd = os.path.abspath(os.path.dirname(__file__))
+		if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
+			# Generate Cython sources, unless building from source release
+			generate_cython()
+			#pass
+
 
 	setup(**metadata)
 

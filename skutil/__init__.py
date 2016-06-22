@@ -4,7 +4,7 @@ sklearn-esque transformers for python
 import sys, warnings
 from .utils import log, exp # want these visible at module level
 
-__version__ = '0.0.19'
+__version__ = '0.0.20'
 
 try:
     # This variable is injected in the __builtins__ by the build
@@ -20,7 +20,13 @@ if __SKUTIL_SETUP__:
     sys.stderr.write('Partial import of skutil during the build process.\n')
 else:
     __all__ = [
-        'preprocessing'
+        'decomposition',
+        'feature_selection',
+        'grid_search',
+        'metrics',
+        'odr',
+        'preprocessing',
+        'utils'
     ]
 
 
