@@ -81,7 +81,7 @@ def exp(x):
         return _exp_single(x)
     # try vectorized
     try:
-        return _vectorize(_exp_single, x)
+        return _vectorize(exp, x)
     except ValueError as v:
         # bail
         raise ValueError("don't know how to compute exp for type %s" % type(x))
@@ -93,7 +93,7 @@ def log(x):
         return _log_single(x)
     # try vectorized
     try:
-        return _vectorize(_log_single, x)
+        return _vectorize(log, x)
     except ValueError as v:
         # bail
         raise ValueError("don't know how to compute log for type %s" % type(x))
