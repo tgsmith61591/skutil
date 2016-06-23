@@ -20,7 +20,9 @@ try:
 	from Cython.Build import cythonize
 	ext = 'pyx'
 except ImportError as e:
-	ext = 'c'
+	warnings.warn('Cython needs to be installed')
+	raise e
+	#ext = 'c'
 
 
 

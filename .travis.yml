@@ -37,7 +37,7 @@ install:
   - conda info -a
 
   # dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython
   - source activate test-environment
 
   # Coverage packages
