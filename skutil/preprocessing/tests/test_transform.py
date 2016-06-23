@@ -6,6 +6,7 @@ from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.decomposition import *
 from skutil.utils import validate_is_pd
+from skutil.utils.tests.utils import assert_fails
 
 
 ## Def data for testing
@@ -46,12 +47,8 @@ def test_boxcox():
 	assert transformer.get_features() is None
 
 	# Test on only one row...
-	failed = False
-	try:
-		BoxCoxTransformer().fit(X.iloc[0])
-	except ValueError as v:
-		failed = True
-	assert failed
+	assert_fails(BoxCoxTransformer().fit, ValueError, X.iloc[0])
+	assert_fails(BoxCoxTransformer().fit, ValueError, np.random.rand(1,5))
 
 
 def test_function_mapper():
@@ -111,6 +108,10 @@ def test_yeo_johnson():
 		failed = True
 	assert failed
 	
+
+	# Test it on a random...
+	x = np.random.rand(500,5)
+	YeoJohnsonTransformer().fit(x)
 	## TODO: more
 
 

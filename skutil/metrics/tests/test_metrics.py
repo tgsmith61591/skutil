@@ -45,16 +45,6 @@ def test_hilbert():
 			[-73 ,   0]
 		]))
 
-	# speed...
-	if False:
-		def wrap(fun, *args):
-			def wrapped():
-				return fun(*args)
-			return wrapped
-
-		X = np.random.rand(1000)
-		print(timeit.timeit(wrap(_hilbert_dot, X, X)))
-
 def test_exp():
 	X = _get_train_array()
 	answ = exponential_kernel(X)
