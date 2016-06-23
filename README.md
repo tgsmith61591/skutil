@@ -15,6 +15,7 @@ python easy_setup.py
 
 # NOTE: easy_setup.py takes care of the following:
 # python setup.py clean --all
+# python setup.py build_ext --inplace
 # python setup.py install
 ```
 
