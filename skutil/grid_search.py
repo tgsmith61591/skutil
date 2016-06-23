@@ -26,6 +26,7 @@ __all__ = [
 
 
 
+
 def _validate_X(X):
     """Returns X if X isn't a pandas frame, otherwise 
     the underlying matrix in the frame. """
@@ -45,7 +46,7 @@ def _validate_y(y):
         # check it's X dims
         if y.shape[1] > 1:
             raise ValueError('matrix provided as y')
-        return y[y.columns[0]].tolist()
+        return np.array(y[y.columns[0]].tolist())
 
     # bail and let the sklearn function handle validation
     return y
@@ -659,3 +660,5 @@ class RandomizedSearchCV(BaseSearchCV):
 
         # the super class will handle the X, y validation
         return self._fit(X, y, sampled_params)
+
+

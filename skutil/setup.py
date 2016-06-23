@@ -30,8 +30,9 @@ def configuration(parent_package = '', top_path = None):
 	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('utils/tests')
 
-	## modules that have their own setup.py
+	## Modules with cython
 	config.add_subpackage('metrics')
+	config.add_subpackage('metrics/tests')
 
 	## misc repo tests
 	config.add_subpackage('tests')

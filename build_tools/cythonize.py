@@ -76,7 +76,7 @@ def cythonize(cython_file, gen_file):
             if rc != 0:
                 raise Exception('Cythonizing %s failed' % cython_file)
         except OSError as ose:
-        	warnings.warn(ose)
+            warnings.warn(ose)
 
             # There are ways of installing Cython that don't result in a cython
             # executable on the path, see scipy issue gh-2397.
@@ -94,8 +94,8 @@ def cythonize(cython_file, gen_file):
 def load_hashes(filename):
     """Load the hashes dict from the hashfile"""
     # { filename : (sha1 of header if available or 'NA',
-    #               sha1 of input,
-    #               sha1 of output) }
+    #       sha1 of input,
+    #       sha1 of output) }
 
     hashes = {}
     try:
@@ -105,7 +105,7 @@ def load_hashes(filename):
                  cython_hash, gen_file_hash) = hash_record.split()
                 hashes[filename] = (header_hash, cython_hash, gen_file_hash)
     except (KeyError, ValueError, AttributeError, IOError) as err:
-    	warnings.warn(err)
+        warnings.warn(err)
         hashes = {}
     return hashes
 

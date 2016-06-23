@@ -4,6 +4,7 @@ from os.path import join
 import warnings
 import subprocess
 from pkg_resources import parse_version
+from distutils.extension import Extension
 
 ## For cleaning build artifacts
 from distutils.command.clean import clean as Clean
@@ -13,6 +14,14 @@ if sys.version_info[0] < 3:
 	import __builtin__ as builtins
 else:
 	import builtins
+
+
+try:
+	from Cython.Build import cythonize
+	ext = 'pyx'
+except ImportError as e:
+	ext = 'c'
+
 
 
 ## Hacky, adopted from sklearn
@@ -113,7 +122,7 @@ def _clean_all():
 
 
 	# check on fortran dirs
-	_clean_fortran()
+	_clean_fortran() # takes care of .so files
 
 	# check on other compiled files
 	_clean_compiled(('.pyd','.dll','.pyc','.DS_Store'))
@@ -265,11 +274,12 @@ def setup_package():
 	check_statuses('scikit-learn',sklearn_status, skrs)
 
 	## We know numpy is installed at this point
+	import numpy
 	from numpy.distutils.core import setup
 	metadata['configuration'] = configuration
 
 	# we need to build our fortran and cython
-	if len(sys.argv) >= 2 and sys.argv[1] not in ('config'):
+	if len(sys.argv) >= 2 and sys.argv[1] in ('build_ext'): #not in ('config', 'build_ext'):
 		# clean up the .so files
 		_clean_all()
 
@@ -278,10 +288,14 @@ def setup_package():
 
 		# gen cython sources (compile the .pyx files if needed)
 		cwd = os.path.abspath(os.path.dirname(__file__))
-		if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
-			# Generate Cython sources, unless building from source release
-			generate_cython()
-			#pass
+		extensions = [
+			Extension(os.path.join(DISTNAME, 'metrics', "_kernel_fast"), 
+				[os.path.join(DISTNAME, 'metrics', '_kernel_fast.%s' % ext)],
+				include_dirs = [numpy.get_include()]
+			)
+		]
+
+		metadata['ext_modules'] = cythonize(extensions)
 
 
 	setup(**metadata)
