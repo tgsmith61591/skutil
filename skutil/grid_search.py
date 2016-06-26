@@ -26,7 +26,6 @@ __all__ = [
 
 
 
-
 def _validate_X(X):
     """Returns X if X isn't a pandas frame, otherwise 
     the underlying matrix in the frame. """

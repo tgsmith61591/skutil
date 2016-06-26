@@ -110,7 +110,15 @@ def test_yeo_johnson():
 	
 
 	# Test it on a random...
-	x = np.random.rand(500,5)
+	m, n = 1000, 5
+	x = np.random.rand(m,n)
+
+	# make some random
+	mask = np.random.rand(m,n) % 2 < 0.5
+	signs = np.ones((m,n))
+	signs[~mask] = -1
+	x *= signs
+
 	YeoJohnsonTransformer().fit(x)
 	## TODO: more
 

@@ -14,6 +14,10 @@ def _get_train_array():
 			[2., 4.]
 		])
 
+# this is the transpose of the train array:
+# [0., 2., 2.]
+# [1., 3., 4.]
+
 def test_linear_kernel():
 	X = np.reshape(np.arange(1,13), (4,3))
 	assert_array_equal(linear_kernel(X=X),
@@ -29,6 +33,16 @@ def test_poly_kernel():
 		np.array([[2, 4, 5],
 				  [4,14,17],
 				  [5,17,21]]))
+
+def test_power_kernel():
+	X = _get_train_array()
+	assert_array_almost_equal(power_kernel(X=X, degree=2.0),
+		np.array([
+				[ 0.0  ,-64.0, -169],
+				[-64.0 , 0.0 , -1.0],
+				[-169.0,-1.0 ,  0.0]
+			]))
+
 
 def test_hilbert():
 	X = np.array([10.0, 2.0, 3.0, 4.0])
@@ -61,6 +75,32 @@ def test_laplace():
  		[  2.98095799e+03  , 1.00000000e+00  , 2.71828183e+00],
  		[  4.42413392e+05  , 2.71828183e+00  , 1.00000000e+00]]), 4)
 
+def test_inverse_multiquadric():
+	X = _get_train_array()
+	answ = inverse_multiquadric_kernel(X)
+	assert_array_almost_equal(answ, np.array([
+		[ 1.         ,  0.12403473 , 0.0766965 ],
+		[ 0.12403473 , 1.          , 0.70710678],
+		[ 0.0766965  , 0.70710678  , 1.        ]]))
+
+def test_gaussian_kernel():
+	X = _get_train_array()
+	answ = gaussian_kernel(X)
+	assert_array_almost_equal(answ, np.array([
+			[1,0,0],
+			[0,1,6.065307e-01],
+			[0,6.065307e-01,1]
+		]))
+
+def test_multiquadric():
+	X = _get_train_array()
+	answ = multiquadric_kernel(X)
+	assert_array_equal(answ, np.array([
+			[0. , 8., 13.],
+			[8. , 0., 1. ],
+			[13., 1., 0. ]
+		]))
+
 def test_rbf():
 	X = _get_train_array()
 	answ = rbf_kernel(X, sigma=sigma)
@@ -68,6 +108,14 @@ def test_rbf():
 		[ 1.         , 0.67032004 , 0.52204577],
 		[ 0.67032004 , 1.         , 0.95122942],
 		[ 0.52204577 , 0.95122942 , 1.        ]]))
+
+def test_spline_kernel():
+	X = _get_train_array()
+	answ = spline_kernel(X)
+	assert_array_almost_equal(answ, np.array([
+		[   3.83333333 ,   5.33333333 ,   3.83333333],
+		[  11.66666667 ,  72.83333333 ,  89.44444444],
+		[  15.66666667 , 101.58333333 , 120.11111111]]))
 
 def test_tanh():
 	X = _get_train_array()
