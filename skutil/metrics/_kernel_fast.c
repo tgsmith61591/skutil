@@ -2861,7 +2861,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
  * 			for j in range(n_features_Y):
  * 				sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  */
             __pyx_v_sx = 0.0;
 
@@ -2869,7 +2869,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
  * 			for j in range(n_features_Y):
  * 				sx = 0 # reset for every xi
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  */
             __pyx_v_sy = 0.0;
@@ -2877,7 +2877,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
             /* "skutil/metrics/_kernel_fast.pyx":42
  * 				sx = 0 # reset for every xi
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo             # <<<<<<<<<<<<<<
+ * 				sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  * 					sx += X[i, k] * X[i, k]
  */
@@ -2885,7 +2885,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
 
             /* "skutil/metrics/_kernel_fast.pyx":43
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
  * 					sx += X[i, k] * X[i, k]
  * 					sy += Y[k, j] * Y[k, j]
@@ -2895,7 +2895,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
               __pyx_v_k = __pyx_t_6;
 
               /* "skutil/metrics/_kernel_fast.pyx":44
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  * 					sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
  * 					sy += Y[k, j] * Y[k, j]
@@ -3166,7 +3166,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
  * 			for j in range(n_features_Y):
  * 				sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  */
             __pyx_v_sx = 0.0;
 
@@ -3174,7 +3174,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
  * 			for j in range(n_features_Y):
  * 				sx = 0 # reset for every xi
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  */
             __pyx_v_sy = 0.0;
@@ -3182,7 +3182,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
             /* "skutil/metrics/_kernel_fast.pyx":42
  * 				sx = 0 # reset for every xi
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo             # <<<<<<<<<<<<<<
+ * 				sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  * 					sx += X[i, k] * X[i, k]
  */
@@ -3190,7 +3190,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
 
             /* "skutil/metrics/_kernel_fast.pyx":43
  * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
  * 					sx += X[i, k] * X[i, k]
  * 					sy += Y[k, j] * Y[k, j]
@@ -3200,7 +3200,7 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
               __pyx_v_k = __pyx_t_6;
 
               /* "skutil/metrics/_kernel_fast.pyx":44
- * 				sxy = 0 # reset for every unique xiyi combo
+ * 				sxy = 0 # reset for every unique XiYi combo
  * 				for k in range(n_features_X): # k also equals the number of rows in Y
  * 					sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
  * 					sy += Y[k, j] * Y[k, j]

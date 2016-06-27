@@ -65,9 +65,10 @@ class _BaseBalancer:
 	__max_classes__ = 20
 	__metaclass__ = abc.ABCMeta
 
-	def __init__(self, ratio=0.2, y=None):
+	def __init__(self, ratio=0.2, y=None, as_df=True):
 		self.ratio=ratio
 		self.y_ = y
+		self.as_df = as_df
 
 	@abc.abstractmethod
 	def balance(self, X):
@@ -89,10 +90,13 @@ class OversamplingClassBalancer(_BaseBalancer):
 		existing ratio is >= the provided ratio, the return value will merely be
 		a copy of the input matrix, otherwise SMOTE will impute records until the
 		target ratio is reached.
+
+	as_df : bool, optional (default=True)
+		Whether to return a dataframe
 	"""
 
-	def __init__(self, y=None, ratio=0.2):
-		super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y)
+	def __init__(self, y=None, ratio=0.2, as_df=True):
+		super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y, as_df=as_df)
 
 	def balance(self, X):
 		"""Apply the oversampling balance operation. Oversamples
@@ -143,7 +147,7 @@ class OversamplingClassBalancer(_BaseBalancer):
 			X = pd.concat([X, pts])
 
 		# return the combined frame
-		return X
+		return X if self.as_df else X.as_matrix()
 
 
 
@@ -166,10 +170,13 @@ class SMOTEClassBalancer(_BaseBalancer):
 		existing ratio is >= the provided ratio, the return value will merely be
 		a copy of the input matrix, otherwise SMOTE will impute records until the
 		target ratio is reached.
+
+	as_df : bool, optional (default=True)
+		Whether to return a dataframe
 	"""
 
-	def __init__(self, y=None, ratio=0.2, k=3):
-		super(SMOTEClassBalancer, self).__init__(ratio=ratio, y=y)
+	def __init__(self, y=None, ratio=0.2, k=3, as_df=True):
+		super(SMOTEClassBalancer, self).__init__(ratio=ratio, y=y, as_df=as_df)
 		self.k = k
 
 	def balance(self, X):
@@ -243,7 +250,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 			X = pd.concat([X, syn_frame])
 
 		# return the combined frame
-		return X
+		return X if self.as_df else X.as_matrix()
 
 
 ###############################################################################
@@ -274,10 +281,13 @@ class UndersamplingClassBalancer(_BaseBalancer):
 		existing ratio is >= the provided ratio, the return value will merely be
 		a copy of the input matrix, otherwise SMOTE will impute records until the
 		target ratio is reached.
+
+	as_df : bool, optional (default=True)
+		Whether to return a dataframe
 	"""
 
-	def __init__(self, y=None, ratio=0.2):
-		super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y)
+	def __init__(self, y=None, ratio=0.2, as_df=True):
+		super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y, as_df=as_df)
 
 	def balance(self, X):
 		"""Apply the undersampling balance operation. Undersamples
@@ -319,4 +329,6 @@ class UndersamplingClassBalancer(_BaseBalancer):
 		# now the only rows remaining in x_drop_rows are the ones
 		# that were not selected in the random choice.
 		# drop all those rows (from the copy)
-		return X.drop(x_drop_rows, axis=0)
+		dropped = X.drop(x_drop_rows, axis=0)
+
+		return dropped if self.as_df else dropped.as_matrix()

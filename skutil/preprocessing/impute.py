@@ -22,6 +22,8 @@ def _validate_all_numeric(X):
 		raise ValueError('provided columns must be of only numeric columns')
 
 
+
+
 ###############################################################################
 class _BaseImputer(SelectiveMixin, BaseEstimator, TransformerMixin):
 	"""A base class for all imputers"""
@@ -244,7 +246,6 @@ class BaggedImputer(_BaseImputer):
 				X[col] = y # set back to X
 
 		return X if self.as_df else X.as_matrix()
-
 
 
 

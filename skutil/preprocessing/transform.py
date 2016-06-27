@@ -569,15 +569,15 @@ def _yj_llf(data, lmb):
     ## We can't take the canonical log of data, as there could be
     ## zeros or negatives. Thus, we need to shift both distributions
     ## up by some artbitrary factor just for the LLF computation
-    #min_d, min_y = np.min(data), np.min(y)
-    #if min_d < ZERO:
-    #    shift = np.abs(min_d) + 1
-    #    data += shift
+    min_d, min_y = np.min(data), np.min(y)
+    if min_d < ZERO:
+        shift = np.abs(min_d) + 1
+        data += shift
 
     ## Same goes for Y
-    #if min_y < ZERO:
-    #    shift = np.abs(min_y) + 1
-    #    y += shift
+    if min_y < ZERO:
+        shift = np.abs(min_y) + 1
+        y += shift
 
     ## Compute mean on potentially shifted data
     y_mean = np.mean(y, axis = 0)

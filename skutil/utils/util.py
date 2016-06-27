@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
+from sklearn.datasets import load_iris
 from ..base import SelectiveWarning, ModuleImportWarning
 
 
@@ -30,6 +31,7 @@ __all__ = [
     'get_numeric',
     'is_entirely_numeric',
     'is_numeric',
+    'load_iris_df',
     'log',
     'report_confusion_matrix',
     'report_grid_score_detail',
@@ -248,6 +250,27 @@ def is_numeric(x):
     x : anytype
     """
     return isinstance(x, (int, float, long, np.int, np.float, np.long))
+
+def load_iris_df(include_tgt=True, tgt_name="Species"):
+    """Loads the iris dataset into a dataframe with the
+    target set as the "Species" feature or whatever name
+    is specified.
+
+    Parameters
+    ----------
+    include_tgt : bool, optional (default=True)
+        Whether to include the target
+
+    tgt_name : str, optional (default="Species")
+        The name of the target feature
+    """
+    iris = load_iris()
+    X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
+
+    if include_tgt:
+        X[tgt_name] = iris.target
+        
+    return X
 
 def report_grid_score_detail(random_search, charts=True):
     """Input fit grid search estimator. Returns df of scores with details"""

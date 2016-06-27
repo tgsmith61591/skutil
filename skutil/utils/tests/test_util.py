@@ -9,7 +9,7 @@ from .utils import assert_fails
 
 ## Def data for testing
 iris = load_iris()
-X = pd.DataFrame.from_records(data = iris.data, columns = iris.feature_names)
+X = load_iris_df(False)
 
 # ensure things work with a categorical feature
 X['target'] = ['A' if x == 1 else 'B' if x == 2 else 'C' for x in iris.target]
@@ -96,3 +96,8 @@ def test_conf_matrix():
 	# assert fails with > 2 classes
 	a[0] = 2
 	assert_fails(report_confusion_matrix, ValueError, a, b)
+
+def test_load_iris_df():
+	assert 'target' in load_iris_df(True, 'target').columns.values
+
+

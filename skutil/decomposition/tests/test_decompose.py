@@ -1,16 +1,17 @@
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
-from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA, TruncatedSVD
+from sklearn.datasets import load_iris
 from skutil.decomposition import *
 from skutil.utils.tests import assert_fails
+from skutil.utils import load_iris_df
 
 
 
 ## Def data for testing
 iris = load_iris()
-X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+X = load_iris_df(False)
 
 def test_selective_pca():
 	original = X
