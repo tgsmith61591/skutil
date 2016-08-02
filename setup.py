@@ -248,8 +248,10 @@ def setup_package():
 			classifiers=['Intended Audience :: Science/Research',
 						 'Intended Audience :: Developers',
 						 'Intended Audience :: Scikit-learn users',
+						 'Programming Language :: C',
 						 'Programming Language :: Fortran',
 						 'Programming Language :: Python',
+						 'Topic :: Machine Learning',
 						 'Topic :: Software Development',
 						 'Topic :: Scientific/Engineering',
 						 'Operating System :: Microsoft :: Windows',
@@ -258,6 +260,7 @@ def setup_package():
 						 'Operating System :: MacOS',
 						 'Programming Language :: Python :: 2.7'
 						 ],
+			keywords='sklearn smote caret h2o',
 			cmdclass=cmdclass,
 			**extra_setuptools_args)
 
@@ -349,16 +352,6 @@ def setup_package():
 
 			# gen cython sources (compile the .pyx files if needed)
 			print('Generating cython files')
-			'''
-			extensions = [
-				Extension(os.path.join(DISTNAME, 'metrics', "_kernel_fast"), 
-					[os.path.join(DISTNAME, 'metrics', '_kernel_fast.%s' % ext)],
-					include_dirs = [numpy.get_include()]
-				)
-			]
-
-			metadata['ext_modules'] = cythonize(extensions)
-			'''
 
 			# sklearn method...
 			if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
