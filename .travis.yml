@@ -44,6 +44,7 @@ install:
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
   - pip install coveralls
   - pip install matplotlib
+  - pip install h2o
   - python setup.py develop
 
 ## Run tests
