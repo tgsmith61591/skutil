@@ -1,3 +1,4 @@
+C
 *  =========== DOCUMENTATION ===========
 *
 * Online html documentation available at 
@@ -47,6 +48,7 @@
 *> \endverbatim
 *>
 *  =====================================================================
+C
       subroutine dswap(n,dx,incx,dy,incy)
 *
 *  -- reference blas level1 routine (version 3.4.0) --
@@ -303,37 +305,37 @@
       ddot = dtemp
       return
       end
-*  =====================================================================
+c  =====================================================================
       subroutine dcopy(n,dx,incx,dy,incy)
-*
-*  -- reference blas level1 routine (version 3.4.0) --
-*  -- reference blas is a software package provided by univ. of tennessee,    --
-*  -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
-*     november 2011
-*
-*     .. scalar arguments ..
+c
+c  -- reference blas level1 routine (version 3.4.0) --
+c  -- reference blas is a software package provided by univ. of tennessee,    --
+c  -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
+c     november 2011
+c
+c     .. scalar arguments ..
       integer incx,incy,n
-*     ..
-*     .. array arguments ..
+c     ..
+c     .. array arguments ..
       double precision dx(*),dy(*)
-*     ..
-*
-*  =====================================================================
-*
-*     .. local scalars ..
+c     ..
+c
+c  =====================================================================
+c
+c     .. local scalars ..
       integer i,ix,iy,m,mp1
-*     ..
-*     .. intrinsic functions ..
+c     ..
+c     .. intrinsic functions ..
       intrinsic mod
-*     ..
+c     ..
       if (n.le.0) return
       if (incx.eq.1 .and. incy.eq.1) then
-*
-*        code for both increments equal to 1
-*
-*
-*        clean-up loop
-*
+c
+c        code for both increments equal to 1
+c
+c
+c        clean-up loop
+c
          m = mod(n,7)
          if (m.ne.0) then
             do i = 1,m
@@ -352,10 +354,10 @@
             dy(i+6) = dx(i+6)
          end do
       else      
-*
-*        code for unequal increments or equal increments
-*          not equal to 1
-*
+c
+c        code for unequal increments or equal increments
+c          not equal to 1
+c
          ix = 1
          iy = 1
          if (incx.lt.0) ix = (-n+1)*incx + 1
@@ -368,39 +370,39 @@
       end if
       return
       end
-*
+c
       subroutine daxpy(n,da,dx,incx,dy,incy)
-*
-*  -- reference blas level1 routine (version 3.4.0) --
-*  -- reference blas is a software package provided by univ. of tennessee,    --
-*  -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
-*     november 2011
-*
-*     .. scalar arguments ..
+c
+c  -- reference blas level1 routine (version 3.4.0) --
+c  -- reference blas is a software package provided by univ. of tennessee,    --
+c  -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
+c     november 2011
+c
+c     .. scalar arguments ..
       double precision da
       integer incx,incy,n
-*     ..
-*     .. array arguments ..
+c     ..
+c     .. array arguments ..
       double precision dx(*),dy(*)
-*     ..
-*
-*  =====================================================================
-*
-*     .. local scalars ..
+c     ..
+c
+c  =====================================================================
+c
+c     .. local scalars ..
       integer i,ix,iy,m,mp1
-*     ..
-*     .. intrinsic functions ..
+c     ..
+c     .. intrinsic functions ..
       intrinsic mod
-*     ..
+c     ..
       if (n.le.0) return
       if (da.eq.0.0d0) return
       if (incx.eq.1 .and. incy.eq.1) then
-*
-*        code for both increments equal to 1
-*
-*
-*        clean-up loop
-*
+c
+c        code for both increments equal to 1
+c
+c
+c        clean-up loop
+c
          m = mod(n,4)
          if (m.ne.0) then
             do i = 1,m
@@ -416,10 +418,10 @@
             dy(i+3) = dy(i+3) + da*dx(i+3)
          end do
       else
-*
-*        code for unequal increments or equal increments
-*          not equal to 1
-*
+c
+c        code for unequal increments or equal increments
+c          not equal to 1
+c
          ix = 1
          iy = 1
          if (incx.lt.0) ix = (-n+1)*incx + 1

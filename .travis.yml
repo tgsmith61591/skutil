@@ -44,7 +44,7 @@ install:
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
   - pip install coveralls
   - pip install matplotlib
-  - python easy_setup.py
+  - python setup.py develop
 
 ## Run tests
 script: 

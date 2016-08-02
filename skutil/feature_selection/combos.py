@@ -3,9 +3,9 @@ import numpy as np
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 from numpy.linalg.linalg import LinAlgError
+from skutil.odr import QRDecomposition
 from .base import _BaseFeatureSelector
 from .select import _validate_cols
-from ..odr import QRDecomposition
 from ..utils import flatten_all, validate_is_pd
 
 

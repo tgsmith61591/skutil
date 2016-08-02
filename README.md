@@ -11,13 +11,17 @@ A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extens
 ```bash
 git clone https://github.com/tgsmith61591/skutil.git
 cd skutil
-python easy_setup.py
-
-# NOTE: easy_setup.py takes care of the following:
-# python setup.py clean --all
-# python setup.py build_ext --inplace
-# python setup.py install
+python setup.py install
 ```
+
+#### Testing:
+```bash
+git clone https://github.com/tgsmith61591/skutil.git
+cd skutil
+python setup.py develop
+nosetests
+```
+
 
 #### Troubleshooting Installation Issues
 Skutil depends on the ability to compile Fortran code. For different platforms, there are different ways to install `gcc`:
@@ -38,7 +42,6 @@ sudo apt-get install gcc
 
   - For Windows, follow [this tutorial](http://www.preshing.com/20141108/how-to-install-the-latest-gcc-on-windows/)
 
-*To test whether your installation of `skutil` was successful, examine the `skutil/odr` folder contents; if you see any `.so` files, things ran correctly*
 
 #### Examples:
   - See the [wiki](https://github.com/tgsmith61591/skutil/wiki)

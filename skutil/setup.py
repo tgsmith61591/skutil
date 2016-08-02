@@ -16,23 +16,31 @@ def configuration(parent_package = '', top_path = None):
 
 	config = Configuration('skutil', parent_package, top_path)
 
+
+	# modules with build utils
+	config.add_subpackage('_build_utils')
+
 	## modules
 	config.add_subpackage('decomposition')
+	config.add_subpackage('odr') # needs to happen before feature selection -- has its own setup...
 	config.add_subpackage('feature_selection')
-	config.add_subpackage('odr')
+	config.add_subpackage('h2o')
+	config.add_subpackage('linear_model')
 	config.add_subpackage('preprocessing')
 	config.add_subpackage('utils')
 
-	## module tests
+	## module tests -- must be added after others!
 	config.add_subpackage('decomposition/tests')
+	config.add_subpackage('h2o/tests')
 	config.add_subpackage('feature_selection/tests')
+	config.add_subpackage('linear_model/tests')
 	config.add_subpackage('odr/tests')
 	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('utils/tests')
 
 	## Modules with cython
 	config.add_subpackage('metrics')
-	config.add_subpackage('metrics/tests')
+	#config.add_subpackage('metrics/tests') # added in the setup...
 
 	## misc repo tests
 	config.add_subpackage('tests')

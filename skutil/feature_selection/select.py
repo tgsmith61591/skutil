@@ -11,6 +11,7 @@ from ..utils import validate_is_pd
 __all__ = [
 	'FeatureDropper',
 	'FeatureRetainer',
+	'filter_collinearity',
 	'MulticollinearityFilterer',
 	'NearZeroVarianceFilterer'
 ]
@@ -81,6 +82,72 @@ class FeatureRetainer(_BaseFeatureSelector):
 
 
 ###############################################################################
+def filter_collinearity(c, threshold):
+	"""Performs the collinearity filtration for both the
+	MulticollinearityFilterer as well as the H2OMulticollinearityFilterer
+
+	Parameters
+	----------
+	c : pandas DataFrame
+		The correlation matrix
+
+	threshold : float
+		The threshold above which to filter
+
+	Returns
+	-------
+	drops, list
+		The list of columns to drop
+	"""
+	# ensure symmetric
+	if c.shape[0] != c.shape[1]:
+		raise ValueError('input dataframe should be symmetrical in dimensions')
+
+	# init drops list
+	drops = []
+
+	## Iterate over each feature
+	finished = False
+	while not finished:
+
+		# Whenever there's a break, this loop will start over
+		for i,nm in enumerate(c.columns):
+			this_col = c[nm].drop(nm).sort_values()
+			this_col_nms = this_col.index.tolist()
+			this_col = np.array(this_col)
+
+			# check if last value is over thresh
+			if this_col[-1] < threshold or this_col.shape[0] == 1:
+				if i == c.columns.shape[0] - 1:
+					finished = True
+
+				# control passes to next column name or end if finished
+				continue
+
+			# gets the current col, and drops the same row, sorts asc and gets other col
+			other_col_nm = this_col_nms[-1]
+			that_col = c[other_col_nm].drop(other_col_nm)
+
+			# get the mean absolute correlations of each
+			mn_1, mn_2 = this_col.mean(), that_col.mean()
+			drop_nm = nm if mn_1 > mn_2 else other_col_nm
+
+			# drop the bad col, row
+			c.drop(drop_nm, axis=1, inplace=True)
+			c.drop(drop_nm, axis=0, inplace=True)
+
+			# add the bad col to drops
+			drops.append(drop_nm)
+
+			# if we get here, we have to break so will start over
+			break
+
+		# if not finished, restarts loop, otherwise will exit loop
+
+	# return
+	return drops
+
+
 class MulticollinearityFilterer(_BaseFeatureSelector):
 	"""Filter out features with a correlation greater than the provided threshold.
 	When a pair of correlated features is identified, the mean absolute correlation (MAC)
@@ -148,52 +215,11 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		X, self.cols = validate_is_pd(X, self.cols)
 		_validate_cols(self.cols)
 
-		## init drops list
-		drops = []
-
 		## Generate correlation matrix
 		c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
-		## Iterate over each feature
-		finished = False
-		while not finished:
-
-			# Whenever there's a break, this loop will start over
-			for i,nm in enumerate(c.columns):
-				this_col = c[nm].drop(nm).sort_values()
-				this_col_nms = this_col.index.tolist()
-				this_col = np.array(this_col)
-
-				# check if last value is over thresh
-				if this_col[-1] < self.threshold or this_col.shape[0] == 1:
-					if i == c.columns.shape[0] - 1:
-						finished = True
-
-					# control passes to next column name or end if finished
-					continue
-
-				# gets the current col, and drops the same row, sorts asc and gets other col
-				other_col_nm = this_col_nms[-1]
-				that_col = c[other_col_nm].drop(other_col_nm)
-
-				# get the mean absolute correlations of each
-				mn_1, mn_2 = this_col.mean(), that_col.mean()
-				drop_nm = nm if mn_1 > mn_2 else other_col_nm
-
-				# drop the bad col, row
-				c.drop(drop_nm, axis=1, inplace=True)
-				c.drop(drop_nm, axis=0, inplace=True)
-
-				# add the bad col to drops
-				drops.append(drop_nm)
-
-				# if we get here, we have to break so will start over
-				break
-
-			# if not finished, restarts loop, otherwise will exit loop
-
-		# Assign attributes, return
-		self.drop = drops
+		## get drops list
+		self.drop = filter_collinearity(c, self.threshold)
 		dropped = X.drop(self.drop, axis=1)
 
 		return dropped if self.as_df else dropped.as_matrix()

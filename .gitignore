@@ -10,5 +10,8 @@ skutil.egg-info/
 *.so*
 cythonize.dat
 
+# scratch code not to be pushed
+skutil/scratch
+
 # But not these
 !doc/images/*.png

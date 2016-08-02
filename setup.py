@@ -46,6 +46,7 @@ pandas_min_version = '0.18'
 sklearn_min_version= '0.16'
 numpy_min_version  = '1.6'
 scipy_min_version  = '0.17'
+h2o_min_version    = '3.8'
 
 # optional, but if installed and lower version, warn
 matplotlib_version = '1.5'
@@ -196,6 +197,18 @@ def get_scipy_status():
 		sc_status['version'] = ""
 	return sc_status
 
+def get_h2o_status():
+	h2_status = {}
+	try:
+		import h2o
+		h2_version = h2o.__version__
+		h2_status['up_to_date'] = parse_version(h2_version) >= parse_version(h2o_min_version)
+		h2_status['version'] = h2_version
+	except ImportError:
+		h2_status['up_to_date'] = False
+		h2_status['version'] = ""
+	return h2_status
+
 ## DEFINE CONFIG
 def configuration(parent_package = '', top_path = None):
 	from numpy.distutils.misc_util import Configuration
@@ -248,56 +261,110 @@ def setup_package():
 			cmdclass=cmdclass,
 			**extra_setuptools_args)
 
-	# check on MPL
-	try:
-		import matplotlib
-		mplv = matplotlib.__version__
-		mpl_uptodate = parse_version(mplv) >= parse_version(matplotlib_version)
+
+	if len(sys.argv) == 1 or (
+		len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+								sys.argv[1] in ('--help-commands',
+												'egg-info',
+												'--version',
+												'clean'))):
+		# For these actions, NumPy is not required, nor Cythonization
+		#
+		# They are required to succeed without Numpy for example when
+		# pip is used to install skutil when Numpy is not yet present in
+		# the system.
+		try:
+			from setuptools import setup
+		except ImportError as impe:
+			from distutils.core import setup
+
+		metadata['version'] = VERSION
+
+	else:
+		# check on MPL
+		try:
+			import matplotlib
+			mplv = matplotlib.__version__
+			mpl_uptodate = parse_version(mplv) >= parse_version(matplotlib_version)
+			
+			if not mpl_uptodate:
+				warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
+		except ImportError as i:
+			pass # not required, doesn't matter
+
+
+		pandas_status = get_pandas_status()
+		sklearn_status= get_sklearn_status()
+		numpy_status  = get_numpy_status()
+		scipy_status  = get_scipy_status()
+		h2o_status    = get_h2o_status()
+
+		pdrs = 'skutil requires Pandas >= {0}.\n'.format(pandas_min_version)
+		skrs = 'skutil requires sklearn >= {0}.\n'.format(sklearn_min_version)
+		nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
+		scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
+		h2rs = 'skutil requires h2o >= {0}.\n'.format(h2o_min_version)
 		
-		if not mpl_uptodate:
-			warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
-	except ImportError as i:
-		pass # not required, doesn't matter
+		check_statuses('numpy', numpy_status, nprs) ## Needs to happen before anything
+		check_statuses('scipy', scipy_status, scrs) ## Needs to happen before sklearn
+		check_statuses('pandas', pandas_status, pdrs)
+		check_statuses('scikit-learn',sklearn_status, skrs)
+		check_statuses('h2o', h2o_status, h2rs)
+
+		## We know numpy is installed at this point
+		import numpy
+		from numpy.distutils.core import setup
+
+		metadata['configuration'] = configuration
 
 
-	pandas_status = get_pandas_status()
-	sklearn_status= get_sklearn_status()
-	numpy_status  = get_numpy_status()
-	scipy_status  = get_scipy_status()
+		# we need to build our fortran and cython
+		if len(sys.argv) >= 2 and sys.argv[1] not in 'config': #and sys.argv[1] in ('build_ext'): 
+			# clean up the .so files
+			# _clean_all()
 
-	pdrs = 'skutil requires Pandas >= {0}.\n'.format(pandas_min_version)
-	skrs = 'skutil requires sklearn >= {0}.\n'.format(sklearn_min_version)
-	nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
-	scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
-	
-	check_statuses('numpy', numpy_status, nprs) ## Needs to happen before anything
-	check_statuses('scipy', scipy_status, scrs) ## Needs to happen before sklearn
-	check_statuses('pandas', pandas_status, pdrs)
-	check_statuses('scikit-learn',sklearn_status, skrs)
 
-	## We know numpy is installed at this point
-	import numpy
-	from numpy.distutils.core import setup
-	metadata['configuration'] = configuration
+			# Clean existing .so files
+			cwd = os.path.abspath(os.path.dirname(__file__))
+			for dirpath, dirnames, filenames in os.walk(os.path.join(cwd, DISTNAME)):
+				for filename in filenames:
+					extension = os.path.splitext(filename)[1]
 
-	# we need to build our fortran and cython
-	if len(sys.argv) >= 2 and sys.argv[1] in ('build_ext'): #not in ('config', 'build_ext'):
-		# clean up the .so files
-		_clean_all()
+					if extension in (".so.dSYM", ".so", ".pyd", ".dll"):
+						for e in ('.f', '.f90', '.pyx'):
+							pyx_file = str.replace(filename, extension, e)
+							print(pyx_file)
 
-		# gen fortran modules
-		generate_fortran()
+							if not os.path.exists(os.path.join(dirpath, pyx_file)):
+								delpath = os.path.join(dirpath, filename)
 
-		# gen cython sources (compile the .pyx files if needed)
-		cwd = os.path.abspath(os.path.dirname(__file__))
-		extensions = [
-			Extension(os.path.join(DISTNAME, 'metrics', "_kernel_fast"), 
-				[os.path.join(DISTNAME, 'metrics', '_kernel_fast.%s' % ext)],
-				include_dirs = [numpy.get_include()]
-			)
-		]
+								if os.path.isfile(delpath):
+									os.unlink(delpath)
+								elif os.path.isdir(delpath):
+									shutil.rmtree(delpath)
 
-		metadata['ext_modules'] = cythonize(extensions)
+
+			# gen fortran modules
+			#generate_fortran()
+
+			# gen cython sources (compile the .pyx files if needed)
+			print('Generating cython files')
+			'''
+			extensions = [
+				Extension(os.path.join(DISTNAME, 'metrics', "_kernel_fast"), 
+					[os.path.join(DISTNAME, 'metrics', '_kernel_fast.%s' % ext)],
+					include_dirs = [numpy.get_include()]
+				)
+			]
+
+			metadata['ext_modules'] = cythonize(extensions)
+			'''
+
+			# sklearn method...
+			if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
+				# Generate Cython sources, unless building from source release
+				generate_cython()
+		
 
 
 	setup(**metadata)
