@@ -15,7 +15,7 @@ F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 # if we can't start an h2o instance, let's just pass all these tests
 try:
 	h2o.init(ip='localhost', port=54321)
-	X = H2OFrame.from_python(F, column_names=F.columns.tolist())
+	X = H2OFrame.from_python(F, header=1, column_names=F.columns.tolist())
 except Exception as e:
 	warnings.warn('could not successfully start H2O instance', UserWarning)
 	X = None
