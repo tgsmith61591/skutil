@@ -37,7 +37,7 @@ def test_h2o_multicollinearity():
 	assert filterer.min_version == '3.8.3'
 	assert not filterer.max_version
 
-	if X:
+	if X is not None:
 		x = filterer.fit_transform(X)
 	else:
 		pass
@@ -57,7 +57,7 @@ def test_h2o_nzv():
 	except Exception as e:
 		Y = None
 
-	if Y:
+	if Y is not None:
 		y = filterer.fit_transform(y)
 		assert len(y.drop) == 1
 	else:
