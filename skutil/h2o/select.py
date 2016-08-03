@@ -115,20 +115,20 @@ class BaseH2OTransformer(BaseEstimator, TransformerMixin):
 
 	   	# test connection, warn where needed
 		try:
-			h2o.cluster_status()
+			g = h2o.frames() # returns a dict of frames
 		except (EnvironmentError, ValueError) as v:
 			warnings.warn('h2o has not been started; '
 						  'initializing an H2O transformer without '
 						  'a connection will not cause any issues, '
 						  'but it will throw a ValueError if the '
-						  'H2O cloud is not started')
+						  'H2O cloud is not started prior to fitting')
 			
 	def transform(self, X):
 		# validate state, frame
-		check_is_fitted(self, 'drop')
+		check_is_fitted(self, 'drop_')
 		X = _check_is_frame(X)
 
-		retain = _retain_features(X, self.drop)
+		retain = _retain_features(X, self.drop_)
 		return X[retain]
 
 
@@ -234,8 +234,8 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		c.index = [x for x in frame.columns] # set the index to the same names
 		
 		## get drops list
-		self.drop = filter_collinearity(c, self.threshold)
-		retain = _retain_features(X, self.drop) # pass original frame
+		self.drop_ = filter_collinearity(c, self.threshold)
+		retain = _retain_features(X, self.drop_) # pass original frame
 
 		return frame[retain]
 		
@@ -303,7 +303,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		use = _validate_use(frame, self.use, self.na_warn)
 
 		cols = frame.columns
-		self.drop = [str(n) for n in cols if (frame[n].var(use=use, na_rm=self.na_rm) < thresh)]
+		self.drop_ = [str(n) for n in cols if (frame[n].var(use=use, na_rm=self.na_rm) < thresh)]
 
 		return self
 			
