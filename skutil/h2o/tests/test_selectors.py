@@ -16,6 +16,13 @@ F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 try:
 	h2o.init(ip='localhost', port=54321)
 	X = H2OFrame.from_python(F, header=1, column_names=F.columns.tolist())
+
+	# weirdness sometimes.
+	if not 'sepal length (cm)' in X.columns:
+		X.columns = F.columns.tolist()
+
+	if X.shape[0] > F.shape[0]:
+		X = X[1:,:]
 except Exception as e:
 	warnings.warn('could not successfully start H2O instance', UserWarning)
 	X = None

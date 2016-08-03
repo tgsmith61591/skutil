@@ -112,7 +112,7 @@ def filter_collinearity(c, threshold):
 
 		# Whenever there's a break, this loop will start over
 		for i,nm in enumerate(c.columns):
-			this_col = c[nm].drop(nm).sort_values()
+			this_col = c[nm].drop(nm).sort_values()  # gets the column, drops the index of itself, and sorts
 			this_col_nms = this_col.index.tolist()
 			this_col = np.array(this_col)
 
