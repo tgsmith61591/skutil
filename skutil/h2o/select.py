@@ -230,6 +230,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		
 		## Generate absolute correlation matrix
 		c = frame.cor(use=use, na_rm=self.na_rm).abs().as_data_frame(use_pandas=True)
+		c.columns = frame.columns # set the cols to the same names
 		c.index = [x for x in frame.columns] # set the index to the same names
 		
 		## get drops list

@@ -46,6 +46,7 @@ def test_h2o_multicollinearity():
 
 	if X is not None:
 		x = filterer.fit_transform(X)
+		assert x.shape[1] == 2
 	else:
 		pass
 
