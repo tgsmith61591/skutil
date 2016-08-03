@@ -26,7 +26,7 @@ def catch_warning_assert_thrown(fun, kwargs):
 		warnings.simplefilter("always")
 
 		ret = fun(**kwargs)
-		assert len(w) > 0 if not X else True, 'expected warning to be thrown'
+		assert len(w) > 0 if X is None else True, 'expected warning to be thrown'
 		return ret
 
 
