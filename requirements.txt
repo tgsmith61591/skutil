@@ -3,4 +3,4 @@ scipy>=0.17
 scikit-learn>=0.16
 pandas>=0.18
 cython>=0.22
-h2o>=3.8
+h2o>=3.8.3

@@ -69,6 +69,7 @@ class BaseH2OTransformer(BaseEstimator, TransformerMixin):
 	
 	@abc.abstractmethod
 	def __init__(self, target_feature=None, min_version='any', max_version=None):
+		self.target_feature = target_feature
 		
 		# validate min version
 		h2ov = h2o.__version__
@@ -176,7 +177,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		The columns to drop
 	"""
 	
-	__min_version__ = 3.8
+	__min_version__ = '3.8.3'
 	__max_version__ = None
 	
 	def __init__(self, target_feature=None, threshold=0.85, 
@@ -266,7 +267,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		The columns to drop
 	"""
 	
-	__min_version__ = 3.8
+	__min_version__ = '3.8.3'
 	__max_version__ = None
 	
 	def __init__(self, target_feature=None, threshold=1e-6, 
