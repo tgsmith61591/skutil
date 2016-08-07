@@ -75,7 +75,7 @@ def test_h2o():
 			tgt = 'sepal length (cm)'
 			filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6, 'target_feature':tgt})
 			x = filterer.fit_transform(X)
-			assert target in x.columns, 'target feature was accidentally dropped...'
+			assert tgt in x.columns, 'target feature was accidentally dropped...'
 
 		else:
 			pass
@@ -116,7 +116,7 @@ def test_h2o():
 			y = filterer.fit_transform(Y)
 			assert len(filterer.drop_) == 1
 			assert y.shape[1] == 4
-			assert target in y.columns, 'target feature was accidentally dropped...'
+			assert tgt in y.columns, 'target feature was accidentally dropped...'
 
 		else:
 			pass
