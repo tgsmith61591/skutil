@@ -20,18 +20,23 @@ iris = load_iris()
 F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 
 
+
+def new_h2o_frame(X):
+	Y = H2OFrame.from_python(X, header=1, column_names=X.columns.tolist())
+	# weirdness sometimes.
+	if not 'sepal length (cm)' in Y.columns:
+		Y.columns = X.columns.tolist()
+
+	if Y.shape[0] > X.shape[0]:
+		Y = Y[1:,:]
+	return  Y
+
+
 # if we can't start an h2o instance, let's just pass all these tests
 def test_h2o():
 	try:
 		h2o.init(ip='localhost', port=54321) # this might throw a warning
-		X = H2OFrame.from_python(F, header=1, column_names=F.columns.tolist())
-
-		# weirdness sometimes.
-		if not 'sepal length (cm)' in X.columns:
-			X.columns = F.columns.tolist()
-
-		if X.shape[0] > F.shape[0]:
-			X = X[1:,:]
+		X = new_h2o_frame(F)
 	except Exception as e:
 		warnings.warn('could not successfully start H2O instance', UserWarning)
 		X = None
@@ -73,9 +78,11 @@ def test_h2o():
 		# test with a target feature
 		if X is not None:
 			tgt = 'sepal length (cm)'
-			filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6, 'target_feature':tgt})
-			x = filterer.fit_transform(X)
-			assert tgt in x.columns, 'target feature was accidentally dropped...'
+			new_filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6, 'target_feature':tgt})
+			x = new_filterer.fit_transform(X)
+
+			# h2o throws weird error because it override __contains__, so use the comprehension
+			assert tgt in [c for c in x.columns], 'target feature was accidentally dropped...'
 
 		else:
 			pass
@@ -91,13 +98,7 @@ def test_h2o():
 		f['zerovar'] = np.zeros(F.shape[0])
 
 		try:
-			Y = H2OFrame.from_python(f, header=1, column_names=f.columns)
-			# weirdness sometimes.
-			if not 'sepal length (cm)' in Y.columns:
-				Y.columns = f.columns.tolist()
-
-			if Y.shape[0] > f.shape[0]:
-				Y = Y[1:,:]
+			Y = new_h2o_frame(f)
 		except Exception as e:
 			Y = None
 
@@ -112,11 +113,14 @@ def test_h2o():
 		# test with a target feature
 		if X is not None:
 			tgt = 'sepal length (cm)'
-			filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold':1e-8, 'target_feature':tgt})
-			y = filterer.fit_transform(Y)
-			assert len(filterer.drop_) == 1
+			new_filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold':1e-8, 'target_feature':tgt})
+			y = new_filterer.fit_transform(Y)
+
+			assert len(new_filterer.drop_) == 1
 			assert y.shape[1] == 4
-			assert tgt in y.columns, 'target feature was accidentally dropped...'
+
+			# h2o throws weird error because it override __contains__, so use the comprehension
+			assert tgt in [c for c in y.columns], 'target feature was accidentally dropped...'
 
 		else:
 			pass
@@ -134,8 +138,8 @@ def test_h2o():
 			X_test['species'] = y_test
 
 		try:
-			train = H2OFrame.from_python(X_train, header=1, column_names=X_train.columns)
-			test  = H2OFrame.from_python(X_test,  header=1, column_names=X_test.columns)
+			train = new_h2o_frame(X_train)
+			test  = new_h2o_frame(X_test)
 		except Exception as e:
 			train = None
 			test  = None

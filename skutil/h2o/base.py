@@ -151,6 +151,4 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 		# validate state, frame
 		check_is_fitted(self, 'drop_')
 		X = _check_is_frame(X)
-
-		retain = _retain_features(X, self.drop_)
-		return X[retain]
+		return X[_retain_features(X, self.drop_)]

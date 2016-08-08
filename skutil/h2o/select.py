@@ -75,9 +75,9 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 	def __init__(self, target_feature=None, threshold=0.85, 
 				 na_warn=True, na_rm=False, use='complete.obs'):
 
-		super(H2OMulticollinearityFilterer, self).__init__(target_feature, 
-														   self.__min_version__,
-														   self.__max_version__)
+		super(H2OMulticollinearityFilterer, self).__init__(target_feature=target_feature, 
+														   min_version=self.__min_version__,
+														   max_version=self.__max_version__)
 		self.threshold = threshold
 		self.na_warn = na_warn
 		self.na_rm = na_rm
@@ -111,9 +111,8 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		frame, thresh = _check_is_frame(X), self.threshold
 		
 		# if there's a target feature, let's strip it out for now...
-		if self.target_feature:
-			X_nms = [x for x in frame.columns if not x == self.target_feature] # make list
-			frame = frame[X_nms]
+		if self.target_feature is not None:
+			frame = frame[x for x in frame.columns if not x == self.target_feature] # make list
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
@@ -121,13 +120,11 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		## Generate absolute correlation matrix
 		c = frame.cor(use=use, na_rm=self.na_rm).abs().as_data_frame(use_pandas=True)
 		c.columns = frame.columns # set the cols to the same names
-		c.index = [x for x in frame.columns] # set the index to the same names
+		c.index = frame.columns
 		
 		## get drops list
 		self.drop_ = filter_collinearity(c, self.threshold)
-		retain = _retain_features(X, self.drop_) # pass original frame
-
-		return frame[retain]
+		return self.transform(X)
 		
 
 
@@ -173,6 +170,18 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		self.use = use
 
 	def fit(self, X):
+		"""Fit the near zero variance filterer,
+		return the transformed X frame.
+
+		Parameters
+		----------
+		X : H2OFrame
+			The frame to fit
+		"""
+		self.fit_transform(X)
+		return self
+
+	def fit_transform(self, X):
 		"""Fit the near zero variance filterer.
 
 		Parameters
@@ -184,15 +193,13 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature:
-			X_nms = [x for x in frame.columns if not x == self.target_feature] # make list
-			frame = frame[X_nms]
+			frame = frame[x for x in frame.columns if not x == self.target_feature] # make list
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
 
 		cols = frame.columns
 		self.drop_ = [str(n) for n in cols if (frame[n].var(use=use, na_rm=self.na_rm) < thresh)]
-
-		return self
+		return self.transform(X)
 			
 		
