@@ -4,7 +4,7 @@ import numpy as np
 import warnings
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_is_fitteds
+from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
 
 import h2o
