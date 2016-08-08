@@ -94,7 +94,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		y : None, passthrough for pipeline
 		"""
 
-		self.fit_transform(X, y)
+		self.fit_transform(X)
 		return self
 	
 	
