@@ -112,7 +112,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature is not None:
-			frame = frame[x for x in frame.columns if not x == self.target_feature] # make list
+			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
@@ -193,7 +193,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature:
-			frame = frame[x for x in frame.columns if not x == self.target_feature] # make list
+			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
