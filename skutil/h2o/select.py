@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import abc
 
-from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
@@ -84,7 +83,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		self.use = use
 		
 		
-	def fit(self, X, y=None):
+	def fit(self, X):
 		"""Fit the multicollinearity filterer.
 
 		Parameters

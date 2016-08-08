@@ -1,12 +1,15 @@
-from __future__ import print_function, division
-from sklearn.base import BaseEstimator, TransformerMixin
+from __future__ import print_function, division, absolute_import
 import abc
+import numpy as np
 import warnings
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.utils.validation import check_is_fitteds
+from sklearn.externals import six
 
 import h2o
 from h2o.frame import H2OFrame
 
-from sklearn.externals import six
 from pkg_resources import parse_version
 from ..utils import is_numeric
 
