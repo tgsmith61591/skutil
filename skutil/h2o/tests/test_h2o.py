@@ -43,10 +43,10 @@ def new_estimators():
 	with the skutil framework. This ensures it will work with all the estimators...
 	"""
 	return (
-			H2ORandomForestEstimator(),
-			H2OGeneralizedLinearEstimator(),
-			H2OGradientBoostingEstimator(),
-			H2ODeepLearningEstimator()
+			H2ORandomForestEstimator(stopping_metric='logloss'),
+			H2OGeneralizedLinearEstimator(family='multinomial'),
+			H2OGradientBoostingEstimator(stopping_metric='logloss'),
+			H2ODeepLearningEstimator(stopping_metric='logloss')
 		)
 
 
@@ -185,7 +185,11 @@ def test_h2o():
 
 	def grid():
 		f = F.copy()
-		f['species'] = iris.target
+		targ = [iris.target]
+
+		# make it binomial so GLM can handle it
+		# targ[targ == 2] = 1
+		f['species'] = targ
 
 		# try uploading...
 		try:
