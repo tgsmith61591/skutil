@@ -146,7 +146,7 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
 		if self.n_folds > n_obs:
 			raise ValueError('Cannot have n_folds greater than n_obs')
 
-		for train, test in super(H2OBaseCrossValidator, self).split(frame):
+		for train, test in super(_H2OBaseKFold, self).split(frame):
 			yield train, test
 
 	@overrides(H2OBaseCrossValidator)
