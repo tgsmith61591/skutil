@@ -215,9 +215,10 @@ def test_h2o():
 									try:
 										if not do_pipe:
 											# we're just testing the search on actual estimators
-											grid = grid_module(estimator=estimator, 
+											grid = grid_module(estimator=estimator,
+												feature_names=F.columns.tolist(), target_feature='species',
 												param_grid=get_param_grid(estimator),
-												scoring=scoring, iid=iid)
+												scoring=scoring, iid=iid, verbose=verbose)
 										else:
 											# we'll just use a NZV filter and tinker with the thresh
 											params = {
@@ -225,7 +226,8 @@ def test_h2o():
 											}
 
 											grid = grid_module(estimator, params,
-												scoring=scoring, iid=iid)
+												feature_names=F.columns.tolist(), target_feature='species',
+												scoring=scoring, iid=iid, verbose=verbose)
 
 										# fit the grid
 										grid.fit(frame)
