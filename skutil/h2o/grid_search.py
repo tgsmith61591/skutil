@@ -124,8 +124,15 @@ def _score(estimator, frame, target_feature, scorer, parms):
 	# as h2o is capable of handling these... we need to explicitly make the
 	# predictions and target numeric.
 	encoder = LabelEncoder()
-	y_truth = encoder.fit_transform(y_truth)
-	pred = encoder.transform(pred)
+
+	try:
+		y_truth = encoder.fit_transform(y_truth)
+		pred = encoder.transform(pred)
+	except ValueError as v:
+		raise ValueError('y contains new labels. '
+						 'Seen: %s\n, New:%s' % (
+						 	str(encoder.classes_), 
+						 	str(set(pred))))
 
 	return scorer(y_truth, pred, **parms)
 
