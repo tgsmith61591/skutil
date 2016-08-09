@@ -1,12 +1,25 @@
 
 __all__ = [
 	'ModuleImportWarning',
+	'overrides',
 	'SamplingWarning',
 	'SelectiveMixin',
 	'SelectiveWarning'
 ]
 
 ###############################################################################
+def overrides(interface_class):
+	"""Decorator for methods that override super methods.
+	Nice syntactic sugar and easy to follow OOP on sources like Git.
+	"""
+
+	def overrider(method):
+		assert(method.__name__ in dir(interface_class)), '%s.%s must override a super method!' % (
+															interface_class.__name__, method.__name__)
+		return method
+	return overrider
+
+
 class ModuleImportWarning(UserWarning):
 	"""Custom warning used to notify user a non-critical import failed, and to
 	suggest the installation of the module for optimal results.

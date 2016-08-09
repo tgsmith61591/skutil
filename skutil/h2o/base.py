@@ -21,6 +21,7 @@ __all__ = [
 ]
 
 
+
 class NAWarning(UserWarning):
 	"""Custom warning used to notify user that an NA exists
 	within an h2o frame (h2o can handle NA values)
@@ -78,7 +79,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 		else:
 			raise ValueError('min_version must be a float, '
 							 'a string in the form of "X.x" '
-							 'or "any", but got %s' % type(min_version))
+							 'or "any", but got %s: %s' % (type(min_version), str(min_version)))
 
 
 
@@ -97,7 +98,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 	   	elif not max_version is None: # remember we allow None
 	   		raise ValueError('max_version must be a float, '
 							 'a string in the form of "X.x" '
-							 'or None, but got %s' % type(max_version))
+							 'or None, but got %s: %s' % (type(max_version), str(max_version)))
 
 
 	   	# test connection, warn where needed

@@ -3,11 +3,17 @@ import warnings
 import numpy as np
 import h2o
 from h2o.frame import H2OFrame
-from h2o.estimators import H2ORandomForestEstimator
+from h2o.estimators import (H2ORandomForestEstimator,
+							H2OGeneralizedLinearEstimator,
+							H2OGradientBoostingEstimator,
+							H2ODeepLearningEstimator)
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
+from skutil.h2o.grid_search import *
 from sklearn.datasets import load_iris
+from sklearn.metrics import accuracy_score
 import pandas as pd
+from scipy.stats import randint, uniform
 
 # for split
 try:
@@ -30,6 +36,18 @@ def new_h2o_frame(X):
 	if Y.shape[0] > X.shape[0]:
 		Y = Y[1:,:]
 	return  Y
+
+
+def new_estimators():
+	"""Returns a tuple of newly initialized estimators to test all of them
+	with the skutil framework. This ensures it will work with all the estimators...
+	"""
+	return (
+			H2ORandomForestEstimator(),
+			H2OGeneralizedLinearEstimator(),
+			H2OGradientBoostingEstimator(),
+			H2ODeepLearningEstimator()
+		)
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -146,28 +164,92 @@ def test_h2o():
 
 
 		if train is not None:
-			# define pipe
-			pipe = H2OPipeline([
-					('nzv', H2ONearZeroVarianceFilterer()),
-					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-					('rf',  H2ORandomForestEstimator())
-				], 
-				feature_names=F.columns.tolist(),
-				target_feature='species'
-			)
+			for estimator in new_estimators():
+				# define pipe
+				pipe = H2OPipeline([
+						('nzv', H2ONearZeroVarianceFilterer()),
+						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+						('est', estimator)
+					], 
+					feature_names=F.columns.tolist(),
+					target_feature='species'
+				)
 
-			# fit pipe...
-			pipe.fit(train)
+				# fit pipe...
+				pipe.fit(train)
 
-			# try predicting
-			pipe.predict(test)
+				# try predicting
+				pipe.predict(test)
 		else:
 			pass
+
+	def grid():
+		f = F.copy()
+		f['species'] = iris.target
+
+		# try uploading...
+		try:
+			frame = new_h2o_frame(f)
+		except Exception as e:
+			frame = None
+
+		def get_param_grid(est):
+			if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
+				return {'ntrees':randint(30,50)}
+			elif isinstance(est, H2ODeepLearningEstimator):
+				return {'activation':['Tanh','Rectifier']}
+			else:
+				return {'standardize':[True, False]}
+
+
+
+		# most of this is for extreme coverage to make sure it all works...
+		if frame is not None:
+			for grid_module in (H2OGridSearchCV, H2ORandomizedSearchCV):
+				for estimator in new_estimators:
+					for do_pipe in [False, True]:
+						for iid in [False, True]:
+							for verbose in [0, 1, 2, 3]:
+								for scoring in ['accuracy', 'bad_scoring_metric', None, accuracy_score]:
+
+									try:
+										if not do_pipe:
+											# we're just testing the search on actual estimators
+											grid = grid_module(estimator=estimator, 
+												param_grid=get_param_grid(estimator),
+												scoring=scoring, iid=iid)
+										else:
+											# we'll just use a NZV filter and tinker with the thresh
+											params = {
+												'nzv__threshold' : uniform(1e-6, 0.0025)
+											}
+
+											grid = grid_module(estimator, params,
+												scoring=scoring, iid=iid)
+
+										# fit the grid
+										grid.fit(frame)
+
+										# predict on the grid
+										p = grid.predict(frame)
+
+										# score on the frame
+										s = grid.score(frame)
+									except ValueError as v:
+										if scoring in ('bad_scoring_metric', None):
+											pass
+										else:
+											raise
+
+		else:
+			pass
+
 
 
 	# run them
 	multicollinearity()
 	nzv()
 	pipeline()
+	grid()
 
 

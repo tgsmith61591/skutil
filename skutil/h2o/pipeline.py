@@ -8,9 +8,11 @@ import numpy as np
 
 from sklearn.externals import six
 from .base import BaseH2OTransformer, BaseH2OFunctionWrapper
+from ..base import overrides
 
 from sklearn.utils import tosequence
 from sklearn.externals import six
+from sklearn.base import BaseEstimator
 from sklearn.utils.metaestimators import if_delegate_has_method
 
 
@@ -161,6 +163,47 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 		
 		self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
 		return self
+
+
+	@overrides(BaseEstimator)
+	def set_params(self, **params):
+		"""Set the parameters for this pipeline. Will revalidate the
+		steps in the estimator prior to setting the parameters.
+
+		Returns
+		-------
+		self
+		"""
+		if not params:
+			return self
+
+		# create dict of {step_name : {param_name : val}}
+		parm_dict = {}
+		for k, v in six.iteritems(params):
+			key, val = k.split('__')
+			if not key in parm_dict:
+				parm_dict[key] = {}
+
+			# step_name : {parm_name : v}
+			parm_dict[key][val] = v
+
+		# go through steps, now (first the transforms).
+		for name, transform in self.steps[:-1]:
+			step_params = parm_dict[name]
+			for parm, value in six.iteritems(step_params):
+				setattr(transform, parm, value)
+
+		# finally, set the h2o estimator params. 
+		est_name, last_step = self.steps[-1]
+		for parm, value in six.iteritems(parm_dict[est_name]):
+			try:
+				last_step._parms[parm] = value
+			except Exception as e:
+				raise ValueError('Invalid parameter for %s: %s'
+								 % (parm, last_step.__name__))
+
+		return self
+
 		
 	@if_delegate_has_method(delegate='_final_estimator')
 	def predict(self, frame):

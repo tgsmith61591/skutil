@@ -50,6 +50,44 @@ def _validate_y(y):
     # bail and let the sklearn function handle validation
     return y
 
+def _check_param_grid(param_grid):
+    if hasattr(param_grid, 'items'):
+        param_grid = [param_grid]
+
+    for p in param_grid:
+        for v in p.values():
+            if isinstance(v, np.ndarray) and v.ndim > 1:
+                raise ValueError("Parameter array should be one-dimensional.")
+
+            check = [isinstance(v, k) for k in (list, tuple, np.ndarray)]
+            if True not in check:
+                raise ValueError("Parameter values should be a list.")
+
+            if len(v) == 0:
+                raise ValueError("Parameter values should be a non-empty "
+                                 "list.")
+
+
+class _CVScoreTuple (namedtuple('_CVScoreTuple', ('parameters', 'mean_validation_score', 'cv_validation_scores'))):
+    """This class is not accessible to the public via the sklearn API,
+    so having to define it explicitly here for use with the grid search methods.
+
+    A raw namedtuple is very memory efficient as it packs the attributes
+    in a struct to get rid of the __dict__ of attributes in particular it
+    does not copy the string for the keys on each instance.
+    By deriving a namedtuple class just to introduce the __repr__ method we
+    would also reintroduce the __dict__ on the instance. By telling the
+    Python interpreter that this subclass uses static __slots__ instead of
+    dynamic attributes. Furthermore we don't need any additional slot in the
+    subclass so we set __slots__ to the empty tuple. """
+    __slots__ = tuple()
+    def __repr__(self):
+        """Simple custom repr to summarize the main info"""
+        return "mean: {0:.5f}, std: {1:.5f}, params: {2}".format(
+            self.mean_validation_score,
+            np.std(self.cv_validation_scores),
+            self.parameters)
+
 
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
@@ -93,27 +131,6 @@ else:
     from sklearn.cross_validation import check_cv
     from sklearn.cross_validation import _fit_and_score
     from sklearn.grid_search import ParameterSampler, ParameterGrid
-
-
-    class _CVScoreTuple (namedtuple('_CVScoreTuple', ('parameters', 'mean_validation_score', 'cv_validation_scores'))):
-        """This class is not accessible to the public via the sklearn API,
-        so having to define it explicitly here for use with the grid search methods.
-
-        A raw namedtuple is very memory efficient as it packs the attributes
-        in a struct to get rid of the __dict__ of attributes in particular it
-        does not copy the string for the keys on each instance.
-        By deriving a namedtuple class just to introduce the __repr__ method we
-        would also reintroduce the __dict__ on the instance. By telling the
-        Python interpreter that this subclass uses static __slots__ instead of
-        dynamic attributes. Furthermore we don't need any additional slot in the
-        subclass so we set __slots__ to the empty tuple. """
-        __slots__ = tuple()
-        def __repr__(self):
-            """Simple custom repr to summarize the main info"""
-            return "mean: {0:.5f}, std: {1:.5f}, params: {2}".format(
-                self.mean_validation_score,
-                np.std(self.cv_validation_scores),
-                self.parameters)
 
 
     class BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
@@ -361,26 +378,6 @@ else:
                     best_estimator.fit(X, **self.fit_params)
                 self.best_estimator_ = best_estimator
             return self
-
-
-
-
-    def _check_param_grid(param_grid):
-        if hasattr(param_grid, 'items'):
-            param_grid = [param_grid]
-
-        for p in param_grid:
-            for v in p.values():
-                if isinstance(v, np.ndarray) and v.ndim > 1:
-                    raise ValueError("Parameter array should be one-dimensional.")
-
-                check = [isinstance(v, k) for k in (list, tuple, np.ndarray)]
-                if True not in check:
-                    raise ValueError("Parameter values should be a list.")
-
-                if len(v) == 0:
-                    raise ValueError("Parameter values should be a non-empty "
-                                     "list.")
 
 
     class GridSearchCV(BaseSearchCV):
