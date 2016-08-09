@@ -97,7 +97,9 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 		for test_index in self._iter_test_masks(frame):
 			train_index = indices[np.logical_not(test_index)]
 			test_index = indices[test_index]
-			yield train_index, test_index
+
+			# h2o can't handle anything but lists...
+			yield list(train_index), list(test_index)
 
 	def _iter_test_masks(self, frame):
 		"""Generates boolean masks corresponding to the tests set."""
