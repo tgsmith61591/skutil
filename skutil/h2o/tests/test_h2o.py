@@ -145,7 +145,7 @@ def test_h2o():
 
 	def pipeline():
 		f = F.copy()
-		targ = [iris.target]
+		targ = iris.target
 
 		# make it binomial so GLM can handle it
 		targ[targ == 2] = 1
@@ -189,7 +189,7 @@ def test_h2o():
 
 	def grid():
 		f = F.copy()
-		targ = [iris.target]
+		targ = iris.target
 
 		# make it binomial so GLM can handle it
 		targ[targ == 2] = 1
