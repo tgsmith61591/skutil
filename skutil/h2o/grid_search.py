@@ -117,7 +117,7 @@ def _score(estimator, frame, target_feature, scorer, parms):
 	y_truth = frame[target_feature].as_data_frame(use_pandas=True)[target_feature].tolist()
 
 	# gen predictions...
-	pred = estimator.predict(frame)
+	pred = estimator.predict(frame).as_data_frame(use_pandas=True)['predict']
 	return scorer(y_truth, pred, **parms)
 
 
