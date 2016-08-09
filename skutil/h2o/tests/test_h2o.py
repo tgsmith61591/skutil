@@ -47,9 +47,9 @@ def new_estimators():
 	"""
 	return (
 			H2ORandomForestEstimator(),
-			H2OGeneralizedLinearEstimator(),
-			H2OGradientBoostingEstimator(),
-			H2ODeepLearningEstimator()
+			H2OGeneralizedLinearEstimator(distribution='multinomial'),
+			H2OGradientBoostingEstimator(distribution='bernoulli'),
+			H2ODeepLearningEstimator(distribution='multinomial')
 		)
 
 
@@ -148,7 +148,8 @@ def test_h2o():
 
 	def pipeline():
 		f = F.copy()
-		targ = [str(x) for x in iris.target]
+		targ = iris.target
+		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
 
 		# do split
 		X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
@@ -160,9 +161,8 @@ def test_h2o():
 			X_test['species'] = y_test
 
 		try:
-			types = ['double','double','double','double','enum']
-			train = new_h2o_frame(X_train, types)
-			test  = new_h2o_frame(X_test, types)
+			train = new_h2o_frame(X_train)
+			test  = new_h2o_frame(X_test)
 		except Exception as e:
 			train = None
 			test  = None
@@ -190,13 +190,13 @@ def test_h2o():
 
 	def grid():
 		f = F.copy()
-		targ = [str(x) for x in iris.target]
+		targ = iris.target
+		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
 		f['species'] = targ
 
 		# try uploading...
 		try:
-			types = ['double','double','double','double','enum']
-			frame = new_h2o_frame(f, types)
+			frame = new_h2o_frame(f)
 		except Exception as e:
 			frame = None
 
