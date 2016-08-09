@@ -15,6 +15,7 @@ from ..utils import is_numeric
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from .split import *
 
+from sklearn.externals.joblib import logger
 from sklearn.base import clone, MetaEstimatorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six

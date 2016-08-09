@@ -206,7 +206,7 @@ def test_h2o():
 		# most of this is for extreme coverage to make sure it all works...
 		if frame is not None:
 			for grid_module in (H2OGridSearchCV, H2ORandomizedSearchCV):
-				for estimator in new_estimators:
+				for estimator in new_estimators():
 					for do_pipe in [False, True]:
 						for iid in [False, True]:
 							for verbose in [0, 1, 2, 3]:
