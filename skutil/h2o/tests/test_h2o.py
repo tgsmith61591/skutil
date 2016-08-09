@@ -44,9 +44,9 @@ def new_estimators():
 	"""
 	return (
 			H2ORandomForestEstimator(stopping_metric='logloss'),
-			H2OGeneralizedLinearEstimator(family='multinomial'),
-			H2OGradientBoostingEstimator(stopping_metric='logloss'),
-			H2ODeepLearningEstimator(stopping_metric='logloss')
+			H2OGeneralizedLinearEstimator(family='binomial'),
+			H2OGradientBoostingEstimator(distribution='bernoulli'),
+			H2ODeepLearningEstimator(distribution='bernoulli')
 		)
 
 
@@ -145,9 +145,13 @@ def test_h2o():
 
 	def pipeline():
 		f = F.copy()
+		targ = [iris.target]
+
+		# make it binomial so GLM can handle it
+		targ[targ == 2] = 1
 
 		# do split
-		X_train, X_test, y_train, y_test = train_test_split(f, iris.target, train_size=0.7)
+		X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
 		
 		# add the y into the matrix for h2o's sake -- pandas will throw a warning here...
 		with warnings.catch_warnings(record=True) as w:
@@ -188,7 +192,7 @@ def test_h2o():
 		targ = [iris.target]
 
 		# make it binomial so GLM can handle it
-		# targ[targ == 2] = 1
+		targ[targ == 2] = 1
 		f['species'] = targ
 
 		# try uploading...
