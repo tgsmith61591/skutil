@@ -195,7 +195,7 @@ def test_h2o():
 
 		def get_param_grid(est):
 			if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
-				return {'ntrees':randint(30,50)}
+				return {'ntrees':[10,20]}
 			elif isinstance(est, H2ODeepLearningEstimator):
 				return {'activation':['Tanh','Rectifier']}
 			else:
@@ -225,7 +225,7 @@ def test_h2o():
 												'nzv__threshold' : uniform(1e-6, 0.0025)
 											}
 
-											grid = grid_module(estimator, params,
+											grid = grid_module(estimator, param_grid=params,
 												feature_names=F.columns.tolist(), target_feature='species',
 												scoring=scoring, iid=iid, verbose=verbose)
 
