@@ -15,6 +15,7 @@ from ..utils import is_numeric
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from .split import *
 
+from sklearn.preprocessing import LabelEncoder
 from sklearn.externals.joblib import logger
 from sklearn.base import clone, MetaEstimatorMixin
 from sklearn.utils.validation import check_is_fitted
@@ -118,6 +119,14 @@ def _score(estimator, frame, target_feature, scorer, parms):
 
 	# gen predictions...
 	pred = estimator.predict(frame).as_data_frame(use_pandas=True)['predict']
+
+	# there's a very real chance that the truth or predictions are enums,
+	# as h2o is capable of handling these... we need to explicitly make the
+	# predictions and target numeric.
+	encoder = LabelEncoder()
+	y_truth = encoder.fit_transform(y_truth)
+	pred = encoder.transform(pred)
+
 	return scorer(y_truth, pred, **parms)
 
 
