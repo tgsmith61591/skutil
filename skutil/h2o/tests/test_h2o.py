@@ -27,8 +27,11 @@ F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 
 
 
-def new_h2o_frame(X):
-	Y = H2OFrame.from_python(X, header=1, column_names=X.columns.tolist())
+def new_h2o_frame(X, types=None):
+	Y = H2OFrame.from_python(X, header=1, 
+		column_names=X.columns.tolist(),
+		column_types=types)
+
 	# weirdness sometimes.
 	if not 'sepal length (cm)' in Y.columns:
 		Y.columns = X.columns.tolist()
@@ -157,8 +160,9 @@ def test_h2o():
 			X_test['species'] = y_test
 
 		try:
-			train = new_h2o_frame(X_train)
-			test  = new_h2o_frame(X_test)
+			types = ['double','double','double','double','enum']
+			train = new_h2o_frame(X_train, types)
+			test  = new_h2o_frame(X_test, types)
 		except Exception as e:
 			train = None
 			test  = None
@@ -191,7 +195,8 @@ def test_h2o():
 
 		# try uploading...
 		try:
-			frame = new_h2o_frame(f)
+			types = ['double','double','double','double','enum']
+			frame = new_h2o_frame(f, types)
 		except Exception as e:
 			frame = None
 
