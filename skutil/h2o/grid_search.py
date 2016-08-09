@@ -106,7 +106,7 @@ def _clone_h2o_obj(estimator):
 					if (not k in IGNORE) and (not v is None):
 						step[1]._parms[k] = v
 			else:
-				# otherwise it's an H2OFunctionTransformer
+				# otherwise it's an BaseH2OFunctionWrapper
 				pass
 
 	return est
@@ -134,14 +134,14 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 		print("[CV] %s %s" % (msg, (64 - len(msg)) * '.'))
 
 	# set the params for this estimator -- also set feature_names, target_feature
-	if not isinstance(estimator, (H2OEstimator, H2OFunctionTransformer)):
+	if not isinstance(estimator, (H2OEstimator, BaseH2OFunctionWrapper)):
 		raise TypeError('estimator must be either an H2OEstimator '
-						'or a H2OFunctionTransformer but got %s'
+						'or a BaseH2OFunctionWrapper but got %s'
 						% type(estimator))
 
 	#it's probably a pipeline
 	is_h2o_est = False
-	if isinstance(estimator, H2OFunctionTransformer): 
+	if isinstance(estimator, BaseH2OFunctionWrapper): 
 		estimator.set_params(**parameters)
 		setattr(estimator, 'feature_names', feature_names)
 		setattr(estimator, 'target_feature',target_feature)
