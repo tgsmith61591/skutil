@@ -224,17 +224,15 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 			raise ValueError('require string or callable for scoring')
 		elif isinstance(scoring, str):
 			if not scoring in SCORERS:
-				raise ValueError('scoring must be one of (%s) or a callable'
-								 % ', '.join(SCORERS.keys()))
+				raise ValueError('Scoring must be one of (%s) or a callable. '
+								 'Got %s' % (', '.join(SCORERS.keys()), scoring))
 			self.scorer_ = SCORERS[scoring]
 		# else we'll let it fail through if it's a bad callable
 		else:
-			self.scorer_ = SCORERS[scoring]
+			self.scorer_ = scoring
 
 		# validate CV
 		cv = check_cv(self.cv)
-
-		n_samples, _ = X.shape
 		base_estimator = _clone_h2o_obj(self.estimator)
 
 		# do fits, scores

@@ -210,38 +210,42 @@ def test_h2o():
 					for do_pipe in [False, True]:
 						for iid in [False, True]:
 							for verbose in [0, 1, 2, 3]:
-								for scoring in ['accuracy', 'bad_scoring_metric', None, accuracy_score]:
+								for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
 
+									if not do_pipe:
+										# we're just testing the search on actual estimators
+										grid = grid_module(estimator=estimator,
+											feature_names=F.columns.tolist(), target_feature='species',
+											param_grid=get_param_grid(estimator),
+											scoring=scoring, iid=iid, verbose=verbose)
+									else:
+										# we'll just use a NZV filter and tinker with the thresh
+										params = {
+											'nzv__threshold' : uniform(1e-6, 0.0025)
+										}
+
+										grid = grid_module(estimator, param_grid=params,
+											feature_names=F.columns.tolist(), target_feature='species',
+											scoring=scoring, iid=iid, verbose=verbose)
+
+
+									# sometimes we'll expect it to fail...
+									expect_failure = scoring is None or scoring in ('bad')
 									try:
-										if not do_pipe:
-											# we're just testing the search on actual estimators
-											grid = grid_module(estimator=estimator,
-												feature_names=F.columns.tolist(), target_feature='species',
-												param_grid=get_param_grid(estimator),
-												scoring=scoring, iid=iid, verbose=verbose)
-										else:
-											# we'll just use a NZV filter and tinker with the thresh
-											params = {
-												'nzv__threshold' : uniform(1e-6, 0.0025)
-											}
-
-											grid = grid_module(estimator, param_grid=params,
-												feature_names=F.columns.tolist(), target_feature='species',
-												scoring=scoring, iid=iid, verbose=verbose)
-
 										# fit the grid
 										grid.fit(frame)
-
-										# predict on the grid
-										p = grid.predict(frame)
-
-										# score on the frame
-										s = grid.score(frame)
 									except ValueError as v:
-										if scoring in ('bad_scoring_metric', None):
+										if expect_failure:
 											pass
 										else:
 											raise
+
+									# predict on the grid
+									p = grid.predict(frame)
+
+									# score on the frame
+									s = grid.score(frame)
+									
 
 		else:
 			pass
