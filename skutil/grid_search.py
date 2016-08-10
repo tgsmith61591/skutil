@@ -61,7 +61,8 @@ def _check_param_grid(param_grid):
 
             check = [isinstance(v, k) for k in (list, tuple, np.ndarray)]
             if True not in check:
-                raise ValueError("Parameter values should be a list.")
+                raise ValueError("Parameter values should be a list. "
+                                 "Got %s" % str(param_grid))
 
             if len(v) == 0:
                 raise ValueError("Parameter values should be a non-empty "

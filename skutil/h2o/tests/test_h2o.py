@@ -205,11 +205,17 @@ def test_h2o():
 
 		def get_param_grid(est):
 			if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
-				return {'ntrees':[10,20]}
+				return {
+					'ntrees' : [10,20]
+				}
 			elif isinstance(est, H2ODeepLearningEstimator):
-				return {'activation':['Tanh','Rectifier']}
+				return {
+					'activation' : ['Tanh','Rectifier']
+				}
 			else:
-				return {'standardize':[True, False]}
+				return {
+					'standardize' : [True, False]
+				}
 
 
 
@@ -239,6 +245,9 @@ def test_h2o():
 											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
+
+										if hasattr(grid, 'n_iter'):
+											setattr(grid, 'n_iter', 3)
 
 
 									# sometimes we'll expect it to fail...
