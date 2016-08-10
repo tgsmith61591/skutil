@@ -246,17 +246,17 @@ def test_h2o():
 									try:
 										# fit the grid
 										grid.fit(frame)
+
+										# predict on the grid
+										p = grid.predict(frame)
+
+										# score on the frame
+										s = grid.score(frame)
 									except ValueError as v:
 										if expect_failure:
 											pass
 										else:
 											raise
-
-									# predict on the grid
-									p = grid.predict(frame)
-
-									# score on the frame
-									s = grid.score(frame)
 									
 
 		else:
