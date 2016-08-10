@@ -147,7 +147,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 		if parameters is None:
 			msg = ''
 		else:
-			msg = '%s' % (', '.join('%s=%s' % (k,v)
+			msg = 'Target: %s; %s' % (target_feature, ', '.join('%s=%s' % (k,v)
 									 for k, v in parameters.items()))
 		print("[CV] %s %s" % (msg, (64 - len(msg)) * '.'))
 
