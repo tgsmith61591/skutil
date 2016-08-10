@@ -231,7 +231,7 @@ def test_h2o():
 									if not do_pipe:
 										# we're just testing the search on actual estimators
 										grid = grid_module(estimator=estimator,
-											feature_names=F.columns.tolist(), target_feature=frame.columns['species'],
+											feature_names=F.columns.tolist(), target_feature='species',
 											param_grid=get_param_grid(estimator),
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
@@ -256,7 +256,7 @@ def test_h2o():
 											}
 
 										grid = grid_module(pipe, param_grid=params,
-											feature_names=F.columns.tolist(), target_feature=frame.columns['species'],
+											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
 
