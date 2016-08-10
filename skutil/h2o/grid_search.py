@@ -102,8 +102,7 @@ def _clone_h2o_obj(estimator, ignore=False):
 			last_step = est.steps[-1][1]
 
 			# so it's the last step
-			parms = e._parms
-			for k,v in six.iteritems(parms):
+			for k,v in six.iteritems(e._parms):
 				k = str(k) # h2o likes unicode...
 
 				#if (not k in PARM_IGNORE) and (not v is None):
@@ -158,44 +157,41 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 						'or a BaseH2OFunctionWrapper but got %s'
 						% type(estimator))
 
+
+
+	# generate split
+	train_frame = frame[train, :]
+	test_frame = frame[test, :]
+
+	start_time = time.time()
+
+
 	#it's probably a pipeline
-	is_h2o_est = False
-	if isinstance(estimator, BaseH2OFunctionWrapper): 
+	is_h2o_est = isinstance(estimator, H2OEstimator)
+	if not is_h2o_est: 
 		estimator.set_params(**parameters)
 
 		# the name setting should be taken care of pre-clone...
 		# setattr(estimator, 'feature_names', feature_names)
 		# setattr(estimator, 'target_feature',target_feature)
 
+		# do fit
+		estimator.fit(train_frame)
 	else: # it's just an H2OEstimator
-		is_h2o_est = True
-		parm_dict = {}
+		# parm_dict = {}
 		for k, v in six.iteritems(parameters):
 			if '__' in k:
 				raise ValueError('only one estimator passed to grid search, '
 								 'but multiple named parameters passed: %s' % k)
 
 			# {parm_name : v}
-			parm_dict[k] = v
+			estimator._parms[k] = v
 
-		# set the h2o estimator params. 
-		for parm, value in six.iteritems(parm_dict):
-			estimator._parms[parm] = value
-
-
-	start_time = time.time()
-
-	# generate split
-	train_frame = frame[train, :]
-	test_frame = frame[test, :]
-
-	# do training:
-	if not is_h2o_est:
-		estimator.fit(train_frame)
-	else:
+		# do train
 		estimator.train(training_frame=train_frame, x=feature_names, y=target_feature)
 
 
+	# score model
 	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params)
 	scoring_time = time.time() - start_time
 

@@ -225,13 +225,13 @@ def test_h2o():
 				for estimator in new_estimators():
 					for do_pipe in [False, True]:
 						for iid in [False, True]:
-							for verbose in [0, 1, 2, 3]:
+							for verbose in [2, 3]:
 								for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
 
 									if not do_pipe:
 										# we're just testing the search on actual estimators
 										grid = grid_module(estimator=estimator,
-											feature_names=F.columns.tolist(), target_feature='species',
+											feature_names=f.columns[:-1], target_feature=f.columns[-1],
 											param_grid=get_param_grid(estimator),
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
@@ -256,12 +256,12 @@ def test_h2o():
 											}
 
 										grid = grid_module(pipe, param_grid=params,
-											feature_names=F.columns.tolist(), target_feature='species',
+											feature_names=f.columns[:-1], target_feature=f.columns[-1],
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
 
 										# if it's a random search CV obj, let's keep it brief
-										if hasattr(grid, 'n_iter'):
+										if is_random:
 											setattr(grid, 'n_iter', 2)
 
 
@@ -286,7 +286,6 @@ def test_h2o():
 										else:
 											raise
 									
-
 		else:
 			pass
 
