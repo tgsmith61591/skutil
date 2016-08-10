@@ -221,12 +221,19 @@ def test_h2o():
 
 		# most of this is for extreme coverage to make sure it all works...
 		if frame is not None:
-			for grid_module in (H2OGridSearchCV, H2ORandomizedSearchCV):
+			for is_random in [False, True]:
 				for estimator in new_estimators():
 					for do_pipe in [False, True]:
 						for iid in [False, True]:
 							for verbose in [2, 3]:
 								for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
+
+									# get which module to use
+									if is_random:
+										grid_module = H2ORandomizedSearchCV
+									else:
+										grid_module = H2OGridSearchCV
+
 
 									if not do_pipe:
 										# we're just testing the search on actual estimators
@@ -245,7 +252,6 @@ def test_h2o():
 
 										# determine which params to use
 										# we'll just use a NZV filter and tinker with the thresh
-										is_random = grid_module.__name__ == 'H2ORandomizedSearchCV'
 										if is_random:
 											params = {
 												'nzv__threshold' : uniform(1e-6, 0.0025)
@@ -262,7 +268,7 @@ def test_h2o():
 
 										# if it's a random search CV obj, let's keep it brief
 										if is_random:
-											setattr(grid, 'n_iter', 2)
+											grid.n_iter = 2
 
 
 									# sometimes we'll expect it to fail...
