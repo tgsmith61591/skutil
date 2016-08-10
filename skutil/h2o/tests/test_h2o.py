@@ -242,10 +242,15 @@ def test_h2o():
 
 
 									# sometimes we'll expect it to fail...
-									expect_failure = scoring is None or scoring in ('bad')
+									if scoring is None:
+									expect_failure = scoring is None or (isinstance(scoring,str) and scoring in ('bad'))
 									try:
 										# fit the grid
 										grid.fit(frame)
+
+										# we expect the exception to be thrown
+										# above, so now we set expect_failure to False
+										expect_failure = False
 
 										# predict on the grid
 										p = grid.predict(frame)
