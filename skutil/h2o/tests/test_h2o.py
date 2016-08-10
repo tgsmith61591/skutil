@@ -194,6 +194,9 @@ def test_h2o():
 		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
 		f['species'] = targ
 
+		# shuffle the rows
+		f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
 		# try uploading...
 		try:
 			frame = new_h2o_frame(f)
@@ -224,7 +227,8 @@ def test_h2o():
 										grid = grid_module(estimator=estimator,
 											feature_names=F.columns.tolist(), target_feature='species',
 											param_grid=get_param_grid(estimator),
-											scoring=scoring, iid=iid, verbose=verbose)
+											scoring=scoring, iid=iid, verbose=verbose,
+											cv=2)
 									else:
 										# we'll just use a NZV filter and tinker with the thresh
 										params = {
@@ -233,7 +237,8 @@ def test_h2o():
 
 										grid = grid_module(estimator, param_grid=params,
 											feature_names=F.columns.tolist(), target_feature='species',
-											scoring=scoring, iid=iid, verbose=verbose)
+											scoring=scoring, iid=iid, verbose=verbose,
+											cv=2)
 
 
 									# sometimes we'll expect it to fail...
