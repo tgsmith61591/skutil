@@ -243,10 +243,9 @@ def test_h2o():
 												('est', estimator)
 											])
 
+										# determine which params to use
 										# we'll just use a NZV filter and tinker with the thresh
 										is_random = grid_module.__name__ == 'H2ORandomizedSearchCV'
-
-										# determine which params to use
 										if is_random:
 											params = {
 												'nzv__threshold' : uniform(1e-6, 0.0025)

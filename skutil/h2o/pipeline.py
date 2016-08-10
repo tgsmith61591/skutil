@@ -189,18 +189,22 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 
 		# go through steps, now (first the transforms).
 		for name, transform in self.steps[:-1]:
-			step_params = parm_dict[name]
+			step_params = parm_dict.get(name, None)
+			if step_params is None:
+				continue
+
 			for parm, value in six.iteritems(step_params):
 				setattr(transform, parm, value)
 
-		# finally, set the h2o estimator params. 
+		# finally, set the h2o estimator params (if needed). 
 		est_name, last_step = self.steps[-1]
-		for parm, value in six.iteritems(parm_dict[est_name]):
-			try:
-				last_step._parms[parm] = value
-			except Exception as e:
-				raise ValueError('Invalid parameter for %s: %s'
-								 % (parm, last_step.__name__))
+		if est_name in parm_dict:
+			for parm, value in six.iteritems(parm_dict[est_name]):
+				try:
+					last_step._parms[parm] = value
+				except Exception as e:
+					raise ValueError('Invalid parameter for %s: %s'
+									 % (parm, last_step.__name__))
 
 		return self
 
