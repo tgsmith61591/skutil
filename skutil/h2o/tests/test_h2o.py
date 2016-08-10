@@ -237,17 +237,26 @@ def test_h2o():
 											cv=2)
 									else:
 										# we'll just use a NZV filter and tinker with the thresh
-										params = {
-											'nzv__threshold' : uniform(1e-6, 0.0025)
-										}
+										is_random = grid_module.__name__ == 'H2ORandomizedSearchCV'
+
+										# determine which params to use
+										if is_random:
+											params = {
+												'nzv__threshold' : uniform(1e-6, 0.0025)
+											}
+										else:
+											params = {
+												'nzv__threshold' : [1e-6, 1e-8]
+											}
 
 										grid = grid_module(estimator, param_grid=params,
 											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
 
+										# if it's a random search CV obj, let's keep it brief
 										if hasattr(grid, 'n_iter'):
-											setattr(grid, 'n_iter', 3)
+											setattr(grid, 'n_iter', 2)
 
 
 									# sometimes we'll expect it to fail...
