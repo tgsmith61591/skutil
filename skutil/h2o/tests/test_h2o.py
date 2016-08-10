@@ -47,9 +47,9 @@ def new_estimators():
 	"""
 	return (
 			H2ORandomForestEstimator(),
-			H2OGeneralizedLinearEstimator(distribution='multinomial'),
-			H2OGradientBoostingEstimator(distribution='bernoulli'),
-			H2ODeepLearningEstimator(distribution='multinomial')
+			H2OGeneralizedLinearEstimator(family='multinomial'),
+			H2OGradientBoostingEstimator(),
+			H2ODeepLearningEstimator()
 		)
 
 
