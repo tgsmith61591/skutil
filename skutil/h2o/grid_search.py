@@ -97,13 +97,16 @@ def _clone_h2o_obj(estimator, ignore=False):
 	if isinstance(estimator, H2OPipeline):
 		# the last step from the original estimator
 		e = estimator.steps[-1][1]
-
 		if isinstance(e, H2OEstimator):
 			last_step = est.steps[-1][1]
 
 			# so it's the last step
 			for k,v in six.iteritems(e._parms):
 				k = str(k) # h2o likes unicode...
+
+				# likewise, if the v is unicode, let's make it a string.
+				if isinstance(v, unicode):
+					v = str(v)
 
 				#if (not k in PARM_IGNORE) and (not v is None):
 				#	e._parms[k] = v
@@ -250,6 +253,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 		# validate CV
 		cv = check_cv(self.cv)
+
+		# validate names
+		if not all([isinstance(x, (str, unicode)) for x in (self.feature_names, self.target_feature)]):
+			raise TypeError('feature_names and target_feature must be a single string.')
+		self.feature_names = str(self.feature_names)
+		self.target_feature = str(self.target_feature)
 
 		# do first clone, remember to set the names...
 		base_estimator = _clone_h2o_obj(self.estimator)

@@ -137,9 +137,10 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 
 		
 		# we need a y for the pipeline
-		if not isinstance(y, str):
+		if not isinstance(y, (str,unicode)):
 			raise TypeError('target_feature should be a single string. '
 							'Got %s (type=%s)' % (str(y), type(y)))
+		y = str(y) # in case it's unicode
 		
 		# make sure they're strings:
 		for n in (x): # in a tuple in case we add another self param with names
