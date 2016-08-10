@@ -242,7 +242,6 @@ def test_h2o():
 
 
 									# sometimes we'll expect it to fail...
-									if scoring is None:
 									expect_failure = scoring is None or (isinstance(scoring,str) and scoring in ('bad'))
 									try:
 										# fit the grid
