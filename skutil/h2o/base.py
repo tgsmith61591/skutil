@@ -17,7 +17,8 @@ from ..utils import is_numeric
 __all__ = [
 	'NAWarning',
 	'BaseH2OFunctionWrapper',
-	'BaseH2OTransformer'
+	'BaseH2OTransformer',
+	'validate_feature_names'
 ]
 
 
@@ -37,6 +38,15 @@ def _check_is_frame(X):
 def _retain_features(X, exclude):
 	"""Returns the features to retain"""
 	return [x for x in X.columns if not x in exclude]
+
+def validate_feature_names(feature_names):
+	# validate feature_names
+	if not (hasattr(feature_names, '__iter__') and all([isinstance(i, (str, unicode)) for i in feature_names])):
+		raise TypeError('feature_names must be an iterable of strings. '
+						'Got %s' % str(feature_names))
+
+	# make list of strings
+	return [str(i) for i in self.feature_names]
 
 
 

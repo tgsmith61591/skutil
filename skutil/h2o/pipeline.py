@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 from sklearn.externals import six
-from .base import BaseH2OTransformer, BaseH2OFunctionWrapper
+from .base import BaseH2OTransformer, BaseH2OFunctionWrapper, validate_feature_names
 from ..base import overrides
 
 from sklearn.utils import tosequence
@@ -19,16 +19,6 @@ from sklearn.utils.metaestimators import if_delegate_has_method
 __all__ = [
 	'H2OPipeline'
 ]
-
-
-def _val_features(x):
-	if (not x):
-		raise ValueError('invalid value for feature_names (type=%s)' % type(x))
-	elif not hasattr(x, '__iter__'):
-		raise TypeError('expected iterable for feature_names '
-						'but got %s' % type(x))
-	return x
-
 
 
 class H2OPipeline(BaseH2OFunctionWrapper):
@@ -133,19 +123,15 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 			pipeline.
 		"""
 		self._reset() # reset if needed
-		x, y = _val_features(self.feature_names), self.target_feature
+		x, y = validate_feature_names(self.feature_names), self.target_feature
 
 		
 		# we need a y for the pipeline
 		if not isinstance(y, (str,unicode)):
 			raise TypeError('target_feature should be a single string. '
 							'Got %s (type=%s)' % (str(y), type(y)))
+
 		y = str(y) # in case it's unicode
-		
-		# make sure they're strings:
-		for n in (x): # in a tuple in case we add another self param with names
-			if n and not all([isinstance(i, str) for i in n]):
-				raise TypeError('feature_names must be a list of strings')
 		
 		# First, if there are any columns in the frame that are not in x, y drop them
 		xy = [p for p in x] + [y]

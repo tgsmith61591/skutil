@@ -10,7 +10,7 @@ from h2o.frame import H2OFrame
 from h2o import H2OEstimator
 
 from .pipeline import H2OPipeline
-from .base import _check_is_frame, BaseH2OFunctionWrapper
+from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_feature_names
 from ..utils import is_numeric
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from .split import *
@@ -254,10 +254,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		# validate CV
 		cv = check_cv(self.cv)
 
-		# validate names
-		if not all([isinstance(x, (str, unicode)) for x in (self.feature_names, self.target_feature)]):
-			raise TypeError('feature_names and target_feature must be a single string.')
-		self.feature_names = str(self.feature_names)
+		# make list of strings
+		self.feature_names = validate_feature_names(self.feature_names)
 		self.target_feature = str(self.target_feature)
 
 		# do first clone, remember to set the names...
