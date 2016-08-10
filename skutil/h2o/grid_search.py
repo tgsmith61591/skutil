@@ -90,7 +90,7 @@ PARM_IGNORE = set([
 	'keep_cross_validation_fold_assignment'
 ])
 
-def _clone_h2o_obj(estimator):
+def _clone_h2o_obj(estimator, ignore=False):
 	# do initial clone
 	est = clone(estimator)
 
@@ -99,13 +99,16 @@ def _clone_h2o_obj(estimator):
 		e = estimator.steps[-1][1]
 
 		if isinstance(e, H2OEstimator):
+			last_step = est.steps[-1][1]
+
 			# so it's the last step
 			parms = e._parms
 			for k,v in six.iteritems(parms):
 				k = str(k) # h2o likes unicode...
 
-				if (not k in PARM_IGNORE) and (not v is None):
-					e._parms[k] = v
+				#if (not k in PARM_IGNORE) and (not v is None):
+				#	e._parms[k] = v
+				last_step._parms[k] = v
 		else:
 			# otherwise it's an BaseH2OFunctionWrapper
 			pass
