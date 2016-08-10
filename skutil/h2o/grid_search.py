@@ -212,7 +212,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 	def __init__(self, estimator, feature_names,
 				 target_feature, scoring=None, 
 				 n_jobs=1, scoring_params=None, 
-				 cv=5, verbose=0, iid=True, refit=True):
+				 cv=5, verbose=0, iid=True):
 
 		super(BaseH2OSearchCV, self).__init__(target_feature=target_feature,
 											  min_version=self.__min_version__,
@@ -226,7 +226,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		self.cv = cv
 		self.verbose = verbose
 		self.iid = iid
-		self.refit = refit
 
 	def _fit(self, X, parameter_iterable):
 		"""Actual fitting,  performing the search over parameters."""
@@ -300,21 +299,20 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		self.best_params_ = best.parameters
 		self.best_score_ = best.mean_validation_score
 
-		if self.refit:
-			# fit the best estimator using the entire dataset
-			# clone first to work around broken estimators
-			best_estimator = _clone_h2o_obj(base_estimator)
+		# fit the best estimator using the entire dataset
+		# clone first to work around broken estimators
+		best_estimator = _clone_h2o_obj(base_estimator)
 
-			# set params -- remember h2o gets funky with this...
-			if isinstance(best_estimator, H2OEstimator):
-				for k,v in six.iteritems(best.parameters):
-					best_estimator._parms[k] = v
-				best_estimator.train(training_frame=X, x=self.feature_names, y=self.target_feature)
-			else:
-				best_estimator.set_params(**best.parameters)
-				best_estimator.fit(X)
+		# set params -- remember h2o gets funky with this...
+		if isinstance(best_estimator, H2OEstimator):
+			for k,v in six.iteritems(best.parameters):
+				best_estimator._parms[k] = v
+			best_estimator.train(training_frame=X, x=self.feature_names, y=self.target_feature)
+		else:
+			best_estimator.set_params(**best.parameters)
+			best_estimator.fit(X)
 
-			self.best_estimator_ = best_estimator
+		self.best_estimator_ = best_estimator
 
 		return self
 
@@ -340,7 +338,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 				 feature_names, target_feature, 
 				 scoring=None, n_jobs=1, 
 				 scoring_params=None, cv=5, 
-				 verbose=0, iid=True, refit=True):
+				 verbose=0, iid=True):
 
 		super(H2OGridSearchCV, self).__init__(
 				estimator=estimator,
@@ -349,7 +347,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 				scoring=scoring, n_jobs=n_jobs,
 				scoring_params=scoring_params,
 				cv=cv, verbose=verbose,
-				iid=iid, refit=refit
+				iid=iid
 			)
 
 		self.param_grid = param_grid
@@ -366,7 +364,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 				 n_iter=10, random_state=None,
 				 scoring=None, n_jobs=1, 
 				 scoring_params=None, cv=5, 
-				 verbose=0, iid=True, refit=True):
+				 verbose=0, iid=True):
 
 		super(H2ORandomizedSearchCV, self).__init__(
 				estimator=estimator,
@@ -375,7 +373,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 				scoring=scoring, n_jobs=n_jobs,
 				scoring_params=scoring_params,
 				cv=cv, verbose=verbose,
-				iid=iid, refit=refit
+				iid=iid
 			)
 
 		self.param_grid = param_grid
