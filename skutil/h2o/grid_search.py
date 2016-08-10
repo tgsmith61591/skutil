@@ -90,10 +90,16 @@ PARM_IGNORE = set([
 	'keep_cross_validation_fold_assignment'
 ])
 
-def _clone_h2o_obj(estimator, ignore=False):
+def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 	# do initial clone
 	est = clone(estimator)
 
+	# set kwargs:
+	if kwargs:
+		for k,v in six.iteritems(kwargs):
+			setattr(est, k, v)
+
+	# check on h2o estimator
 	if isinstance(estimator, H2OPipeline):
 		# the last step from the original estimator
 		e = estimator.steps[-1][1]
@@ -255,13 +261,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		cv = check_cv(self.cv)
 
 		# make list of strings
-		self.feature_names, self.target_feature = validate_x_y(self.feature_names, None)
+		self.feature_names, self.target_feature = validate_x_y(self.feature_names, self.target_feature)
+		nms = {
+			'feature_names' : self.feature_names,
+			'target_feature': self.target_feature
+		}
 
 		# do first clone, remember to set the names...
-		base_estimator = _clone_h2o_obj(self.estimator)
-		if isinstance(base_estimator, BaseH2OFunctionWrapper):
-			setattr(base_estimator, 'feature_names', self.feature_names)
-			setattr(base_estimator, 'target_feature', self.target_feature)
+		base_estimator = _clone_h2o_obj(self.estimator, **nms)
 
 
 		# do fits, scores
@@ -315,7 +322,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 		# fit the best estimator using the entire dataset
 		# clone first to work around broken estimators
-		best_estimator = _clone_h2o_obj(base_estimator)
+		best_estimator = _clone_h2o_obj(base_estimator, **nms)
 
 		# set params -- remember h2o gets funky with this...
 		if isinstance(best_estimator, H2OEstimator):

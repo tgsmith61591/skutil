@@ -124,6 +124,7 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 		"""
 		self._reset() # reset if needed
 		x, y = validate_x_y(self.feature_names, self.target_feature)
+		self.target_feature = y # reset to the cleaned one, if necessary...
 		
 		# First, if there are any columns in the frame that are not in x, y drop them
 		xy = [p for p in x]
