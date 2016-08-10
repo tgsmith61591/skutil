@@ -10,7 +10,7 @@ from h2o.frame import H2OFrame
 from h2o import H2OEstimator
 
 from .pipeline import H2OPipeline
-from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_feature_names
+from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y
 from ..utils import is_numeric
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from .split import *
@@ -255,8 +255,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		cv = check_cv(self.cv)
 
 		# make list of strings
-		self.feature_names = validate_feature_names(self.feature_names)
-		self.target_feature = str(self.target_feature)
+		self.feature_names, self.target_feature = validate_x_y(self.feature_names, None)
 
 		# do first clone, remember to set the names...
 		base_estimator = _clone_h2o_obj(self.estimator)

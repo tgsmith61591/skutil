@@ -18,7 +18,7 @@ __all__ = [
 	'NAWarning',
 	'BaseH2OFunctionWrapper',
 	'BaseH2OTransformer',
-	'validate_feature_names'
+	'validate_x_y'
 ]
 
 
@@ -39,14 +39,25 @@ def _retain_features(X, exclude):
 	"""Returns the features to retain"""
 	return [x for x in X.columns if not x in exclude]
 
-def validate_feature_names(feature_names):
+
+def validate_x_y(feature_names, target_feature):
 	# validate feature_names
 	if not (hasattr(feature_names, '__iter__') and all([isinstance(i, (str, unicode)) for i in feature_names])):
 		raise TypeError('feature_names must be an iterable of strings. '
 						'Got %s' % str(feature_names))
 
-	# make list of strings
-	return [str(i) for i in self.feature_names]
+	# we can allow it to be None...
+	if target_feature is None:
+		pass
+	elif not isinstance(target_feature, (str,unicode)):
+		raise TypeError('target_feature should be a single string. '
+						'Got %s (type=%s)' % (str(y), type(y)))
+	else:
+		# it is either a string or unicode...
+		target_feature = str(target_feature)
+
+	# make list of strings, return target_feature too
+	return [str(i) for i in feature_names], target_feature
 
 
 

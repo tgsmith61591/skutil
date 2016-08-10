@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 from sklearn.externals import six
-from .base import BaseH2OTransformer, BaseH2OFunctionWrapper, validate_feature_names
+from .base import BaseH2OTransformer, BaseH2OFunctionWrapper, validate_x_y
 from ..base import overrides
 
 from sklearn.utils import tosequence
@@ -123,18 +123,12 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 			pipeline.
 		"""
 		self._reset() # reset if needed
-		x, y = validate_feature_names(self.feature_names), self.target_feature
-
-		
-		# we need a y for the pipeline
-		if not isinstance(y, (str,unicode)):
-			raise TypeError('target_feature should be a single string. '
-							'Got %s (type=%s)' % (str(y), type(y)))
-
-		y = str(y) # in case it's unicode
+		x, y = validate_x_y(self.feature_names, self.target_feature)
 		
 		# First, if there are any columns in the frame that are not in x, y drop them
-		xy = [p for p in x] + [y]
+		xy = [p for p in x]
+		if y is not None:
+			xy.append(y)
 		
 		# retain only XY
 		frame = frame[xy]
