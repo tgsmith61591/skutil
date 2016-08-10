@@ -236,6 +236,13 @@ def test_h2o():
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)
 									else:
+
+										# pipify -- the feature names, etc., will be set in the grid
+										pipe = H2OPipeline([
+												('nzv', H2ONearZeroVarianceFilterer()),
+												('est', estimator)
+											])
+
 										# we'll just use a NZV filter and tinker with the thresh
 										is_random = grid_module.__name__ == 'H2ORandomizedSearchCV'
 
@@ -249,7 +256,7 @@ def test_h2o():
 												'nzv__threshold' : [1e-6, 1e-8]
 											}
 
-										grid = grid_module(estimator, param_grid=params,
+										grid = grid_module(pipe, param_grid=params,
 											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
 											cv=2)

@@ -56,7 +56,7 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 										  max_version=self.__max_version__)
 
 		# assign to attribute
-		self.feature_names = _val_features(feature_names)
+		self.feature_names = feature_names
 		
 		names, estimators = zip(*steps)
 		if len(dict(steps)) != len(steps):
@@ -133,7 +133,7 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 			pipeline.
 		"""
 		self._reset() # reset if needed
-		x, y = self.feature_names, self.target_feature
+		x, y = _val_features(self.feature_names), self.target_feature
 
 		
 		# we need a y for the pipeline
