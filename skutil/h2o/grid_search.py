@@ -320,13 +320,21 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		check_is_fitted(self, 'best_estimator_')
 		return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.scoring_params)
 
-	@if_delegate_has_method(delegate='estimator')
 	def predict(self, frame):
+		check_is_fitted(self, 'best_estimator_')
+
+		if not hasattr(self, 'predict'):
+			return NotImplemented
+
 		frame = _check_is_frame(frame)
 		return self.best_estimator_.predict(frame)
 
-	@if_delegate_has_method(delegate='estimator')
 	def transform(self, frame):
+		check_is_fitted(self, 'best_estimator_')
+
+		if not hasattr(self, 'transform'):
+			return NotImplemented
+
 		frame = _check_is_frame(frame)
 		return self.best_estimator_.transform(frame)
 
