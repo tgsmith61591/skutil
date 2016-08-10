@@ -45,11 +45,26 @@ __all__ = [
 ]
 
 
+SCORERS = {
+	'accuracy_score' : accuracy_score,
+	'explained_variance_score' : explained_variance_score,
+	'f1_score' : f1_score,
+	'log_loss' : log_loss,
+	'mean_absolute_error' : mean_absolute_error,
+	'mean_squared_error' : mean_squared_error,
+	'median_absolute_error' : median_absolute_error,
+	'precision_score' : precision_score,
+	'r2_score' : r2_score,
+	'recall_score' : recall_score
+}
+
+
+
+
 """These parameters are ones h2o stores
 that we don't necessarily want to clone.
 """
-
-IGNORE = set([
+PARM_IGNORE = set([
 	'model_id',
 	'fold_column',
 	'fold_assignment',
@@ -75,40 +90,25 @@ IGNORE = set([
 	'keep_cross_validation_fold_assignment'
 ])
 
-
-SCORERS = {
-	'accuracy_score' : accuracy_score,
-	'explained_variance_score' : explained_variance_score,
-	'f1_score' : f1_score,
-	'log_loss' : log_loss,
-	'mean_absolute_error' : mean_absolute_error,
-	'mean_squared_error' : mean_squared_error,
-	'median_absolute_error' : median_absolute_error,
-	'precision_score' : precision_score,
-	'r2_score' : r2_score,
-	'recall_score' : recall_score
-}
-
-
 def _clone_h2o_obj(estimator):
+	# do initial clone
 	est = clone(estimator)
 
 	if isinstance(estimator, H2OPipeline):
-		for i, step in enumerate(est.steps):
-			# the step from the original estimator
-			e = estimator.steps[i][1]
+		# the last step from the original estimator
+		e = estimator.steps[-1][1]
 
-			if isinstance(e, H2OEstimator):
-				# so it's the last step
-				parms = e._parms
-				for k,v in six.iteritems(parms):
-					k = str(k) # h2o likes unicode...
+		if isinstance(e, H2OEstimator):
+			# so it's the last step
+			parms = e._parms
+			for k,v in six.iteritems(parms):
+				k = str(k) # h2o likes unicode...
 
-					if (not k in IGNORE) and (not v is None):
-						step[1]._parms[k] = v
-			else:
-				# otherwise it's an BaseH2OFunctionWrapper
-				pass
+				if (not k in PARM_IGNORE) and (not v is None):
+					e._parms[k] = v
+		else:
+			# otherwise it's an BaseH2OFunctionWrapper
+			pass
 
 	return est
 
