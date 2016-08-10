@@ -159,8 +159,10 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 	is_h2o_est = False
 	if isinstance(estimator, BaseH2OFunctionWrapper): 
 		estimator.set_params(**parameters)
-		setattr(estimator, 'feature_names', feature_names)
-		setattr(estimator, 'target_feature',target_feature)
+
+		# the name setting should be taken care of pre-clone...
+		# setattr(estimator, 'feature_names', feature_names)
+		# setattr(estimator, 'target_feature',target_feature)
 
 	else: # it's just an H2OEstimator
 		is_h2o_est = True
@@ -249,7 +251,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 		# validate CV
 		cv = check_cv(self.cv)
+
+		# do first clone, remember to set the names...
 		base_estimator = _clone_h2o_obj(self.estimator)
+		if isinstance(base_estimator, BaseH2OFunctionWrapper):
+			setattr(base_estimator, 'feature_names', self.feature_names)
+			setattr(base_estimator, 'target_feature', self.target_feature)
+
 
 		# do fits, scores
 		out = [

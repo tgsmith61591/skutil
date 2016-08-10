@@ -23,7 +23,7 @@ __all__ = [
 
 def _val_features(x):
 	if (not x):
-		raise ValueError('invalid value for feature_names')
+		raise ValueError('invalid value for feature_names (type=%s)' % type(x))
 	elif not hasattr(x, '__iter__'):
 		raise TypeError('expected iterable for feature_names '
 						'but got %s' % type(x))
