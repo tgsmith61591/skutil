@@ -200,7 +200,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 		end_msg = '%s -%s' % (msg, logger.short_format_time(scoring_time))
 		print('[CV] %s %s' % ((64 - len(end_msg)) * '.', end_msg))
 
-	return [test_score, test.shape[0], estimator, parameters]
+	return [test_score, len(test), estimator, parameters]
 
 
 class BaseH2OSearchCV(BaseH2OFunctionWrapper):
