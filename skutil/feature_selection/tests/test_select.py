@@ -278,6 +278,33 @@ def test_linear_combos():
 	assert_fails(LinearCombinationFilterer(cols=['A']).fit, ValueError, Z)
 
 
+def test_sparsity():
+	x = np.array([
+			[1,      2,      3],
+			[1,      np.nan, np.nan],
+			[1,      2,      np.nan]
+		])
+
+	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
+
+
+	# test at .33 level
+	filt = SparseFeatureDropper(threshold=0.3).fit(df)
+	assert len(filt.drop) == 2
+	assert all([i in filt.drop for i in ('b','c')]), 'expected "b" and "c" but got %s' % ', '.join(filt.drop)
+
+	# test at 2/3 level
+	filt = SparseFeatureDropper(threshold=0.6).fit(df)
+	assert len(filt.drop) == 1
+	assert 'c' in filt.drop, 'expected "c" but got %s' % filt.drop
+
+	# test with a bad value
+	assert_fails(SparseFeatureDropper(threshold=  1.0).fit, ValueError, df)
+	assert_fails(SparseFeatureDropper(threshold= -0.1).fit, ValueError, df)
+	assert_fails(SparseFeatureDropper(threshold=  'a').fit, ValueError, df)
+
+
+
 def test_enumLC():
 	Y = np.array([
 			[1, 2, 3 ],

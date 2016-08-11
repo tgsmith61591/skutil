@@ -1,11 +1,11 @@
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
 import pandas as pd
 import numpy as np
 import warnings
 from sklearn.utils.validation import check_is_fitted
 from .base import _BaseFeatureSelector
 from ..base import SelectiveMixin
-from ..utils import validate_is_pd
+from ..utils import validate_is_pd, is_numeric
 
 
 __all__ = [
@@ -13,13 +13,50 @@ __all__ = [
 	'FeatureRetainer',
 	'filter_collinearity',
 	'MulticollinearityFilterer',
-	'NearZeroVarianceFilterer'
+	'NearZeroVarianceFilterer',
+	'SparseFeatureDropper'
 ]
 
 
 def _validate_cols(cols):
 	if cols is not None and len(cols) < 2:
 		raise ValueError('too few features')
+
+
+###############################################################################
+class SparseFeatureDropper(_BaseFeatureSelector):
+	"""Retains features that are less sparse (NaN) than
+	the provided threshold.
+
+	Parameters
+	----------
+	cols : array_like (string)
+		The features from which to drop
+
+	threshold : float (default=0.5)
+		The threshold of sparsity above which to drop
+
+	as_df : boolean, optional (True default)
+		Whether to return a dataframe
+	"""
+
+	def __init__(self, cols=None, threshold=0.5, as_df=True):
+		super(SparseFeatureDropper, self).__init__(cols=cols, as_df=as_df)
+		self.threshold = threshold
+
+	def fit(self, X, y=None):
+		X, self.cols = validate_is_pd(X, self.cols)
+		thresh = self.threshold
+
+		# validate the threshold
+		if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
+			raise ValueError('thresh must be a float between '
+							 '0 (inclusive) and 1. Got %s' % str(thresh))
+
+		mask = X.apply(lambda x: (x.isnull().sum() / x.shape[0]) > thresh)
+		self.drop = X.columns[mask]
+		return self
+
 
 
 ###############################################################################
@@ -39,7 +76,7 @@ class FeatureDropper(_BaseFeatureSelector):
 	def __init__(self, cols=None, as_df=True):
 		super(FeatureDropper, self).__init__(cols=cols, as_df=as_df)
 
-	def fit(self, X, y = None):
+	def fit(self, X, y=None):
 		# check on state of X and cols
 		_, self.cols = validate_is_pd(X, self.cols)
 		self.drop = self.cols
