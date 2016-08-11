@@ -206,7 +206,7 @@ def test_h2o():
 				excepted = False
 				try:
 					pipe.fit(train)
-				except TypeError as e:
+				except (TypeError, ValueError) as e:
 					excepted = True
 				finally:
 					if y is not None:
