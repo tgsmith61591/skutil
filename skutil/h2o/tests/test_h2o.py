@@ -308,7 +308,6 @@ def test_h2o():
 				}
 
 
-
 		# most of this is for extreme coverage to make sure it all works...
 		if frame is not None:
 			for is_random in [False, True]:
