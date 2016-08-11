@@ -251,29 +251,43 @@ def test_h2o():
 
 
 			# fails for non-h2o transformers
-			pipe = H2OPipeline([
-					('nzv', NearZeroVarianceFilterer()),
-					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-					('est', H2OGradientBoostingEstimator(distribution='multinomial'))
-				], 
-				feature_names=F.columns.tolist(),
-				target_feature='species'
-			)
+			failed = False
+			try:
+				pipe = H2OPipeline([
+						('nzv', NearZeroVarianceFilterer()),
+						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+						('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+					], 
+					feature_names=F.columns.tolist(),
+					target_feature='species'
+				)
 
-			assert_fails(pipe.fit, TypeError, train)
+				# won't even get here...
+				pipe.fit(train)
+			except TypeError as t:
+				failed = True
+			assert failed
+
 
 
 			# type error for non-h2o estimators
-			pipe = H2OPipeline([
-					('nzv', H2ONearZeroVarianceFilterer()),
-					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-					('est', RandomForestClassifier)
-				], 
-				feature_names=F.columns.tolist(),
-				target_feature='species'
-			)
+			failed = False
+			try:
+				pipe = H2OPipeline([
+						('nzv', H2ONearZeroVarianceFilterer()),
+						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+						('est', RandomForestClassifier)
+					], 
+					feature_names=F.columns.tolist(),
+					target_feature='species'
+				)
 
-			assert_fails(pipe.fit, TypeError, train)
+				# won't even get here...
+				pipe.fit(train)
+			except TypeError as t:
+				failed =True
+			assert failed
+			
 		else:
 			pass
 
