@@ -232,16 +232,22 @@ def test_h2o():
 
 
 			# now non-unique names
-			pipe = H2OPipeline([
-					('nzv', H2ONearZeroVarianceFilterer()),
-					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-					('mc', H2OGradientBoostingEstimator(distribution='multinomial'))
-				], 
-				feature_names=F.columns.tolist(),
-				target_feature='species'
-			)
+			failed = False
+			try:
+				pipe = H2OPipeline([
+						('nzv', H2ONearZeroVarianceFilterer()),
+						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+						('mc', H2OGradientBoostingEstimator(distribution='multinomial'))
+					], 
+					feature_names=F.columns.tolist(),
+					target_feature='species'
+				)
 
-			assert_fails(pipe.fit, ValueError, train)
+				# won't even get here...
+				pipe.fit(train)
+			except ValueError as v:
+				failed = True
+			assert failed
 
 
 			# fails for non-h2o transformers
