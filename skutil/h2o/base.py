@@ -51,7 +51,7 @@ def validate_x_y(feature_names, target_feature):
 		pass
 	elif not isinstance(target_feature, (str,unicode)):
 		raise TypeError('target_feature should be a single string. '
-						'Got %s (type=%s)' % (str(y), type(y)))
+						'Got %s (type=%s)' % (str(target_feature), type(target_feature)))
 	else:
 		# it is either a string or unicode...
 		target_feature = str(target_feature)
