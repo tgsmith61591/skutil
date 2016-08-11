@@ -209,8 +209,7 @@ def test_h2o():
 				except (TypeError, ValueError) as e:
 					excepted = True
 				finally:
-					if y is not None:
-						assert excepted
+					assert excepted
 
 			# now X
 			pipe = H2OPipeline([
