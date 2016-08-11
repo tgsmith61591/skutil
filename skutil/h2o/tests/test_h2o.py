@@ -261,22 +261,15 @@ def test_h2o():
 												'nzv__threshold' : [1e-6, 1e-8]
 											}
 
-
-										# if it's a random search CV obj, let's keep it brief -- n_iter=2
-										if is_random:
-
-											grid = grid_module(pipe, param_grid=params,
-												feature_names=F.columns.tolist(), target_feature='species',
-												scoring=scoring, iid=iid, verbose=verbose,
-												cv=2, n_iter=2)
-										else:
-
-											grid = grid_module(pipe, param_grid=params,
-												feature_names=F.columns.tolist(), target_feature='species',
-												scoring=scoring, iid=iid, verbose=verbose,
-												cv=2)
+										grid = grid_module(pipe, param_grid=params,
+											feature_names=F.columns.tolist(), target_feature='species',
+											scoring=scoring, iid=iid, verbose=verbose,
+											cv=2)
 
 
+									# if it's a random search CV obj, let's keep it brief
+									if is_random:
+										grid.n_iter = 2
 
 									# sometimes we'll expect it to fail...
 									expect_failure = scoring is None or (isinstance(scoring,str) and scoring in ('bad'))
