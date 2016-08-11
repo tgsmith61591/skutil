@@ -146,7 +146,7 @@ def flatten_all_generator(container):
         else:
             yield i
 
-def validate_is_pd(X, cols):
+def validate_is_pd(X, cols, assert_all_finite=False):
     """Used within each SelectiveMixin fit method to determine whether
     the passed X is a dataframe, and whether the cols is appropriate.
     There are four scenarios (in the order in which they're checked):
@@ -173,47 +173,57 @@ def validate_is_pd(X, cols):
     -------
     tuple, (DataFrame: X, list: cols)
     """
+    def _check(X, cols):
+        # first check hard-to-detect case:
+        if isinstance(X, pd.Series):
+            raise ValueError('expected DataFrame but got Series')
 
-    # first check hard-to-detect case:
-    if isinstance(X, pd.Series):
-        raise ValueError('expected DataFrame but got Series')
+        # validate the cols arg
+        cols = _val_cols(cols)
 
-    # validate the cols arg
-    cols = _val_cols(cols)
+        # if someone devious gave us an empty set of cols
+        if cols is not None and len(cols) == 0:
+            cols = None
 
-    # if someone devious gave us an empty set of cols
-    if cols is not None and len(cols) == 0:
-        cols = None
+        # avoid multiple isinstances
+        is_df = isinstance(X, pd.DataFrame)
 
-    # avoid multiple isinstances
-    is_df = isinstance(X, pd.DataFrame)
+        # case 1, we have names but the X is not a frame
+        if not is_df and cols is not None:
+            # this is tough, because they only pass cols if it's a subset
+            # and this frame is likely too large for the passed columns.
+            # so, we hope they either passed what the col names WILL be
+            # or that they passed numeric cols... they should handle that
+            # validation on their end, though. If this fails, we'll just let
+            # it fall through.
+            return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), cols
 
-    # case 1, we have names but the X is not a frame
-    if not is_df and cols is not None:
-        # this is tough, because they only pass cols if it's a subset
-        # and this frame is likely too large for the passed columns.
-        # so, we hope they either passed what the col names WILL be
-        # or that they passed numeric cols... they should handle that
-        # validation on their end, though. If this fails, we'll just let
-        # it fall through.
-        return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), cols
+        # case 2, we have a DF but no cols, def behavior: use all
+        elif is_df and cols is None:
+            return X.copy(), None
 
-    # case 2, we have a DF but no cols, def behavior: use all
-    elif is_df and cols is None:
-        return X.copy(), None
+        # case 3, we have a DF AND cols
+        elif is_df and cols is not None:
+            return X.copy(), cols
 
-    # case 3, we have a DF AND cols
-    elif is_df and cols is not None:
-        return X.copy(), cols
+        # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
+        else:
+            # we'll do two tests here... either that it's a np ndarray or a list of lists
+            if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
+                return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
 
-    # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
-    else:
-        # we'll do two tests here... either that it's a np ndarray or a list of lists
-        if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
-            return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
+            # bail out:
+            raise ValueError('cannot handle data of type %s' % type(X))
 
-        # bail out:
-        raise ValueError('cannot handle data of type %s' % type(X))
+    # do initial check
+    X, cols = _check(X, cols)
+
+    # we need to ensure all are finite
+    if assert_all_finite:
+        if X.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
+            raise ValueError('Expected all entries to be finite')
+
+    return X, cols
 
 
 

@@ -191,7 +191,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 			The data used for estimating the lambdas
 		"""
 		# check on state of X
-		X, _ = validate_is_pd(X, None) # there are no cols, and we don't want warnings
+		X, _ = validate_is_pd(X, None, assert_all_finite=True) # there are no cols, and we don't want warnings
 
 		# since we rely on indexing X, we need to reset indices
 		# in case X is the result of a slice and they're out of order.

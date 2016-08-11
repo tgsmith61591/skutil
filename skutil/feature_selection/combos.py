@@ -59,7 +59,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 		"""
 
 		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols)
+		X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
 		_validate_cols(self.cols)
 
 		# init drops list

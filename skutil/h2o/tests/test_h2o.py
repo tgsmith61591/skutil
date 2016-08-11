@@ -14,8 +14,10 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.split import check_cv
 from skutil.utils.tests.utils import assert_fails
+from skutil.feature_selection import NearZeroVarianceFilterer
 
 from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import pandas as pd
 from scipy.stats import randint, uniform
@@ -227,6 +229,45 @@ def test_h2o():
 
 			assert_fails(pipe.fit, TypeError, train)
 
+
+
+			# now non-unique names
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+					('mc', H2OGradientBoostingEstimator(distribution='multinomial'))
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			assert_fails(pipe.fit, ValueError, train)
+
+
+			# fails for non-h2o transformers
+			pipe = H2OPipeline([
+					('nzv', NearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+					('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			assert_fails(pipe.fit, TypeError, train)
+
+
+			# type error for non-h2o estimators
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+					('est', RandomForestClassifier)
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			assert_fails(pipe.fit, TypeError, train)
 		else:
 			pass
 

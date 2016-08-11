@@ -7,6 +7,7 @@ from skutil.feature_selection import combos
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.feature_selection import *
+from skutil.utils.tests.utils import assert_fails
 
 
 ## Def data for testing
@@ -236,6 +237,15 @@ def test_nzv_filterer():
 	# test the selective mixin
 	assert transformer.get_features() is None
 
+	# see what happens if we have a nan or inf in the mix:
+	a = pd.DataFrame.from_records(data=np.reshape(np.arange(25), (5,5)))
+	a.iloc[0,0] = np.inf
+	a.iloc[0,1] = np.nan
+
+	# expect a valueerror
+	assert_fails(NearZeroVarianceFilterer().fit, ValueError, a)
+
+
 def test_feature_dropper_warning():
 	x = np.array([
 			[1,2,3],
@@ -265,12 +275,7 @@ def test_linear_combos():
 	assert Z.equals(lcf.transform(Z))
 
 	# test too few features
-	failed = False
-	try:
-		LinearCombinationFilterer(cols=['A']).fit(Z)
-	except ValueError as v:
-		failed= True
-	assert failed
+	assert_fails(LinearCombinationFilterer(cols=['A']).fit, ValueError, Z)
 
 
 def test_enumLC():

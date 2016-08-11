@@ -64,14 +64,15 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 								"be instances of BaseH2OTransformer"
 								" '%s' (type %s) isn't)" % (t, type(t)))
 
-		if not hasattr(estimator, "train"):
+		if not isinstance(estimator, H2OEstimator):
 			raise TypeError("Last step of chain should implement train "
 							"'%s' (type %s) doesn't)"
 							% (estimator, type(estimator)))
 		
-	@property
+	"""@property
 	def _estimator_type(self):
 		return self.steps[-1][1]._estimator_type
+	"""
 		
 	@property
 	def named_steps(self):

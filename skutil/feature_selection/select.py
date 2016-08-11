@@ -212,7 +212,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		"""
 
 		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols)
+		X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
 		_validate_cols(self.cols)
 
 		## Generate correlation matrix
@@ -267,7 +267,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 
 	def fit(self, X, y = None):
 		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols)
+		X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
 
 		# if cols is None, applies over everything
 		srs = X[self.cols or X.columns].apply(lambda x: np.var(x) < self.threshold)
