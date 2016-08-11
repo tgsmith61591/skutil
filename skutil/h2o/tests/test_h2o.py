@@ -7,9 +7,14 @@ from h2o.estimators import (H2ORandomForestEstimator,
 							H2OGeneralizedLinearEstimator,
 							H2OGradientBoostingEstimator,
 							H2ODeepLearningEstimator)
+
+from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
+from skutil.h2o.split import check_cv
+from skutil.utils.tests.utils import assert_fails
+
 from sklearn.datasets import load_iris
 from sklearn.metrics import accuracy_score
 import pandas as pd
@@ -185,8 +190,43 @@ def test_h2o():
 
 				# try predicting
 				pipe.predict(test)
+
+
+			# test some failures -- first, Y
+			for y in [None, 1]:
+				pipe = H2OPipeline([
+						('nzv', H2ONearZeroVarianceFilterer()),
+						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+						('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+					], 
+					feature_names=F.columns.tolist(),
+					target_feature=y
+				)
+				
+				excepted = False
+				try:
+					pipe.fit(train)
+				except TypeError as e:
+					excepted = True
+				finally:
+					if y is not None:
+						assert excepted
+
+			# now X
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
+					('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+				], 
+				feature_names='xxxxxxxx',
+				target_feature='species'
+			)
+
+			assert_fails(pipe.fit, TypeError, train)
+
 		else:
 			pass
+
 
 	def grid():
 		f = F.copy()
@@ -297,10 +337,60 @@ def test_h2o():
 
 
 
+	def anon_class():
+		class H2OAnonClass100(BaseH2OFunctionWrapper):
+			__min_version__ = 100.0
+			__max_version__ = None
+
+			def __init__(self):
+				super(H2OAnonClass100, self).__init__(
+					min_version=self.__min_version__,
+					max_version=self.__max_version__)
+
+		# assert fails for min version > current version
+		assert_fails(H2OAnonClass100, EnvironmentError)
+
+
+
+		class H2OAnonClassAny(BaseH2OFunctionWrapper):
+			__min_version__ = 'any'
+			__max_version__ = 0.1
+
+			def __init__(self):
+				super(H2OAnonClassAny, self).__init__(
+					min_version=self.__min_version__,
+					max_version=self.__max_version__)
+
+		# assert fails for max version < current version
+		assert_fails(H2OAnonClassAny, EnvironmentError)
+
+
+
+		class H2OAnonClassPass(BaseH2OFunctionWrapper):
+			def __init__(self):
+				super(H2OAnonClassPass, self).__init__(
+					min_version='any',
+					max_version=None)
+
+		# assert fails for max version < current version
+		h = H2OAnonClassPass()
+		assert h.max_version is None
+		assert h.min_version == 'any'
+
+
+	def cv():
+		assert check_cv(None).get_n_splits() == 3
+		assert_fails(check_cv, ValueError, 'not_a_valid_arg')
+
+
+
+
 	# run them
 	multicollinearity()
 	nzv()
 	pipeline()
 	grid()
+	anon_class()
+	cv()
 
 

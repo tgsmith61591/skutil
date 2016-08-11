@@ -138,7 +138,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 		try:
 			mv = self.__max_version__
 			return mv if not mv else str(mv)
-		except NameError as n:
+		except AttributeError as n:
 			return None
 	
 
@@ -146,7 +146,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 	def min_version(self):
 		try:
 			return str(self.__min_version__)
-		except NameError as n:
+		except AttributeError as n:
 			return 'any'
 	
 
