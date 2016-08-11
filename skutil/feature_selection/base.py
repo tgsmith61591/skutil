@@ -22,7 +22,7 @@ class _BaseFeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):
 		self.as_df = as_df
 		self.drop = None
 
-	def transform(self, X, y = None):
+	def transform(self, X, y=None):
 		check_is_fitted(self, 'drop')
 		# check on state of X and cols
 		X, _ = validate_is_pd(X, self.cols)

@@ -221,6 +221,10 @@ def test_multi_collinearity():
 	transformer.as_df = False
 	assert isinstance(transformer.transform(X), np.ndarray)
 
+	# check 1.0
+	transformer = MulticollinearityFilterer(threshold=1.0).fit(X)
+	assert not transformer.drop
+
 
 def test_nzv_filterer():
 	transformer = NearZeroVarianceFilterer().fit(X)
@@ -292,6 +296,7 @@ def test_sparsity():
 	filt = SparseFeatureDropper(threshold=0.3).fit(df)
 	assert len(filt.drop) == 2
 	assert all([i in filt.drop for i in ('b','c')]), 'expected "b" and "c" but got %s' % ', '.join(filt.drop)
+	assert isinstance(filt.drop, list)
 
 	# test at 2/3 level
 	filt = SparseFeatureDropper(threshold=0.6).fit(df)
@@ -302,6 +307,10 @@ def test_sparsity():
 	assert_fails(SparseFeatureDropper(threshold=  1.0).fit, ValueError, df)
 	assert_fails(SparseFeatureDropper(threshold= -0.1).fit, ValueError, df)
 	assert_fails(SparseFeatureDropper(threshold=  'a').fit, ValueError, df)
+
+	# only try on the 'a' col
+	filt = SparseFeatureDropper(cols=['a']).fit(df)
+	assert not filt.drop
 
 
 

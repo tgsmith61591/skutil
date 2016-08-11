@@ -53,8 +53,12 @@ class SparseFeatureDropper(_BaseFeatureSelector):
 			raise ValueError('thresh must be a float between '
 							 '0 (inclusive) and 1. Got %s' % str(thresh))
 
-		mask = X.apply(lambda x: (x.isnull().sum() / x.shape[0]) > thresh)
-		self.drop = X.columns[mask]
+		# get cols
+		cols = self.cols if self.cols is not None else X.columns.tolist()
+
+		# assess
+		mask = X[cols].apply(lambda x: (x.isnull().sum() / x.shape[0]) > thresh)
+		self.drop = X.columns[mask].tolist() if mask.sum() > 0 else None
 		return self
 
 
@@ -106,7 +110,7 @@ class FeatureRetainer(_BaseFeatureSelector):
 
 		# set the drop as those not in cols
 		cols = self.cols if not self.cols is None else []
-		self.drop = X.drop(cols, axis=1).columns.values # these will be the left overs
+		self.drop = X.drop(cols, axis=1).columns.tolist() # these will be the left overs
 
 		return self
 
@@ -256,9 +260,14 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
 		## get drops list
-		self.drop = filter_collinearity(c, self.threshold)
-		dropped = X.drop(self.drop, axis=1)
+		d = filter_collinearity(c, self.threshold)
+		self.drop = d if d else None
 
+		# if drop is None, we need to just return X
+		if not self.drop:
+			return X if self.as_df else X.as_matrix()
+
+		dropped = X.drop(self.drop, axis=1)
 		return dropped if self.as_df else dropped.as_matrix()
 
 
@@ -276,6 +285,10 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		check_is_fitted(self, 'drop')
 		# check on state of X and cols
 		X, _ = validate_is_pd(X, self.cols)
+
+		# ensure we don't drop None
+		if not self.drop:
+			return X
 
 		dropped = X.drop(self.drop, axis=1)
 		return dropped if self.as_df else dropped.as_matrix()
@@ -313,7 +326,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 		if drops.shape[0] == 0:
 			self.drop = None
 		else:
-			self.drop = drops
+			self.drop = drops.tolist()
 
 		return self
 
