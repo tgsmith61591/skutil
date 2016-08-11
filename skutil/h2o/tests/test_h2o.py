@@ -191,6 +191,10 @@ def test_h2o():
 				# try predicting
 				pipe.predict(test)
 
+				# coverage:
+				fe = pipe._final_estimator
+				ns = pipe.named_steps
+
 
 			# test some failures -- first, Y
 			for y in [None, 1]:
@@ -206,10 +210,10 @@ def test_h2o():
 				excepted = False
 				try:
 					pipe.fit(train)
-				except (TypeError, ValueError) as e:
+				except (TypeError, ValueError, EnvironmentError) as e:
 					excepted = True
-				finally:
-					assert excepted
+				assert excepted, 'expected failure for y=%s'%str(y)
+
 
 			# now X
 			pipe = H2OPipeline([
@@ -217,7 +221,7 @@ def test_h2o():
 					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
 					('est', H2OGradientBoostingEstimator(distribution='multinomial'))
 				], 
-				feature_names='xxxxxxxx',
+				feature_names=1,
 				target_feature='species'
 			)
 
