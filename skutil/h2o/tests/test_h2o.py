@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import warnings
 import numpy as np
+import pandas as pd
 import h2o
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
@@ -12,15 +13,16 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
-from skutil.h2o.split import check_cv
+from skutil.h2o.split import check_cv, H2OKFold, H2OStratifiedKFold
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-import pandas as pd
 from scipy.stats import randint, uniform
+
+from numpy.random import choice
 
 # for split
 try:
@@ -324,12 +326,22 @@ def test_h2o():
 
 		# most of this is for extreme coverage to make sure it all works...
 		if frame is not None:
+			n_folds = 2
+
 			for is_random in [False, True]:
 				for estimator in new_estimators():
 					for do_pipe in [False, True]:
 						for iid in [False, True]:
 							for verbose in [2, 3]:
 								for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
+
+									# just for coverage...
+									which_cv = choice([
+										n_folds, 
+										H2OKfold(n_folds=n_folds, shuffle=choice([True, False])),
+										H2OStratifiedKFold(n_folds=n_folds, shuffle=choice([True, False]))
+									])
+
 
 									# get which module to use
 									if is_random:
@@ -344,7 +356,7 @@ def test_h2o():
 											feature_names=F.columns.tolist(), target_feature='species',
 											param_grid=get_param_grid(estimator),
 											scoring=scoring, iid=iid, verbose=verbose,
-											cv=2)
+											cv=which_cv)
 									else:
 
 										# pipify -- the feature names, etc., will be set in the grid
@@ -367,12 +379,12 @@ def test_h2o():
 										grid = grid_module(pipe, param_grid=params,
 											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
-											cv=2)
+											cv=which_cv)
 
 
 									# if it's a random search CV obj, let's keep it brief
 									if is_random:
-										grid.n_iter = 2
+										grid.n_iter = n_folds
 
 									# sometimes we'll expect it to fail...
 									expect_failure = scoring is None or (isinstance(scoring,str) and scoring in ('bad'))

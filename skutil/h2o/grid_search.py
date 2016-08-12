@@ -13,6 +13,7 @@ from .pipeline import H2OPipeline
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y
 from ..utils import is_numeric
 from ..grid_search import _CVScoreTuple, _check_param_grid
+from .split import check_cv
 from .split import *
 
 from sklearn.preprocessing import LabelEncoder
