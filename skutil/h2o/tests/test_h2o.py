@@ -338,7 +338,7 @@ def test_h2o():
 									# just for coverage...
 									which_cv = choice([
 										n_folds, 
-										H2OKfold(n_folds=n_folds, shuffle=choice([True, False])),
+										H2OKFold(n_folds=n_folds, shuffle=choice([True, False])),
 										H2OStratifiedKFold(n_folds=n_folds, shuffle=choice([True, False]))
 									])
 
