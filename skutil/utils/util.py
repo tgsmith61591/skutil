@@ -9,21 +9,8 @@ from ..base import SelectiveWarning, ModuleImportWarning
 
 
 # check if matplotlib exists
-__can_chart__ = True
-try:
-    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-
-        # do actual import
-        import matplotlib as mpl
-        mpl.use('TkAgg') # set backend
-        from matplotlib import pyplot as plt
-except ImportError as ie:
-    __can_chart__ = False
-    warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
-
-
+__max_exp__ = 1e19
+__min_log__ = -19
 __all__ = [
     'exp',
     'flatten_all',
@@ -38,8 +25,6 @@ __all__ = [
     'validate_is_pd'
 ]
 
-__max_exp__ = 1e19
-__min_log__ = -19
 
 
 ######## MATHEMATICAL UTILITIES #############    
@@ -285,6 +270,29 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
 def report_grid_score_detail(random_search, charts=True):
     """Input fit grid search estimator. Returns df of scores with details"""
     df_list = []
+
+
+    try:
+        MPL_IMPORTED
+    except NameError as n:
+        try:
+            # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+
+                # do actual import
+                import matplotlib as mpl
+                #mpl.use('TkAgg') # set backend
+                from matplotlib import pyplot as plt
+
+                # log it
+                CAN_CHART = True
+        except ImportError as ie:
+            CAN_CHART = False
+            warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
+
+        MPL_IMPORTED = True
+
 
     for line in random_search.grid_scores_:
         results_dict = dict(line.parameters)
