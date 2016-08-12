@@ -246,6 +246,7 @@ def is_numeric(x):
     """
     return isinstance(x, (int, float, long, np.int, np.float, np.long))
 
+
 def load_iris_df(include_tgt=True, tgt_name="Species"):
     """Loads the iris dataset into a dataframe with the
     target set as the "Species" feature or whatever name
@@ -266,6 +267,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
         X[tgt_name] = iris.target
         
     return X
+
 
 def report_grid_score_detail(random_search, charts=True):
     """Input fit grid search estimator. Returns df of scores with details"""
