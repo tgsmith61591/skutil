@@ -281,7 +281,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 						   verbose=self.verbose, scoring_params=self.scoring_params,
 						   train=train, test=test)
 			for params in parameter_iterable
-			for train, test in cv.split(X)
+			for train, test in cv.split(X, self.target_feature)
 		]
 
 		# Out is a list of quad: score, n_test_samples, estimator, parameters

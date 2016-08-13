@@ -194,17 +194,17 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		super(H2OStratifiedKFold, self).__init__(n_folds, shuffle, random_state)
 
 
-	def split(self, frame, y=None):
+	def split(self, frame, y):
 		return super(H2OStratifiedKFold, self).split(frame, y)
 
 
-	def _iter_test_masks(self, frame, y=None):
+	def _iter_test_masks(self, frame, y):
 		test_folds = self._make_test_folds(frame, y)
 		for i in range(self.n_folds):
 			yield test_folds == i
 
 
-	def _make_test_folds(self, frame, y=None):
+	def _make_test_folds(self, frame, y):
 		if self.shuffle:
 			rng = check_random_state(self.random_state)
 		else:
