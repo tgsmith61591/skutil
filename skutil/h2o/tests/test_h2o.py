@@ -9,6 +9,7 @@ from h2o.estimators import (H2ORandomForestEstimator,
 							H2OGradientBoostingEstimator,
 							H2ODeepLearningEstimator)
 
+from skutil.h2o import from_pandas
 from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
@@ -498,7 +499,14 @@ def test_h2o():
 		assert check_cv(None).get_n_splits() == 3
 		assert_fails(check_cv, ValueError, 'not_a_valid_arg')
 
-
+	def from_pandas():
+		if X is not None:
+			y = from_pandas(X)
+			assert y.shape[0] == X.shape[0]
+			assert y.shape[1] == X.shape[1]
+			assert all(y.columns[i] == X.columns.tolist()[i] for i in range(y.shape[1]))
+		else:
+			pass
 
 
 	# run them
@@ -508,5 +516,6 @@ def test_h2o():
 	grid()
 	anon_class()
 	cv()
+	from_pandas()
 
 

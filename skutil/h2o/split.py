@@ -270,7 +270,7 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		test_folds = np.zeros(n_samples, dtype=np.int)
 		for test_fold_indices, per_cls_splits in enumerate(zip(*per_cls_cvs)):
 			for cls, (_, test_split) in zip(unique_y, per_cls_splits):
-				cls_test_folds = test_folds[y==cls]
+				cls_test_folds = test_folds[target == cls]
 
 				# the test split can be too big because we used
 				# KFold(...).split(X[:max(c, n_folds)]) when data is not 100%
@@ -279,7 +279,7 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 				# If this is the case, let's trim it:
 				test_split = test_split[test_split < len(cls_test_folds)]
 				cls_test_folds[test_split] = test_fold_indices
-				test_folds[y == cls] = cls_test_folds
+				test_folds[target == cls] = cls_test_folds
 
 		return test_folds
 
