@@ -2,6 +2,7 @@ from __future__ import print_function, division
 import pandas as pd
 import numpy as np
 import warnings
+import numbers
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
 from sklearn.datasets import load_iris
@@ -244,7 +245,7 @@ def is_numeric(x):
     ----------
     x : anytype
     """
-    return isinstance(x, (int, float, long, np.int, np.float, np.long))
+    return isinstance(x, (numbers.Integral, int, float, long, np.int, np.float, np.long))
 
 
 def load_iris_df(include_tgt=True, tgt_name="Species"):

@@ -68,8 +68,13 @@ def test_h2o():
 		h2o.init(ip='localhost', port=54321) # this might throw a warning
 		X = new_h2o_frame(F)
 	except Exception as e:
-		warnings.warn('could not successfully start H2O instance', UserWarning)
-		X = None
+		# if we can't start on localhost, try default (127.0.0.1)
+		try:
+			h2o.init()
+			X = new_h2o_frame(F)
+		except Exception as e:
+			warnings.warn('could not successfully start H2O instance', UserWarning)
+			X = None
 
 
 	def catch_warning_assert_thrown(fun, kwargs):
@@ -341,8 +346,7 @@ def test_h2o():
 									# just for coverage...
 									which_cv = choice([
 										n_folds, 
-										H2OKFold(n_folds=n_folds, shuffle=do_shuffle),
-										H2OStratifiedKFold(n_folds=n_folds, shuffle=do_shuffle)
+										H2OKFold(n_folds=n_folds, shuffle=do_shuffle)
 									])
 
 
@@ -409,10 +413,44 @@ def test_h2o():
 											pass
 										else:
 											raise
-									
+
 		else:
 			pass
 
+
+		# let's do one pass with a stratified K fold... but we need to increase our data length, 
+		# lest we lose records on the split, which will throw errors...
+		f = pd.concat([f,f,f,f,f], axis=0) # times FIVE!
+
+		# shuffle the rows
+		f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+		# try uploading again...
+		try:
+			frame = new_h2o_frame(f)
+		except Exception as e:
+			frame = None
+
+		if frame is not None:
+			n_folds = 2
+			for estimator in new_estimators():
+				pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('est', estimator)
+				])
+
+				params = {
+					'nzv__threshold' : uniform(1e-6, 0.0025)
+				}
+
+				grid = H2ORandomizedSearchCV(pipe, param_grid=params,
+					feature_names=F.columns.tolist(), target_feature='species',
+					scoring='accuracy_score', n_iter=2, cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
+
+				# do fit
+				grid.fit(frame)
+		else:
+			pass
 
 
 	def anon_class():
