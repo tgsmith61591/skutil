@@ -17,6 +17,11 @@ from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
 
+try:
+	from sklearn.model_selection import KFold
+except ImportError as e:
+	from sklearn.cross_validation import KFold
+
 
 __all__ = [
 	'check_cv',
@@ -241,7 +246,8 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		# will break when the data is not 100% stratifiable for all classes.
 		# So we pass np.zeroes(max(c, n_folds)) as data to the KFold
 		per_cls_cvs = [
-			H2OKFold(self.n_folds, shuffle=self.shuffle,
+			KFold(self.n_folds, # using sklearn's KFold here
+				shuffle=self.shuffle,
 				random_state=rng).split(np.zeros(max(count, self.n_folds)))
 			for count in y_counts
 		]
