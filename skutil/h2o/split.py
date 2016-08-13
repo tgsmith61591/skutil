@@ -217,7 +217,7 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		
 		target = frame[y].as_data_frame(use_pandas=True)[y].values
 		n_samples = target.shape[0]
-		unique_y, y_inversed = np.unique(y, return_inverse=True)
+		unique_y, y_inversed = np.unique(target, return_inverse=True)
 		y_counts = bincount(y_inversed)
 		min_labels = np.min(y_counts)
 
