@@ -141,8 +141,9 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
 			raise ValueError('k-fold cross-validation requires at least one '
 							 'train/test split by setting n_folds=2 or more')
 
-		if not isinstance(shuffle, bool):
-			raise TypeError('shuffle must be True or False')
+		if not shuffle in [True, False]:
+			raise TypeError('shuffle must be True or False. Got %s (type=%s)'
+				% (str(shuffle), type(shuffle)))
 
 		self.n_folds = n_folds
 		self.shuffle = shuffle
