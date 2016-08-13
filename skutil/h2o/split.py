@@ -215,7 +215,7 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		if y is None:
 			raise ValueError('H2OStratifiedKFold requires a target name (got None)')
 		
-		target = np.asarray(frame[y].as_data_frame(use_pandas=True).tolist())
+		target = frame[y].as_data_frame(use_pandas=True)[y].values
 		n_samples = target.shape[0]
 		unique_y, y_inversed = np.unique(y, return_inverse=True)
 		y_counts = bincount(y_inversed)
