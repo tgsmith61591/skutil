@@ -335,11 +335,14 @@ def test_h2o():
 							for verbose in [2, 3]:
 								for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
 
+									# should we shuffle?
+									do_shuffle = choice([True, False])
+
 									# just for coverage...
 									which_cv = choice([
 										n_folds, 
-										H2OKFold(n_folds=n_folds, shuffle=choice([True, False])),
-										H2OStratifiedKFold(n_folds=n_folds, shuffle=choice([True, False]))
+										H2OKFold(n_folds=n_folds, shuffle=do_shuffle),
+										H2OStratifiedKFold(n_folds=n_folds, shuffle=do_shuffle)
 									])
 
 
