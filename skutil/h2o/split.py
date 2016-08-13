@@ -102,7 +102,7 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 
 		_check_is_frame(frame)
 		indices = np.arange(frame.shape[0])
-		for test_index in self._iter_test_masks(frame):
+		for test_index in self._iter_test_masks(frame, y):
 			train_index = indices[np.logical_not(test_index)]
 			test_index = indices[test_index]
 
