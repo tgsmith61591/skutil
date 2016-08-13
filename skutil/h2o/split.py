@@ -19,8 +19,10 @@ from sklearn.utils import check_random_state
 
 try:
 	from sklearn.model_selection import KFold
+	SK18 = True
 except ImportError as e:
 	from sklearn.cross_validation import KFold
+	SK18 = False
 
 
 __all__ = [
@@ -244,13 +246,26 @@ class H2OStratifiedKFold(_H2OBaseKFold):
 		# classes
 		# NOTE: Passing the data corresponding to ith class say X[y==class_i]
 		# will break when the data is not 100% stratifiable for all classes.
-		# So we pass np.zeroes(max(c, n_folds)) as data to the KFold
-		per_cls_cvs = [
-			KFold(self.n_folds, # using sklearn's KFold here
-				shuffle=self.shuffle,
-				random_state=rng).split(np.zeros(max(count, self.n_folds)))
-			for count in y_counts
-		]
+		# So we pass np.zeroes(max(c, n_folds)) as data to the KFold. 
+
+		# Remember, however that we might be using the old-fold KFold which doesn't
+		# have a split method...
+		if SK18:
+			per_cls_cvs = [
+				KFold(self.n_folds, # using sklearn's KFold here
+					shuffle=self.shuffle,
+					random_state=rng).split(np.zeros(max(count, self.n_folds)))
+				for count in y_counts
+			]
+		else:
+			per_cls_cvs = [
+				KFold(max(count, self.n_folds), # using sklearn's KFold here
+					self.n_folds, 
+					shuffle=self.shuffle,
+					random_state=rng)
+				for count in y_counts
+			]
+
 
 		test_folds = np.zeros(n_samples, dtype=np.int)
 		for test_fold_indices, per_cls_splits in enumerate(zip(*per_cls_cvs)):
