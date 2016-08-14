@@ -23,6 +23,7 @@ __all__ = [
     'log',
     'report_confusion_matrix',
     'report_grid_score_detail',
+    'shuffle_dataframe',
     'validate_is_pd'
 ]
 
@@ -132,6 +133,11 @@ def flatten_all_generator(container):
         else:
             yield i
 
+def shuffle_dataframe(X):
+    X, _ = validate_is_pd(X, None, False)
+    return X.iloc[np.random.permutation(np.arange(X.shape[0]))]
+
+
 def validate_is_pd(X, cols, assert_all_finite=False):
     """Used within each SelectiveMixin fit method to determine whether
     the passed X is a dataframe, and whether the cols is appropriate.
@@ -223,7 +229,7 @@ def get_numeric(X):
         The dataframe
     """
     validate_is_pd(X, None) # don't want warning
-    return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int", "bool")))].index.tolist()
+    return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
 
 
 def is_entirely_numeric(X):

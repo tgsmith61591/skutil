@@ -4,6 +4,9 @@ import numpy as np
 from numpy.random import choice
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
+from skutil.utils import shuffle_dataframe
+from skutil.utils.tests.utils import assert_fails
+from sklearn.ensemble import RandomForestClassifier
 import warnings
 
 def _random_X(m,n,cols):
@@ -52,6 +55,88 @@ def test_bagged_imputer():
 	null_ct = z.isnull().sum().sum()
 	assert null_ct == 0, 'expected no nulls but got %i' % null_ct
 
+def test_bagged_imputer_classification():
+	iris = load_iris()
+
+	# make DF, add species col
+	X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
+	X['species'] = iris.target
+
+	# shuffle...
+	X = shuffle_dataframe(X)
+
+	# set random indices to be null.. 15% should be good
+	rands = np.random.rand(X.shape[0])
+	mask = rands > 0.85
+	X['species'].iloc[mask] = np.nan
+
+	# define imputer, assert no missing
+	imputer = BaggedCategoricalImputer(cols=['species'])
+	y = imputer.fit_transform(X)
+	assert y['species'].isnull().sum() == 0, 'expected no null...'
+
+	# now test with a different estimator
+	imputer = BaggedCategoricalImputer(cols=['species'], base_estimator=RandomForestClassifier())
+	y = imputer.fit_transform(X)
+	assert y['species'].isnull().sum() == 0, 'expected no null...'
+
+def test_selective_imputer():
+	a = pd.DataFrame.from_records([
+			[1,      2,      3],
+			[np.nan, 2,      2],
+			[2,      np.nan, np.nan]
+		], columns=['a','b','c'])
+
+	# first, use an int
+	imputer = SelectiveImputer(def_fill=-1)
+	y = imputer.fit_transform(a)
+	assert imputer.modes_ == -1
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([x==-1 for x in (y.iloc[1,0], y.iloc[2,1], y.iloc[2,2])])
+
+	# now try with a string...
+	imputer = SelectiveImputer(def_fill='mode')
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0] in (1,2), y.iloc[2,1]==2, y.iloc[2,2] in (3,2)])
+
+	# now try with a string...
+	imputer = SelectiveImputer(def_fill='mean')
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==1.5, y.iloc[2,1]==2.0, y.iloc[2,2]==2.5])
+
+	# now try with a string...
+	imputer = SelectiveImputer(def_fill='median')
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==1.5, y.iloc[2,1]==2, y.iloc[2,2]==2.5])
+
+	# now test with an iterable
+	imputer = SelectiveImputer(def_fill=[5,6,7])
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==5, y.iloc[2,1]==6, y.iloc[2,2]==7])
+
+	# test with a mixed iterable
+	imputer = SelectiveImputer(def_fill=[5, 'mode', 'mean'])
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==5, y.iloc[2,1]==2, y.iloc[2,2]==2.5])
+
+	# test with a mixed iterable -- again
+	imputer = SelectiveImputer(def_fill=['median', 3, 'mean'])
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==1.5, y.iloc[2,1]==3, y.iloc[2,2]==2.5])
+
+	# test failures now...
+	assert_fails(SelectiveImputer(def_fill='blah').fit,        TypeError,  a)
+	assert_fails(SelectiveImputer(def_fill=[1, 2]).fit,        ValueError, a)
+	assert_fails(SelectiveImputer(def_fill=['a','b','c']).fit, TypeError,  a)
+	assert_fails(SelectiveImputer(def_fill='a').fit,           TypeError,  a)
+	assert_fails(SelectiveImputer(def_fill=[1, 2, 'a']).fit,   TypeError,  a)
+
 
 def test_bagged_imputer_errors():
 	nms = ['a','b','c','d','e']
@@ -91,3 +176,6 @@ def test_bagged_imputer_errors():
 		failed = True
 	assert failed, 'Expected imputation with categorical feature to fail'
 
+
+if __name__ == '__main__':
+	test_selective_imputer()
