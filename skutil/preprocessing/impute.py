@@ -43,6 +43,24 @@ class _BaseImputer(SelectiveMixin, BaseEstimator, TransformerMixin):
 
 
 class SelectiveImputer(_BaseImputer):
+	"""A more customizable form on sklearn's Imputer class. This class
+	can handle more than mean, median or most common... it will also take
+	numeric values. Moreover, it will take a vector of strategies or values
+	with which to impute corresponding columns.
+	
+	Parameters
+	----------
+	cols : array_like, optional (default=None)
+		the features to impute
+
+	as_df : boolean , optional (default=True)
+		whether to return a dataframe
+
+	def_fill : int, optional (default=None)
+		the fill to use for missing values in the training matrix 
+		when fitting a SelectiveClassifier. If None, will default to 'mean'
+	"""
+
 	def __init__(self, cols=None, as_df=True, def_fill='mean'):
 		super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
 
