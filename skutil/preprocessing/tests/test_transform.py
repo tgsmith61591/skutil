@@ -181,32 +181,6 @@ def test_strange_input():
 	assert failed
 
 
-def test_selective_impute():
-	a = np.random.rand(5, 5)
-
-	## add some missing vals
-	a[0, 3] = np.nan
-	a[1, 2] = np.nan
-
-	## throw into a DF
-	df = pd.DataFrame.from_records(data=a, columns=['a','b','c','d','e'])
-	transformer = SelectiveImputer(cols=['d']).fit(df)
-	df = transformer.transform(df)
-
-	assert not pd.isnull(df.iloc[0, 3])
-	assert pd.isnull(df.iloc[1, 2])
-
-	# test the selective mixin
-	assert isinstance(transformer.get_features(), list)
-	transformer.set_features(cols=None)
-	assert transformer.get_features() is None
-
-	# test on no cols provided (all)
-	t = SelectiveImputer(as_df=False).fit_transform(df)
-	assert t[0, 3] == np.nanmean(a[:,3])
-	assert t[1, 2] == np.nanmean(a[:,2])
-
-
 def test_selective_scale():
 	original = X
 	cols = [original.columns[0]] ## Only perform on first...

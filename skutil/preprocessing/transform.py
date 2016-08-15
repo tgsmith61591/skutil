@@ -4,7 +4,7 @@ import pandas as pd
 
 from abc import abstractmethod, ABCMeta
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import Imputer, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals.joblib import Parallel, delayed
@@ -18,7 +18,6 @@ from ..base import *
 __all__ = [
     'BoxCoxTransformer',
     'FunctionMapper',
-    'SelectiveImputer',
     'SelectiveScaler',
     'SpatialSignTransformer',
     'YeoJohnsonTransformer',
@@ -113,81 +112,6 @@ class FunctionMapper(_BaseSelectiveTransformer):
         # apply the function
         X[self.cols or X.columns] = X[self.cols or X.columns].apply(lambda x: self.fun(x, **self.kwargs))
         return X
-
-
-
-###############################################################################
-class SelectiveImputer(_BaseSelectiveTransformer):
-    """An imputer class that can operate across a select
-    group of columns. Useful for data that contains categorical features
-    that have not yet been dummied, for dummied features that we
-    may not want to scale, or for any already-in-scale features.
-
-    Parameters
-    ----------
-    cols : array_like (string)
-        names of columns on which to apply scaling
-
-    missing_values : str, default 'NaN'
-        the missing value representation
-
-    strategy : str, default 'mean'
-        the strategy for imputation
-
-    as_df : boolean, default True
-        Whether to return a dataframe
-
-    Attributes
-    ----------
-    cols : array_like (string)
-        the columns
-
-    imputer_ : the fit imputer
-
-    missing_values : see above
-    strategy : see above
-
-    """
-
-    def __init__(self, cols=None, missing_values = 'NaN', strategy = 'mean', as_df=True):
-        super(SelectiveImputer, self).__init__(cols=cols, as_df=as_df)
-        self.missing_values = missing_values
-        self.strategy = strategy
-
-    def fit(self, X, y = None):
-        """Fit the imputers.
-        
-        Parameters
-        ----------
-        X : pandas DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
-        """
-        # check on state of X and cols
-        X, self.cols = validate_is_pd(X, self.cols)
-        cols = X.columns if not self.cols else self.cols
-
-        ## fails if columns don't exist
-        self.imputer_ = Imputer(missing_values=self.missing_values, strategy=self.strategy).fit(X[cols])
-        return self
-
-    def transform(self, X, y = None):
-        """Transform the incoming data.
-        
-        Parameters
-        ----------
-        X : pandas DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
-        """
-        check_is_fitted(self, 'imputer_')
-        # check on state of X and cols
-        X, _ = validate_is_pd(X, self.cols)
-
-        X[self.cols or X.columns] = self.imputer_.transform(X[self.cols or X.columns])
-        return X if self.as_df else X.as_matrix()
 
 
 

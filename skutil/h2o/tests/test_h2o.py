@@ -499,6 +499,9 @@ def test_h2o():
 		assert check_cv(None).get_n_splits() == 3
 		assert_fails(check_cv, ValueError, 'not_a_valid_arg')
 
+		# test the __repr__
+		H2OStratifiedKFold().__repr__()
+
 	def from_pandas_h2o():
 		if X is not None:
 			y = from_pandas(F)

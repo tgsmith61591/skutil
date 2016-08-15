@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.externals import six
 from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
 from sklearn.utils.validation import check_is_fitted
+from sklearn.preprocessing import Imputer
 from sklearn.ensemble import BaggingRegressor, BaggingClassifier
 from ..base import SelectiveMixin
 from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
@@ -40,8 +41,9 @@ class _BaseImputer(SelectiveMixin, BaseEstimator, TransformerMixin):
 		self.fill_ = _BaseImputer.__def_fill__ if def_fill is None else def_fill
 
 
+
 class SelectiveImputer(_BaseImputer):
-	def __init__(self, cols=None, as_df=True, def_fill='mode'):
+	def __init__(self, cols=None, as_df=True, def_fill='mean'):
 		super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
 
 	def fit(self, X, y=None):

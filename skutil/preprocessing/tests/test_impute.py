@@ -138,6 +138,7 @@ def test_selective_imputer():
 	assert_fails(SelectiveImputer(def_fill=[1, 2, 'a']).fit,   TypeError,  a)
 
 
+
 def test_bagged_imputer_errors():
 	nms = ['a','b','c','d','e']
 	X = _random_X(500,5,nms)
@@ -176,6 +177,3 @@ def test_bagged_imputer_errors():
 		failed = True
 	assert failed, 'Expected imputation with categorical feature to fail'
 
-
-if __name__ == '__main__':
-	test_selective_imputer()
