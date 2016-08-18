@@ -7,7 +7,10 @@ import pandas as pd
 
 import h2o
 from h2o.frame import H2OFrame
-from h2o import H2OEstimator
+try:
+	from h2o import H2OEstimator
+except ImportError as e:
+	from h2o.estimators.estimator_base import H2OEstimator
 
 from .pipeline import H2OPipeline
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y
