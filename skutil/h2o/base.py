@@ -9,6 +9,10 @@ from sklearn.externals import six
 
 import h2o
 from h2o.frame import H2OFrame
+try:
+	from h2o.backend.connection import H2OServerError
+except ImportError as e:
+	H2OServerError = EnvironmentError # Gosh, they make it tough on us...
 
 from pkg_resources import parse_version
 from ..utils import is_numeric
@@ -125,7 +129,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 	   	# test connection, warn where needed
 		try:
 			g = h2o.frames() # returns a dict of frames
-		except (EnvironmentError, ValueError) as v:
+		except (EnvironmentError, ValueError, H2OServerError) as v:
 			warnings.warn('h2o has not been started; '
 						  'initializing an H2O transformer without '
 						  'a connection will not cause any issues, '
