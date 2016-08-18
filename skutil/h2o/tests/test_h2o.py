@@ -14,9 +14,11 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
-from skutil.h2o.split import check_cv, H2OKFold, H2OStratifiedKFold
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
+from skutil.h2o.split import (check_cv, H2OKFold, 
+	H2OStratifiedKFold, h2o_train_test_split, 
+	_validate_shuffle_split_init, _validate_shuffle_split)
 
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
@@ -520,6 +522,55 @@ def test_h2o():
 		else:
 			pass
 
+	def split_tsts():
+		# testing _validate_shuffle_split_init
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})     # can't both be None
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':'string','train_size':None}) # if not float, must be int
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':'string', 'test_size':None})# if not float, must be int
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})      # if both float, must not exceed 1.
+
+		# testing _validate_shuffle_split
+		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'test_size':11, 'train_size':0}) # test_size can't exceed n_samples
+		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'train_size':11, 'test_size':0}) # train_size can't exceed n_samples
+		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'train_size':5, 'test_size':6})  # sum can't exceed n_samples
+
+		# test what works:
+		n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=3, train_size=7)
+		assert n_train == 7
+		assert n_test == 3
+
+		n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=0.3, train_size=0.7)
+		assert n_train == 7
+		assert n_test == 3
+
+		# now actually get the train, test splits...
+		# let's do one pass with a stratified K fold... but we need to increase our data length, 
+		# lest we lose records on the split, which will throw errors...
+		f = F.copy()
+		targ = iris.target
+		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+		f['species'] = targ
+
+		# Times FIVE!
+		f = pd.concat([f,f,f,f,f], axis=0) # times FIVE!
+
+		# shuffle the rows
+		f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+		# try uploading again...
+		try:
+			frame = new_h2o_frame(f)
+		except Exception as e:
+			frame = None
+
+		if frame is not None:
+			for stratified in [None, 'species']:
+				X_train, X_test = h2o_train_test_split(frame, test_size=0.3, train_size=0.7, stratify=stratified)
+				assert (X_train.shape[0] + X_test.shape[0]) == frame.shape[0]
+		else:
+			pass
 
 	# run them
 	multicollinearity()
@@ -530,5 +581,6 @@ def test_h2o():
 	cv()
 	from_pandas_h2o()
 	from_array_h2o()
+	split_tsts()
 
 

@@ -17,6 +17,9 @@ from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
 
+from math import ceil, floor
+from itertools import chain, combinations
+
 try:
 	from sklearn.model_selection import KFold
 	SK18 = True
@@ -27,8 +30,11 @@ except ImportError as e:
 
 __all__ = [
 	'check_cv',
+	'h2o_train_test_split',
 	'H2OKFold',
-	'H2OStratifiedKFold'
+	'H2OShuffleSplit',
+	'H2OStratifiedKFold',
+	'H2OStratifiedShuffleSplit'
 ]
 
 
@@ -76,6 +82,62 @@ def check_cv(cv=3):
 						 % type(cv))
 
 	return cv
+
+
+def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=None, stratify=None):
+	"""Splits an H2OFrame into random train and test subsets
+
+	Parameters
+	----------
+	frame : H2OFrame
+		The h2o frame to split
+
+	test_size : float, int, or None (default=None)
+		If float, should be between 0.0 and 1.0 and represent the
+		proportion of the dataset to include in the test split. If
+		int, represents the absolute number of test samples. If None,
+		the value is automatically set to the complement of the train size.
+		If train size is also None, test size is set to 0.25
+
+	train_size : float, int, or None (default=None)
+		If float, should be between 0.0 and 1.0 and represent the
+		proportion of the dataset to include in the train split. If
+		int, represents the absolute number of train samples. If None,
+		the value is automatically set to the complement of the test size.
+
+	random_state : int or RandomState
+		Pseudo-random number generator state used for random sampling.
+
+	stratify : str or None (default=None)
+		The name of the target on which to stratify the sampling
+	"""
+	_check_is_frame(frame)
+	if test_size is None and train_size is None:
+		test_size = 0.25
+
+	if stratify is not None:
+		CVClass = H2OStratifiedShuffleSplit
+	else:
+		CVClass = H2OShuffleSplit
+
+	cv = CVClass(test_size=test_size,
+				 train_size=train_size,
+				 random_state=random_state)
+
+	train, test = next(cv.split(frame, stratify))
+	return list(
+		chain.from_iterable(
+			(frame[train, :], frame[test, :])
+		)
+	)
+
+
+
+# Avoid a pb with nosetests...
+h2o_train_test_split.__test__ = False
+
+
+
 
 def _val_y(y):
 	if isinstance(y, (str, unicode)):
@@ -132,6 +194,178 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 
 	def __repr__(self):
 		return _build_repr(self)
+
+
+def _validate_shuffle_split_init(test_size, train_size):
+	"""Validation helper to check the test_size and train_size at init"""
+	if test_size is None and train_size is None:
+		raise ValueError('test_size and train_size can not both be None')
+
+	if test_size is not None:
+		if np.asarray(test_size).dtype.kind == 'f':
+			if test_size >= 1.:
+				raise ValueError(
+					'test_size=%f should be smaller '
+					'than 1.0 or be an integer' % test_size)
+		elif np.asarray(test_size).dtype.kind != 'i':
+			raise ValueError('Invalid value for test_size: %r' % test_size)
+
+	if train_size is not None:
+		if np.asarray(train_size).dtype.kind == 'f':
+			if train_size >= 1.:
+				raise ValueError(
+					'train_size=%f should be smaller '
+					'than 1.0 or be an integer' % test_size)
+			elif (np.asarray(test_size).dtype.kind == 'f' and
+					(train_size + test_size) > 1.):
+				raise ValueError('The sum of test_size and train_size = %f'
+					'should be smaller than 1.0. Reduce test_size '
+					'and/or train_size.' % (train_size + test_size))
+		elif np.asarray(train_size).dtype.kind != 'i':
+			raise ValueError('Invalid value for train_size: %r' % train_size)
+
+
+def _validate_shuffle_split(n_samples, test_size, train_size):
+	if (test_size is not None and np.asarray(test_size).dtype.kind == 'i'
+			and test_size >= n_samples):
+		raise ValueError('test_size=%d should be smaller '
+			'than the number of samples %d' % (test_size, n_samples))
+
+	if (train_size is not None and np.asarray(train_size).dtype.kind == 'i'
+			and train_size >= n_samples):
+		raise ValueError('train_size=%d should be smaller '
+			'than the number of samples %d' % (train_size, n_samples))
+
+	if np.asarray(test_size).dtype.kind == 'f':
+		n_test = ceil(test_size * n_samples)
+	elif np.asarray(test_size).dtype.kind == 'i':
+		n_test = float(test_size)
+
+	if train_size is None:
+		n_train = n_samples - n_test
+	elif np.asarray(train_size).dtype.kind == 'f':
+		n_train = floor(train_size * n_samples)
+	else:
+		n_train = float(train_size)
+
+	if test_size is None:
+		n_test = n_samples - n_train
+
+	if n_train + n_test > n_samples:
+		raise ValueError('The sum of train_size and test_size=%d, '
+			'should be smaller than the number of '
+			'samples %d. Reduce test_size and/or '
+			'train_size.' % (n_train+n_test, n_samples))
+
+	return int(n_train), int(n_test)
+
+
+class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
+	"""Base class for H2OShuffleSplit and H2OStratifiedShuffleSplit"""
+
+	def __init__(self, n_splits=10, test_size=0.1, train_size=None, random_state=None):
+		_validate_shuffle_split_init(test_size, train_size)
+		self.n_splits = n_splits
+		self.test_size = test_size
+		self.train_size = train_size
+		self.random_state= random_state
+
+	def split(self, frame, y=None):
+		for train, test in self._iter_indices(frame, y):
+			yield train, test
+
+	@abstractmethod
+	def _iter_indices(self, frame, y):
+		pass
+
+	def get_n_splits(self, frame=None, y=None):
+		return self.n_splits
+
+	def __repr__(self):
+		return _build_repr(self)
+
+
+class H2OShuffleSplit(H2OBaseShuffleSplit):
+	def _iter_indices(self, frame, y=None):
+		n_samples = X.shape[0]
+		n_train, n_test = _validate_shuffle_split(n_samples, self.test_size, self.train_size)
+
+		rng = check_random_state(self.random_state)
+		for i in range(self.n_splits):
+			permutation = rng.permutation(n_samples)
+			ind_test = permutation[:n_test]
+			ind_train = permutation[n_test:(n_test + n_train)]
+			yield ind_train, ind_test
+
+
+class H2OStratifiedShuffleSplit(H2OBaseShuffleSplit):
+	def __init__(self, n_splits=10, test_size=0.1, train_size=None, random_state=None):
+		super(H2OStratifiedShuffleSplit, self).__init__(
+			n_splits, test_size, train_size, random_state)
+
+	def _iter_indices(self, frame, y):
+		n_samples = frame.shape[0]
+		n_train, n_test = _validate_shuffle_split(n_samples, 
+			self.test_size, self.train_size)
+
+		# need to validate y...
+		y = _val_y(y)
+		target = np.asarray(frame[y].as_data_frame(use_pandas=True)[y].tolist())
+
+		classes, y_indices = np.unique(target, return_inverse=True)
+		n_classes = classes.shape[0]
+
+		class_counts = bincount(y_indices)
+		if np.min(class_counts) < 2:
+			raise ValueError('The least populated class in y has only 1 '
+				'member, which is too few. The minimum number of labels '
+				'for any class cannot be less than 2.')
+
+		if n_train < n_classes:
+			raise ValueError('The train_size=%d should be greater than or '
+				'equal to the number of classes=%d' % (n_train, n_classes))
+
+		if n_test < n_classes:
+			raise ValueError('The test_size=%d should be greater than or '
+				'equal to the number of classes=%d' % (n_test, n_classes))
+
+		rng = check_random_state(self.random_state)
+		p_i = class_counts / float(n_samples)
+		n_i = np.round(n_train * p_i).astype(int)
+		t_i = np.minimum(class_counts - n_i, np.round(n_test * p_i).astype(int))
+
+		for _ in range(self.n_splits):
+			train = []
+			test = []
+
+			for i, class_i in enumerate(classes):
+				permutation = rng.permutation(class_counts[i])
+				perm_indices_class_i = np.where((target==class_i))[0][permutation]
+
+				train.extend(perm_indices_class_i[:n_i[i]])
+				test.extend(perm_indices_class_i[n_i[i]:n_i[i] + t_i[i]])
+
+			# Might end up here with less samples in train and test than we asked
+			# for, due to rounding errors.
+			if len(train) + len(test) < n_train + n_test:
+				missing_indices = np.where(bincount(train + test, minlength=len(target)) == 0)[0]
+				missing_indices = rng.permutation(missing_indices)
+				n_missing_train = n_train - len(train)
+				n_missing_test  = n_test - len(test)
+
+				if n_missing_train > 0:
+					train.extend(missing_indices[:n_missing_train])
+				if n_missing_test > 0:
+					test.extend(missing_indices[-n_missing_test:])
+
+			train = rng.permutation(train)
+			test = rng.permutation(test)
+
+			yield train, test
+
+	def split(self, frame, y):
+		return super(H2OStratifiedShuffleSplit, self).split(frame, y)
+
 
 
 class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
