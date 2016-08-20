@@ -2,6 +2,8 @@ from __future__ import print_function, division
 import warnings
 import numpy as np
 import pandas as pd
+import time
+
 import h2o
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
@@ -14,6 +16,7 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
+from skutil.utils import load_iris_df
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -34,22 +37,10 @@ except ImportError as i:
 	from sklearn.cross_validation import train_test_split
 
 
-iris = load_iris()
-F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 
-
-
-def new_h2o_frame(X, types=None):
+def new_h2o_frame(X):
 	Y = H2OFrame.from_python(X, header=1, 
-		column_names=X.columns.tolist(),
-		column_types=types)
-
-	# weirdness sometimes.
-	if not 'sepal length (cm)' in Y.columns:
-		Y.columns = X.columns.tolist()
-
-	if Y.shape[0] > X.shape[0]:
-		Y = Y[1:,:]
+		column_names=X.columns.tolist())
 	return  Y
 
 
@@ -67,17 +58,35 @@ def new_estimators():
 
 # if we can't start an h2o instance, let's just pass all these tests
 def test_h2o():
+	iris = load_iris()
+	F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
+	#F = load_iris_df(include_tgt=False)
+	X = None
+
 	try:
-		h2o.init(ip='localhost', port=54321) # this might throw a warning
+		h2o.init()
+		#h2o.init(ip='localhost', port=54321) # this might throw a warning
+
+		# sleep before trying this:
+		time.sleep(10)
 		X = new_h2o_frame(F)
 	except Exception as e:
+		#raise #for debugging
+
 		# if we can't start on localhost, try default (127.0.0.1)
-		try:
-			h2o.init()
-			X = new_h2o_frame(F)
-		except Exception as e:
-			warnings.warn('could not successfully start H2O instance', UserWarning)
-			X = None
+		# we'll try it a few times, since H2O is SUPER finnicky
+		max_tries = 3
+		count = 0
+
+		while (count < max_tries) and (X is None):
+			try:
+				h2o.init()
+				X = new_h2o_frame(F)
+			except Exception as e:
+				count += 1
+
+		if X is None:
+			warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
 
 
 	def catch_warning_assert_thrown(fun, kwargs):
@@ -93,7 +102,6 @@ def test_h2o():
 	def multicollinearity():
 		# one way or another, we can initialize it
 		filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6})
-		assert filterer.min_version == '3.8.3'
 		assert not filterer.max_version
 
 		if X is not None:
@@ -128,7 +136,6 @@ def test_h2o():
 
 	def nzv():
 		filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold':1e-8})
-		assert filterer.min_version == '3.8.3'
 		assert not filterer.max_version
 
 		# let's add a zero var feature to F

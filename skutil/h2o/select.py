@@ -68,7 +68,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		The columns to drop
 	"""
 	
-	__min_version__ = '3.8.3'
+	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 	
 	def __init__(self, target_feature=None, threshold=0.85, 
@@ -154,7 +154,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		The columns to drop
 	"""
 	
-	__min_version__ = '3.8.3'
+	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 	
 	def __init__(self, target_feature=None, threshold=1e-6, 

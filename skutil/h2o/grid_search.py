@@ -220,7 +220,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 	"""Base for all H2O grid searches"""
 
-	__min_version__ = '3.8.3'
+	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 	
 	@abstractmethod
