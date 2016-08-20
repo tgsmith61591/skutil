@@ -20,9 +20,7 @@ from sklearn.externals import six
 from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
-
 from math import ceil, floor
-from itertools import chain, combinations
 
 try:
 	from sklearn.model_selection import KFold
@@ -124,16 +122,20 @@ def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=No
 	else:
 		CVClass = H2OShuffleSplit
 
-	cv = CVClass(test_size=test_size,
+	cv = CVClass(n_splits=2,
+				 test_size=test_size,
 				 train_size=train_size,
 				 random_state=random_state)
 
-	train, test = next(cv.split(frame, stratify))
-	return list(
-		chain.from_iterable(
-			(frame[train, :], frame[test, :])
-		)
+	# for the h2o one, we only need iter 0
+	tr_te_tuples = [(tr,te) for tr,te in cv.split(frame, stratify)][0]
+	train, test = list(tr_te_tuples[0]), list(tr_te_tuples[1])
+	out = (
+		frame[train, :], 
+		frame[test,  :]
 	)
+
+	return out
 
 
 
@@ -267,7 +269,7 @@ def _validate_shuffle_split(n_samples, test_size, train_size):
 class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
 	"""Base class for H2OShuffleSplit and H2OStratifiedShuffleSplit"""
 
-	def __init__(self, n_splits=10, test_size=0.1, train_size=None, random_state=None):
+	def __init__(self, n_splits=2, test_size=0.1, train_size=None, random_state=None):
 		_validate_shuffle_split_init(test_size, train_size)
 		self.n_splits = n_splits
 		self.test_size = test_size
@@ -291,7 +293,7 @@ class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
 
 class H2OShuffleSplit(H2OBaseShuffleSplit):
 	def _iter_indices(self, frame, y=None):
-		n_samples = X.shape[0]
+		n_samples = frame.shape[0]
 		n_train, n_test = _validate_shuffle_split(n_samples, self.test_size, self.train_size)
 
 		rng = check_random_state(self.random_state)
@@ -303,9 +305,12 @@ class H2OShuffleSplit(H2OBaseShuffleSplit):
 
 
 class H2OStratifiedShuffleSplit(H2OBaseShuffleSplit):
-	def __init__(self, n_splits=10, test_size=0.1, train_size=None, random_state=None):
+	def __init__(self, n_splits=2, test_size=0.1, train_size=None, random_state=None):
 		super(H2OStratifiedShuffleSplit, self).__init__(
-			n_splits, test_size, train_size, random_state)
+			n_splits=n_splits, 
+			test_size=test_size, 
+			train_size=train_size, 
+			random_state=random_state)
 
 	def _iter_indices(self, frame, y):
 		n_samples = frame.shape[0]
