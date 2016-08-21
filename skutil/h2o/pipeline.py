@@ -99,6 +99,7 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 			# now validated the y/target_feature. Also this way if
 			# target_feature is ever changed, this will be updated...
 			transform.target_feature = self.target_feature
+			transform.feature_names = self.feature_names
 			
 			if hasattr(transform, "fit_transform"):
 				frameT = transform.fit_transform(frameT, **fit_params_steps[name])

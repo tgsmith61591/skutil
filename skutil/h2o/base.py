@@ -169,12 +169,12 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 	max_version : str, float (default None)
 		The maximum version of h2o that is compatible with the transformer
 	"""
-	
-	@abc.abstractmethod
-	def __init__(self, target_feature=None, min_version='any', max_version=None):
+	def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None):
 		super(BaseH2OTransformer, self).__init__(target_feature=target_feature,
 												 min_version=min_version,
 												 max_version=max_version)
+		# the column names
+		self.feature_names = feature_names
 			
 	def transform(self, X):
 		# validate state, frame

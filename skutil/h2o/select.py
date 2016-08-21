@@ -74,10 +74,11 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 	
-	def __init__(self, target_feature=None, threshold=0.85, 
+	def __init__(self, feature_names=None, target_feature=None, threshold=0.85, 
 				 na_warn=True, na_rm=False, use='complete.obs'):
 
-		super(H2OMulticollinearityFilterer, self).__init__(target_feature=target_feature, 
+		super(H2OMulticollinearityFilterer, self).__init__(feature_names=feature_names,
+														   target_feature=target_feature, 
 														   min_version=self.__min_version__,
 														   max_version=self.__max_version__)
 		self.threshold = threshold
@@ -112,8 +113,12 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
 		
+		# subset frame if necessary
+		if self.feature_names is not None:
+			frame = frame[self.feature_names]
+
 		# if there's a target feature, let's strip it out for now...
-		if self.target_feature is not None:
+		if self.target_feature:
 			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
 
 		# validate use, check NAs
@@ -160,12 +165,13 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 	
-	def __init__(self, target_feature=None, threshold=1e-6, 
+	def __init__(self, feature_names=None, target_feature=None, threshold=1e-6, 
 				 na_warn=True, na_rm=False, use='complete.obs'):
 
-		super(H2ONearZeroVarianceFilterer, self).__init__(target_feature, 
-														   self.__min_version__,
-														   self.__max_version__)
+		super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
+														  target_feature=target_feature, 
+														  min_version=self.__min_version__,
+														  max_version=self.__max_version__)
 		self.threshold = threshold
 		self.na_warn = na_warn
 		self.na_rm = na_rm
@@ -193,6 +199,10 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
 		
+		# subset frame if necessary
+		if self.feature_names is not None:
+			frame = frame[self.feature_names]
+
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature:
 			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
