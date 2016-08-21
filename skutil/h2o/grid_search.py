@@ -121,40 +121,51 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 				#if (not k in PARM_IGNORE) and (not v is None):
 				#	e._parms[k] = v
 				last_step._parms[k] = v
+
+			# determine which it's classification or regression...
+			is_regression = e._estimator_type != "classifier"
 		else:
 			# otherwise it's an BaseH2OFunctionWrapper
 			pass
 
-	return est
+	else:
+		# or it's an H2OEstimator
+		if hasattr(estimator, '_estimator_type'):
+			is_regression = estimator._estimator_type != "classifier"
+		else:
+			raise TypeError('expected BaseH2OFunctionWrapper or H2OEstimator, but got %s' % type(estimator))
+
+	return est, is_regression
 
 
-def _score(estimator, frame, target_feature, scorer, parms):
+def _score(estimator, frame, target_feature, scorer, parms, is_regression):
 	# this is a bottleneck:
 	y_truth = frame[target_feature].as_data_frame(use_pandas=True)[target_feature].tolist()
 
 	# gen predictions...
 	pred = estimator.predict(frame).as_data_frame(use_pandas=True)['predict']
 
-	# there's a very real chance that the truth or predictions are enums,
-	# as h2o is capable of handling these... we need to explicitly make the
-	# predictions and target numeric.
-	encoder = LabelEncoder()
+	if not is_regression:
+		# there's a very real chance that the truth or predictions are enums,
+		# as h2o is capable of handling these... we need to explicitly make the
+		# predictions and target numeric.
+		encoder = LabelEncoder()
 
-	try:
-		y_truth = encoder.fit_transform(y_truth)
-		pred = encoder.transform(pred)
-	except ValueError as v:
-		raise ValueError('y contains new labels. '
-						 'Seen: %s\n, New:%s' % (
-						 	str(encoder.classes_), 
-						 	str(set(pred))))
+		try:
+			y_truth = encoder.fit_transform(y_truth)
+			pred = encoder.transform(pred)
+		except ValueError as v:
+			raise ValueError('y contains new labels. '
+							 'Seen: %s\n, New:%s' % (
+							 	str(encoder.classes_), 
+							 	str(set(pred))))
 
 	return scorer(y_truth, pred, **parms)
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
 				   scorer, parameters, verbose, scoring_params,
-				   train, test):
+				   train, test, is_regression):
 	
 	if verbose > 1:
 		if parameters is None:
@@ -205,7 +216,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
 
 	# score model
-	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params)
+	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params, is_regression)
 	scoring_time = time.time() - start_time
 
 	if verbose > 2:
@@ -272,17 +283,17 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		}
 
 		# do first clone, remember to set the names...
-		base_estimator = _clone_h2o_obj(self.estimator, **nms)
+		base_estimator, self.is_regression_ = _clone_h2o_obj(self.estimator, **nms)
 
 
 		# do fits, scores
 		out = [
-			_fit_and_score(estimator=_clone_h2o_obj(base_estimator),
+			_fit_and_score(estimator=_clone_h2o_obj(base_estimator)[0],
 						   frame=X, feature_names=self.feature_names,
 						   target_feature=self.target_feature,
 						   scorer=self.scorer_, parameters=params,
 						   verbose=self.verbose, scoring_params=self.scoring_params,
-						   train=train, test=test)
+						   train=train, test=test, is_regression=self.is_regression_)
 			for params in parameter_iterable
 			for train, test in cv.split(X, self.target_feature)
 		]
