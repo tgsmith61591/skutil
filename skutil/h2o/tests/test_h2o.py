@@ -36,11 +36,6 @@ try:
 except ImportError as i:
 	from sklearn.cross_validation import train_test_split
 
-iris = load_iris()
-F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
-#F = load_iris_df(include_tgt=False)
-X = None
-
 
 def new_h2o_frame(X):
 	Y = H2OFrame.from_python(X, header=1, 
@@ -62,6 +57,11 @@ def new_estimators():
 
 # if we can't start an h2o instance, let's just pass all these tests
 def test_h2o():
+	iris = load_iris()
+	F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
+	#F = load_iris_df(include_tgt=False)
+	X = None
+	
 	try:
 		h2o.init()
 		#h2o.init(ip='localhost', port=54321) # this might throw a warning

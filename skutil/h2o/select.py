@@ -64,8 +64,11 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 
 	Attributes
 	----------
-	drop : list, string
+	drop_ : list, string
 		The columns to drop
+
+	mean_abs_correlations_ : list, float
+		The corresponding mean absolute correlations of each drop_ name
 	"""
 	
 	__min_version__ = '3.8.2.9'
@@ -122,7 +125,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		c.index = frame.columns
 		
 		## get drops list
-		self.drop_ = filter_collinearity(c, self.threshold)
+		self.drop_, self.mean_abs_correlations_ = filter_collinearity(c, self.threshold)
 		return self.transform(X)
 		
 

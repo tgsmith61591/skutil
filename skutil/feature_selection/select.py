@@ -146,6 +146,7 @@ def filter_collinearity(c, threshold):
 
 	# init drops list
 	drops = []
+	macor = [] # mean abs corrs
 
 	## Iterate over each feature
 	finished = False
@@ -179,6 +180,7 @@ def filter_collinearity(c, threshold):
 
 			# add the bad col to drops
 			drops.append(drop_nm)
+			macor.append(np.maximum(mn_1, mn_2))
 
 			# if we get here, we have to break so will start over
 			break
@@ -186,7 +188,7 @@ def filter_collinearity(c, threshold):
 		# if not finished, restarts loop, otherwise will exit loop
 
 	# return
-	return drops
+	return drops, macor
 
 
 class MulticollinearityFilterer(_BaseFeatureSelector):
@@ -215,9 +217,11 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 	drop : list, string
 		The columns to drop
 
+	mean_abs_correlations_ : list, float
+		The corresponding mean absolute correlations of each drop_ name
+
 	as_df : boolean
 		Whether or not to return a dataframe
-
 	"""
 
 	def __init__(self, cols=None, threshold=0.85, method='pearson', as_df=True):
@@ -260,8 +264,9 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
 		## get drops list
-		d = filter_collinearity(c, self.threshold)
+		d, mac = filter_collinearity(c, self.threshold)
 		self.drop = d if d else None
+		self.mean_abs_correlations_ = mac if mac else None
 
 		# if drop is None, we need to just return X
 		if not self.drop:
