@@ -122,20 +122,11 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 				#	e._parms[k] = v
 				last_step._parms[k] = v
 
-			# determine which it's classification or regression...
-			is_regression = e._estimator_type != "classifier"
 		else:
 			# otherwise it's an BaseH2OFunctionWrapper
 			pass
 
-	else:
-		# or it's an H2OEstimator
-		if hasattr(estimator, '_estimator_type'):
-			is_regression = estimator._estimator_type != "classifier"
-		else:
-			raise TypeError('expected BaseH2OFunctionWrapper or H2OEstimator, but got %s' % type(estimator))
-
-	return est, is_regression
+	return est
 
 
 def _score(estimator, frame, target_feature, scorer, parms, is_regression):
@@ -283,12 +274,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		}
 
 		# do first clone, remember to set the names...
-		base_estimator, self.is_regression_ = _clone_h2o_obj(self.estimator, **nms)
+		base_estimator = _clone_h2o_obj(self.estimator, **nms)
+		self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
 
 		# do fits, scores
 		out = [
-			_fit_and_score(estimator=_clone_h2o_obj(base_estimator)[0],
+			_fit_and_score(estimator=_clone_h2o_obj(base_estimator),
 						   frame=X, feature_names=self.feature_names,
 						   target_feature=self.target_feature,
 						   scorer=self.scorer_, parameters=params,
