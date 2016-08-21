@@ -346,7 +346,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 	def score(self, frame):
 		check_is_fitted(self, 'best_estimator_')
-		return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.scoring_params)
+		return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.scoring_params, self.is_regression_)
 
 	def predict(self, frame):
 		check_is_fitted(self, 'best_estimator_')
