@@ -152,7 +152,8 @@ def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwa
 	y_truth = _as_numpy(frame[target_feature])
 
 	# gen predictions...
-	pred = _as_numpy(estimator.predict(frame['predict']))
+	pred = _as_numpy(estimator.predict(frame)['predict'])
+	# pred = estimator.predict(frame).as_data_frame(use_pandas=True)['predict'] #old...
 
 	if not is_regression:
 		# there's a very real chance that the truth or predictions are enums,
