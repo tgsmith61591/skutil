@@ -629,12 +629,12 @@ def test_h2o():
 									target_feature='target',
 									scoring='lift',
 									validation_frame=test,
-									cv=H2OKFold(n_folds=3, shuffle=True, random_state=rand_state),
+									cv=H2OKFold(n_folds=2, shuffle=True, random_state=rand_state),
 									verbose=3,
 									n_iter=1
 								)
 
-			search.fit()
+			search.fit(train)
 
 			# report:
 			report = search.report_scores()
