@@ -115,7 +115,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		
 		# subset frame if necessary
 		if self.feature_names is not None:
-			frame = frame[self.feature_names]
+			frame = frame[[x for x in self.feature_names if x in frame.columns]]
 
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature:
@@ -201,7 +201,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 		
 		# subset frame if necessary
 		if self.feature_names is not None:
-			frame = frame[self.feature_names]
+			frame = frame[[x for x in self.feature_names if x in frame.columns]]
 
 		# if there's a target feature, let's strip it out for now...
 		if self.target_feature:

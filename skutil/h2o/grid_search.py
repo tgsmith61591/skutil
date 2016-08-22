@@ -208,6 +208,11 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
 	# score model
 	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params, is_regression)
+
+	# h2o is verbose.. if we are too, print a new line:
+	if verbose > 1:
+		print() # new line
+
 	scoring_time = time.time() - start_time
 
 	if verbose > 2:
@@ -215,6 +220,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 	if verbose > 1:
 		end_msg = '%s -%s' % (msg, logger.short_format_time(scoring_time))
 		print('[CV] %s %s' % ((64 - len(end_msg)) * '.', end_msg))
+		print() # new line
 
 	return [test_score, len(test), estimator, parameters]
 
@@ -330,6 +336,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		# fit the best estimator using the entire dataset
 		# clone first to work around broken estimators
 		best_estimator = _clone_h2o_obj(base_estimator, **nms)
+
+
+		# if verbose alert user we're at the end...
+		if self.verbose > 1:
+			msg = 'Target: %s; %s' % (self.target_feature, ', '.join('%s=%s' % (k,v)
+									 for k, v in six.iteritems(best.parameters) ))
+			print("[BEST] %s %s" % (msg, (64 - len(msg)) * '.'))
+
 
 		# set params -- remember h2o gets funky with this...
 		if isinstance(best_estimator, H2OEstimator):

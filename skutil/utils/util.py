@@ -8,8 +8,22 @@ from sklearn.metrics import confusion_matrix as cm
 from sklearn.datasets import load_iris
 from ..base import SelectiveWarning, ModuleImportWarning
 
+try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
 
-# check if matplotlib exists
+        # do actual import
+        #import matplotlib as mpl
+        #mpl.use('TkAgg') # set backend
+        from matplotlib import pyplot as plt
+
+        # log it
+        CAN_CHART = True
+except ImportError as ie:
+    CAN_CHART = False
+
+
 __max_exp__ = 1e19
 __min_log__ = -19
 __all__ = [
@@ -280,29 +294,6 @@ def report_grid_score_detail(random_search, charts=True):
     """Input fit grid search estimator. Returns df of scores with details"""
     df_list = []
 
-
-    try:
-        MPL_IMPORTED
-    except NameError as n:
-        try:
-            # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-
-                # do actual import
-                import matplotlib as mpl
-                #mpl.use('TkAgg') # set backend
-                from matplotlib import pyplot as plt
-
-                # log it
-                CAN_CHART = True
-        except ImportError as ie:
-            CAN_CHART = False
-            warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
-
-        MPL_IMPORTED = True
-
-
     for line in random_search.grid_scores_:
         results_dict = dict(line.parameters)
         results_dict["score"] = line.mean_validation_score
@@ -313,7 +304,7 @@ def report_grid_score_detail(random_search, charts=True):
     result_df = result_df.sort_values("score", ascending=False)
     
     # if the import failed, we won't be able to chart here
-    if charts and __can_chart__:
+    if charts and CAN_CHART:
         for col in get_numeric(result_df):
             if col not in ["score", "std"]:
                 plt.scatter(result_df[col], result_df.score)
@@ -325,6 +316,8 @@ def report_grid_score_detail(random_search, charts=True):
             cat_plot.sort_values()
             cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
             plt.show()
+    elif charts and not CAN_CHART:
+        warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 
     return result_df
 
