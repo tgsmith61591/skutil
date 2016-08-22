@@ -14,8 +14,10 @@ except ImportError as e:
 
 from .pipeline import H2OPipeline
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y
-from ..utils import is_numeric
+from ..base import overrides
+from ..utils import is_numeric, report_grid_score_detail
 from ..grid_search import _CVScoreTuple, _check_param_grid
+from ..metrics import ActStatisticalReport
 from .split import check_cv
 from .split import *
 
@@ -39,13 +41,16 @@ from sklearn.metrics import (accuracy_score,
 # >= sklearn 0.18
 try:
 	from sklearn.model_selection import ParameterSampler, ParameterGrid
+	SK18 = True
 except ImportError as i:
 	from sklearn.grid_search import ParameterSampler, ParameterGrid
+	SK18 = False
 
 
 __all__ = [
 	'H2OGridSearchCV',
-	'H2ORandomizedSearchCV'
+	'H2ORandomizedSearchCV',
+	'H2OActuarialRandomizedSearchCV'
 ]
 
 
@@ -94,6 +99,19 @@ PARM_IGNORE = set([
 	'keep_cross_validation_fold_assignment'
 ])
 
+
+def _as_numpy(_1d_h2o_frame):
+	"""Takes a single column h2o frame and
+	converts it into a numpy array
+	"""
+	n_cols = _1d_h2o_frame.shape[1]
+	if not n_cols == 1:
+		raise ValueError('expected single column frame, got %d' % n_cols)
+	
+	nm = str(_1d_h2o_frame.columns[0])
+	return _1d_h2o_frame[nm].as_data_frame(use_pandas=True)[nm].values
+
+
 def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 	# do initial clone
 	est = clone(estimator)
@@ -129,12 +147,12 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 	return est
 
 
-def _score(estimator, frame, target_feature, scorer, parms, is_regression):
+def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwargs):
 	# this is a bottleneck:
-	y_truth = frame[target_feature].as_data_frame(use_pandas=True)[target_feature].tolist()
+	y_truth = _as_numpy(frame[target_feature])
 
 	# gen predictions...
-	pred = estimator.predict(frame).as_data_frame(use_pandas=True)['predict']
+	pred = _as_numpy(estimator.predict(frame))
 
 	if not is_regression:
 		# there's a very real chance that the truth or predictions are enums,
@@ -151,12 +169,19 @@ def _score(estimator, frame, target_feature, scorer, parms, is_regression):
 							 	str(encoder.classes_), 
 							 	str(set(pred))))
 
+	# pop all of the kwargs into the parms
+	for k,v in six.iteritems(kwargs):
+		# we could warn, but parms is affected in place, so we won't...
+		#if k in parms:
+		#	warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
+		parms[k] = v
+
 	return scorer(y_truth, pred, **parms)
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
 				   scorer, parameters, verbose, scoring_params,
-				   train, test, is_regression):
+				   train, test, is_regression, act_args=None):
 	
 	if verbose > 1:
 		if parameters is None:
@@ -173,10 +198,25 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 						% type(estimator))
 
 
+	# h2o doesn't currently re-order rows... and sometimes will
+	# complain for some reason. We need to sort our train/test idcs
+	train = sorted(train)
+	test = sorted(test)
+
 
 	# generate split
 	train_frame = frame[train, :]
 	test_frame = frame[test, :]
+
+	# if xtra args, it's act...
+	if act_args is not None:
+		kwargs = {
+			'expo' : _as_numpy(test_frame[act_args['expo']]),
+			'loss' : _as_numpy(test_frame[act_args['loss']]),
+			'prem' : _as_numpy(test_frame[act_args['prem']]) if (act_args['prem'] is not None) else None
+		}
+	else:
+		kwargs = {}
 
 	start_time = time.time()
 
@@ -207,7 +247,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
 
 	# score model
-	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params, is_regression)
+	test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params, is_regression, **kwargs)
 
 	# h2o is verbose.. if we are too, print a new line:
 	if verbose > 1:
@@ -235,7 +275,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 	def __init__(self, estimator, feature_names,
 				 target_feature, scoring=None, 
 				 n_jobs=1, scoring_params=None, 
-				 cv=5, verbose=0, iid=True):
+				 cv=5, verbose=0, iid=True,
+				 validation_frame=None):
 
 		super(BaseH2OSearchCV, self).__init__(target_feature=target_feature,
 											  min_version=self.__min_version__,
@@ -249,6 +290,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		self.cv = cv
 		self.verbose = verbose
 		self.iid = iid
+		self.validation_frame = validation_frame
 
 	def _fit(self, X, parameter_iterable):
 		"""Actual fitting,  performing the search over parameters."""
@@ -258,7 +300,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 		# we need to require scoring...
 		scoring = self.scoring
-		if not scoring:
+		if scoring is None:
 			raise ValueError('require string or callable for scoring')
 		elif isinstance(scoring, str):
 			if not scoring in SCORERS:
@@ -284,6 +326,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
 
+		# the addition of the actuarial search necessitates some hackiness.
+		# if we have the attr 'extra_args_' then we know it's an actuarial search
+		xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None
+
 		# do fits, scores
 		out = [
 			_fit_and_score(estimator=_clone_h2o_obj(base_estimator),
@@ -291,10 +337,34 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 						   target_feature=self.target_feature,
 						   scorer=self.scorer_, parameters=params,
 						   verbose=self.verbose, scoring_params=self.scoring_params,
-						   train=train, test=test, is_regression=self.is_regression_)
+						   train=train, test=test, is_regression=self.is_regression_,
+						   act_args=xtra)
 			for params in parameter_iterable
 			for train, test in cv.split(X, self.target_feature)
 		]
+
+
+		# if a validation frame was passed, user might want to see how it scores
+		# on each model, so we'll do that here...
+		if self.validation_frame is not None:
+			score_validation = True
+			self.validation_scores = []
+
+			if xtra is not None:
+				self.val_score_report_ = ActStatisticalReport()
+				val_scorer = self.val_score_report_._score
+
+				kwargs = {
+					'expo' : _as_numpy(self.validation_frame[xtra['expo']]),
+					'loss' : _as_numpy(self.validation_frame[xtra['loss']]),
+					'prem' : _as_numpy(self.validation_frame[xtra['prem']]) if (xtra['prem'] is not None) else None
+				}
+			else:
+				kwargs = {}
+				val_scorer = self.scorer_
+		else:
+			score_validation = False
+
 
 		# Out is a list of quad: score, n_test_samples, estimator, parameters
 		n_fits = len(out)
@@ -306,13 +376,25 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 			n_test_samples = 0
 			score = 0
 			all_scores = []
-			for this_score, this_n_test_samples, _, parameters in \
+
+			# iterate over OUT
+			for this_score, this_n_test_samples, this_estimator, parameters in \
 					out[grid_start:grid_start + n_folds]:
 				all_scores.append(this_score)
+
 				if self.iid:
 					this_score *= this_n_test_samples
 					n_test_samples += this_n_test_samples
 				score += this_score
+
+				# score validation set if necessary
+				if score_validation:
+					val_score = _score(this_estimator, self.validation_frame, 
+						self.target_feature, val_scorer, self.scoring_params, 
+						self.is_regression_, **kwargs)
+
+					self.validation_scores.append(val_score)
+
 			if self.iid:
 				score /= float(n_test_samples)
 			else:
@@ -379,8 +461,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 
 		frame = _check_is_frame(frame)
 		return self.best_estimator_.transform(frame)
-
 	
+
 
 class H2OGridSearchCV(BaseH2OSearchCV):
 
@@ -388,7 +470,8 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 				 feature_names, target_feature, 
 				 scoring=None, n_jobs=1, 
 				 scoring_params=None, cv=5, 
-				 verbose=0, iid=True):
+				 verbose=0, iid=True,
+				 validation_frame=None):
 
 		super(H2OGridSearchCV, self).__init__(
 				estimator=estimator,
@@ -397,7 +480,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 				scoring=scoring, n_jobs=n_jobs,
 				scoring_params=scoring_params,
 				cv=cv, verbose=verbose,
-				iid=iid
+				iid=iid, validation_frame=validation_frame
 			)
 
 		self.param_grid = param_grid
@@ -414,7 +497,8 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 				 n_iter=10, random_state=None,
 				 scoring=None, n_jobs=1, 
 				 scoring_params=None, cv=5, 
-				 verbose=0, iid=True):
+				 verbose=0, iid=True,
+				 validation_frame=None):
 
 		super(H2ORandomizedSearchCV, self).__init__(
 				estimator=estimator,
@@ -423,7 +507,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 				scoring=scoring, n_jobs=n_jobs,
 				scoring_params=scoring_params,
 				cv=cv, verbose=verbose,
-				iid=iid
+				iid=iid, validation_frame=validation_frame
 			)
 
 		self.param_grid = param_grid
@@ -436,4 +520,122 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 										  random_state=self.random_state)
 
 		return self._fit(frame, sampled_params)
+
+
+
+
+def _val_exp_loss_prem(x,y,z):
+	if not all([isinstance(i, (str, unicode)) for i in (x,y)]):
+		raise TypeError('exposure and loss must be strings or unicode')
+
+	if not z is None:
+		if not isinstance(z, (str, unicode)):
+			raise TypeError('premium must be None or string or unicode')
+
+	return str(x), str(y), str(z) if z is not None else z
+
+
+class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
+	"""A grid search that scores based on actuarial metrics
+	(See skutil.metrics.ActStatisticalReport)
+	"""
+
+	def __init__(self, estimator, param_grid,
+				 feature_names, target_feature, 
+				 exposure_feature, loss_feature,
+				 premium_feature=None, n_iter=10, 
+				 random_state=None, scoring='lift', 
+				 n_jobs=1, scoring_params=None, cv=5, 
+				 verbose=0, iid=True, #n_groups=10,
+				 validation_frame=None):
+
+		super(H2OActuarialRandomizedSearchCV, self).__init__(
+				estimator=estimator,
+				param_grid=param_grid,
+				feature_names=feature_names,
+				target_feature=target_feature,
+				n_iter=n_iter, random_state=random_state,
+				scoring=scoring, n_jobs=n_jobs,
+				scoring_params=scoring_params,
+				cv=cv, verbose=verbose,
+				iid=iid, validation_frame=validation_frame
+			)
+
+		#self.n_groups = 10
+		self.exposure_feature = exposure_feature
+		self.loss_feature = loss_feature
+		self.premium_feature = premium_feature
+
+		# our score method will ALWAYS be the same
+		self.score_report_ = ActStatisticalReport( #n_groups=n_groups, 
+			score_by=scoring)
+		self.scoring = self.score_report_._score ## callable -- resets scoring
+
+
+	def fit(self, frame):
+		sampled_params = ParameterSampler(self.param_grid,
+										  self.n_iter,
+										  random_state=self.random_state)
+
+		exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
+		self.extra_args_ = {
+			'expo':exp,
+			'loss':loss,
+			'prem':prem
+		}
+
+		# do fit
+		return self._fit(frame, sampled_params)
+
+	def report_scores(self):
+		"""Get the actuarial report"""
+		check_is_fitted(self, 'best_estimator_')
+		report_res = self.score_report_.as_data_frame()
+		n_obs, _ = report_res.shape
+
+		# Need to cbind the parameters... we don't care about ["score", "std"]
+		rdf = report_grid_score_detail(self, charts=False).drop(["score", "std"], axis=1)
+
+		# we can identify how many splits there were like this:
+		n_splits = n_obs // rdf.shape[0]
+
+		# now, for each set of cv splits, get the mean and std of scores
+		scores = {m:[] for m in report_res.columns.values}
+		stdvs  = {m:[] for m in report_res.columns.values}
+		val_scores = {m:[] for m in report_res.columns.values}
+		val_stdvs  = {m:[] for m in report_res.columns.values}
+
+		#if we scored on the validation set...
+		score_val = hasattr(self, 'val_score_report_')
+		if score_val:
+			val_res_df = self.val_score_report_.as_data_frame()
+
+		ranges = np.arange(0, n_obs, n_splits)
+		range_len = ranges.shape[0]
+		for i,range_bottom in enumerate(ranges):
+			range_top = ranges[i+1] if i != (range_len-1) else range_len
+			obs = report_res.iloc[range_bottom:range_top, :]
+
+			for m,_ in six.iteritems(scores):
+				scores[m].append(obs[m].mean())
+				stdvs[m].append(obs[m].std())
+
+				if score_val:
+					val_obs = val_res_df.iloc[range_bottom:range_top, :]
+					val_scores[m].append(val_obs[m].mean())
+					val_stdvs[m].append(val_obs[m].mean())
+
+
+		# append summaries
+		for m,v in six.iteritems(scores):
+			rdf['train_%s_mean'%m] = v
+			rdf['train_%s_std' %m] = stdvs[m]
+
+			if score_val:
+				rdf['val_%s_mean' % m] = val_scores[m]
+				rdf['val_%s_std' % m] = val_stdvs[m]
+
+		rdf.index = ['Iter_%i' %i for i in range(self.n_iter)]
+		return rdf
+
 

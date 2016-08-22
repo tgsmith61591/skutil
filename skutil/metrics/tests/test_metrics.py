@@ -3,6 +3,8 @@ import numpy as np
 import timeit
 from skutil.metrics._kernel import (_hilbert_dot, 
 									_hilbert_matrix)
+from skutil.metrics import ActStatisticalReport
+from skutil.utils.tests.utils import assert_fails
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
 sigma = 0.05
@@ -125,3 +127,22 @@ def test_tanh():
  		[ 0.99505475 , 1.         , 1.        ],
  		[ 0.9993293  , 1.         , 1.        ]]))
 
+def test_act_stats():
+	pred = [0.0, 1.0, 1.5]
+	loss = [0.5, 0.5, 1.0]
+	expo = [1.0, 0.5, 1.0]
+
+	a = ActStatisticalReport().fit_fold(pred=pred, expo=expo, loss=loss)
+	
+	# now see if we can get one to fail...
+	assert_fails(a.fit_fold, TypeError, **{'pred':pred,'expo':expo,'loss':loss,'prem':12})
+
+	# this one will work:
+	a.fit_fold(pred=pred, expo=expo, loss=loss, prem=[1.0,1.0,1.0])
+
+	# initializing with a bad 'score_by' will fail
+	assert_fails(ActStatisticalReport, ValueError, **{'score_by':'accuracy'})
+
+	# assert this is two in length...
+	d = a.as_data_frame()
+	assert d.shape[0] == 2

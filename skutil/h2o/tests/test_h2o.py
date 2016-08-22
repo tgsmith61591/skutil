@@ -23,7 +23,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split)
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from scipy.stats import randint, uniform
@@ -61,7 +61,7 @@ def test_h2o():
 	F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 	#F = load_iris_df(include_tgt=False)
 	X = None
-	
+
 	try:
 		h2o.init()
 		#h2o.init(ip='localhost', port=54321) # this might throw a warning
@@ -530,12 +530,12 @@ def test_h2o():
 
 	def split_tsts():
 		# testing _validate_shuffle_split_init
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})     # can't both be None
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})	 # can't both be None
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})	  # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':'string','train_size':None}) # if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})	  # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':'string', 'test_size':None})# if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})      # if both float, must not exceed 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})	  # if both float, must not exceed 1.
 
 		# testing _validate_shuffle_split
 		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'test_size':11, 'train_size':0}) # test_size can't exceed n_samples
@@ -579,6 +579,70 @@ def test_h2o():
 		else:
 			pass
 
+	def act_search():
+		boston = load_boston()
+		X_bost = pd.DataFrame.from_records(data=boston.data, columns=boston.feature_names)
+		X_bost['target'] = boston.target
+
+		# need to make up some exposure features
+		X_bost['expo'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
+		X_bost['loss'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
+
+		# do split
+		X_train, X_test = train_test_split(X_bost, train_size=0.7)
+
+		# now upload to cloud...
+		try:
+			train = from_pandas(X_train)
+			test = from_pandas(X_test)
+		except Exception as e:
+			train = None
+			test = None
+
+
+		if all([x is not None for x in (train, test)]):
+			# define a pipeline
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer(na_warn=False)),
+					('mcf', H2OMulticollinearityFilterer(na_warn=False)),
+					('gbm', H2OGradientBoostingEstimator())
+				])
+
+			# define our hyperparams
+			hyper_params = {
+				'nzv__threshold'	 : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
+				'mcf__threshold'	 : uniform(0.85, 0.15),
+				'gbm__ntrees'		: randint(25, 100),
+				'gbm__max_depth'	 : randint(2, 8),
+				'gbm__min_rows'	  : randint(8, 25)
+			}
+
+			# define our grid search
+			rand_state=42
+			search = H2OActuarialRandomizedSearchCV(
+									estimator=pipe,
+									param_grid=hyper_params,
+									exposure_feature='expo',
+									loss_feature='loss',
+									random_state=rand_state,
+									feature_names=boston.feature_names,
+									target_feature='target',
+									scoring='lift',
+									validation_frame=test,
+									cv=H2OKFold(n_folds=3, shuffle=True, random_state=rand_state),
+									verbose=3,
+									n_iter=1
+								)
+
+			search.fit()
+
+			# report:
+			report = search.report_scores()
+			assert report.shape[0] == 1
+
+		else:
+			pass
+
 	# run them
 	multicollinearity()
 	nzv()
@@ -589,3 +653,4 @@ def test_h2o():
 	from_pandas_h2o()
 	from_array_h2o()
 	split_tsts()
+	act_search()
