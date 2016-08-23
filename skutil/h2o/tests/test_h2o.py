@@ -50,10 +50,10 @@ def new_estimators():
 	with the skutil framework. This ensures it will work with all the estimators...
 	"""
 	return (
-			H2ORandomForestEstimator(),
+			H2ORandomForestEstimator(ntrees=5),
 			#H2OGeneralizedLinearEstimator(family='multinomial'),
-			H2OGradientBoostingEstimator(distribution='multinomial'),
-			H2ODeepLearningEstimator(distribution='multinomial')
+			H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5),
+			H2ODeepLearningEstimator(distribution='multinomial', epochs=1, hidden=[10,10])
 		)
 
 
