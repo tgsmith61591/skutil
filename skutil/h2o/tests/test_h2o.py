@@ -710,7 +710,7 @@ def test_h2o():
 
 	def sparse():
 		f = F.copy()
-		f['sparse'] = np.zeros(f.shape[0])
+		f['sparse'] = ['NA' for i in range(f.shape[0])]
 
 		# try uploading...
 		try:
