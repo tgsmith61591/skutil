@@ -9,8 +9,7 @@ from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
 							H2OGeneralizedLinearEstimator,
 							H2OGradientBoostingEstimator,
-							H2ODeepLearningEstimator,
-							H2OPrincipalComponentAnalysisEstimator)
+							H2ODeepLearningEstimator)
 
 from skutil.h2o import from_pandas, from_array
 from skutil.h2o.base import *
