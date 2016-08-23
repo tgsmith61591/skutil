@@ -724,8 +724,8 @@ def test_h2o():
 			assert 'sparse' in filterer.drop_
 
 			# assert fails for over 1.0 or under 0.0
-			assert_fails(H2OSparseFeatureDropper(threshold=0.0).fit, ValueError, frame)
-			assert_fails(H2OSparseFeatureDropper(threshold=1.0).fit, ValueError, frame)
+			assert_fails(H2OSparseFeatureDropper(threshold = -0.1).fit, ValueError, frame)
+			assert_fails(H2OSparseFeatureDropper(threshold =  1.0).fit, ValueError, frame)
 
 		else:
 			pass
