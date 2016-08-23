@@ -221,7 +221,7 @@ def test_h2o():
 				pipe = H2OPipeline([
 						('nzv', H2ONearZeroVarianceFilterer()),
 						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-						('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+						('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
 					], 
 					feature_names=F.columns.tolist(),
 					target_feature=y
@@ -239,7 +239,7 @@ def test_h2o():
 			pipe = H2OPipeline([
 					('nzv', H2ONearZeroVarianceFilterer()),
 					('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-					('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+					('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
 				], 
 				feature_names=1,
 				target_feature='species'
@@ -255,7 +255,7 @@ def test_h2o():
 				pipe = H2OPipeline([
 						('nzv', H2ONearZeroVarianceFilterer()),
 						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-						('mc', H2OGradientBoostingEstimator(distribution='multinomial'))
+						('mc', H2OGradientBoostingEstimator(distribution='multinomial',ntrees=5))
 					], 
 					feature_names=F.columns.tolist(),
 					target_feature='species'
@@ -274,7 +274,7 @@ def test_h2o():
 				pipe = H2OPipeline([
 						('nzv', NearZeroVarianceFilterer()),
 						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-						('est', H2OGradientBoostingEstimator(distribution='multinomial'))
+						('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
 					], 
 					feature_names=F.columns.tolist(),
 					target_feature='species'
@@ -332,7 +332,7 @@ def test_h2o():
 		def get_param_grid(est):
 			if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
 				return {
-					'ntrees' : [10,20]
+					'ntrees' : [3,5]
 				}
 			elif isinstance(est, H2ODeepLearningEstimator):
 				return {
@@ -433,7 +433,7 @@ def test_h2o():
 			# can we just fit one with a validation frame for coverage?
 			pipe = H2OPipeline([
 				('nzv', H2ONearZeroVarianceFilterer()),
-				('est', H2OGradientBoostingEstimator())
+				('est', H2OGradientBoostingEstimator(ntrees=5))
 			])
 
 			hyper = {
@@ -663,7 +663,7 @@ def test_h2o():
 			pipe = H2OPipeline([
 					('nzv', H2ONearZeroVarianceFilterer(na_warn=False)),
 					('mcf', H2OMulticollinearityFilterer(na_warn=False)),
-					('gbm', H2OGradientBoostingEstimator())
+					('gbm', H2OGradientBoostingEstimator(ntrees=5))
 				])
 
 			# define our hyperparams
