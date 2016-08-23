@@ -12,6 +12,7 @@ import h2o
 from h2o.frame import H2OFrame
 
 from ..feature_selection import filter_collinearity
+from ..utils import is_numeric
 from .base import (NAWarning, 
 				   BaseH2OTransformer, 
 				   _check_is_frame, 
@@ -20,7 +21,8 @@ from .base import (NAWarning,
 
 __all__ = [
 	'H2OMulticollinearityFilterer',
-	'H2ONearZeroVarianceFilterer'
+	'H2ONearZeroVarianceFilterer',
+	'H2OSparseFeatureDropper'
 ]
 
 
@@ -38,6 +40,69 @@ def _validate_use(X, use, na_warn):
 		 	use = 'complete.obs'
 
 	return use
+
+
+
+class H2OSparseFeatureDropper(BaseH2OTransformer):
+	"""Retains features that are less sparse (NA) than
+	the provided threshold.
+
+	Parameters
+	----------
+	feature_names : array_like (string)
+		The features from which to drop
+
+	target_feature : str (default None)
+		The name of the target feature (is excluded from the fit)
+
+	threshold : float (default=0.5)
+		The threshold of sparsity above which to drop
+
+	as_df : boolean, optional (True default)
+		Whether to return a dataframe
+	"""
+
+	__min_version__ = '3.8.2.9'
+	__max_version__ = None
+
+	def __init__(self, feature_names=None, target_feature=None, threshold=0.5):
+		super(H2OSparseFeatureDropper, self).__init__(feature_names=feature_names,
+													  target_feature=target_feature,
+													  min_version=self.__min_version__,
+													  max_version=self.__max_version__)
+
+		self.threshold = threshold
+
+	def fit(self, X):
+		"""Fit the sparsity filterer.
+
+		Parameters
+		----------
+		X : H2OFrame
+			The frame to fit
+		"""
+		frame, thresh = _check_is_frame(X), self.threshold
+		
+		# subset frame if necessary
+		if self.feature_names is not None:
+			frame = frame[[x for x in self.feature_names if x in frame.columns]]
+
+		# if there's a target feature, let's strip it out for now...
+		if self.target_feature:
+			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
+
+		# validate the threshold
+		if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
+			raise ValueError('thresh must be a float between '
+							 '0 (inclusive) and 1. Got %s' % str(thresh))
+
+		df = (frame.isna().apply(lambda x: x.sum()) / frame.shape[0]).as_data_frame(use_pandas=True)
+		df.columns = frame.columns
+		ser = df.T[0]
+
+		self.drop_ = [str(x) for x in ser.index[ser > thresh]]
+		return self
+
 
 
 class H2OMulticollinearityFilterer(BaseH2OTransformer):
@@ -94,8 +159,6 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		----------
 		X : H2OFrame
 			The frame to fit
-
-		y : None, passthrough for pipeline
 		"""
 
 		self.fit_transform(X)

@@ -22,7 +22,8 @@ __all__ = [
 	'NAWarning',
 	'BaseH2OFunctionWrapper',
 	'BaseH2OTransformer',
-	'validate_x_y'
+	'validate_x_y',
+	'VizMixin'
 ]
 
 
@@ -63,6 +64,10 @@ def validate_x_y(feature_names, target_feature):
 	# make list of strings, return target_feature too
 	return [str(i) for i in feature_names], target_feature
 
+
+class VizMixin:
+	def plot(self, timestep, metric):
+		return NotImplemented
 
 
 class BaseH2OFunctionWrapper(BaseEstimator):

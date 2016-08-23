@@ -9,19 +9,22 @@ from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
 							H2OGeneralizedLinearEstimator,
 							H2OGradientBoostingEstimator,
-							H2ODeepLearningEstimator)
+							H2ODeepLearningEstimator,
+							H2OPrincipalComponentAnalysisEstimator)
 
 from skutil.h2o import from_pandas, from_array
 from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
+from skutil.h2o.grid_search import _as_numpy
 from skutil.utils import load_iris_df
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
 	H2OStratifiedKFold, h2o_train_test_split, 
-	_validate_shuffle_split_init, _validate_shuffle_split)
+	_validate_shuffle_split_init, _validate_shuffle_split,
+	_val_y)
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -309,6 +312,10 @@ def test_h2o():
 
 
 	def grid():
+		# test as_numpy
+		assert_fails(_as_numpy, ValueError, F) # fails if not 1 col
+
+
 		f = F.copy()
 		targ = iris.target
 		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
@@ -423,6 +430,45 @@ def test_h2o():
 										else:
 											raise
 
+
+			# can we just fit one with a validation frame for coverage?
+			pipe = H2OPipeline([
+				('nzv', H2ONearZeroVarianceFilterer()),
+				('est', H2OGradientBoostingEstimator())
+			])
+
+			hyper = {
+				'nzv__threshold' : uniform(1e-6, 0.0025)
+			}
+
+			grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
+				feature_names=F.columns.tolist(), target_feature='species',
+				scoring='accuracy_score', iid=True, verbose=0, cv=2,
+				validation_frame=frame)
+
+			grid.fit(frame)
+
+
+
+			# let's assert that this will fail for princompanalysis (or anything without 'predict')
+			"""
+			pipe = H2OPipeline([
+				('nzv', H2ONearZeroVarianceFilterer()),
+				('est', H2OPrincipalComponentAnalysisEstimator())
+			])
+
+			hyper = {
+				'nzv__threshold' : uniform(1e-6, 0.0025)
+			}
+
+			grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
+				feature_names=F.columns.tolist(), target_feature='species',
+				scoring='accuracy_score', iid=True, verbose=0, cv=2,
+				validation_frame=frame)
+
+			assert_fails(grid.fit, ValueError, frame) # should fail due to not having 'predict'
+			"""
+
 		else:
 			pass
 
@@ -529,18 +575,31 @@ def test_h2o():
 			pass
 
 	def split_tsts():
+		# testing val_y
+		assert_fails(_val_y, TypeError, 1)
+		assert _val_y(None) is None
+		assert isinstance(_val_y(unicode('asdf')), str)
+
 		# testing _validate_shuffle_split_init
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})	 # can't both be None
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})	  # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})     # can't both be None
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})      # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':'string','train_size':None}) # if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})	  # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})      # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':'string', 'test_size':None})# if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})	  # if both float, must not exceed 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})      # if both float, must not exceed 1.
 
 		# testing _validate_shuffle_split
 		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'test_size':11, 'train_size':0}) # test_size can't exceed n_samples
 		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'train_size':11, 'test_size':0}) # train_size can't exceed n_samples
 		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'train_size':5, 'test_size':6})  # sum can't exceed n_samples
+
+		# test with train as None
+		n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=30, train_size=None)
+		assert n_train==70
+
+		# test with test as None
+		n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=None, train_size=70)
+		assert n_test==30
 
 		# test what works:
 		n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=3, train_size=7)
@@ -610,10 +669,10 @@ def test_h2o():
 
 			# define our hyperparams
 			hyper_params = {
-				'nzv__threshold'	 : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
-				'mcf__threshold'	 : uniform(0.85, 0.15),
-				'gbm__ntrees'		: randint(25, 100),
-				'gbm__max_depth'	 : randint(2, 8),
+				'nzv__threshold'  : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
+				'mcf__threshold'  : uniform(0.85, 0.15),
+				'gbm__ntrees'     : randint(25, 100),
+				'gbm__max_depth'  : randint(2, 8),
 				'gbm__min_rows'	  : randint(8, 25)
 			}
 
@@ -630,11 +689,17 @@ def test_h2o():
 									scoring='lift',
 									validation_frame=test,
 									cv=H2OKFold(n_folds=2, shuffle=True, random_state=rand_state),
-									verbose=3,
+									verbose=1, # don't want to go overkill
 									n_iter=1
 								)
 
 			search.fit(train)
+
+			# can we plot in the actual tests?
+			try:
+				search.plot(timestep='number_of_trees', metric='MSE')
+			except Exception as e:
+				pass # naive for now, but not even sure this can be done in nosetests...
 
 			# report:
 			report = search.report_scores()
@@ -642,6 +707,30 @@ def test_h2o():
 
 		else:
 			pass
+
+
+	def sparse():
+		f = F.copy()
+		f['sparse'] = np.zeros(f.shape[0])
+
+		# try uploading...
+		try:
+			frame = new_h2o_frame(f)
+		except Exception as e:
+			frame = None
+
+		if frame is not None:
+			filterer = H2OSparseFeatureDropper()
+			filterer.fit(frame)
+			assert 'sparse' in filterer.drop_
+
+			# assert fails for over 1.0 or under 0.0
+			assert_fails(H2OSparseFeatureDropper(threshold=0.0).fit, ValueError, frame)
+			assert_fails(H2OSparseFeatureDropper(threshold=1.0).fit, ValueError, frame)
+
+		else:
+			pass
+
 
 	# run them
 	multicollinearity()
@@ -654,3 +743,4 @@ def test_h2o():
 	from_array_h2o()
 	split_tsts()
 	act_search()
+	sparse()

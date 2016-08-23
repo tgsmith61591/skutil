@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 
 from sklearn.externals import six
-from .base import BaseH2OTransformer, BaseH2OFunctionWrapper, validate_x_y
+from .base import BaseH2OTransformer, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from ..base import overrides
 
 from sklearn.utils import tosequence
@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 
-class H2OPipeline(BaseH2OFunctionWrapper):
+class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 	"""Create a sklearn-esque pipeline of H2O steps finished with an H2OEstimator.
 
 	Parameters
@@ -151,6 +151,12 @@ class H2OPipeline(BaseH2OFunctionWrapper):
 		
 		self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
 		return self
+
+
+	@overrides(VizMixin)
+	def plot(self, timestep, metric):
+		# should be confident final step is an H2OEstimator
+		self._final_estimator._plot(timestep=timestep, metric=metric)
 
 
 	@overrides(BaseEstimator)

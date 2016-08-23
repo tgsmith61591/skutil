@@ -290,7 +290,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
     return X
 
 
-def report_grid_score_detail(random_search, charts=True):
+def report_grid_score_detail(random_search, charts=True, sort_results=True, ascending=True):
     """Input fit grid search estimator. Returns df of scores with details"""
     df_list = []
 
@@ -301,7 +301,8 @@ def report_grid_score_detail(random_search, charts=True):
         df_list.append(results_dict)
 
     result_df = pd.DataFrame(df_list)
-    result_df = result_df.sort_values("score", ascending=False)
+    if sort_results:
+        result_df = result_df.sort_values("score", ascending=ascending)
     
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART:

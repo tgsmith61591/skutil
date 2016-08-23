@@ -4,7 +4,7 @@ sklearn-esque transformers for python
 import sys, warnings
 from .utils import log, exp # want these visible at module level
 
-__version__ = '0.0.36'
+__version__ = '0.0.37'
 
 try:
     # This variable is injected in the __builtins__ by the build
@@ -23,6 +23,7 @@ else:
         'decomposition',
         'feature_selection',
         'grid_search',
+        'h2o',
         'metrics',
         'odr',
         'preprocessing',

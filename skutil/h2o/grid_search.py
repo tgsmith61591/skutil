@@ -13,7 +13,7 @@ except ImportError as e:
 	from h2o.estimators.estimator_base import H2OEstimator
 
 from .pipeline import H2OPipeline
-from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y
+from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from ..base import overrides
 from ..utils import is_numeric, report_grid_score_detail
 from ..grid_search import _CVScoreTuple, _check_param_grid
@@ -182,7 +182,8 @@ def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwa
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
 				   scorer, parameters, verbose, scoring_params,
-				   train, test, is_regression, act_args=None):
+				   train, test, is_regression, act_args,
+				   cv_fold, iteration):
 	
 	if verbose > 1:
 		if parameters is None:
@@ -190,7 +191,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 		else:
 			msg = 'Target: %s; %s' % (target_feature, ', '.join('%s=%s' % (k,v)
 									 for k, v in parameters.items()))
-		print("[CV] %s %s" % (msg, (64 - len(msg)) * '.'))
+		print("[CV (iter %i, fold %i)] %s %s" % (iteration, cv_fold, msg, (64 - len(msg)) * '.'))
 
 	# set the params for this estimator -- also set feature_names, target_feature
 	if not isinstance(estimator, (H2OEstimator, BaseH2OFunctionWrapper)):
@@ -260,13 +261,14 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 		msg += ', score=%f' % test_score
 	if verbose > 1:
 		end_msg = '%s -%s' % (msg, logger.short_format_time(scoring_time))
-		print('[CV] %s %s' % ((64 - len(end_msg)) * '.', end_msg))
+		print('[CV (iter %i, fold %i)] %s %s' % (iteration, cv_fold, (64 - len(end_msg)) * '.', end_msg))
+		print() # new line
 		print() # new line
 
 	return [test_score, len(test), estimator, parameters]
 
 
-class BaseH2OSearchCV(BaseH2OFunctionWrapper):
+class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 	"""Base for all H2O grid searches"""
 
 	__min_version__ = '3.8.2.9'
@@ -327,6 +329,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
 
+		# check estimator... needs to have the 'predict' attr
+		#tmp_est = base_estimator
+		#if isinstance(tmp_est, H2OPipeline):
+		#	tmp_est = tmp_est._final_estimator
+		#if not hasattr(tmp_est, 'predict')
+		#	raise ValueError('base_estimator must implement "predict"')
+
+
 		# the addition of the actuarial search necessitates some hackiness.
 		# if we have the attr 'extra_args_' then we know it's an actuarial search
 		xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None
@@ -339,9 +349,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 						   scorer=self.scorer_, parameters=params,
 						   verbose=self.verbose, scoring_params=self.scoring_params,
 						   train=train, test=test, is_regression=self.is_regression_,
-						   act_args=xtra)
-			for params in parameter_iterable
-			for train, test in cv.split(X, self.target_feature)
+						   act_args=xtra, cv_fold=cv_fold, iteration=iteration)
+			for iteration,params in enumerate(parameter_iterable)
+			for cv_fold,(train,test) in enumerate(cv.split(X, self.target_feature))
 		]
 
 
@@ -454,14 +464,16 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper):
 		frame = _check_is_frame(frame)
 		return self.best_estimator_.predict(frame)
 
-	def transform(self, frame):
+	@overrides(VizMixin)
+	def plot(self, timestep, metric):
 		check_is_fitted(self, 'best_estimator_')
 
-		if not hasattr(self, 'transform'):
-			return NotImplemented
-
-		frame = _check_is_frame(frame)
-		return self.best_estimator_.transform(frame)
+		# then it's a pipeline:
+		if hasattr(self.best_estimator_, 'plot'):
+			self.best_estimator_.plot(timestep=timestep, metric=metric)
+		else:
+			# should be an H2OEstimator
+			self.best_estimator_._plot(timestep=timestep, metric=metric)
 	
 
 
@@ -598,7 +610,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		rdf = report_grid_score_detail(self, charts=False).drop(["score", "std"], axis=1)
 
 		# we can identify how many splits there were like this:
-		n_splits = n_obs // rdf.shape[0]
+		n_splits = check_cv(self.cv).n_folds #n_obs // rdf.shape[0]
 
 		# now, for each set of cv splits, get the mean and std of scores
 		scores = {m:[] for m in report_res.columns.values}
@@ -606,7 +618,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		val_scores = {m:[] for m in report_res.columns.values}
 		val_stdvs  = {m:[] for m in report_res.columns.values}
 
-		#if we scored on the validation set...
+		#if we scored on the validation set, also need to get the val score struct
 		score_val = hasattr(self, 'val_score_report_')
 		if score_val:
 			val_res_df = self.val_score_report_.as_data_frame()
@@ -614,7 +626,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		ranges = np.arange(0, n_obs, n_splits)
 		range_len = ranges.shape[0]
 		for i,range_bottom in enumerate(ranges):
-			range_top = ranges[i+1] if i != (range_len-1) else range_len
+			range_top = ranges[i+1] if i != (range_len-1) else n_obs
 			obs = report_res.iloc[range_bottom:range_top, :]
 
 			for m,_ in six.iteritems(scores):
@@ -624,7 +636,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 				if score_val:
 					val_obs = val_res_df.iloc[range_bottom:range_top, :]
 					val_scores[m].append(val_obs[m].mean())
-					val_stdvs[m].append(val_obs[m].mean())
+					val_stdvs[m].append(val_obs[m].std())
 
 
 		# append summaries

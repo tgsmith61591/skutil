@@ -195,7 +195,7 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 		raise NotImplementedError
 
 	@abstractmethod
-	def get_n_splits(self, frame):
+	def get_n_splits(self):
 		pass
 
 	def __repr__(self):
