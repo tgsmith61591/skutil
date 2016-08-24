@@ -27,6 +27,30 @@ __all__ = [
 
 
 def _validate_use(X, use, na_warn):
+	"""For H2OMulticollinearityFilterer and H2ONearZeroVarianceFilterer,
+	validate that our 'use' arg is appropriate given the presence of NA
+	values in the H2OFrame.
+
+	Parameters
+	----------
+	X : H2OFrame
+		The frame to evaluate. Since this is an internal method,
+		no validation is done to ensure it is, in fact, an H2OFrame
+
+	use : str, one of ('complete.obs', 'all.obs', 'everything')
+		The 'use' argument passed to the transformer
+
+	na_warn : bool
+		Whether to warn if there are NAs present in the frame. If there are,
+		and na_warn is set to False, the function will use the provided use,
+		however, if na_warn is True and there are NA values present it will
+		raise a warning and use 'complete.obs'
+
+	Returns
+	-------
+	use
+	"""
+
 	# validate use
 	_valid_use = ['complete.obs','all.obs','everything']
 	if not use in _valid_use:
@@ -43,15 +67,41 @@ def _validate_use(X, use, na_warn):
 
 
 def _frame_from_x_y(X, x, y):
+	"""Subset the H2OFrame if necessary. This is used in
+	transformers where a target feature and feature names are
+	provided.
+
+	Parameters
+	----------
+	X : H2OFrame
+		The frame from which to drop
+
+	x : array_like
+		The feature names. These will be retained in the frame
+
+	y : str
+		The target feature. This will be dropped from the frame
+	"""
+
 	# subset frame if necessary
 	if x is not None:
+		# x is not None
+
+		if y is not None:
+			# x is not None and y is not None
+			# remove y from x, potentially
+			x = [i for i in x if not (i==y)]
+
 		# X = X[[i for i in x if i in X.columns]]
 		X = X[[i for i in x]] # let error fall through?
 
-	# if there's a target feature, let's strip it out for now...
-	if y is not None:
+	elif y is not None:
+		# x is None, but y is not.
+		# we've already handled the "both not null" condition above...
 		X = X[[i for i in X.columns if not (i==y)]] # make list
 
+	# otherwise x might be None AND y might be none, in which case
+	# we would just return X, as we use all columns for x and there is no y
 	return X
 
 
@@ -95,7 +145,7 @@ class H2OSparseFeatureDropper(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		frame = _frame_from_x_y(self.feature_names, self.target_feature)
+		frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
 
 		# validate the threshold
 		if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
@@ -181,7 +231,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		frame = _frame_from_x_y(self.feature_names, self.target_feature)
+		frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
@@ -260,7 +310,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		frame = _frame_from_x_y(self.feature_names, self.target_feature)
+		frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)

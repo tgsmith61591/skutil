@@ -19,6 +19,16 @@ __all__ = [
 
 
 def _validate_cols(cols):
+	"""Validate that there are at least two columns
+	to evaluate. This is used for the MulticollinearityFilterer,
+	as it requires there be at least two columns.
+
+	Parameters
+	----------
+	cols : array_like or None
+		The columns to evaluate
+	"""
+
 	if cols is not None and len(cols) < 2:
 		raise ValueError('too few features')
 

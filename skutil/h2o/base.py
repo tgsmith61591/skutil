@@ -35,17 +35,65 @@ class NAWarning(UserWarning):
 
 
 def _check_is_frame(X):
-	"""Returns X if X is a frame else throws a TypeError"""
+	"""Returns X if X is a frame else throws a TypeError
+
+	Parameters
+	----------
+	X : H2OFrame
+		The frame to evaluate
+
+	Returns
+	-------
+	X
+	"""
+
 	if not isinstance(X, H2OFrame):
 		raise TypeError('expected H2OFrame but got %s' % type(X))
 	return X
 
+
 def _retain_features(X, exclude):
-	"""Returns the features to retain"""
+	"""Returns the features to retain. Used in
+	conjunction with H2OTransformer classes that
+	identify features that should be dropped.
+
+	Parameters
+	----------
+	X : H2OFrame
+		The frame from which to drop
+
+	exclude : array_like
+		The columns to exclude
+
+	Returns
+	-------
+	The names of the features to keep
+	"""
+
 	return [x for x in X.columns if not x in exclude]
 
 
 def validate_x_y(feature_names, target_feature):
+	"""Validate the feature_names and target_feature arguments
+	passed to an H2OTransformer.
+
+	Parameters
+	----------
+	feature_names : iterable or None
+		The feature names to be used in a transformer. If feature_names
+		is None, the transformer will use all of the frame's column names.
+		However, if the feature_names are an iterable, they must all be
+		either strings or unicode names of columns in the frame.
+
+	target_feature : str, unicode or None
+		The target name to exclude from the transformer analysis. If None,
+		unsupervised is assumed, otherwise must be string or unicode.
+
+	Returns
+	-------
+	(feature_names, target_feature)
+	"""
+
 	# validate feature_names
 	if not (hasattr(feature_names, '__iter__') and all([isinstance(i, (str, unicode)) for i in feature_names])):
 		raise TypeError('feature_names must be an iterable of strings. '
@@ -66,7 +114,25 @@ def validate_x_y(feature_names, target_feature):
 
 
 class VizMixin:
+	"""This mixin class provides the interface to plot
+	an H2OEstimator's fit performance over a timestep.
+	Any structure that wraps an H2OEstimator's fitting
+	functionality should derive from this mixin.
+	"""
+
 	def plot(self, timestep, metric):
+		"""Plot an H2OEstimator's performance over a
+		given timestep.
+
+		Parameters
+		----------
+		timestep : str
+			A timestep as defined in the H2O API. Examples
+			include number_of_trees, epochs
+
+		metric : str
+			The performance metric to evaluate, i.e., MSE
+		"""
 		return NotImplemented
 
 

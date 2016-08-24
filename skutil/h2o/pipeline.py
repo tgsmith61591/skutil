@@ -72,11 +72,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 							"'%s' (type %s) doesn't)"
 							% (estimator, type(estimator)))
 		
-	"""@property
-	def _estimator_type(self):
-		return self.steps[-1][1]._estimator_type
-	"""
-		
 	@property
 	def named_steps(self):
 		return dict(self.steps)
