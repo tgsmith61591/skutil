@@ -92,33 +92,19 @@ class _CVScoreTuple (namedtuple('_CVScoreTuple', ('parameters', 'mean_validation
 
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
-    from sklearn.model_selection import check_cv
-    from sklearn.model_selection._validation import _fit_and_score
-    from sklearn.model_selection import ParameterSampler, ParameterGrid
     import sklearn.model_selection as ms
-
 
     class GridSearchCV(ms.GridSearchCV):
         """Had to wrap GridSearchCV in order to allow
         fitting a series as Y.
         """
-
-        def fit(self, X, y=None, labels=None):
-            #X, y = _validate_X(X), _validate_y(y)
-            return self._fit(X, _validate_y(y), labels, ParameterGrid(self.param_grid))
+        pass
 
     class RandomizedSearchCV(ms.RandomizedSearchCV):
         """Had to wrap RandomizedSearchCV in order to allow
         fitting a series as Y.
         """
-
-        def fit(self, X, y=None, labels=None):
-            #X, y = _validate_X(X), _validate_y(y)
-            sampled_params = ParameterSampler(self.param_distributions,
-                                              self.n_iter,
-                                              random_state=self.random_state)
-
-            return self._fit(X, _validate_y(y), labels, sampled_params)
+        pass
 
 
 else:
@@ -127,7 +113,6 @@ else:
     love in 0.18, thus, we only define these methods if we're using < 0.18.
     Otherwise, we'll use their default.
     """
-
 
     from sklearn.cross_validation import check_cv
     from sklearn.cross_validation import _fit_and_score
@@ -480,7 +465,7 @@ else:
         >>> svr = svm.SVC()
         >>> clf = grid_search.GridSearchCV(svr, parameters)
         >>> clf.fit(iris.data, iris.target)
-        ...                             # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+        ...        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
         GridSearchCV(cv=None, error_score=...,
                estimator=SVC(C=1.0, cache_size=..., class_weight=..., coef0=...,
                              decision_function_shape=None, degree=..., gamma=...,

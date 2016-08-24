@@ -45,6 +45,8 @@ class ActStatisticalReport(object):
 		'lift', 'gini'
 	]
 
+	# maximizing score functions must be multiplied by
+	# -1 in order to most "minimize" some loss function
 	__signs__ = {
 		'lift' : -1,
 		'gini' : -1
@@ -98,6 +100,9 @@ class ActStatisticalReport(object):
 
 
 	def fit_fold(self, pred, expo, loss, prem=None):
+		"""Used to fit a single fold of predicted values, 
+		exposure and loss data.
+		"""
 		pred, expo, loss = _as_numpy(pred, expo, loss)
 
 		if prem is None:
@@ -108,16 +113,15 @@ class ActStatisticalReport(object):
 		# compute the stats
 		tab, stats, n_groups = self._compute_stats(pred, expo, loss, prem)
 		kwargs = {
-			'pred' : pred,
-			'expo' : expo,
-			'loss' : loss,
-			'prem' : prem,
-			'stats': stats,
-			'tab'  : tab,
+			'pred' : pred, 'expo' : expo,
+			'loss' : loss, 'prem' : prem,
+			'stats': stats, 'tab'  : tab,
 			'n_groups' : n_groups
 		}
 
-		# compute the metrics
+		# compute the metrics. This relies on the convention
+		# that the computation method is the name of the metric
+		# preceded by an underscore...
 		for metric in self.__metrics__:
 			self.stats[metric].append(
 				getattr(self, '_%s'%metric)(**kwargs)

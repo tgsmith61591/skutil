@@ -25,6 +25,7 @@ else:
         'grid_search',
         'h2o',
         'metrics',
+        'model_selection',
         'odr',
         'preprocessing',
         'utils'
