@@ -173,7 +173,7 @@ else:
             X = _validate_X(X)
             y = _validate_y(y)
 
-            if self.scorer_ is None:
+            if not hasattr(self, 'scorer_') or self.scorer_ is None:
                 raise ValueError("No score function explicitly defined, "
                                  "and the estimator doesn't provide one %s"
                                  % self.best_estimator_)

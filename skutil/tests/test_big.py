@@ -53,7 +53,7 @@ def test_large_grid():
 	grid = RandomizedSearchCV(pipe, hp, n_iter=2, scoring='accuracy', n_jobs=-1, cv=custom_cv, random_state=42)
 
 	# this will fail because we haven't fit yet
-	assert_fails(grid.score, ValueError, X_train, y_train)
+	assert_fails(grid.score, (ValueError, AttributeError), X_train, y_train)
 
 	# fit the grid
 	grid.fit(X_train, y_train)
