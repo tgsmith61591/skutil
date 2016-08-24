@@ -42,6 +42,19 @@ def _validate_use(X, use, na_warn):
 	return use
 
 
+def _frame_from_x_y(X, x, y):
+	# subset frame if necessary
+	if x is not None:
+		# X = X[[i for i in x if i in X.columns]]
+		X = X[[i for i in x]] # let error fall through?
+
+	# if there's a target feature, let's strip it out for now...
+	if y is not None:
+		X = X[[i for i in X.columns if not (i==y)]] # make list
+
+	return X
+
+
 
 class H2OSparseFeatureDropper(BaseH2OTransformer):
 	"""Retains features that are less sparse (NA) than
@@ -82,14 +95,7 @@ class H2OSparseFeatureDropper(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		
-		# subset frame if necessary
-		if self.feature_names is not None:
-			frame = frame[[x for x in self.feature_names if x in frame.columns]]
-
-		# if there's a target feature, let's strip it out for now...
-		if self.target_feature:
-			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
+		frame = _frame_from_x_y(self.feature_names, self.target_feature)
 
 		# validate the threshold
 		if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
@@ -175,14 +181,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		
-		# subset frame if necessary
-		if self.feature_names is not None:
-			frame = frame[[x for x in self.feature_names if x in frame.columns]]
-
-		# if there's a target feature, let's strip it out for now...
-		if self.target_feature:
-			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
+		frame = _frame_from_x_y(self.feature_names, self.target_feature)
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)
@@ -261,14 +260,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
 			The frame to fit
 		"""
 		frame, thresh = _check_is_frame(X), self.threshold
-		
-		# subset frame if necessary
-		if self.feature_names is not None:
-			frame = frame[[x for x in self.feature_names if x in frame.columns]]
-
-		# if there's a target feature, let's strip it out for now...
-		if self.target_feature:
-			frame = frame[[x for x in frame.columns if not x == self.target_feature]] # make list
+		frame = _frame_from_x_y(self.feature_names, self.target_feature)
 
 		# validate use, check NAs
 		use = _validate_use(frame, self.use, self.na_warn)

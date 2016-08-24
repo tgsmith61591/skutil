@@ -92,6 +92,10 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			fit_params_steps[step][param] = pval
 			
 		frameT = frame
+
+		# we have to set the feature names at each stage to be
+		# the remaining feature names (not the target though)
+		next_feature_names = self.feature_names
 		for name, transform in self.steps[:-1]:
 			# for each transformer in the steps sequence, we need
 			# to ensure the target_feature has been set... we do
@@ -99,15 +103,20 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			# now validated the y/target_feature. Also this way if
 			# target_feature is ever changed, this will be updated...
 			transform.target_feature = self.target_feature
-			transform.feature_names = self.feature_names
+			transform.feature_names = next_feature_names
 			
 			if hasattr(transform, "fit_transform"):
 				frameT = transform.fit_transform(frameT, **fit_params_steps[name])
 			else:
 				frameT = transform.fit(frameT, **fit_params_steps[name]).transform(frameT)
+
+			# now reset the next_feature_names to be the remaining names...
+			next_feature_names = [str(nm) for nm in frameT.columns if not (nm==self.target_feature)]
+			if not next_feature_names:
+				raise ValueError('no columns retained after fit!')
 					
-		# this will have y and exclude re-combined in the matrix
-		return frameT, fit_params_steps[self.steps[-1][0]]
+		# this will have y re-combined in the matrix
+		return frameT, fit_params_steps[self.steps[-1][0]], next_feature_names
 		
 	def _reset(self):
 		"""Each individual step should handle its own
@@ -140,14 +149,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 		frame = frame[xy]
 		
 		# get the fit
-		Xt, fit_params = self._pre_transform(frame, **{})
-		
-		# get the names of the matrix that are not Y
-		training_cols = Xt.columns
-		self.training_cols_ = [n for n in training_cols if not (n==y)]
-			
-		if not training_cols:
-			raise ValueError('no columns retained after fit!')
+		Xt, fit_params, self.training_cols_ = self._pre_transform(frame, **{})
 		
 		self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
 		return self
