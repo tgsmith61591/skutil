@@ -354,6 +354,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 			for cv_fold,(train,test) in enumerate(cv.split(X, self.target_feature))
 		]
 
+		# Out is a list of quad: score, n_test_samples, estimator, parameters
+		n_fits = len(out)
+		n_folds = cv.get_n_splits()
 
 		# if a validation frame was passed, user might want to see how it scores
 		# on each model, so we'll do that here...
@@ -362,7 +365,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 			self.validation_scores = []
 
 			if xtra is not None:
-				self.val_score_report_ = ActStatisticalReport()
+				self.val_score_report_ = ActStatisticalReport(
+					n_folds=n_folds, 
+					n_iter= n_fits//n_folds,
+					iid=self.iid)
+
+				# set scoring function
 				val_scorer = self.val_score_report_._score
 
 				kwargs = {
@@ -377,10 +385,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 			score_validation = False
 
 
-		# Out is a list of quad: score, n_test_samples, estimator, parameters
-		n_fits = len(out)
-		n_folds = cv.get_n_splits()
-
+		# do scoring
 		scores = list()
 		grid_scores = list()
 		for grid_start in range(0, n_fits, n_folds):
@@ -404,12 +409,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 						self.target_feature, val_scorer, self.scoring_params, 
 						self.is_regression_, **kwargs)
 
+					# if it's actuarial scorer, handles the iid condition internally...
 					self.validation_scores.append(val_score)
 
 			if self.iid:
 				score /= float(n_test_samples)
 			else:
 				score /= float(n_folds)
+
 			scores.append((score, parameters))
 			# TODO: shall we also store the test_fold_sizes?
 			grid_scores.append(_CVScoreTuple(
@@ -580,8 +587,12 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		self.premium_feature = premium_feature
 
 		# our score method will ALWAYS be the same
-		self.score_report_ = ActStatisticalReport( #n_groups=n_groups, 
-			score_by=scoring)
+		self.score_report_ = ActStatisticalReport(
+			score_by=scoring, 
+			n_folds=check_cv(cv).get_n_splits(), 
+			n_iter=n_iter,
+			iid=iid)
+
 		self.scoring = self.score_report_._score ## callable -- resets scoring
 
 
@@ -608,45 +619,22 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 
 		# Need to cbind the parameters... we don't care about ["score", "std"]
 		rdf = report_grid_score_detail(self, charts=False).drop(["score", "std"], axis=1)
+		assert n_obs == rdf.shape[0], 'Internal error: %d!=%d'%(n_obs, rdf.shape[0])
 
-		# we can identify how many splits there were like this:
-		n_splits = check_cv(self.cv).n_folds #n_obs // rdf.shape[0]
+		# change the names in the dataframe...
+		report_res.columns = ['train_%s'%x for x in report_res.columns.values]
 
-		# now, for each set of cv splits, get the mean and std of scores
-		scores = {m:[] for m in report_res.columns.values}
-		stdvs  = {m:[] for m in report_res.columns.values}
-		val_scores = {m:[] for m in report_res.columns.values}
-		val_stdvs  = {m:[] for m in report_res.columns.values}
+		# cbind...
+		rdf = pd.concat([rdf, report_res], axis=1)
 
 		#if we scored on the validation set, also need to get the val score struct
-		score_val = hasattr(self, 'val_score_report_')
-		if score_val:
+		if hasattr(self, 'val_score_report_'):
 			val_res_df = self.val_score_report_.as_data_frame()
+			assert n_obs == val_res_df.shape[0], 'Internal error: %d!=%d'%(n_obs, val_res_df.shape[0])
+			val_res_df.columns = ['val_%s'%x for x in val_res_df.columns.values]
 
-		ranges = np.arange(0, n_obs, n_splits)
-		range_len = ranges.shape[0]
-		for i,range_bottom in enumerate(ranges):
-			range_top = ranges[i+1] if i != (range_len-1) else n_obs
-			obs = report_res.iloc[range_bottom:range_top, :]
-
-			for m,_ in six.iteritems(scores):
-				scores[m].append(obs[m].mean())
-				stdvs[m].append(obs[m].std())
-
-				if score_val:
-					val_obs = val_res_df.iloc[range_bottom:range_top, :]
-					val_scores[m].append(val_obs[m].mean())
-					val_stdvs[m].append(val_obs[m].std())
-
-
-		# append summaries
-		for m,v in six.iteritems(scores):
-			rdf['train_%s_mean'%m] = v
-			rdf['train_%s_std' %m] = stdvs[m]
-
-			if score_val:
-				rdf['val_%s_mean' % m] = val_scores[m]
-				rdf['val_%s_std' % m] = val_stdvs[m]
+			# cbind
+			rdf = pd.concat([rdf, val_res_df], axis=1)
 
 		rdf.index = ['Iter_%i' %i for i in range(self.n_iter)]
 		return rdf

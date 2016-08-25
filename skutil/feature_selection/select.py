@@ -134,7 +134,10 @@ class FeatureRetainer(_BaseFeatureSelector):
 
 
 ###############################################################################
-class _MCFTuple (namedtuple('_MCFTuple', ('feature_x', 'feature_y', 'absolute_correlation'))):
+class _MCFTuple (namedtuple('_MCFTuple', ('feature_x', 
+										  'feature_y', 
+										  'abs_corr',
+										  'mac'))):
 	"""A raw namedtuple is very memory efficient as it packs the attributes
 	in a struct to get rid of the __dict__ of attributes in particular it
 	does not copy the string for the keys on each instance.
@@ -146,10 +149,11 @@ class _MCFTuple (namedtuple('_MCFTuple', ('feature_x', 'feature_y', 'absolute_co
 	__slots__ = tuple()
 	def __repr__(self):
 		"""Simple custom repr to summarize the main info"""
-		return "feature_x: {0}, feature_y: {1}, absolute_correlation: {2:.5f}".format(
+		return "Dropped: {0}, Corr_feature: {1}, abs_corr: {2:.5f}, MAC: {3:.5f}".format(
 			self.feature_x,
 			self.feature_y,
-			self.absolute_correlation)
+			self.abs_corr,
+			self.mac)
 
 def filter_collinearity(c, threshold):
 	"""Performs the collinearity filtration for both the
@@ -165,8 +169,8 @@ def filter_collinearity(c, threshold):
 
 	Returns
 	-------
-	drops, list
-		The list of columns to drop
+	drops, macor, crrz
+		(The drop list, the mean absolute correlations, and the correlation tuples)
 	"""
 	# ensure symmetric
 	if c.shape[0] != c.shape[1]:
@@ -183,13 +187,13 @@ def filter_collinearity(c, threshold):
 
 		# Whenever there's a break, this loop will start over
 		for i,nm in enumerate(c.columns):
-			this_col = c[nm].drop(nm).sort_values()  # gets the column, drops the index of itself, and sorts
+			this_col = c[nm].drop(nm).sort_values(na_position='first')  # gets the column, drops the index of itself, and sorts
 			this_col_nms = this_col.index.tolist()
 			this_col = np.array(this_col)
 
 			# check if last value is over thresh
 			max_cor = this_col[-1]
-			if max_cor < threshold or this_col.shape[0] == 1:
+			if pd.isnull(max_cor) or max_cor < threshold or this_col.shape[0] == 1:
 				if i == c.columns.shape[0] - 1:
 					finished = True
 
@@ -202,8 +206,19 @@ def filter_collinearity(c, threshold):
 			that_col = c[other_col_nm].drop(other_col_nm)
 
 			# get the mean absolute correlations of each
-			mn_1, mn_2 = this_col.mean(), that_col.mean()
-			drop_nm = nm if mn_1 > mn_2 else other_col_nm
+			mn_1, mn_2 = np.nanmean(this_col), np.nanmean(that_col)
+
+			# we might get nans?
+			# if pd.isnull(mn_1) and pd.isnull(mn_2):
+				# this condition is literally impossible, as it would
+				# require every corr to be NaN, and it wouldn't have
+				# even gotten here without hitting the continue block.
+			if pd.isnull(mn_1):
+				drop_nm = other_col_nm
+			elif pd.isnull(mn_2):
+				drop_nm = nm
+			else:
+				drop_nm = nm if mn_1 > mn_2 else other_col_nm
 
 			# drop the bad col, row
 			c.drop(drop_nm, axis=1, inplace=True)
@@ -213,9 +228,11 @@ def filter_collinearity(c, threshold):
 			drops.append(drop_nm)
 			macor.append(np.maximum(mn_1, mn_2))
 			corrz.append(_MCFTuple(
-				drop_nm,
-				nm if not nm == drop_nm else other_col_nm,
-				max_cor))
+					feature_x=drop_nm,
+					feature_y=nm if not nm == drop_nm else other_col_nm,
+					abs_corr=max_cor,
+					mac=macor[-1]
+				))
 
 			# if we get here, we have to break so the loop will 
 			# start over from the first (non-popped) column

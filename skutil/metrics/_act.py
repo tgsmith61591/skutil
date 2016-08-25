@@ -38,6 +38,9 @@ class ActStatisticalReport(object):
 
 	score_by : str, optional (default='lift')
 		The metric to return for the _score method.
+
+	n_folds : int, optional (default=None)
+		The number of folds that are being fit. 
 	"""
 
 
@@ -52,19 +55,71 @@ class ActStatisticalReport(object):
 		'gini' : -1
 	}
 
-	def __init__(self, n_groups=10, score_by='lift'):
+	def __init__(self, n_groups=10, n_folds=None, n_iter=None, score_by='lift', iid=True):
 		self.n_groups = 10
 		self.score_by = score_by
+
 		self.stats = {m:[] for m in self.__metrics__}
+		self.sample_sizes = []
+
+		self.n_folds = n_folds
+		self.n_iter = n_iter
+		self.iid = iid
 
 		# validate score_by
 		if not score_by in self.__metrics__:
 			raise ValueError('score_by must be in %s, but got %s'
 				% (', '.join(self.__metrics__), score_by))
 
+		if n_folds and not n_iter:
+			raise ValueError('if n_folds is set, must set n_iter')
+
 	def as_data_frame(self):
 		"""Get the report in the form of a dataframe"""
-		return pd.DataFrame.from_dict(self.stats)
+		if not self.n_folds:
+			# if there were no folds, these are each individual scores
+			return pd.DataFrame.from_dict(self.stats)
+
+		else:
+			# otherwise they are cross validation scores...
+			# ensure divisibility...
+			n_obs, n_folds, n_iter = len(self.stats[self.__metrics__[0]]), self.n_folds, self.n_iter
+			if not (n_folds * n_iter) == n_obs:
+				raise ValueError('n_obs is not divisible by n_folds and n_iter')
+
+			new_stats = {}
+			for metric in self.__metrics__:
+				new_stats['%s_mean'%metric] = [] # the mean scores
+				new_stats['%s_std' %metric] = [] # the std scores
+				idx = 0
+
+				for _ in range(n_iter):
+					fold_score = 0
+					n_test_samples = 0
+					all_fold_scores = []
+
+					for fold in range(n_folds):
+						this_score = self.stats[metric][idx]
+						this_n_test_samples = self.sample_sizes[idx]
+						all_fold_scores.append(this_score)
+
+						if self.iid:
+							this_score *= this_n_test_samples
+							n_test_samples += this_n_test_samples
+						fold_score += this_score
+						idx+=1
+
+					if self.iid:
+						fold_score /= float(n_test_samples)
+					else:
+						fold_score /= float(n_folds)
+
+					# append the mean score, and then the std of the scores for the folds
+					new_stats['%s_mean'%metric].append(fold_score)
+					new_stats['%s_std' %metric].append(np.std(all_fold_scores))
+
+			return pd.DataFrame.from_dict(new_stats)
+
 
 	def _compute_stats(self, pred, expo, loss, prem):
 		n_samples, n_groups = pred.shape[0], self.n_groups
@@ -127,6 +182,7 @@ class ActStatisticalReport(object):
 				getattr(self, '_%s'%metric)(**kwargs)
 			)
 
+		self.sample_sizes.append(pred.shape[0])
 		return self
 
 	def _lift(self, **kwargs):

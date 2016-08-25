@@ -672,7 +672,7 @@ def test_h2o():
 				'mcf__threshold'  : uniform(0.85, 0.15),
 				'gbm__ntrees'     : randint(25, 100),
 				'gbm__max_depth'  : randint(2, 8),
-				'gbm__min_rows'	  : randint(8, 25)
+				'gbm__min_rows'   : randint(8, 25)
 			}
 
 			# define our grid search

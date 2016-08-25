@@ -69,13 +69,17 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     Attributes
     ----------
     fill : see above
+
     as_df : see above
     
     obj_cols_ : array_like
         The list of object-type (categorical) features
+
     lab_encoders_ : array_like
         The label encoders
+
     one_hot_ : an instance of a OneHotEncoder
+    
     trans_nms_ : the dummified names
     """
     
