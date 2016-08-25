@@ -90,6 +90,18 @@ class _CVScoreTuple (namedtuple('_CVScoreTuple', ('parameters', 'mean_validation
             self.parameters)
 
 
+def _as_numpy(y):
+    if y is None:
+        return None
+    elif isinstance(y, np.ndarray):
+        return np.copy(y)
+    elif hasattr(y, 'as_matrix'):
+        return y.as_matrix()
+    elif hasattr(y, '__iter__'):
+        return np.asarray([i for i in y])
+    raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
+
+
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     import sklearn.model_selection as ms
@@ -98,13 +110,15 @@ if sklearn.__version__ >= '0.18':
         """Had to wrap GridSearchCV in order to allow
         fitting a series as Y.
         """
-        pass
+        def fit(self, X, y=None):
+            super(GridSearchCV, self).fit(X, _as_numpy(y))
 
     class RandomizedSearchCV(ms.RandomizedSearchCV):
         """Had to wrap RandomizedSearchCV in order to allow
         fitting a series as Y.
         """
-        pass
+        def fit(self, X, y=None):
+            super(RandomizedSearchCV, self).fit(X, _as_numpy(y))
 
 
 else:

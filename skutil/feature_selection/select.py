@@ -6,6 +6,7 @@ from sklearn.utils.validation import check_is_fitted
 from .base import _BaseFeatureSelector
 from ..base import SelectiveMixin
 from ..utils import validate_is_pd, is_numeric
+from collections import namedtuple
 
 
 __all__ = [
@@ -133,6 +134,23 @@ class FeatureRetainer(_BaseFeatureSelector):
 
 
 ###############################################################################
+class _MCFTuple (namedtuple('_MCFTuple', ('feature_x', 'feature_y', 'absolute_correlation'))):
+	"""A raw namedtuple is very memory efficient as it packs the attributes
+	in a struct to get rid of the __dict__ of attributes in particular it
+	does not copy the string for the keys on each instance.
+	By deriving a namedtuple class just to introduce the __repr__ method we
+	would also reintroduce the __dict__ on the instance. By telling the
+	Python interpreter that this subclass uses static __slots__ instead of
+	dynamic attributes. Furthermore we don't need any additional slot in the
+	subclass so we set __slots__ to the empty tuple. """
+	__slots__ = tuple()
+	def __repr__(self):
+		"""Simple custom repr to summarize the main info"""
+		return "feature_x: {0}, feature_y: {1}, absolute_correlation: {2:.5f}".format(
+			self.feature_x,
+			self.feature_y,
+			self.absolute_correlation)
+
 def filter_collinearity(c, threshold):
 	"""Performs the collinearity filtration for both the
 	MulticollinearityFilterer as well as the H2OMulticollinearityFilterer
@@ -157,6 +175,7 @@ def filter_collinearity(c, threshold):
 	# init drops list
 	drops = []
 	macor = [] # mean abs corrs
+	corrz = [] # the correlations
 
 	## Iterate over each feature
 	finished = False
@@ -169,13 +188,15 @@ def filter_collinearity(c, threshold):
 			this_col = np.array(this_col)
 
 			# check if last value is over thresh
-			if this_col[-1] < threshold or this_col.shape[0] == 1:
+			max_cor = this_col[-1]
+			if max_cor < threshold or this_col.shape[0] == 1:
 				if i == c.columns.shape[0] - 1:
 					finished = True
 
 				# control passes to next column name or end if finished
 				continue
 
+			# otherwise, we know the corr is over the threshold
 			# gets the current col, and drops the same row, sorts asc and gets other col
 			other_col_nm = this_col_nms[-1]
 			that_col = c[other_col_nm].drop(other_col_nm)
@@ -191,14 +212,19 @@ def filter_collinearity(c, threshold):
 			# add the bad col to drops
 			drops.append(drop_nm)
 			macor.append(np.maximum(mn_1, mn_2))
+			corrz.append(_MCFTuple(
+				drop_nm,
+				nm if not nm == drop_nm else other_col_nm,
+				max_cor))
 
-			# if we get here, we have to break so will start over
+			# if we get here, we have to break so the loop will 
+			# start over from the first (non-popped) column
 			break
 
 		# if not finished, restarts loop, otherwise will exit loop
 
 	# return
-	return drops, macor
+	return drops, macor, corrz
 
 
 class MulticollinearityFilterer(_BaseFeatureSelector):
@@ -274,9 +300,10 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
 		## get drops list
-		d, mac = filter_collinearity(c, self.threshold)
+		d, mac, crz = filter_collinearity(c, self.threshold)
 		self.drop = d if d else None
 		self.mean_abs_correlations_ = mac if mac else None
+		self.correlations_ = crz if crz else None
 
 		# if drop is None, we need to just return X
 		if not self.drop:

@@ -6,7 +6,6 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.cross_validation import train_test_split, KFold
 from skutil.grid_search import RandomizedSearchCV, GridSearchCV
 from skutil.preprocessing import *
 from skutil.decomposition import *
@@ -19,6 +18,24 @@ import pandas as pd
 ## Def data for testing
 iris = load_iris()
 X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+
+
+
+try:
+    from sklearn.model_selection import train_test_split, KFold
+
+    # get our train/test
+    X_train, X_test, y_train, y_test = train_test_split(X, iris.target, train_size=0.75, random_state=42)
+    # default CV does not shuffle, so we define our own
+    custom_cv = KFold(n_folds=5, shuffle=True, random_state=42)
+except ImportError as i:
+    from sklearn.cross_validation import train_test_split, KFold
+
+    # get our train/test
+    X_train, X_test, y_train, y_test = train_test_split(X, iris.target, train_size=0.75, random_state=42)
+    custom_cv = KFold(n=y_train.shape[0], n_folds=5, shuffle=True, random_state=42)
+
+
 
 def test_pipeline_basic():
     pipe = Pipeline([
@@ -43,12 +60,6 @@ def test_pipeline_complex():
     pipe.fit(X, iris.target)
 
 def test_random_grid():
-    # get our train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, iris.target, train_size=0.75, random_state=42)
-
-    # default CV does not shuffle, so we define our own
-    custom_cv = KFold(n=y_train.shape[0], n_folds=5, shuffle=True, random_state=42)
-
     # build a pipeline
     pipe = Pipeline([
         ('retainer'    , FeatureRetainer()), # will retain all
@@ -71,18 +82,18 @@ def test_random_grid():
         'scaler__scaler'          : [StandardScaler(), RobustScaler()],
         'pca__n_components'       : uniform(loc=.75, scale=.2),
         'pca__whiten'             : [True, False],
-        'model__n_estimators'     : randint(5,100),
-        'model__max_depth'        : randint(2,25),
-        'model__min_samples_leaf' : randint(1,15),
+        'model__n_estimators'     : randint(5,10),
+        'model__max_depth'        : randint(2, 5),
+        'model__min_samples_leaf' : randint(1, 5),
         'model__max_features'     : uniform(loc=.5, scale=.5),
-        'model__max_leaf_nodes'   : randint(10,75)
+        'model__max_leaf_nodes'   : randint(10,15)
     }
 
     # define the gridsearch
     search = RandomizedSearchCV(pipe, hp,
                                 n_iter=2, # just to test it even works
                                 scoring='accuracy',
-                                cv=custom_cv,
+                                cv=5,
                                 random_state=42)
 
     # fit the search
@@ -93,12 +104,6 @@ def test_random_grid():
     # do nothing with it
 
 def test_regular_grid():
-    # get our train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, iris.target, train_size=0.75, random_state=42)
-
-    # default CV does not shuffle, so we define our own
-    custom_cv = KFold(n=y_train.shape[0], n_folds=5, shuffle=True, random_state=42)
-
     # build a pipeline
     pipe = Pipeline([
         ('retainer'    , FeatureRetainer()), # will retain all

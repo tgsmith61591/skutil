@@ -242,7 +242,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		c.index = frame.columns
 		
 		## get drops list
-		self.drop_, self.mean_abs_correlations_ = filter_collinearity(c, self.threshold)
+		self.drop_, self.mean_abs_correlations_, self.correlations_ = filter_collinearity(c, self.threshold)
 		return self.transform(X)
 		
 

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import warnings
 import numpy as np
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cross_validation import KFold, train_test_split
@@ -11,6 +12,8 @@ from skutil.grid_search import RandomizedSearchCV
 from skutil.decomposition import *
 from skutil.preprocessing import *
 from skutil.utils.tests.utils import assert_fails
+from skutil.grid_search import _as_numpy
+from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
 # generate a totally random matrix
 X = np.random.rand(500, 25) # kind of large...
@@ -23,6 +26,18 @@ y = factorize(np.random.rand(X.shape[0]))
 
 # get the split
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.75)
+
+
+def test_as_numpy():
+	assert_fails(_as_numpy, TypeError, 'blah')
+	assert _as_numpy(None) is None
+
+	i = [1,2,3]
+	x = np.array(i)
+	assert_array_equal(x, _as_numpy(x))
+	assert_array_equal(np.asarray(i), _as_numpy(i))
+	assert_array_equal(_as_numpy(pd.DataFrame.from_records(X)), X)
+
 
 
 def test_large_grid():

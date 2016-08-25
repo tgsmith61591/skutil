@@ -203,6 +203,7 @@ def test_multi_collinearity():
 	assert col_nms[2] == 'petal width (cm)'
 	assert len(transformer.drop) == 1
 	assert len(transformer.mean_abs_correlations_) == 1
+	print(transformer.correlations_) # the correlations...
 
 	# test the selective mixin
 	assert transformer.get_features() is None
