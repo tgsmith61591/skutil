@@ -24,6 +24,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split,
 	_val_y)
+from skutil.h2o.transform import H2OSelectiveImputer
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -580,12 +581,12 @@ def test_h2o():
 		assert isinstance(_val_y(unicode('asdf')), str)
 
 		# testing _validate_shuffle_split_init
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})     # can't both be None
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':None,'train_size':None})	 # can't both be None
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':1.1, 'train_size':0.0})	  # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':'string','train_size':None}) # if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})      # if float, can't be over 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':1.1, 'test_size':0.0})	  # if float, can't be over 1.
 		assert_fails(_validate_shuffle_split_init, ValueError, **{'train_size':'string', 'test_size':None})# if not float, must be int
-		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})      # if both float, must not exceed 1.
+		assert_fails(_validate_shuffle_split_init, ValueError, **{'test_size':0.6, 'train_size':0.5})	  # if both float, must not exceed 1.
 
 		# testing _validate_shuffle_split
 		assert_fails(_validate_shuffle_split, ValueError, **{'n_samples':10, 'test_size':11, 'train_size':0}) # test_size can't exceed n_samples
@@ -670,7 +671,7 @@ def test_h2o():
 			hyper_params = {
 				'nzv__threshold'  : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
 				'mcf__threshold'  : uniform(0.85, 0.15),
-				'gbm__ntrees'     : randint(25, 100),
+				'gbm__ntrees'	 : randint(25, 100),
 				'gbm__max_depth'  : randint(2, 8),
 				'gbm__min_rows'   : randint(8, 25)
 			}
@@ -731,6 +732,107 @@ def test_h2o():
 			pass
 
 
+	def impute():
+		f = F.copy()
+		choices = [choice(range(f.shape[0]), 15) for i in range(f.shape[1])] # which indices will be NA?
+		for i,v in enumerate(choices):
+			f.iloc[v, i] = 'NA'
+
+		def _basic_scenario(X, fill):
+			imputer = H2OSelectiveImputer(def_fill=fill)
+			imputer.fit_transform(X)
+			na_cnt = sum(X.nacnt())
+			assert not na_cnt, 'expected no NAs, but found %d' %na_cnt
+
+		def scenario_1(X):
+			"""Assert functions with 'mean'"""
+			_basic_scenario(X, 'mean')
+
+		def scenario_2(X):
+			"""Assert functions with 'median'"""
+			_basic_scenario(X, 'median')
+
+		def scenario_3(X):
+			"""Assert fails (for now) with 'mode' -- unimplemented"""
+			assert_fails(_basic_scenario, NotImplementedError, X, 'mode')
+
+		def scenario_4(X):
+			"""Assert fails with unknown string arg"""
+			assert_fails(_basic_scenario, TypeError, X, 'bad_string')
+
+		def scenario_5(X):
+			"""Assert functions with list of imputes"""
+			_basic_scenario(X, ['mean', 1.5, 'median', 'median'])
+
+		def scenario_6(X):
+			"""Assert fails with list with unknown string args"""
+			assert_fails(_basic_scenario, TypeError, X, ['bad_string', 1.5, 'median', 'median'])
+
+		def scenario_7(X):
+			"""Assert fails with 'mode' in the list -- unimplemented"""
+			assert_fails(_basic_scenario, NotImplementedError, X, ['mode', 1.5, 'median', 'median'])
+
+		def scenario_8(X):
+			"""Assert fails with len != ncols"""
+			assert_fails(_basic_scenario, ValueError, X, ['mean', 1.5, 2.0])		
+
+		def scenario_9(X):
+			"""Assert fails with random object as def_fill"""
+
+			# arbitrary object:
+			class Anon1(object):
+				def __init__(self):
+					pass
+
+				def __str__(self):
+					return 'Type: Anon1'
+
+			assert_fails(_basic_scenario, TypeError, X, Anon1)
+
+		def scenario_10(X):
+			"""Assert functions feature_names arg"""
+			imputer = H2OSelectiveImputer(feature_names=X.columns[:3], def_fill='median')
+			imputer.fit_transform(X)
+			na_cnt = sum(X.nacnt())
+			assert na_cnt > 0, 'expected some NAs, but found none'
+
+		def scenario_11(X):
+			"""Assert functions with target_feature arg"""
+			imputer = H2OSelectiveImputer(target_feature=X.columns[3], def_fill=[1,1,1])
+			imputer.fit_transform(X)
+			na_cnt = sum(X.nacnt())
+			assert na_cnt > 0, 'expected some NAs, but found none'
+
+		def scenario_12(X):
+			"""Assert functions with both feature_names and target_feature arg"""
+			imputer = H2OSelectiveImputer(feature_names=X.columns[:3], target_feature=X.columns[3], def_fill=[2,2,2])
+			imputer.fit_transform(X)
+			na_cnt = sum(X.nacnt())
+			assert na_cnt > 0, 'expected some NAs, but found none'
+
+
+
+		# these are our test scenarios:
+		scenarios = [
+			scenario_1 , scenario_2 , scenario_3 , scenario_4 ,
+			scenario_5 , scenario_6 , scenario_7 , scenario_8 ,
+			scenario_9 , scenario_10, scenario_11, scenario_12
+		]
+
+		# since the imputer works in place, we have to do this for each scenario...
+		for scenario in scenarios:
+			try:
+				M = new_h2o_frame(f.copy())
+			except Exception as e:
+				M = None
+
+			if M is not None:
+				scenario(M)
+			else:
+				pass
+
+
+
 	# run them
 	multicollinearity()
 	nzv()
@@ -743,3 +845,4 @@ def test_h2o():
 	split_tsts()
 	act_search()
 	sparse()
+	impute()

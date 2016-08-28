@@ -33,6 +33,44 @@ class NAWarning(UserWarning):
 	within an h2o frame (h2o can handle NA values)
 	"""
 
+def _frame_from_x_y(X, x, y):
+	"""Subset the H2OFrame if necessary. This is used in
+	transformers where a target feature and feature names are
+	provided.
+
+	Parameters
+	----------
+	X : H2OFrame
+		The frame from which to drop
+
+	x : array_like
+		The feature names. These will be retained in the frame
+
+	y : str
+		The target feature. This will be dropped from the frame
+	"""
+
+	# subset frame if necessary
+	if x is not None:
+		# x is not None
+
+		if y is not None:
+			# x is not None and y is not None
+			# remove y from x, potentially
+			x = [i for i in x if not (i==y)]
+
+		# X = X[[i for i in x if i in X.columns]]
+		X = X[[i for i in x]] # let error fall through?
+
+	elif y is not None:
+		# x is None, but y is not.
+		# we've already handled the "both not null" condition above...
+		X = X[[i for i in X.columns if not (i==y)]] # make list
+
+	# otherwise x might be None AND y might be none, in which case
+	# we would just return X, as we use all columns for x and there is no y
+	return X
+
 
 def _check_is_frame(X):
 	"""Returns X if X is a frame else throws a TypeError
@@ -225,7 +263,6 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 			return 'any'
 	
 
-
 class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 	"""Base class for all H2OTransformers.
 
@@ -246,9 +283,3 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 												 max_version=max_version)
 		# the column names
 		self.feature_names = feature_names
-			
-	def transform(self, X):
-		# validate state, frame
-		check_is_fitted(self, 'drop_')
-		X = _check_is_frame(X)
-		return X[_retain_features(X, self.drop_)]

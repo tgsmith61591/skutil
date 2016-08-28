@@ -16,10 +16,12 @@ from ..utils import is_numeric
 from .base import (NAWarning, 
 				   BaseH2OTransformer, 
 				   _check_is_frame, 
-				   _retain_features)
+				   _retain_features,
+				   _frame_from_x_y)
 
 
 __all__ = [
+	'BaseH2OFeatureSelector',
 	'H2OMulticollinearityFilterer',
 	'H2ONearZeroVarianceFilterer',
 	'H2OSparseFeatureDropper'
@@ -66,47 +68,37 @@ def _validate_use(X, use, na_warn):
 	return use
 
 
-def _frame_from_x_y(X, x, y):
-	"""Subset the H2OFrame if necessary. This is used in
-	transformers where a target feature and feature names are
-	provided.
+
+
+class BaseH2OFeatureSelector(BaseH2OTransformer):
+	"""Base class for all H2O selectors.
 
 	Parameters
 	----------
-	X : H2OFrame
-		The frame from which to drop
+	target_feature : str (default None)
+		The name of the target feature (is excluded from the fit)
 
-	x : array_like
-		The feature names. These will be retained in the frame
+	min_version : str, float (default 'any')
+		The minimum version of h2o that is compatible with the transformer
 
-	y : str
-		The target feature. This will be dropped from the frame
+	max_version : str, float (default None)
+		The maximum version of h2o that is compatible with the transformer
 	"""
-
-	# subset frame if necessary
-	if x is not None:
-		# x is not None
-
-		if y is not None:
-			# x is not None and y is not None
-			# remove y from x, potentially
-			x = [i for i in x if not (i==y)]
-
-		# X = X[[i for i in x if i in X.columns]]
-		X = X[[i for i in x]] # let error fall through?
-
-	elif y is not None:
-		# x is None, but y is not.
-		# we've already handled the "both not null" condition above...
-		X = X[[i for i in X.columns if not (i==y)]] # make list
-
-	# otherwise x might be None AND y might be none, in which case
-	# we would just return X, as we use all columns for x and there is no y
-	return X
+	def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None):
+		super(BaseH2OFeatureSelector, self).__init__(feature_names=feature_names,
+												 target_feature=target_feature,
+												 min_version=min_version,
+												 max_version=max_version)
+			
+	def transform(self, X):
+		# validate state, frame
+		check_is_fitted(self, 'drop_')
+		X = _check_is_frame(X)
+		return X[_retain_features(X, self.drop_)]
 
 
 
-class H2OSparseFeatureDropper(BaseH2OTransformer):
+class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 	"""Retains features that are less sparse (NA) than
 	the provided threshold.
 
@@ -161,7 +153,7 @@ class H2OSparseFeatureDropper(BaseH2OTransformer):
 
 
 
-class H2OMulticollinearityFilterer(BaseH2OTransformer):
+class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 	"""Filter out features with a correlation greater than the provided threshold.
 	When a pair of correlated features is identified, the mean absolute correlation (MAC)
 	of each feature is considered, and the feature with the highsest MAC is discarded.
@@ -247,7 +239,7 @@ class H2OMulticollinearityFilterer(BaseH2OTransformer):
 		
 
 
-class H2ONearZeroVarianceFilterer(BaseH2OTransformer):
+class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 	"""Identify and remove any features that have a variance below
 	a certain threshold.
 

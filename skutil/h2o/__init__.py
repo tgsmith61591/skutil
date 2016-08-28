@@ -6,6 +6,7 @@ from .base import *
 from .select import *
 from .pipeline import *
 from .grid_search import *
+from .transform import *
 from .split import *
 from .util import *
 
