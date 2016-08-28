@@ -1,4 +1,4 @@
-
+from __future__ import print_function, division, absolute_import
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.base import TransformerMixin, BaseEstimator
 from sklearn.utils.validation import check_is_fitted
@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-def get_unseen():
+def _get_unseen():
     """Basically just a static method
     instead of a class attribute to avoid
     someone accidentally changing it."""
@@ -40,7 +40,7 @@ class SafeLabelEncoder(LabelEncoder):
         _check_numpy_unicode_bug(classes)
         
         ## Check not too many:
-        unseen = get_unseen()
+        unseen = _get_unseen()
         if len(classes) >= unseen:
             raise ValueError('Too many factor levels in feature. Max is %i' % unseen)
         
@@ -79,7 +79,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         The label encoders
 
     one_hot_ : an instance of a OneHotEncoder
-    
+
     trans_nms_ : the dummified names
     """
     
@@ -113,7 +113,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         trans_array = []
         tnms = []
         
-        unseen = get_unseen()
+        unseen = _get_unseen()
         for nm in obj_cols_:
             encoder = SafeLabelEncoder()
             lab_encoders_.append(encoder)

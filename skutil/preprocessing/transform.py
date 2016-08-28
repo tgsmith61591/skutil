@@ -10,7 +10,7 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.externals.joblib import Parallel, delayed
 from scipy.stats import boxcox
 from scipy import optimize
-from .encode import get_unseen
+from .encode import _get_unseen
 from ..utils import *
 from ..base import *
 

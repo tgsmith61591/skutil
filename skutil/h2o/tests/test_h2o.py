@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import time
+import os
 
 import h2o
 from h2o.frame import H2OFrame
@@ -831,6 +832,65 @@ def test_h2o():
 			else:
 				pass
 
+	def persist():
+		f = F.copy()
+		targ = iris.target
+		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+		f['species'] = targ
+
+		try:
+			Y = from_pandas(f)
+		except Exception as e:
+			Y = None
+
+		if Y is not None:
+			# test on H2OPipeline
+			pipe = H2OPipeline([
+					('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
+					('est', H2OGradientBoostingEstimator(ntrees=5))
+				], 
+				feature_names=Y.columns[:4], 
+				target_feature=Y.columns[4]
+			)
+
+			# fit and save
+			pipe = pipe.fit(Y)
+			the_path = 'pipe.pkl'
+			pipe.save(the_path, warn_if_exists=False)
+			assert os.path.exists(the_path)
+
+			# load and predict
+			pipe = H2OPipeline.load(the_path)
+			pred = pipe.predict(Y)
+
+
+			# test on grid
+			pipe2 = H2OPipeline([
+				('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
+				('est', H2OGradientBoostingEstimator(ntrees=5))
+			])
+
+			hyp = {
+				'mcf__threshold':[0.80,0.85,0.90,0.95]
+			}
+
+			grid = H2ORandomizedSearchCV(estimator=pipe2, 
+										param_grid=hyp, 
+										n_iter=1, cv=2,
+										feature_names=Y.columns[:4],
+										target_feature=Y.columns[4],
+										scoring='accuracy_score')
+			grid = grid.fit(Y)
+			the_path = 'grid.pkl'
+			grid.save(the_path, warn_if_exists=False)
+			assert os.path.exists(the_path)
+
+			grid = H2ORandomizedSearchCV.load(the_path)
+			grid.predict(Y)
+
+
+		else:
+			pass
 
 
 	# run them
@@ -846,3 +906,4 @@ def test_h2o():
 	act_search()
 	sparse()
 	impute()
+	persist()

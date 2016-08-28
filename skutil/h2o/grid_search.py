@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 from abc import ABCMeta, abstractmethod
 import warnings
 import time
+import os
 import numpy as np
 import pandas as pd
 
@@ -37,6 +38,11 @@ from sklearn.metrics import (accuracy_score,
 							 precision_score,
 							 r2_score,
 							 recall_score)
+
+try:
+	import cPickle as pickle
+except ImportError as ie:
+	import pickle
 
 # >= sklearn 0.18
 try:
@@ -481,6 +487,79 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 		else:
 			# should be an H2OEstimator
 			self.best_estimator_._plot(timestep=timestep, metric=metric)
+
+
+	@staticmethod
+	def load(location):
+		with open(location) as f:
+			model = pickle.load(f)
+
+		if not isinstance(model, BaseH2OSearchCV):
+			raise TypeError('expected BaseH2OSearchCV, got %s' % type(model))
+
+		# read the model portion, delete the model path
+		ex = None
+		for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
+			try:
+				the_h2o_est = h2o.load_model(pth)
+			except Exception as e:
+				if ex is None:
+					ex = e
+				else:
+					# only throws if fails twice
+					raise ex		
+
+		# delete the model path
+		del model.model_loc_
+
+		# if self.estimator is None, then it's simply the H2OEstimator,
+		# otherwise it's going to be the H2OPipeline
+		if model.best_estimator_ is None:
+			model.best_estimator_ = the_h2o_est
+		else:
+			model.best_estimator_.steps[-1] = (model.est_name_, the_h2o_est)
+			del model.est_name_
+
+		return model
+
+
+	def _save_internal(self, **kwargs):
+		check_is_fitted(self, 'best_estimator_')
+		estimator = self.best_estimator_
+
+		loc = kwargs.pop('location', None)
+		if not loc:
+			raise ValueError('require location')
+
+		model_loc = kwargs.pop('model_location', '')
+		if not model_loc:
+			ops = os.path.sep
+			loc_pts = loc.split(ops)
+			model_loc = '%s.mdl' % loc_pts[-1]
+
+		# need to save the h2o est before anything else
+		is_pipe = False
+		if isinstance(estimator, H2OPipeline):
+			self.est_name_ = estimator.steps[-1][0]
+			the_h2o_est = estimator._final_estimator
+			is_pipe = True
+		else:
+			# otherwise it's the H2OEstimator
+			the_h2o_est = estimator
+
+		# first, save the estimator...
+		force = kwargs.pop('force', False)
+		self.model_loc_ = h2o.save_model(model=the_h2o_est, path=model_loc, force=force)
+
+		# set to none for pickling...
+		if is_pipe:
+			estimator.steps[-1] = None
+		else:
+			self.best_estimator_ = None
+
+		# now save the rest of things...
+		with open(loc, 'wb') as output:
+			pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 	
 
 

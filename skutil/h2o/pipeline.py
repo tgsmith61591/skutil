@@ -6,6 +6,7 @@ try:
 except ImportError as e:
 	from h2o.estimators.estimator_base import H2OEstimator
 
+import os
 import warnings
 import numpy as np
 
@@ -17,6 +18,11 @@ from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
 from sklearn.utils.metaestimators import if_delegate_has_method
+
+try:
+	import cPickle as pickle
+except ImportError as ie:
+	import pickle
 
 
 __all__ = [
@@ -198,6 +204,58 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 									 % (parm, last_step.__name__))
 
 		return self
+
+
+	@staticmethod
+	def load(location):
+		with open(location) as f:
+			model = pickle.load(f)
+
+		if not isinstance(model, H2OPipeline):
+			raise TypeError('expected H2OPipeline, got %s' % type(model))
+
+		# read the model portion, delete the model path
+		ex = None
+		for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
+			try:
+				the_h2o_model = h2o.load_model(pth)
+			except Exception as e:
+				if ex is None:
+					ex = e
+				else:
+					# only throws if fails twice
+					raise ex		
+
+		model.steps[-1] = (model.est_name_, the_h2o_model)
+		del model.model_loc_
+		del model.est_name_
+
+		return model
+
+
+	def _save_internal(self, **kwargs):
+		loc = kwargs.pop('location', None)
+		if not loc:
+			raise ValueError('require location')
+
+		model_loc = kwargs.pop('model_location', '')
+		if not model_loc:
+			ops = os.path.sep
+			loc_pts = loc.split(ops)
+			model_loc = '%s.mdl' % loc_pts[-1]
+
+		# first, save the estimator...
+		force = kwargs.pop('force', False)
+		self.model_loc_ = h2o.save_model(model=self._final_estimator, path=model_loc, force=force)
+
+		# set the _final_estimator to None just for pickling
+		self.est_name_ = self.steps[-1][0]
+		self.steps[-1] = None
+
+		# now save the rest of things...
+		with open(loc, 'wb') as output:
+			pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
 
 		
 	@if_delegate_has_method(delegate='_final_estimator')

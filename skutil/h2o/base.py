@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 import abc
 import numpy as np
 import warnings
+import os
 
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
@@ -16,6 +17,11 @@ except ImportError as e:
 
 from pkg_resources import parse_version
 from ..utils import is_numeric
+
+try:
+	import cPickle as pickle
+except ImportError as e:
+	import pickle
 
 
 __all__ = [
@@ -261,6 +267,27 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 			return str(self.__min_version__)
 		except AttributeError as n:
 			return 'any'
+
+	@staticmethod
+	def load(location):
+		with open(location) as f:
+			return pickle.load(f)
+
+	def save(self, location, warn_if_exists=True, **kwargs):
+		"""Save the transformer"""
+		if warn_if_exists and os.path.exists(location):
+			warnings.warn('Overwriting existing path: %s' %location, UserWarning)
+
+		if hasattr(self, '_save_internal'):
+			kwargs = {} if not kwargs else kwargs
+			kwargs['location'] = location
+			kwargs['warn_if_exists'] = warn_if_exists
+			kwargs['force'] = True
+			self._save_internal(**kwargs)
+
+		else:
+			with open(location, 'wb') as output:
+				pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 	
 
 class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
