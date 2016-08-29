@@ -3,8 +3,8 @@
 ![Supported versions](https://img.shields.io/badge/python-2.7-blue.svg) 
 
 
-### scikit-util
-A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes.  
+## scikit-util
+A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes. Also includes several preprocessors, transformers and utility function for [H2O](https://github.com/h2oai/h2o-3) frames and algorithms.  
 
 
 #### Installation:

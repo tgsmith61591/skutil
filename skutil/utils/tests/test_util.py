@@ -1,5 +1,7 @@
+from __future__ import print_function, absolute_import, division
 import numpy as np
 import pandas as pd
+import warnings
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.utils import *
@@ -10,6 +12,7 @@ from .utils import assert_fails
 ## Def data for testing
 iris = load_iris()
 X = load_iris_df(False)
+X_no_targ = X.copy()
 
 # ensure things work with a categorical feature
 X['target'] = ['A' if x == 1 else 'B' if x == 2 else 'C' for x in iris.target]
@@ -39,6 +42,20 @@ def test_safe_log_exp():
 	assert_fails(exp, ValueError, 'A')
 
 
+def test_corr():
+	with warnings.catch_warnings():
+		warnings.simplefilter("ignore")
+
+		pass
+		# we'll lose coverage, but it'll save the windows from tying things up...
+		#corr_plot(X_no_targ)
+		#corr_plot(X_no_targ, kde=True, n_levels=3)
+
+def test_bytes():
+	# assert works for DF
+	df_memory_estimate(X_no_targ)
+	# assert fails for bad str
+	assert_fails(df_memory_estimate, ValueError, **{'X':X_no_targ, 'unit':'pb'})
 
 
 def test_flatten():

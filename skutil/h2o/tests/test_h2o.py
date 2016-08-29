@@ -904,12 +904,7 @@ def test_h2o():
 
 	def mem_est():
 		if X is not None:
-			# assert works for DF
-			df_memory_estimate(F)
 			h2o_frame_memory_estimate(X)
-
-			# assert fails for bad str
-			assert_fails(df_memory_estimate, ValueError, **{'X':F, 'unit':'pb'})
 
 		else:
 			pass

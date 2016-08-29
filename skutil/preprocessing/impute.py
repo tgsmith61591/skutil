@@ -110,6 +110,7 @@ class SelectiveImputer(_BaseImputer):
 				self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
 
 
+		# if the fill is an iterable, we have to get a bit more stringent on our validation
 		elif hasattr(fill, '__iter__'):
 
 			# if fill is a dictionary

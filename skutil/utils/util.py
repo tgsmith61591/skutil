@@ -290,7 +290,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
         The estimated number of UNIT held in the frame
     """
     X, _ = validate_is_pd(X, None, False)
-    return human_bytes(X.memory_usage(index=index), unit)
+    return human_bytes(X.memory_usage(index=index).sum(), unit)
 
 
 def get_numeric(X):
