@@ -4,7 +4,7 @@
 
 
 ## scikit-util
-A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes. Also includes several preprocessors, transformers and utility function for [H2O](https://github.com/h2oai/h2o-3) frames and algorithms.  
+A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes and utilities. Also includes several preprocessors, transformers and utility functions for [H2O](https://github.com/h2oai/h2o-3) frames and algorithms, all written in the familiar sklearn-style API.  
 
 
 #### Installation:

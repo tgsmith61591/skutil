@@ -46,6 +46,8 @@ def test_corr():
 	with warnings.catch_warnings():
 		warnings.simplefilter("ignore")
 
+		assert_fails(corr_plot, ValueError, **{'X':X_no_targ, 'plot_type':'bad_type'})
+
 		pass
 		# we'll lose coverage, but it'll save the windows from tying things up...
 		#corr_plot(X_no_targ)

@@ -73,10 +73,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 								"be instances of BaseH2OTransformer"
 								" '%s' (type %s) isn't)" % (t, type(t)))
 
-		if not isinstance(estimator, H2OEstimator):
-			raise TypeError("Last step of chain should implement train "
-							"'%s' (type %s) doesn't)"
-							% (estimator, type(estimator)))
+		if not isinstance(estimator, (H2OEstimator, BaseH2OTransformer)):
+			raise TypeError("Last step of chain should be an H2OEstimator or BaseH2OTransformer, "
+							"not of type %s" % type(estimator))
 		
 	@property
 	def named_steps(self):
@@ -152,7 +151,19 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 		# get the fit
 		Xt, fit_params, self.training_cols_ = self._pre_transform(frame, **{})
 		
-		self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
+		# if the last step is not an h2o estimator, we need to do things differently...
+		if isinstance(self.steps[-1][1], H2OEstimator):
+			self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
+		else:
+			_est = self.steps[-1][1]
+
+			# set the instance members
+			_est.feature_names = self.training_cols_
+			_est.target_feature = y
+
+			# do the fit
+			_est.fit(Xt, **fit_params)
+
 		return self
 
 
@@ -193,15 +204,26 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			for parm, value in six.iteritems(step_params):
 				setattr(transform, parm, value)
 
+
 		# finally, set the h2o estimator params (if needed). 
 		est_name, last_step = self.steps[-1]
 		if est_name in parm_dict:
-			for parm, value in six.iteritems(parm_dict[est_name]):
-				try:
-					last_step._parms[parm] = value
-				except Exception as e:
-					raise ValueError('Invalid parameter for %s: %s'
-									 % (parm, last_step.__name__))
+			if isinstance(last_step, H2OEstimator):
+				for parm, value in six.iteritems(parm_dict[est_name]):
+					try:
+						last_step._parms[parm] = value
+					except Exception as e:
+						raise ValueError('Invalid parameter for %s: %s'
+										 % (parm, last_step.__name__))
+
+			# if it's not an H2OEstimator, but a BaseH2OTransformer,
+			# we gotta do things a bit differently...
+			else:
+				# we're already confident it's in the parm_dict
+				step_params = parm_dict[est_name]
+				for parm, value in six.iteritems(step_params):
+					setattr(last_step, parm, value)
+
 
 		return self
 
@@ -214,43 +236,42 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 		if not isinstance(model, H2OPipeline):
 			raise TypeError('expected H2OPipeline, got %s' % type(model))
 
-		# read the model portion, delete the model path
-		ex = None
-		for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
-			try:
-				the_h2o_model = h2o.load_model(pth)
-			except Exception as e:
-				if ex is None:
-					ex = e
-				else:
-					# only throws if fails twice
-					raise ex		
+		# if the pipe didn't end in an h2o estimator, we don't need to
+		# do the following IO segment...
+		ends_in_h2o = hasattr(model, 'model_loc_')
+		if ends_in_h2o:
+			# read the model portion, delete the model path
+			ex = None
+			for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
+				try:
+					the_h2o_model = h2o.load_model(pth)
+				except Exception as e:
+					if ex is None:
+						ex = e
+					else:
+						# only throws if fails twice
+						raise ex		
 
-		model.steps[-1] = (model.est_name_, the_h2o_model)
-		del model.model_loc_
-		del model.est_name_
+			model.steps[-1] = (model.est_name_, the_h2o_model)
+			del model.model_loc_
+			del model.est_name_
 
 		return model
 
 
 	def _save_internal(self, **kwargs):
-		loc = kwargs.pop('location', None)
-		if not loc:
-			raise ValueError('require location')
+		loc = kwargs.pop('location')
+		model_loc = kwargs.pop('model_location')
 
-		model_loc = kwargs.pop('model_location', '')
-		if not model_loc:
-			ops = os.path.sep
-			loc_pts = loc.split(ops)
-			model_loc = '%s.mdl' % loc_pts[-1]
+		# first, save the estimator... if it's there
+		ends_in_h2o = isinstance(self._final_estimator, H2OEstimator)
+		if ends_in_h2o:
+			force = kwargs.pop('force', False)
+			self.model_loc_ = h2o.save_model(model=self._final_estimator, path=model_loc, force=force)
 
-		# first, save the estimator...
-		force = kwargs.pop('force', False)
-		self.model_loc_ = h2o.save_model(model=self._final_estimator, path=model_loc, force=force)
-
-		# set the _final_estimator to None just for pickling
-		self.est_name_ = self.steps[-1][0]
-		self.steps[-1] = None
+			# set the _final_estimator to None just for pickling
+			self.est_name_ = self.steps[-1][0]
+			self.steps[-1] = None
 
 		# now save the rest of things...
 		with open(loc, 'wb') as output:
@@ -275,3 +296,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			Xt = transform.transform(Xt)
 			
 		return self.steps[-1][-1].predict(Xt)
+
+
+	@if_delegate_has_method(delegate='_final_estimator')
+	def transform(self, frame):
+		"""Applies transforms to the data. Valid only if the 
+		final estimator implements predict.
+		
+		Parameters
+		----------
+		frame : an h2o Frame
+			Data to predict on. Must fulfill input requirements of first step
+			of the pipeline.
+		"""
+		Xt = frame
+		for name, transform in self.steps:
+			Xt = transform.transform(Xt)
+			
+		return Xt

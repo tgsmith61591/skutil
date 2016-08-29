@@ -17,7 +17,7 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
-from skutil.h2o.util import h2o_frame_memory_estimate
+from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
 from skutil.h2o.grid_search import _as_numpy
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
 from skutil.utils.tests.utils import assert_fails
@@ -219,6 +219,36 @@ def test_h2o():
 				ns = pipe.named_steps
 
 
+			# test with all transformers and no estimator
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9))
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			X_transformed = pipe.fit(train).transform(train)
+
+
+
+			# test with all transformers and no estimator -- but this time, we
+			# are testing that we can set the params even when the last step
+			# is not an H2OEstimator
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer())
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			# here's where we test...
+			pipe.set_params(**{'mc__threshold':0.9})
+			assert pipe._final_estimator.threshold == 0.9
+
+
+
 			# test some failures -- first, Y
 			for y in [None, 1]:
 				pipe = H2OPipeline([
@@ -350,6 +380,29 @@ def test_h2o():
 		# most of this is for extreme coverage to make sure it all works...
 		if frame is not None:
 			n_folds = 2
+
+			# first, let's assert things don't work with all transformers and no estimator
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9))
+				], 
+				feature_names=F.columns.tolist(),
+				target_feature='species'
+			)
+
+			hyp = {
+				'nzv__threshold' : [0.5, 0.6]
+			}
+
+			grd = H2ORandomizedSearchCV(estimator=pipe,
+										feature_names=F.columns.tolist(), target_feature='species',
+										param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
+
+			# it will fail in the fit method...
+			assert_fails(grd.fit, TypeError, frame)
+
+
+
 
 			for is_random in [False, True]:
 				for estimator in new_estimators():
@@ -874,6 +927,28 @@ def test_h2o():
 			pred = pipe.predict(Y)
 
 
+
+			# test one pipeline with all transformers and no estimator
+			pipe = H2OPipeline([
+					('nzv', H2ONearZeroVarianceFilterer()),
+					('mc',  H2OMulticollinearityFilterer(threshold=0.9))
+				], 
+				feature_names=Y.columns[:4], 
+				target_feature=Y.columns[4]
+			)
+
+			# fit and save
+			pipe = pipe.fit(Y)
+			the_path = 'pipe_2.pkl'
+			pipe.save(the_path, warn_if_exists=False)
+			assert os.path.exists(the_path)
+
+			# load and transform
+			pipe = H2OPipeline.load(the_path)
+			pred = pipe.transform(Y)
+
+
+
 			# test on grid
 			pipe2 = H2OPipeline([
 				('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
@@ -909,6 +984,15 @@ def test_h2o():
 		else:
 			pass
 
+	def corr():
+		if X is not None:
+			with warnings.catch_warnings():
+				warnings.simplefilter("ignore")
+				assert_fails(h2o_corr_plot, ValueError, **{'X':X, 'plot_type':'bad_type'})
+
+		else:
+			pass
+
 
 
 
@@ -927,3 +1011,4 @@ def test_h2o():
 	impute()
 	persist()
 	mem_est()
+	corr()

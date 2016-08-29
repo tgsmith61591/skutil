@@ -282,7 +282,16 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 			kwargs = {} if not kwargs else kwargs
 			kwargs['location'] = location
 			kwargs['warn_if_exists'] = warn_if_exists
-			kwargs['force'] = True
+
+			if not 'force' in kwargs:
+				kwargs['force'] = True
+
+			if not 'model_location' in kwargs:
+				ops = os.path.sep
+				loc_pts = location.split(ops)
+				model_loc = '%s.mdl' % loc_pts[-1]
+				kwargs['model_location'] = model_loc
+
 			self._save_internal(**kwargs)
 
 		else:

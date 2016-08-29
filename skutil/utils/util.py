@@ -136,14 +136,96 @@ def _def_headers(X):
 
 
 
-def corr_plot(X, kde=False, cmap='Blues_d', n_levels=5):
-    X, _ = validate_is_pd(X, None, assert_all_finite=True)
+def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None, 
+        method='pearson', figsize=(11,9), cmap_a=220, cmap_b=10, vmax=0.3,
+        xticklabels=5, yticklabels=5, linewidths=0.5, cbar_kws={'shrink':0.5}):
+    """Create a simple correlation plot given a dataframe.
+    Note that this requires all datatypes to be numeric and finite!
 
+    Parameters
+    ----------
+    X : pd.DataFrame
+        The pandas DataFrame
+
+    plot_type : str, optional (default='cor')
+        The type of plot, one of ('cor', 'kde', 'pair')
+
+    cmap : str, optional (default='Blues_d')
+        The color to use for the kernel density estimate plot
+        if plot_type == 'kde'
+
+    n_levels : int, optional (default=5)
+        The number of levels to use for the kde plot 
+        if plot_type == 'kde'
+
+    corr : 'precomputed' or None, optional (default=None)
+        If None, the correlation matrix is computed, otherwise
+        if 'precomputed', X is treated as a correlation matrix.
+
+    method : str, optional (default='pearson')
+        The method to use for correlation
+
+    figsize : tuple (int), optional (default=(11,9))
+        The size of the image
+
+    cmap_a : int, optional (default=220)
+        The colormap start point
+
+    cmap_b : int, optional (default=10)
+        The colormap end point
+
+    vmax : float, optional (default=0.3)
+        Arg for seaborn heatmap
+
+    xticklabels : int, optional (default=5)
+        The spacing for X ticks
+
+    yticklabels : int, optional (default=5)
+        The spacing for Y ticks
+
+    linewidths : float, optional (default=0.5)
+        The width of the lines
+
+    cbar_kws : dict, optional
+        Any KWs to pass to seaborn's heatmap when plot_type = 'cor'
+    """
+
+    X, _ = validate_is_pd(X, None, assert_all_finite=True)
+    valid_types = ('cor', 'kde', 'pair')
+    if not plot_type in valid_types:
+        raise ValueError('expected one of (%s), but got %s'
+                         % (','.join(valid_types), plot_type))
+
+    # seaborn is needed for all of these, so we have to check outside
     if not CAN_CHART_SNS:
         warnings.warn('Cannot plot (unable to import Seaborn)')
         return None
 
-    if not kde:
+
+    if plot_type == 'cor':
+        # MPL is only needed for COR
+        if not CAN_CHART_MPL:
+            warnings.warn('Cannot plot (unable to import Matplotlib)')
+            return None
+
+        if not corr == 'precomputed':
+            cols = X.columns.values
+            X = X.corr(method=method)
+            X.columns = cols
+            X.index = cols
+
+        # mask for upper triangle
+        mask = np.zeros_like(X, dtype=np.bool)
+        mask[np.triu_indices_from(mask)] = True
+
+        # set up mpl figure
+        f, ax = plt.subplots(figsize=figsize)
+        color_map = sns.diverging_palette(cmap_a, cmap_b, as_cmap=True)
+        sns.heatmap(X, mask=mask, cmap=color_map, vmax=vmax,
+            square=True, xticklabels=xticklabels, yticklabels=yticklabels,
+            linewidths=linewidths, cbar_kws=cbar_kws, ax=ax)
+
+    elif plot_type == 'pair':
         sns.pairplot(X)
         sns.plt.show()
 

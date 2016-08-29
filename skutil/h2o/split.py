@@ -129,7 +129,9 @@ def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=No
 
 	# for the h2o one, we only need iter 0
 	tr_te_tuples = [(tr,te) for tr,te in cv.split(frame, stratify)][0]
-	train, test = list(tr_te_tuples[0]), list(tr_te_tuples[1])
+
+	# h2o "doesn't reorder rows" so we need to keep these sorted...
+	train, test = sorted(list(tr_te_tuples[0])), sorted(list(tr_te_tuples[1]))
 	out = (
 		frame[train, :], 
 		frame[test,  :]

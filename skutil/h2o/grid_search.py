@@ -307,6 +307,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
 		estimator = self.estimator
 
+		# validate the estimator... for grid search, we ONLY ALLOW the last step
+		# of the grid search estimator to be an H2OEstimator. That means pipelines
+		# that don't end in an estimator are invalid.
+		if isinstance(estimator, H2OPipeline) and not isinstance(estimator._final_estimator, H2OEstimator):
+			raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
+							'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
+
 		# we need to require scoring...
 		scoring = self.scoring
 		if scoring is None:
@@ -333,14 +340,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 		# do first clone, remember to set the names...
 		base_estimator = _clone_h2o_obj(self.estimator, **nms)
 		self.is_regression_ = (not X[self.target_feature].isfactor()[0])
-
-
-		# check estimator... needs to have the 'predict' attr
-		#tmp_est = base_estimator
-		#if isinstance(tmp_est, H2OPipeline):
-		#	tmp_est = tmp_est._final_estimator
-		#if not hasattr(tmp_est, 'predict')
-		#	raise ValueError('base_estimator must implement "predict"')
 
 
 		# the addition of the actuarial search necessitates some hackiness.
@@ -527,17 +526,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 		check_is_fitted(self, 'best_estimator_')
 		estimator = self.best_estimator_
 
-		loc = kwargs.pop('location', None)
-		if not loc:
-			raise ValueError('require location')
+		loc = kwargs.pop('location')
+		model_loc = kwargs.pop('model_location')
 
-		model_loc = kwargs.pop('model_location', '')
-		if not model_loc:
-			ops = os.path.sep
-			loc_pts = loc.split(ops)
-			model_loc = '%s.mdl' % loc_pts[-1]
-
-		# need to save the h2o est before anything else
+		# need to save the h2o est before anything else. Note that since
+		# we verify pre-fit that the _final_estimator is of type H2OEstimator,
+		# we can assume nothing has changed internally...
 		is_pipe = False
 		if isinstance(estimator, H2OPipeline):
 			self.est_name_ = estimator.steps[-1][0]
