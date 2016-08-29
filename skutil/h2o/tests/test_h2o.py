@@ -17,8 +17,9 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
+from skutil.h2o.util import h2o_frame_memory_estimate
 from skutil.h2o.grid_search import _as_numpy
-from skutil.utils import load_iris_df, shuffle_dataframe
+from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -811,13 +812,21 @@ def test_h2o():
 			na_cnt = sum(X.nacnt())
 			assert na_cnt > 0, 'expected some NAs, but found none'
 
+		def scenario_13(X):
+			"""Assert functions with list of imputes"""
+			cols = [str(u) for u in X.columns]
+			vals = ('mean', 1.5, 'median', 'median')
+			fill = dict(zip(cols, vals))
+			_basic_scenario(X, fill)
+
 
 
 		# these are our test scenarios:
 		scenarios = [
 			scenario_1 , scenario_2 , scenario_3 , scenario_4 ,
 			scenario_5 , scenario_6 , scenario_7 , scenario_8 ,
-			scenario_9 , scenario_10, scenario_11, scenario_12
+			scenario_9 , scenario_10, scenario_11, scenario_12,
+			scenario_13
 		]
 
 		# since the imputer works in place, we have to do this for each scenario...
@@ -893,6 +902,20 @@ def test_h2o():
 		else:
 			pass
 
+	def mem_est():
+		if X is not None:
+			# assert works for DF
+			df_memory_estimate(F)
+			h2o_frame_memory_estimate(X)
+
+			# assert fails for bad str
+			assert_fails(df_memory_estimate, ValueError, **{'X':F, 'unit':'pb'})
+
+		else:
+			pass
+
+
+
 
 	# run them
 	multicollinearity()
@@ -908,3 +931,4 @@ def test_h2o():
 	sparse()
 	impute()
 	persist()
+	mem_est()

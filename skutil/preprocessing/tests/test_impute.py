@@ -130,6 +130,12 @@ def test_selective_imputer():
 	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
 	assert all([y.iloc[1,0]==1.5, y.iloc[2,1]==3, y.iloc[2,2]==2.5])
 
+	# test with a dict
+	imputer = SelectiveImputer(def_fill={'a':'median', 'b':3, 'c':'mean'})
+	y = imputer.fit_transform(a)
+	assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
+	assert all([y.iloc[1,0]==1.5, y.iloc[2,1]==3, y.iloc[2,2]==2.5])
+
 	# test failures now...
 	assert_fails(SelectiveImputer(def_fill='blah').fit,        TypeError,  a)
 	assert_fails(SelectiveImputer(def_fill=[1, 2]).fit,        ValueError, a)

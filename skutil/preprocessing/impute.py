@@ -42,6 +42,17 @@ class _BaseImputer(SelectiveMixin, BaseEstimator, TransformerMixin):
 
 
 
+def _val_values(vals):
+	if not all([
+		(is_numeric(i) or \
+			(isinstance(i, (str,unicode))) and \
+			i in ('mode', 'mean', 'median')) \
+		for i in vals
+	]):
+		raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
+						'Got: %s' % ', '.join(vals))
+
+
 class SelectiveImputer(_BaseImputer):
 	"""A more customizable form on sklearn's Imputer class. This class
 	can handle more than mean, median or most common... it will also take
@@ -100,22 +111,21 @@ class SelectiveImputer(_BaseImputer):
 
 
 		elif hasattr(fill, '__iter__'):
+
+			# if fill is a dictionary
+			if isinstance(fill, dict):
+				# if it's a dict, we can assume that these are the cols...
+				cols, fill = zip(*fill.items())
+				self.cols = cols # we reset self.cols in this case!!!
+
+
 			# we need to get the length of the iterable,
 			# make sure it matches the len of cols
 			if not len(fill) == len(cols):
 				raise ValueError('len of fill does not match that of cols')
 
 			# make sure they're all ints
-			if not all([
-					(is_numeric(i) or \
-						(isinstance(i, (str,unicode))) and \
-						i in ('mode', 'mean', 'median')) \
-					for i in fill
-				]):
-
-				raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
-								'Got: %s' % ', '.join(fill))
-
+			_val_values(fill)
 			d = {}
 			for ind, c in enumerate(cols):
 				f = fill[ind]

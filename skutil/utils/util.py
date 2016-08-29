@@ -19,18 +19,32 @@ try:
         from matplotlib import pyplot as plt
 
         # log it
-        CAN_CHART = True
+        CAN_CHART_MPL = True
 except ImportError as ie:
-    CAN_CHART = False
+    CAN_CHART_MPL = False
+
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import seaborn as sns
+        CAN_CHART_SNS = True
+except ImportError as ie:
+    CAN_CHART_SNS = False
+
+
 
 
 __max_exp__ = 1e19
 __min_log__ = -19
 __all__ = [
+    'corr_plot',
+    'df_memory_estimate',
     'exp',
     'flatten_all',
     'flatten_all_generator',
     'get_numeric',
+    'human_bytes',
     'is_entirely_numeric',
     'is_numeric',
     'load_iris_df',
@@ -119,6 +133,27 @@ def _val_cols(cols):
 def _def_headers(X):
     m = X.shape[1] if hasattr(X, 'shape') else len(X)
     return ['V%i' %  (i+1) for i in range(m)]
+
+
+
+def corr_plot(X, kde=False, cmap='Blues_d', n_levels=5):
+    X, _ = validate_is_pd(X, None, assert_all_finite=True)
+
+    if not CAN_CHART_SNS:
+        warnings.warn('Cannot plot (unable to import Seaborn)')
+        return None
+
+    if not kde:
+        sns.pairplot(X)
+        sns.plt.show()
+
+    else:
+        g = sns.PairGrid(X)
+        g.map_diag(sns.kdeplot)
+        g.map_offdiag(sns.kdeplot, cmap=cmap, n_levels=n_levels)
+        sns.plt.show()
+
+
 
 def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
@@ -232,6 +267,30 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     return X, cols
 
 
+def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
+    """We estimate the memory footprint of an H2OFrame
+    to determine, possibly, whether it's capable of being
+    held in memory or not.
+
+    Parameters
+    ----------
+    X : pandas DataFrame
+        The DataFrame in question
+
+    bit_est : int, optional (default=32)
+        The estimated bit-size of each cell. The default
+        assumes each cell is a signed 32-bit float
+
+    unit : str, optional (default='MB')
+        The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
+    Returns
+    -------
+    mb : str
+        The estimated number of UNIT held in the frame
+    """
+    X, _ = validate_is_pd(X, None, False)
+    return human_bytes(X.memory_usage(index=index), unit)
 
 
 def get_numeric(X):
@@ -244,6 +303,36 @@ def get_numeric(X):
     """
     validate_is_pd(X, None) # don't want warning
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
+
+def human_bytes(b, unit='MB'):
+    """Get bytes in a human readable form
+
+    Parameters
+    ----------
+    b : int
+        The number of bytes
+
+    unit : str, optional (default='MB')
+        The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
+    Returns
+    -------
+    mb : str
+        The estimated number of UNIT held in the frame
+    """
+    kb = float(1024)
+    units = {
+        'KB':kb, 
+        'MB':float(kb ** 2), 
+        'GB':float(kb ** 3), 
+        'TB':float(kb ** 4)
+    }
+
+    if not unit in units:
+        raise ValueError('got %s, expected one of (%s)'
+                         % (unit, ', '.join(units.keys())))
+
+    return '%.3f %s' % (b/units[unit], unit)
 
 
 def is_entirely_numeric(X):
@@ -305,7 +394,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True, asce
         result_df = result_df.sort_values("score", ascending=ascending)
     
     # if the import failed, we won't be able to chart here
-    if charts and CAN_CHART:
+    if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
             if col not in ["score", "std"]:
                 plt.scatter(result_df[col], result_df.score)

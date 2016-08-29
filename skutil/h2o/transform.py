@@ -68,6 +68,13 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
 
 		elif hasattr(fill, '__iter__'):
+
+			# if fill is a dictionary
+			if isinstance(fill, dict):
+				# if it's a dict, we can assume that these are the cols...
+				cols, fill = zip(*fill.items())
+
+
 			# we need to get the length of the iterable,
 			# make sure it matches the len of cols
 			if not len(fill) == len(cols):
