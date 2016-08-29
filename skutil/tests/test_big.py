@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.cross_validation import KFold, train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
 from scipy.stats import uniform, randint
@@ -14,6 +13,13 @@ from skutil.preprocessing import *
 from skutil.utils.tests.utils import assert_fails
 from skutil.grid_search import _as_numpy
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+
+try:
+	from sklearn.model_selection import KFold, train_test_split, RandomizedSearchCV
+	SK18 = True
+except ImportError as ie:
+	from sklearn.cross_validation import KFold, train_test_split
+	SK18 = False
 
 # generate a totally random matrix
 X = np.random.rand(500, 25) # kind of large...
@@ -45,7 +51,10 @@ def test_large_grid():
 	in order to assert that the test error will far supercede the train error.
 	"""
 
-	custom_cv = KFold(n=y_train.shape[0], n_folds=3, shuffle=True, random_state=42)
+	if not SK18:
+		custom_cv = KFold(n=y_train.shape[0], n_folds=3, shuffle=True, random_state=42)
+	else:
+		custom_cv = KFold(n_folds=3, shuffle=True, random_state=42)
 
 	# define the pipe
 	pipe = Pipeline([

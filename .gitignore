@@ -10,6 +10,9 @@ skutil.egg-info/
 *.so*
 cythonize.dat
 
+# pickled objects from demos
+*.pkl
+
 # scratch code not to be pushed
 skutil/scratch
 

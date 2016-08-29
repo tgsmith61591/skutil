@@ -3,11 +3,11 @@
 ![Supported versions](https://img.shields.io/badge/python-2.7-blue.svg) 
 
 
-## scikit-util
-A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes and utilities. Also includes several preprocessors, transformers and utility functions for [H2O](https://github.com/h2oai/h2o-3) frames and algorithms, all written in the familiar sklearn-style API.  
+# scikit-util
+A succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes and utilities. Also includes several preprocessors, transformers and utility functions for [H2O](https://github.com/h2oai/h2o-3) frames and algorithms, all written in the familiar sklearn-style API.  `skutil` attempts to unify a collection of useful preprocessors, feature selectors, balancers, etc., from various software packages and languages, such as R's [caret](https://github.com/topepo/caret), sklearn, H2O and more.
 
 
-#### Installation:
+### Installation:
 ```bash
 git clone https://github.com/tgsmith61591/skutil.git
 cd skutil
