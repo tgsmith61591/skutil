@@ -18,7 +18,7 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.grid_search import _as_numpy
-from skutil.utils import load_iris_df
+from skutil.utils import load_iris_df, shuffle_dataframe
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -837,6 +837,7 @@ def test_h2o():
 		targ = iris.target
 		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
 		f['species'] = targ
+		f = shuffle_dataframe(pd.concat([f,f,f,f,f], axis=0)) # times FIVE!
 
 		try:
 			Y = from_pandas(f)
