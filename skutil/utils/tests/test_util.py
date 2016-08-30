@@ -66,6 +66,13 @@ def test_pd_stats():
 	assert 'species_factor' in stats.columns
 	assert stats.shape[1] == 1
 
+	# add feature with one value, assert the ratio of min : max is NA string...
+	Y['constant'] = np.zeros(Y.shape[0])
+	stats = pd_stats(Y, col_type='all')
+	assert all([nm in stats.columns for nm in Y.columns])
+	assert stats['constant']['dtype'].startswith('int') # we assert it's considered an int
+	assert stats.loc['min_max_class_ratio']['constant'] == '--'
+
 	# test with bad col_type
 	assert_fails(pd_stats, ValueError, Y, 'bad_type')
 

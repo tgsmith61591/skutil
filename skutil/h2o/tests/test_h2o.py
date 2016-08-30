@@ -993,6 +993,69 @@ def test_h2o():
 		else:
 			pass
 
+	def interactions():
+		x_dict = {
+			'a' : [0,0,0,1],
+			'b' : [1,0,0,1],
+			'c' : [0,1,0,1],
+			'd' : [1,1,1,0]
+		}
+
+		X_pd = pd.DataFrame.from_dict(x_dict)[['a','b','c','d']] # ordering
+
+
+		try:
+			frame = from_pandas(X_pd)
+		except Exception as e:
+			frame = None
+
+
+		if frame is not None:
+			# try with no cols arg
+			trans = H2OInteractionTermTransformer()
+			X_trans = trans.fit_transform(frame)
+			expected_names = ['a','b','c','d','a_b_I','a_c_I','a_d_I','b_c_I','b_d_I','c_d_I']
+			assert all([str(i)==str(j) for i,j in zip(X_trans.columns, expected_names)]) # assert col names equal
+			assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
+					[0,1,0,1,0,0,0,0,1,0],
+					[0,0,1,1,0,0,0,0,0,1],
+					[0,0,0,1,0,0,0,0,0,0],
+					[1,1,1,0,1,1,0,1,0,0]
+				]))
+
+
+			# try with a custom function...
+			def cust_add(a,b):
+				return a + b
+
+			trans = InteractionTermTransformer(interaction_function=cust_add)
+			X_trans = trans.fit_transform(frame).as_data_frame(use_pandas=True).as_matrix()
+			assert_array_equal(X_trans, np.array([
+					[0,1,0,1,1,0,1,1,2,1],
+					[0,0,1,1,0,1,1,1,1,2],
+					[0,0,0,1,0,0,1,0,1,1],
+					[1,1,1,0,2,2,1,2,1,1]
+				]))
+
+			# assert fails with a non-function arg
+			assert_fails(InteractionTermTransformer(interaction_function='a').fit, TypeError, frame)
+
+			# test with just two cols
+			# try with no cols arg
+			trans = InteractionTermTransformer(feature_names=['a','b'])
+			X_trans = trans.fit_transform(frame)
+			expected_names = ['a','b','c','d','a_b_I']
+			assert all([i==j for i,j in zip(X_trans.columns, expected_names)]) # assert col names equal
+			assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
+					[0,1,0,1,0],
+					[0,0,1,1,0],
+					[0,0,0,1,0],
+					[1,1,1,0,1]
+				]))
+
+		else:
+			pass
+
 
 
 
@@ -1012,3 +1075,5 @@ def test_h2o():
 	persist()
 	mem_est()
 	corr()
+	interactions()
+

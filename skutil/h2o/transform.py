@@ -6,6 +6,7 @@ from ..utils import is_numeric, flatten_all
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
+	'H2OInteractionTermTransformer',
 	'H2OSelectiveImputer'
 ]
 
@@ -39,6 +40,8 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 	def __init__(self, feature_names=None, target_feature=None, def_fill='mean'):
 		super(H2OSelectiveImputer, self).__init__(feature_names=feature_names,
 												  target_feature=target_feature,
+												  min_version=self.__min_version__,
+												  max_version=self.__max_version__,
 												  def_fill=def_fill)
 
 	def fit(self, X):
@@ -173,3 +176,110 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
 		# this is going to impact it in place...
 		return X
+
+
+
+def _mul(a, b):
+	"""Multiplies two H2OFrame objects
+	(no validation since internally used).
+
+	Parameters
+	----------
+	a : H2OFrame
+	b : H2OFrame
+
+	Returns
+	-------
+	product H2OFrame
+	"""
+	return a * b
+
+class H2OInteractionTermTransformer(BaseH2OTransformer):
+	"""A class that will generate interaction terms between selected columns.
+	An interaction captures some relationship between two independent variables
+	in the form of In = (xi * xj).
+
+	Note that the H2OInteractionTermTransformer will only operate on the feature_names,
+	and at the transform point will return ALL features plus the newly generated ones.
+
+	Parameters
+	----------
+	feature_names : array_like (string)
+		names of features on which to apply trans
+
+	target_feature : str
+		name of target feature (ignored in fit and transform)
+
+	interaction : callable, optional (default=None)
+		A callable for interactions. Default None will
+		result in multiplication of two Series objects
+
+	name_suffix : str, optional (default='I')
+		The suffix to add to the new feature name in the form of
+		<feature_x>_<feature_y>_<suffix>
+	"""
+
+	__min_version__ = '3.8.2.9'
+	__max_version__ = None
+
+	def __init__(self, feature_names=None, target_feature=None, interaction_function=None, name_suffix='I'):
+		super(H2OInteractionTermTransformer, self).__init__(feature_names=feature_names,
+															target_feature=target_feature,
+															min_version=self.__min_version__,
+															max_version=self.__max_version__)
+
+		self.interaction_function = interaction_function
+		self.name_suffix = name_suffix
+
+	def fit(self, frame):
+		"""Fit the transformer.
+
+		Parameters
+		----------
+		frame : H2OFrame, shape [n_samples, n_features]
+			The data to transform
+		"""
+		frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+		self.cols  = [str(u) for u in frame.columns] # the cols we'll ultimately operate on
+		self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
+
+		# validate function
+		if not hasattr(self.fun_, '__call__'):
+			raise TypeError('require callable for interaction_function')
+
+		# validate features
+		if len(self.cols) < 2:
+			raise ValueError('need at least two features')
+
+		return self
+
+	def transform(self, frame):
+		"""Perform the interaction term expansion
+		
+		Parameters
+		----------
+		frame : H2OFrame, shape [n_samples, n_features]
+			The data to transform
+		"""
+		check_is_fitted(self, 'fun_')
+		_check_is_frame(frame)
+
+		# this creates a copy...
+		frame = frame[frame.columns]
+		cols, fun, suff = self.cols, self.fun_, self.name_suffix
+		n_features = len(cols)
+
+		# we can do this in N^2 or we can do it in an uglier N choose 2...
+		for i in range(n_features-1):
+			for j in range(i+1, n_features):
+				col_i, col_j = cols[i], cols[j]
+
+				new_col_nm = '%s_%s_%s' % (col_i, col_j, suff)
+				new_col = fun(frame[col_i], frame[col_j])
+				new_col.columns = [new_col_nm]
+
+				# cbind
+				frame = frame.cbind(new_col)
+
+		# return matrix if needed
+		return frame

@@ -18,6 +18,7 @@ from ..base import *
 __all__ = [
     'BoxCoxTransformer',
     'FunctionMapper',
+    'InteractionTermTransformer',
     'SelectiveScaler',
     'SpatialSignTransformer',
     'YeoJohnsonTransformer',
@@ -114,6 +115,104 @@ class FunctionMapper(_BaseSelectiveTransformer):
         return X
 
 
+def _mul(a, b):
+    """Multiplies two series objects
+    (no validation since internally used).
+
+    Parameters
+    ----------
+    a : pd.Series
+    b : pd.Series
+
+    Returns
+    -------
+    product np.ndarray
+    """
+    return (a * b).values
+
+class InteractionTermTransformer(_BaseSelectiveTransformer):
+    """A class that will generate interaction terms between selected columns.
+    An interaction captures some relationship between two independent variables
+    in the form of In = (xi * xj).
+
+    Parameters
+    ----------
+    cols : array_like (string)
+        names of columns on which to apply transformation
+
+    as_df : bool, optional (default=True)
+        Whether to return a dataframe
+
+    interaction : callable, optional (default=None)
+        A callable for interactions. Default None will
+        result in multiplication of two Series objects
+
+    name_suffix : str, optional (default='I')
+        The suffix to add to the new feature name in the form of
+        <feature_x>_<feature_y>_<suffix>
+    """
+    def __init__(self, cols=None, as_df=True, interaction_function=None, name_suffix='I'):
+        super(InteractionTermTransformer, self).__init__(cols=cols, as_df=as_df)
+        self.interaction_function = interaction_function
+        self.name_suffix = name_suffix
+
+    def fit(self, X, y=None):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data to transform
+
+        y : None
+            Passthrough for pipeline
+        """
+        X, cols = validate_is_pd(X, self.cols)
+        self.cols = X.columns if not self.cols else self.cols
+        self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
+
+        # validate function
+        if not hasattr(self.fun_, '__call__'):
+            raise TypeError('require callable for interaction_function')
+
+        # validate cols
+        if len(self.cols) < 2:
+            raise ValueError('need at least two columns')
+
+        return self
+
+    def transform(self, X):
+        """Perform the interaction term expansion
+        
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data to transform
+        """
+        check_is_fitted(self, 'fun_')
+        X, cols = validate_is_pd(X, self.cols)
+        n_features = len(cols)
+        suff = self.name_suffix
+
+        fun = self.fun_
+        append_dict = {}
+
+        # we can do this in N^2 or we can do it in an uglier N choose 2...
+        for i in range(n_features-1):
+            for j in range(i+1, n_features):
+                col_i, col_j = cols[i], cols[j]
+                append_dict['%s_%s_%s' % (col_i, col_j, suff)] = fun(X[col_i], X[col_j])
+
+        # create DF 2:
+        df2 = pd.DataFrame.from_dict(append_dict)
+        X = pd.concat([X, df2], axis=1)
+
+        # return matrix if needed
+        return X if self.as_df else X.as_matrix()
+
+
+
+
 
 ###############################################################################
 class SelectiveScaler(_BaseSelectiveTransformer):
@@ -145,12 +244,21 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         the scaler
     """
 
-    def __init__(self, cols=None, scaler = StandardScaler(), as_df=True):
+    def __init__(self, cols=None, scaler=StandardScaler(), as_df=True):
         super(SelectiveScaler, self).__init__(cols=cols, as_df=as_df)
         self.scaler = scaler
 
-    def fit(self, X, y = None, **kwargs):
-        """Fit the scaler"""
+    def fit(self, X, y=None, **kwargs):
+        """Fit the scaler
+
+        Parameters
+        ----------
+        X : pandas DF, shape [n_samples, n_features]
+            The data to transform
+
+        y : None
+            Passthrough for pipeline
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
@@ -159,7 +267,7 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         self.scaler.fit(X[cols])
         return self
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         """Transform on new data, return a pd DataFrame"""
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
@@ -210,7 +318,7 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
         super(BoxCoxTransformer, self).__init__(cols=cols, as_df=as_df)
         self.n_jobs = n_jobs
         
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         """Estimate the lambdas, provided X
         
         Parameters
@@ -244,13 +352,16 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
 
         return self
     
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         """Perform Box-Cox transformation
         
         Parameters
         ----------
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
+
+        y : None
+            Passthrough for pipeline
         """
         check_is_fitted(self, 'shift_')
         # check on state of X and cols

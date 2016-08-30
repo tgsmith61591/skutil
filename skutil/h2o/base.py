@@ -194,8 +194,6 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 	max_version : str, float (default None)
 		The maximum version of h2o that is compatible with the transformer
 	"""
-
-	@abc.abstractmethod
 	def __init__(self, target_feature=None, min_version='any', max_version=None):
 		self.target_feature = target_feature
 		
