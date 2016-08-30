@@ -6,6 +6,7 @@ import numbers
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
 from sklearn.datasets import load_iris
+from sklearn.externals import six
 from ..base import SelectiveWarning, ModuleImportWarning
 
 try:
@@ -49,6 +50,7 @@ __all__ = [
     'is_numeric',
     'load_iris_df',
     'log',
+    'pd_stats',
     'report_confusion_matrix',
     'report_grid_score_detail',
     'shuffle_dataframe',
@@ -373,6 +375,121 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
     """
     X, _ = validate_is_pd(X, None, False)
     return human_bytes(X.memory_usage(index=index).sum(), unit)
+
+
+def _is_int(x, tp):
+    """Determine whether a column can be cast to int
+    without loss of data
+    """
+    if not any([tp.startswith(i) for i in ('float', 'int')]):
+        return False
+
+    # if there's no difference between the two, then it's an int.
+    return (x - x.astype('int')).abs().sum() == 0
+
+def pd_stats(X, col_type='all'):
+    """Get a descriptive report of the elements in the data frame.
+    Builds on existing pandas `describe` method.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        The DataFrame
+
+    col_type : str, optional (default='all')
+        The types of columns to analyze. One of ('all',
+        'numeric', 'object'). If not all, will only return
+        corresponding typed columns.
+    """
+    X, _ = validate_is_pd(X, None, False)
+    raw_stats = X.describe()
+    stats = raw_stats.to_dict()
+    dtypes = X.dtypes
+
+    # validate col_type
+    valid_types = ('all','numeric','object')
+    if not col_type in valid_types:
+        raise ValueError('expected col_type in (%s), but got %s'
+            % (','.join(valid_types), col_type))
+
+    # if user only wants part back, we can use this...
+    type_dict = {}
+
+    # the string to use when we don't want to populate a cell
+    _nastr = '--'
+
+    # objects are going to get dropped in the describe() call,
+    # so we need to add them back in with dicts of nastr for all...
+    object_dtypes = dtypes[dtypes=='object']
+    if object_dtypes.shape[0] > 0:
+        obj_nms = object_dtypes.index.values
+
+        for nm in obj_nms:
+            obj_dct = {stat:_nastr for stat in raw_stats.index.values}
+            stats[nm] = obj_dct
+
+
+    # we'll add rows to the stats...
+    for col, dct in six.iteritems(stats):
+        # add the dtype
+        _dtype = str(dtypes[col])
+        is_numer = any([_dtype.startswith(x) for x in ('int','float')])
+        dct['dtype'] = _dtype
+
+        # populate type_dict
+        type_dict[col] = 'numeric' if is_numer else 'object'
+
+        # if the dtype is not a float, we can
+        # get the count of uniques, then do a
+        # ratio of majority : minority
+        _isint = _is_int(X[col], _dtype)
+        if _isint or _dtype == 'object':
+            _unique = len(X[col].unique())
+            _val_cts= X[col].value_counts().sort_values(ascending=True)
+            _min_cls, _max_cls = _val_cts.index[0], _val_cts.index[-1]
+
+            # if there's only one class...
+            if _min_cls == _max_cls:
+                _min_cls = _nastr
+                _min_max_ratio = _nastr
+            else:
+                _min_max_ratio = _val_cts.values[0] / _val_cts.values[-1]
+
+            # chance we didn't recognize it as an int before...
+            if 'float' in dct['dtype']:
+                dct['dtype'] = dct['dtype'].replace('float', 'int')
+
+        else:
+            _unique = _min_max_ratio = _nastr
+
+        # populate the unique count and more
+        dct['unique_ct'] = _unique
+        dct['min_max_class_ratio'] = _min_max_ratio
+
+        # get the skewness...
+        if is_numer:
+            _skew, _kurt = X[col].skew(), X[col].kurtosis()
+            abs_skew = abs(_skew)
+            _skew_risk = 'high skew' if abs_skew > 1 else 'mod. skew' if (0.5 < abs_skew < 1) else 'symmetric'
+        else:
+            _skew = _kurt = _skew_risk = _nastr
+
+        dct['skewness'] = _skew
+        dct['skewness rating'] = _skew_risk
+        dct['kurtosis'] = _kurt
+
+    # go through and pop the keys that might be filtered on
+    if col_type != 'all':
+        stat_out = {}
+        for col, dtype in six.iteritems(type_dict):
+            if col_type == dtype:
+                stat_out[col] = stats[col]
+
+    else:
+        stat_out = stats
+
+    return pd.DataFrame.from_dict(stat_out)
+
 
 
 def get_numeric(X):

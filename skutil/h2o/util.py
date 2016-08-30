@@ -131,6 +131,10 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
 		X.columns = cols # set the cols to the same names
 		X.index = cols
 		corr = 'precomputed'
+
+	else:
+		# WARNING! This pulls everything into memory...
+		X = X.as_data_frame(use_pandas=True)
 	
 	corr_plot(X, plot_type=plot_type, cmap=cmap, n_levels=n_levels, 
 		figsize=figsize, cmap_a=cmap_a, cmap_b=cmap_b, 

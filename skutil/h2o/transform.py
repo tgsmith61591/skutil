@@ -1,8 +1,8 @@
 from __future__ import print_function, division, absolute_import
-from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
-from ..utils import is_numeric, flatten_all
 import numpy as np
 import numbers
+from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
+from ..utils import is_numeric, flatten_all
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [

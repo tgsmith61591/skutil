@@ -42,6 +42,35 @@ def test_safe_log_exp():
 	assert_fails(exp, ValueError, 'A')
 
 
+def test_pd_stats():
+	Y = load_iris_df()
+
+	# add a float copy of species
+	Y['species_float'] = Y.Species.astype('float')
+
+	# add an object col
+	Y['species_factor'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in Y.Species]
+
+	# test with all
+	stats = pd_stats(Y, col_type='all')
+	assert all([nm in stats.columns for nm in Y.columns])
+	assert stats['species_float']['dtype'].startswith('int') # we assert it's considered an int
+
+	# test with numerics
+	stats = pd_stats(Y, col_type='numeric')
+	assert not 'species_factor' in stats.columns
+	assert stats.shape[1] == (Y.shape[1]-1)
+
+	# test with object
+	stats = pd_stats(Y, col_type='object')
+	assert 'species_factor' in stats.columns
+	assert stats.shape[1] == 1
+
+	# test with bad col_type
+	assert_fails(pd_stats, ValueError, Y, 'bad_type')
+
+
+
 def test_corr():
 	with warnings.catch_warnings():
 		warnings.simplefilter("ignore")
