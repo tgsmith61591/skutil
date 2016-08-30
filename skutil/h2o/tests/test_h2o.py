@@ -26,7 +26,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split,
 	_val_y)
-from skutil.h2o.transform import H2OSelectiveImputer
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
