@@ -34,6 +34,7 @@ from sklearn.metrics import accuracy_score
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
+from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
 # for split
 try:
@@ -1005,7 +1006,7 @@ def test_h2o():
 
 
 		try:
-			frame = from_pandas(X_pd)
+			frame = H2OFrame.from_python(X_pd, column_names=X_pd.columns.tolist())[1:,:]
 		except Exception as e:
 			frame = None
 
@@ -1028,7 +1029,7 @@ def test_h2o():
 			def cust_add(a,b):
 				return a + b
 
-			trans = InteractionTermTransformer(interaction_function=cust_add)
+			trans = H2OInteractionTermTransformer(interaction_function=cust_add)
 			X_trans = trans.fit_transform(frame).as_data_frame(use_pandas=True).as_matrix()
 			assert_array_equal(X_trans, np.array([
 					[0,1,0,1,1,0,1,1,2,1],
@@ -1038,11 +1039,11 @@ def test_h2o():
 				]))
 
 			# assert fails with a non-function arg
-			assert_fails(InteractionTermTransformer(interaction_function='a').fit, TypeError, frame)
+			assert_fails(H2OInteractionTermTransformer(interaction_function='a').fit, TypeError, frame)
 
 			# test with just two cols
 			# try with no cols arg
-			trans = InteractionTermTransformer(feature_names=['a','b'])
+			trans = H2OInteractionTermTransformer(feature_names=['a','b'])
 			X_trans = trans.fit_transform(frame)
 			expected_names = ['a','b','c','d','a_b_I']
 			assert all([i==j for i,j in zip(X_trans.columns, expected_names)]) # assert col names equal
