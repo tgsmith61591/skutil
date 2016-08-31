@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
+from skutil.preprocessing.balance import _BaseBalancer
+from skutil.utils.tests.utils import assert_fails
 import warnings
 
 
@@ -148,3 +150,18 @@ def test_undersample():
 	cts = b.target.value_counts()
 	assert cts[0] == 40
 	assert cts[1] == 10
+
+def test_superclass_not_implemented():
+	# anon balancer
+	class AnonBalancer(_BaseBalancer):
+		def __init__(self, ratio=0.2, y=None, as_df=True):
+			super(AnonBalancer, self).__init__(ratio, y, as_df)
+
+		def balance(self, X):
+			return super(AnonBalancer, self).balance(X)
+
+	assert_fails(AnonBalancer().balance, NotImplementedError, X)
+
+
+
+

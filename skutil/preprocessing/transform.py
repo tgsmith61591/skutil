@@ -42,9 +42,7 @@ def _validate_rows(X):
 ###############################################################################
 class _BaseSelectiveTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Base class for skutil transformers"""
-    __metaclass__ = ABCMeta
 
-    @abstractmethod
     def __init__(self, cols=None, as_df=True):
         self.cols = cols
         self.as_df= as_df

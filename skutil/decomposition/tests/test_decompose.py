@@ -4,8 +4,9 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.datasets import load_iris
 from skutil.decomposition import *
-from skutil.utils.tests import assert_fails
+from skutil.utils import assert_fails
 from skutil.utils import load_iris_df
+from skutil.decomposition.decompose import _BaseSelectiveDecomposer
 
 
 
@@ -64,3 +65,14 @@ def test_selective_tsvd():
 	assert transformer.get_features() is None
 
 	
+def test_not_implemented_failure():
+	# define anon decomposer
+	class AnonDecomposer(_BaseSelectiveDecomposer):
+		def __init__(self, cols=None, n_components=None, as_df=True):
+			super(AnonDecomposer, self).__init__(cols, n_components, as_df)
+
+		def get_decomposition(self):
+			return super(AnonDecomposer, self).get_decomposition()
+
+	assert_fails(AnonDecomposer().get_decomposition, NotImplementedError)
+

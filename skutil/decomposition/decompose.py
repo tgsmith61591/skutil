@@ -5,8 +5,10 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.utils.validation import check_is_fitted
+
 from ..utils import *
 from ..base import *
+from ..base import overrides
 
 
 
@@ -21,7 +23,6 @@ class _BaseSelectiveDecomposer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Base class for selective decompositional transformers."""
     __metaclass__ = ABCMeta
 
-    @abstractmethod
     def __init__(self, cols=None, n_components=None, as_df=True):
         self.cols = cols
         self.n_components = n_components
@@ -29,7 +30,10 @@ class _BaseSelectiveDecomposer(BaseEstimator, TransformerMixin, SelectiveMixin):
 
     @abstractmethod
     def get_decomposition(self):
-        return NotImplemented
+        """This needs to be overridden by subclasses.
+        As of now, it will just raise a NotImplementedError
+        """
+        raise NotImplementedError('this should be implemented by a subclass')
 
 
 
@@ -130,6 +134,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
         return x if self.as_df else x.as_matrix()
 
+    @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
         return self.pca_ if hasattr(self, 'pca_') else None
 
@@ -207,6 +212,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
         return x if self.as_df else x.as_matrix()
 
+    @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
         return self.svd_ if hasattr(self, 'svd_') else None
 

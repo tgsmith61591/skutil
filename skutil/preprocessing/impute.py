@@ -31,7 +31,7 @@ def _col_mode(col):
 
 
 ###############################################################################
-class _BaseImputer(SelectiveMixin, BaseEstimator, TransformerMixin):
+class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin):
 	"""A base class for all imputers"""
 	__def_fill__ = -999999
 

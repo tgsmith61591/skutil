@@ -60,7 +60,23 @@ class _BaseBalancer:
 	"""A super class for all balancer classes. Balancers are not like TransformerMixins 
 	or BaseEstimators, and do not implement fit or predict. This is because Balancers
 	are ONLY applied to training data.
+
+	Parameters
+	----------
+	y : str, def None
+		The name of the response column. The response column must be
+		biclass, no more or less.
+
+	ratio : float, def 0.2
+		The target ratio of the minority records to the majority records. If the
+		existing ratio is >= the provided ratio, the return value will merely be
+		a copy of the input matrix, otherwise SMOTE will impute records until the
+		target ratio is reached.
+
+	as_df : bool, optional (default=True)
+		Whether to return a dataframe
 	"""
+	
 	# the max classes handled by class balancers
 	__max_classes__ = 20
 	__metaclass__ = abc.ABCMeta
@@ -72,7 +88,10 @@ class _BaseBalancer:
 
 	@abc.abstractmethod
 	def balance(self, X):
-		return NotImplemented
+		"""This method must be overridden by
+		a subclass. This does nothing right now.
+		"""
+		raise NotImplementedError('this method must be implemented by a subclass')
 
 
 class OversamplingClassBalancer(_BaseBalancer):
