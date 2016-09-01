@@ -377,15 +377,19 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 	def fit(self, X, y = None):
 		# check on state of X and cols
 		X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
+		cols = self.cols if not self.cols is None else X.columns
 
 		# if cols is None, applies over everything
-		srs = X[self.cols or X.columns].apply(lambda x: np.var(x) < self.threshold)
-		drops = X[self.cols or X.columns].columns[srs]
+		variances = X[cols].var()
+		mask = (variances < self.threshold).values
+		self.var_ = variances[mask].tolist()
+		self.drop = variances.index[mask].tolist()
 
-		if drops.shape[0] == 0:
+		# I don't like making this None; it opens up bugs in pd.drop,
+		# but it was the precedent the API set from early on, so don't
+		# want to change it without a warning. #TODO: warn of change
+		if not self.drop:
 			self.drop = None
-		else:
-			self.drop = drops.tolist()
 
 		return self
 

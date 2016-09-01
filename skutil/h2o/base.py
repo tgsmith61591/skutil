@@ -177,7 +177,7 @@ class VizMixin:
 		metric : str
 			The performance metric to evaluate, i.e., MSE
 		"""
-		return NotImplemented
+		raise NotImplementedError('this must be implemented by a subclass')
 
 
 class BaseH2OFunctionWrapper(BaseEstimator):
