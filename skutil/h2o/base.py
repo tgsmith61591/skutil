@@ -224,22 +224,22 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 		# validate max version
 		if not max_version:
 			pass
-	   	elif is_numeric(max_version):
-	   		max_version = str(max_version)
+		elif is_numeric(max_version):
+			max_version = str(max_version)
 
-	   	if isinstance(max_version, str):
-	   		if parse_version(h2ov) > parse_version(max_version):
-	   			raise EnvironmentError('your h2o version (%s) '
+		if isinstance(max_version, str):
+			if parse_version(h2ov) > parse_version(max_version):
+				raise EnvironmentError('your h2o version (%s) '
 									   'exceeds the maximum permitted ' 
 									   'version for this transformer (%s)'
 									   % (h2ov, str(max_version)))
-	   	elif not max_version is None: # remember we allow None
-	   		raise ValueError('max_version must be a float, '
+		elif not max_version is None: # remember we allow None
+			raise ValueError('max_version must be a float, '
 							 'a string in the form of "X.x" '
 							 'or None, but got %s: %s' % (type(max_version), str(max_version)))
 
 
-	   	# test connection, warn where needed
+		# test connection, warn where needed
 		try:
 			g = h2o.frames() # returns a dict of frames
 		except (EnvironmentError, ValueError, H2OServerError) as v:
@@ -317,3 +317,6 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 												 max_version=max_version)
 		# the column names
 		self.feature_names = feature_names
+
+	def fit_transform(self, frame):
+		return self.fit(frame).transform(frame)

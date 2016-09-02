@@ -17,6 +17,7 @@ from skutil.h2o.base import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
+from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
 from skutil.h2o.grid_search import _as_numpy
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
@@ -61,8 +62,32 @@ def new_estimators():
 		)
 
 
+def test_h2o_no_conn_needed():
+	# make an anonymous class that extends base h2o
+	class AnonH2O(BaseH2OFunctionWrapper):
+		def __init__(self, min_version, max_version):
+			super(AnonH2O, self).__init__(target_feature=None, 
+				min_version=min_version, 
+				max_version=max_version)
+
+	class SomeObj(object):
+		def __init__(self):
+			super(SomeObj, self).__init__()
+
+	with warnings.catch_warnings():
+		warnings.simplefilter('ignore')
+
+		vs = [
+			{'min_version':None, 'max_version':None},
+			{'min_version':'3.8.2.9', 'max_version':SomeObj}
+		]
+
+		for kwargs in vs:
+			assert_fails(AnonH2O, ValueError, **kwargs)
+
+
 # if we can't start an h2o instance, let's just pass all these tests
-def test_h2o():
+def test_h2o_with_conn():
 	iris = load_iris()
 	F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 	#F = load_iris_df(include_tgt=False)
@@ -112,28 +137,29 @@ def test_h2o():
 		if X is not None:
 			x = filterer.fit_transform(X)
 			assert x.shape[1] == 2
-		else:
-			pass
 
-		# test some exceptions...
-		if X is not None:
-			failed = False
-			try:
-				filterer.fit(F) # thrown here
-			except TypeError as t:
-				failed = True
-			assert failed, 'Expected failure when passing a dataframe'
-		else:
-			pass
 
-		# test with a target feature
-		if X is not None:
+			# test some exceptions...
+			assert_fails(filterer.fit, TypeError, F)
+
+			# test with a target feature
 			tgt = 'sepal length (cm)'
 			new_filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6, 'target_feature':tgt})
 			x = new_filterer.fit_transform(X)
 
 			# h2o throws weird error because it override __contains__, so use the comprehension
 			assert tgt in [c for c in x.columns], 'target feature was accidentally dropped...'
+
+			# assert save/load works
+			filterer.fit(X)
+			the_path = 'mcf.pkl'
+			filterer.save(the_path, warn_if_exists=False)
+			assert os.path.exists(the_path)
+
+			# load and transform...
+			filterer = H2OMulticollinearityFilterer.load(the_path)
+			x = filterer.transform(X)
+			assert x.shape[1] == 2
 
 		else:
 			pass
@@ -210,6 +236,9 @@ def test_h2o():
 				)
 
 				# fit pipe...
+				pipe.fit(train)
+
+				# refit for _reset coverage...
 				pipe.fit(train)
 
 				# try predicting
@@ -339,7 +368,19 @@ def test_h2o():
 			except TypeError as t:
 				failed =True
 			assert failed
-			
+
+
+			# test with such stringent thresholds that no features are retained
+			pipe = H2OPipeline([
+					('mcf', H2OMulticollinearityFilterer(threshold=0.1)),
+					('est', H2ORandomForestEstimator())
+				], feature_names=F.columns.tolist(), target_feature='species'
+			)
+
+			# this will fail because no cols are retained
+			assert_fails(pipe.fit, ValueError, train)
+
+
 		else:
 			pass
 

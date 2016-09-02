@@ -85,12 +85,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 	def _final_estimator(self):
 		return self.steps[-1][1]
 	
-	def _pre_transform(self, frame=None, **fit_params):
-		fit_params_steps = dict((step, {}) for step, _ in self.steps)
-		for pname, pval in six.iteritems(fit_params):
-			step, param = pname.split('__', 1)
-			fit_params_steps[step][param] = pval
-			
+	def _pre_transform(self, frame=None):
 		frameT = frame
 
 		# we have to set the feature names at each stage to be
@@ -106,9 +101,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			transform.feature_names = next_feature_names
 			
 			if hasattr(transform, "fit_transform"):
-				frameT = transform.fit_transform(frameT, **fit_params_steps[name])
+				frameT = transform.fit_transform(frameT)
 			else:
-				frameT = transform.fit(frameT, **fit_params_steps[name]).transform(frameT)
+				frameT = transform.fit(frameT).transform(frameT)
 
 			# now reset the next_feature_names to be the remaining names...
 			next_feature_names = [str(nm) for nm in frameT.columns if not (nm==self.target_feature)]
@@ -116,7 +111,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 				raise ValueError('no columns retained after fit!')
 					
 		# this will have y re-combined in the matrix
-		return frameT, fit_params_steps[self.steps[-1][0]], next_feature_names
+		return frameT, next_feature_names
 		
 	def _reset(self):
 		"""Each individual step should handle its own
@@ -149,11 +144,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 		frame = frame[xy]
 		
 		# get the fit
-		Xt, fit_params, self.training_cols_ = self._pre_transform(frame, **{})
+		Xt, self.training_cols_ = self._pre_transform(frame)
 		
 		# if the last step is not an h2o estimator, we need to do things differently...
 		if isinstance(self.steps[-1][1], H2OEstimator):
-			self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y, **fit_params)
+			self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y)
 		else:
 			_est = self.steps[-1][1]
 
@@ -162,7 +157,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 			_est.target_feature = y
 
 			# do the fit
-			_est.fit(Xt, **fit_params)
+			_est.fit(Xt)
 
 		return self
 
