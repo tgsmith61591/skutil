@@ -217,12 +217,19 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 	name_suffix : str, optional (default='I')
 		The suffix to add to the new feature name in the form of
 		<feature_x>_<feature_y>_<suffix>
+
+	only_return_interactions : bool, optional (default=False)
+	    If set to True, will only return features in feature_names
+	    and their respective generated interaction terms.
 	"""
 
 	__min_version__ = '3.8.2.9'
 	__max_version__ = None
 
-	def __init__(self, feature_names=None, target_feature=None, interaction_function=None, name_suffix='I'):
+	def __init__(self, feature_names=None, target_feature=None, 
+				 interaction_function=None, name_suffix='I', 
+				 only_return_interactions=False):
+
 		super(H2OInteractionTermTransformer, self).__init__(feature_names=feature_names,
 															target_feature=target_feature,
 															min_version=self.__min_version__,
@@ -230,6 +237,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
 		self.interaction_function = interaction_function
 		self.name_suffix = name_suffix
+		self.only_return_interactions =only_return_interactions
 
 	def fit(self, frame):
 		"""Fit the transformer.
@@ -269,6 +277,9 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 		cols, fun, suff = self.cols, self.fun_, self.name_suffix
 		n_features = len(cols)
 
+		# these are the names to return if only_return_interactions
+		interaction_names = [x for x in cols]
+
 		# we can do this in N^2 or we can do it in an uglier N choose 2...
 		for i in range(n_features-1):
 			for j in range(i+1, n_features):
@@ -278,8 +289,11 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 				new_col = fun(frame[col_i], frame[col_j])
 				new_col.columns = [new_col_nm]
 
+				# add the new col nm to the list of interaction names
+				interaction_names.append(new_col_nm)
+
 				# cbind
 				frame = frame.cbind(new_col)
 
 		# return matrix if needed
-		return frame
+		return frame if not self.only_return_interactions else frame[interaction_names]

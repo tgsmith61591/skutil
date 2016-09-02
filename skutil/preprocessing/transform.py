@@ -148,11 +148,18 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
     name_suffix : str, optional (default='I')
         The suffix to add to the new feature name in the form of
         <feature_x>_<feature_y>_<suffix>
+
+    only_return_interactions : bool, optional (default=False)
+        If set to True, will only return features in feature_names
+        and their respective generated interaction terms.
     """
-    def __init__(self, cols=None, as_df=True, interaction_function=None, name_suffix='I'):
+    def __init__(self, cols=None, as_df=True, interaction_function=None, 
+                 name_suffix='I', only_return_interactions=False):
+
         super(InteractionTermTransformer, self).__init__(cols=cols, as_df=as_df)
         self.interaction_function = interaction_function
         self.name_suffix = name_suffix
+        self.only_return_interactions = only_return_interactions
 
     def fit(self, X, y=None):
         """Fit the transformer.
@@ -194,16 +201,22 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
 
         fun = self.fun_
         append_dict = {}
+        interaction_names = [x for x in cols]
 
         # we can do this in N^2 or we can do it in an uglier N choose 2...
         for i in range(n_features-1):
             for j in range(i+1, n_features):
                 col_i, col_j = cols[i], cols[j]
-                append_dict['%s_%s_%s' % (col_i, col_j, suff)] = fun(X[col_i], X[col_j])
+                new_nm = '%s_%s_%s' % (col_i, col_j, suff)
+                append_dict[new_nm] = fun(X[col_i], X[col_j])
+                interaction_names.append(new_nm)
 
         # create DF 2:
         df2 = pd.DataFrame.from_dict(append_dict)
         X = pd.concat([X, df2], axis=1)
+
+        # if we only want to keep interaction names, filter now
+        X = X if not self.only_return_interactions else X[interaction_names]
 
         # return matrix if needed
         return X if self.as_df else X.as_matrix()

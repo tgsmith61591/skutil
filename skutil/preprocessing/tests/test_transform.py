@@ -140,6 +140,13 @@ def test_interactions():
 			[1,1,1,0,1]
 		]))
 
+	# test on only_return_interactions...
+	trans = InteractionTermTransformer(cols=['a','b'], only_return_interactions=True)
+	X_trans = trans.fit_transform(X_pd)
+	expected_names = sorted(['a','b','a_b_I'])
+	actual_names = sorted(X_trans.columns.tolist())
+	assert all([expected_names[i]==actual_names[i] for i in range(len(expected_names))])
+
 
 def test_yeo_johnson():
 	transformer = YeoJohnsonTransformer().fit(X) ## will fit on all cols

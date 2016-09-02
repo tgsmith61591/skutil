@@ -1054,6 +1054,13 @@ def test_h2o():
 					[1,1,1,0,1]
 				]))
 
+			# test with just interaction terms returns
+			trans = H2OInteractionTermTransformer(feature_names=['a','b'], only_return_interactions=True)
+			X_trans = trans.fit_transform(frame)
+			expected_names = sorted(['a','b','a_b_I'])
+			actual_names = sorted([str(u) for u in X_trans.columns])
+			assert all([expected_names[i]==actual_names[i] for i in range(len(expected_names))])
+
 		else:
 			pass
 
