@@ -690,7 +690,7 @@ def test_h2o_with_conn():
 				assert_fails(H2OKFold, ValueError, **{'n_folds':n_folds})
 
 			# assert not logical shuffle fails
-			assert_fails(H2OKFold, ValueError, **{'shuffle':'sure'})
+			assert_fails(H2OKFold, TypeError, **{'shuffle':'sure'})
 
 			# assert split with n_splits > n_obs fails
 			assert_fails(H2OKFold(n_folds=Y.shape[0]+1).split, ValueError, Y)
