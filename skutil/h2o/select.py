@@ -310,9 +310,9 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 		cols = frame.columns
 		variances = [frame[n].var(use=use, na_rm=self.na_rm) for n in cols]
 		var_mask = np.asarray(variances) < thresh
-		
+
 		self.drop_ = [str(n) for n in np.asarray(cols)[var_mask]] # make them strings
-		self.vars_ = dict(zip(self.drop_, np.asarray(variances)[var_mask]))
+		self.var_ = dict(zip(self.drop_, np.asarray(variances)[var_mask]))
 
 		return self.transform(X)
 			

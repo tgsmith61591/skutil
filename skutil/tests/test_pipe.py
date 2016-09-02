@@ -93,7 +93,7 @@ def test_random_grid():
     search = RandomizedSearchCV(pipe, hp,
                                 n_iter=2, # just to test it even works
                                 scoring='accuracy',
-                                cv=5,
+                                cv=2,
                                 random_state=42)
 
     # fit the search
@@ -111,7 +111,7 @@ def test_regular_grid():
         ('mapper'      , FunctionMapper()),  # pass through
         ('encoder'     , OneHotCategoricalEncoder()), # no object dtypes, so will pass through
         ('collinearity', MulticollinearityFilterer(threshold=0.85)),
-        ('imputer'     , SelectiveImputer()), # pass through
+        ('imputer'     , SelectiveImputer()), # pass through since no missing
         ('scaler'      , SelectiveScaler()),
         ('boxcox'      , BoxCoxTransformer()),
         ('nzv'         , NearZeroVarianceFilterer(threshold=1e-4)),
@@ -175,7 +175,9 @@ def test_regular_grid():
     # test with invalid X and ys
     failed = False
     try:
-    	search.fit(X_train, pd.DataFrame([pd.Series(y_train), pd.Series(y_train)]))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+    	    search.fit(X_train, pd.DataFrame([pd.Series(y_train), pd.Series(y_train)]))
     except Exception as e:
     	failed = True
     assert failed

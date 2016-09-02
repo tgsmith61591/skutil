@@ -4,11 +4,11 @@ sklearn-esque transformers for python
 import sys, warnings
 from .utils import log, exp # want these visible at module level
 
-__version__ = '0.0.45'
+__version__ = '0.0.45_working'
 
 try:
     # This variable is injected in the __builtins__ by the build
-    # process. It used to enable importing subpackages of skutil when
+    # process. It is used to enable importing subpackages of skutil when
     # the binaries are not built
     __SKUTIL_SETUP__
 except NameError:
