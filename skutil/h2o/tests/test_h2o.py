@@ -26,7 +26,7 @@ from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split,
-	_val_y)
+	_val_y, H2OBaseCrossValidator)
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
 
 from sklearn.datasets import load_iris, load_boston
@@ -733,10 +733,16 @@ def test_h2o_with_conn():
 				X_train, X_test = h2o_train_test_split(frame, test_size=0.3, train_size=0.7, stratify=stratified)
 				a, b = (X_train.shape[0] + X_test.shape[0]), frame.shape[0]
 				assert a==b, '%d != %d' % (a, b) 
+
+
+			# do split with train/test sizes = None, assert shapes
+			X_train, X_test = h2o_train_test_split(frame)
+			assert X_test.shape[0] in (187, 188) # 25%
 		else:
 			pass
 
 	def act_search():
+
 		boston = load_boston()
 		X_bost = pd.DataFrame.from_records(data=boston.data, columns=boston.feature_names)
 		X_bost['target'] = boston.target
