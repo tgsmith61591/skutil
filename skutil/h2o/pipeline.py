@@ -107,7 +107,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
 			# now reset the next_feature_names to be the remaining names...
 			next_feature_names = [str(nm) for nm in frameT.columns if not (nm==self.target_feature)]
-			if not next_feature_names:
+			if not next_feature_names or len(next_feature_names) < 1:
 				raise ValueError('no columns retained after fit!')
 					
 		# this will have y re-combined in the matrix

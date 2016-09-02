@@ -372,7 +372,8 @@ def test_h2o_with_conn():
 
 			# test with such stringent thresholds that no features are retained
 			pipe = H2OPipeline([
-					('mcf', H2OMulticollinearityFilterer(threshold=0.1)),
+					('mcf', H2OMulticollinearityFilterer(threshold=0.1)), # will retain one
+					('nzv', H2ONearZeroVarianceFilterer(threshold=100)), # super high thresh
 					('est', H2ORandomForestEstimator())
 				], feature_names=F.columns.tolist(), target_feature='species'
 			)
