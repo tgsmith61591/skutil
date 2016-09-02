@@ -664,12 +664,12 @@ def test_h2o_with_conn():
 
 
 		if Y is not None:
+			# test the splits
+			def do_split(gen, *args):
+				return [x for x in gen(*args)]
+
 			# test stratifed with shuffle on/off
 			for shuffle in [True, False]:
-				# test the splits
-				def do_split(gen, *args):
-					return [x for x in gen(*args)]
-
 				for y in ['species', None]:
 					strat = H2OStratifiedKFold(shuffle=shuffle)
 
@@ -693,7 +693,12 @@ def test_h2o_with_conn():
 			assert_fails(H2OKFold, TypeError, **{'shuffle':'sure'})
 
 			# assert split with n_splits > n_obs fails
-			assert_fails(H2OKFold(n_folds=Y.shape[0]+1).split, ValueError, Y)
+			failed = False
+			try:
+				do_split(H2OKFold(n_folds=Y.shape[0]+1).split, Y)
+			except ValueError:
+				failed = True
+			assert failed
 
 			# can we force this weird stratified behavior where
 			# n_train and n_train don't add up to enough rows?

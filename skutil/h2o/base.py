@@ -139,14 +139,14 @@ def validate_x_y(feature_names, target_feature):
 	"""
 
 	# validate feature_names
-	if not (hasattr(feature_names, '__iter__') and all([isinstance(i, (str, unicode)) for i in feature_names])):
+	if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
 		raise TypeError('feature_names must be an iterable of strings. '
 						'Got %s' % str(feature_names))
 
 	# we can allow it to be None...
 	if target_feature is None:
 		pass
-	elif not isinstance(target_feature, (str,unicode)):
+	elif not isinstance(target_feature, six.string_types):
 		raise TypeError('target_feature should be a single string. '
 						'Got %s (type=%s)' % (str(target_feature), type(target_feature)))
 	else:
@@ -204,7 +204,9 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 		if is_numeric(min_version): # then int or float
 			min_version = str(min_version)
 		
-		if isinstance(min_version, str):
+		if isinstance(min_version, six.string_types):
+			min_version = str(min_version) # in case is raw or unicode
+
 			if min_version == 'any':
 				pass # anything goes
 			else:
@@ -227,7 +229,9 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 		elif is_numeric(max_version):
 			max_version = str(max_version)
 
-		if isinstance(max_version, str):
+		if isinstance(max_version, six.string_types):
+			max_version = str(max_version) # in case is raw or unicode
+
 			if parse_version(h2ov) > parse_version(max_version):
 				raise EnvironmentError('your h2o version (%s) '
 									   'exceeds the maximum permitted ' 

@@ -3,6 +3,7 @@ import numpy as np
 import numbers
 from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
 from ..utils import is_numeric, flatten_all
+from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
@@ -53,8 +54,9 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
 		# validate the fill, do fit
 		fill = self.fill_
-		if isinstance(fill, (str, unicode)):
-			if not str(fill) in ('mode', 'mean', 'median'):
+		if isinstance(fill, six.string_types):
+			fill = str(fill)
+			if not fill in ('mode', 'mean', 'median'):
 				raise TypeError('self.fill must be either "mode", "mean", "median", None, '
 								'a number, or an iterable. Got %s' % fill)
 
@@ -86,7 +88,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 			# make sure they're all ints
 			if not all([
 					(is_numeric(i) or \
-						(isinstance(i, (str,unicode))) and \
+						(isinstance(i, six.string_types)) and \
 						i in ('mode', 'mean', 'median')) \
 					for i in fill
 				]):

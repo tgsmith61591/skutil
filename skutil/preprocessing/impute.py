@@ -45,7 +45,7 @@ class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin):
 def _val_values(vals):
 	if not all([
 		(is_numeric(i) or \
-			(isinstance(i, (str,unicode))) and \
+			(isinstance(i, six.string_types)) and \
 			i in ('mode', 'mean', 'median')) \
 		for i in vals
 	]):
@@ -93,8 +93,9 @@ class SelectiveImputer(_BaseImputer):
 
 		# validate the fill, do fit
 		fill = self.fill_
-		if isinstance(fill, (str, unicode)):
-			if not str(fill) in ('mode', 'mean', 'median'):
+		if isinstance(fill, six.string_types):
+			fill = str(fill)
+			if not fill in ('mode', 'mean', 'median'):
 				raise TypeError('self.fill must be either "mode", "mean", "median", None, '
 								'a number, or an iterable. Got %s' % fill)
 
