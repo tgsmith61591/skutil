@@ -26,7 +26,7 @@ from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split,
-	_val_y, H2OBaseCrossValidator)
+	_val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
 
 from sklearn.datasets import load_iris, load_boston
@@ -651,8 +651,58 @@ def test_h2o_with_conn():
 		assert check_cv(None).get_n_splits() == 3
 		assert_fails(check_cv, ValueError, 'not_a_valid_arg')
 
-		# test the __repr__
-		H2OStratifiedKFold().__repr__()
+		f = F.copy()
+		targ = iris.target
+		targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+		f['species'] = targ
+		f = shuffle_dataframe(pd.concat([f,f,f,f,f], axis=0)) # times FIVE!
+
+		try:
+			Y = from_pandas(f)
+		except Exception as e:
+			Y = None
+
+
+		if Y is not None:
+			# test stratifed with shuffle on/off
+			for shuffle in [True, False]:
+				# test the splits
+				def do_split(gen, *args):
+					return [x for x in gen(*args)]
+
+				for y in ['species', None]:
+					strat = H2OStratifiedKFold(shuffle=shuffle)
+
+					# test the __repr__
+					strat.__repr__()
+
+					# only fails if y is None
+					try:
+						do_split(strat.split, Y, y)
+					except ValueError as v:
+						if y is None:
+							pass
+						else:
+							raise
+
+			# test kfold with too many or too few folds
+			for n_folds in [1, 'blah']:
+				assert_fails(H2OKFold, ValueError, **{'n_folds':n_folds})
+
+			# assert not logical shuffle fails
+			assert_fails(H2OKFold, ValueError, **{'shuffle':'sure'})
+
+			# assert split with n_splits > n_obs fails
+			assert_fails(H2OKFold(n_folds=Y.shape[0]+1).split, ValueError, Y)
+
+			# can we force this weird stratified behavior where
+			# n_train and n_train don't add up to enough rows?
+			splitter = H2OStratifiedShuffleSplit(test_size=0.0473)
+			splits = [x for x in splitter.split(Y, 'species')] # it's a list of tuples
+
+
+
+
 
 	def from_pandas_h2o():
 		if X is not None:
