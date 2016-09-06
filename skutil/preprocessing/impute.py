@@ -15,34 +15,45 @@ from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 __all__ = [
 	'BaggedImputer',
 	'BaggedCategoricalImputer',
+	'ImputerMixin',
 	'SelectiveImputer'
 ]
 
 
 def _validate_all_numeric(X):
-	# need to check on numeric nature of the cols
+	"""Validate that all columns in X
+	are numeric types. If not, raises a
+	ValueError
+
+	Raises
+	------
+	ValueError if not all columns are numeric
+	"""
 	if not is_entirely_numeric(X):
 		raise ValueError('provided columns must be of only numeric columns')
 
 
 def _col_mode(col):
+	"""Get the mode from a series.
+
+	Returns
+	-------
+	The column's most common value.
+	"""
 	vals = col.value_counts()
 	return vals.index[0] if not np.isnan(vals.index[0]) else vals.index[1]
 
 
-###############################################################################
-class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin):
-	"""A base class for all imputers"""
-	_def_fill = -999999
-
-	def __init__(self, cols=None, as_df=True, def_fill=None):
-		self.cols = cols
-		self.as_df = as_df
-		self.fill_ = _BaseImputer._def_fill if def_fill is None else def_fill
-
-
-
 def _val_values(vals):
+	"""Validate that all values in the iterable
+	are either numeric, or in ('mode', 'median', 'mean').
+	If not, will raise a TypeError
+
+	Raises
+	------
+	TypeError if not all values are numeric or 
+	in valid values.
+	"""
 	if not all([
 		(is_numeric(i) or \
 			(isinstance(i, six.string_types)) and \
@@ -51,6 +62,41 @@ def _val_values(vals):
 	]):
 		raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
 						'Got: %s' % ', '.join(vals))
+
+
+###############################################################################
+
+class ImputerMixin:
+	"""A mixin for all imputer classes. Contains the default fill value. 
+	This mixin is used for the H2O imputer, as well.
+
+	Attributes
+	----------
+	_def_fill : int (default=-999999)
+		The default fill value for NaN values
+	"""
+	_def_fill = -999999
+
+
+class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin):
+	"""A base class for all imputers. Handles assignment of the fill value.
+	
+	Parameters
+	----------
+	cols : array_like, optional (default=None)
+		The columns to impute
+
+	as_df : bool, optional (default=True)
+		Whether to return a data frame
+
+	def_fill : int, float, string or iterable, optional (default=None)
+		The fill values to use for missing values in columns
+	"""
+
+	def __init__(self, cols=None, as_df=True, def_fill=None):
+		self.cols = cols
+		self.as_df = as_df
+		self.fill_ = self._def_fill if def_fill is None else def_fill
 
 
 class SelectiveImputer(_BaseImputer):

@@ -3,6 +3,7 @@ import numpy as np
 import numbers
 from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
 from ..utils import is_numeric, flatten_all
+from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 
@@ -21,9 +22,8 @@ def _flatten_one(x):
 	return x[0] if hasattr(x, '__iter__') else x
 
 
-class _H2OBaseImputer(BaseH2OTransformer):
+class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
 	"""A base class for all H2O imputers"""
-	_def_fill = -999999
 
 	def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None, def_fill=None):
 		super(_H2OBaseImputer, self).__init__(feature_names=feature_names,
