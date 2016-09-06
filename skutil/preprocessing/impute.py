@@ -33,12 +33,12 @@ def _col_mode(col):
 ###############################################################################
 class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin):
 	"""A base class for all imputers"""
-	__def_fill__ = -999999
+	_def_fill = -999999
 
 	def __init__(self, cols=None, as_df=True, def_fill=None):
 		self.cols = cols
 		self.as_df = as_df
-		self.fill_ = _BaseImputer.__def_fill__ if def_fill is None else def_fill
+		self.fill_ = _BaseImputer._def_fill if def_fill is None else def_fill
 
 
 

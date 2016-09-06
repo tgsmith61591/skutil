@@ -115,16 +115,24 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 
 	as_df : boolean, optional (True default)
 		Whether to return a dataframe
+
+	Attributes
+	----------
+	sparsity_ : array_like, (n_cols,)
+		The array of sparsity values
+	
+	drop_ : array_like
+		The array of column names to drop
 	"""
 
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 
 	def __init__(self, feature_names=None, target_feature=None, threshold=0.5):
 		super(H2OSparseFeatureDropper, self).__init__(feature_names=feature_names,
 													  target_feature=target_feature,
-													  min_version=self.__min_version__,
-													  max_version=self.__max_version__)
+													  min_version=self._min_version,
+													  max_version=self._max_version)
 
 		self.threshold = threshold
 
@@ -149,6 +157,8 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 		ser = df.T[0]
 
 		self.drop_ = [str(x) for x in ser.index[ser > thresh]]
+		self.sparsity_ = ser.values # numpy array of sparsities
+
 		return self
 
 
@@ -184,16 +194,16 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 		The corresponding mean absolute correlations of each drop_ name
 	"""
 	
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 	
 	def __init__(self, feature_names=None, target_feature=None, threshold=0.85, 
 				 na_warn=True, na_rm=False, use='complete.obs'):
 
 		super(H2OMulticollinearityFilterer, self).__init__(feature_names=feature_names,
 														   target_feature=target_feature, 
-														   min_version=self.__min_version__,
-														   max_version=self.__max_version__)
+														   min_version=self._min_version,
+														   max_version=self._max_version)
 		self.threshold = threshold
 		self.na_warn = na_warn
 		self.na_rm = na_rm
@@ -266,16 +276,16 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 		The columns to drop
 	"""
 	
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 	
 	def __init__(self, feature_names=None, target_feature=None, threshold=1e-6, 
 				 na_warn=True, na_rm=False, use='complete.obs'):
 
 		super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
 														  target_feature=target_feature, 
-														  min_version=self.__min_version__,
-														  max_version=self.__max_version__)
+														  min_version=self._min_version,
+														  max_version=self._max_version)
 		self.threshold = threshold
 		self.na_warn = na_warn
 		self.na_rm = na_rm

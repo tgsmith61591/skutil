@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import warnings
 import numbers
+import scipy.stats as st
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
 from sklearn.datasets import load_iris
@@ -578,33 +579,79 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
     return X
 
 
-def report_grid_score_detail(random_search, charts=True, sort_results=True, ascending=True):
-    """Input fit grid search estimator. Returns df of scores with details"""
+def report_grid_score_detail(random_search, charts=True, sort_results=True, 
+        ascending=True, percentile=0.975, y_axis='score', sort_by='score'):
+    """Return plots and dataframe of results, given a fitted grid search.
+    Note that if Matplotlib is not installed, a warning will be thrown
+    and no plots will be generated.
+
+    Parameters
+    ----------
+    random_search : BaseGridSearch
+        The fitted grid search
+
+    charts : bool, optional (default=True)
+        Whether to plot the charts
+
+    sort_results : bool, optional (default=True)
+        Whether to sort the results based on score
+
+    ascending : bool, optional (default=True)
+        If sorted, whether to use asc or desc
+
+    percentile : float, optional (default=0.975)
+        The percentile point (0 < percentile < 1.0). The
+        corresponding z-score will be multiplied
+        by the cross validation score standard deviations.
+
+    y_axis : str, optional (default='score')
+        The y-axis of the charts. One of ('score','std')
+
+    sort_by : str, optional (default='score')
+        The col to sort by. This is not validated, in case
+        the user wants to sort by a parameter column.
+    """
+    valid_axes = ('score', 'std')
+
+    # validate y-axis
+    if not y_axis in valid_axes:
+        raise ValueError('y-axis=%s must be one of (%s)' % (y_axis, ', '.join(valid_axes)))
+
+    # validate percentile
+    if not (0 < percentile < 1):
+        raise ValueError('percentile must be > 0 and < 1, but got %.5f' % percentile)
+    z_score = st.norm.ppf(percentile)
+
+
+    # list of dicts
     df_list = []
 
-    for line in random_search.grid_scores_:
-        results_dict = dict(line.parameters)
-        results_dict["score"] = line.mean_validation_score
-        results_dict["std"] = line.cv_validation_scores.std()*1.96
+    # convert each score tuple into dicts
+    for score in random_search.grid_scores_:
+        results_dict = dict(score.parameters) # the parameter tuple or sampler
+        results_dict["score"] = score.mean_validation_score
+        results_dict["std"] = score.cv_validation_scores.std() * z_score
         df_list.append(results_dict)
 
+    # make into a data frame
     result_df = pd.DataFrame(df_list)
     if sort_results:
-        result_df = result_df.sort_values("score", ascending=ascending)
+        result_df = result_df.sort_values(sort_by, ascending=ascending)
     
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
-            if col not in ["score", "std"]:
-                plt.scatter(result_df[col], result_df.score)
+            if col not in valid_axes:
+                plt.scatter(result_df[col], result_df[y_axis])
                 plt.title(col)
                 plt.show()
 
         for col in list(result_df.columns[result_df.dtypes == "object"]):
-            cat_plot = result_df.score.groupby(result_df[col]).mean()
+            cat_plot = result_df[y_axis].groupby(result_df[col]).mean()
             cat_plot.sort_values()
             cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
             plt.show()
+
     elif charts and not CAN_CHART:
         warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 

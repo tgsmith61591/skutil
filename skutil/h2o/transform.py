@@ -23,26 +23,26 @@ def _flatten_one(x):
 
 class _H2OBaseImputer(BaseH2OTransformer):
 	"""A base class for all H2O imputers"""
-	__def_fill__ = -999999
+	_def_fill = -999999
 
 	def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None, def_fill=None):
 		super(_H2OBaseImputer, self).__init__(feature_names=feature_names,
 											  target_feature=target_feature, 
 											  min_version=min_version,
 											  max_version=max_version)
-		self.fill_ = self.__def_fill__ if def_fill is None else def_fill
+		self.fill_ = self._def_fill if def_fill is None else def_fill
 
 
 class H2OSelectiveImputer(_H2OBaseImputer):
 
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 
 	def __init__(self, feature_names=None, target_feature=None, def_fill='mean'):
 		super(H2OSelectiveImputer, self).__init__(feature_names=feature_names,
 												  target_feature=target_feature,
-												  min_version=self.__min_version__,
-												  max_version=self.__max_version__,
+												  min_version=self._min_version,
+												  max_version=self._max_version,
 												  def_fill=def_fill)
 
 	def fit(self, X):
@@ -225,8 +225,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 	    and their respective generated interaction terms.
 	"""
 
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 
 	def __init__(self, feature_names=None, target_feature=None, 
 				 interaction_function=None, name_suffix='I', 
@@ -234,8 +234,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
 		super(H2OInteractionTermTransformer, self).__init__(feature_names=feature_names,
 															target_feature=target_feature,
-															min_version=self.__min_version__,
-															max_version=self.__max_version__)
+															min_version=self._min_version,
+															max_version=self._max_version)
 
 		self.interaction_function = interaction_function
 		self.name_suffix = name_suffix

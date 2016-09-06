@@ -46,13 +46,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 		The name of the target feature
 	"""
 
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 	
 	def __init__(self, steps, feature_names=None, target_feature=None):
 		super(H2OPipeline, self).__init__(target_feature=target_feature,
-										  min_version=self.__min_version__,
-										  max_version=self.__max_version__)
+										  min_version=self._min_version,
+										  max_version=self._max_version)
 
 		# assign to attribute
 		self.feature_names = feature_names

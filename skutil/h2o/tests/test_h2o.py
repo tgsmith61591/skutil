@@ -608,13 +608,13 @@ def test_h2o_with_conn():
 
 	def anon_class():
 		class H2OAnonClass100(BaseH2OFunctionWrapper):
-			__min_version__ = 100.0
-			__max_version__ = None
+			_min_version = 100.0
+			_max_version = None
 
 			def __init__(self):
 				super(H2OAnonClass100, self).__init__(
-					min_version=self.__min_version__,
-					max_version=self.__max_version__)
+					min_version=self._min_version,
+					max_version=self._max_version)
 
 		# assert fails for min version > current version
 		assert_fails(H2OAnonClass100, EnvironmentError)
@@ -622,13 +622,13 @@ def test_h2o_with_conn():
 
 
 		class H2OAnonClassAny(BaseH2OFunctionWrapper):
-			__min_version__ = 'any'
-			__max_version__ = 0.1
+			_min_version = 'any'
+			_max_version = 0.1
 
 			def __init__(self):
 				super(H2OAnonClassAny, self).__init__(
-					min_version=self.__min_version__,
-					max_version=self.__max_version__)
+					min_version=self._min_version,
+					max_version=self._max_version)
 
 		# assert fails for max version < current version
 		assert_fails(H2OAnonClassAny, EnvironmentError)

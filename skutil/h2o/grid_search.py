@@ -277,8 +277,8 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 	"""Base for all H2O grid searches"""
 
-	__min_version__ = '3.8.2.9'
-	__max_version__ = None
+	_min_version = '3.8.2.9'
+	_max_version = None
 	
 	@abstractmethod
 	def __init__(self, estimator, feature_names,
@@ -288,8 +288,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 				 validation_frame=None):
 
 		super(BaseH2OSearchCV, self).__init__(target_feature=target_feature,
-											  min_version=self.__min_version__,
-											  max_version=self.__max_version__)
+											  min_version=self._min_version,
+											  max_version=self._max_version)
 
 		self.estimator = estimator
 		self.feature_names = feature_names

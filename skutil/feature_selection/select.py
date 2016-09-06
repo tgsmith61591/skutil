@@ -49,6 +49,14 @@ class SparseFeatureDropper(_BaseFeatureSelector):
 
 	as_df : boolean, optional (True default)
 		Whether to return a dataframe
+
+	Attributes
+	----------
+	sparsity_ : array_like, (n_cols,)
+		The array of sparsity values
+	
+	drop : array_like
+		The array of column names to drop
 	"""
 
 	def __init__(self, cols=None, threshold=0.5, as_df=True):
@@ -67,8 +75,9 @@ class SparseFeatureDropper(_BaseFeatureSelector):
 		# get cols
 		cols = self.cols if self.cols is not None else X.columns.tolist()
 
-		# assess
-		mask = X[cols].apply(lambda x: (x.isnull().sum() / x.shape[0]) > thresh)
+		# assess sparsity
+		self.sparsity_ = X[cols].apply(lambda x: x.isnull().sum() / x.shape[0]).values # numpy array
+		mask = self.sparsity_ > thresh # numpy boolean array
 		self.drop = X.columns[mask].tolist() if mask.sum() > 0 else None
 		return self
 

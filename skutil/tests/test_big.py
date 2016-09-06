@@ -11,6 +11,7 @@ from skutil.grid_search import RandomizedSearchCV
 from skutil.decomposition import *
 from skutil.preprocessing import *
 from skutil.utils.tests.utils import assert_fails
+from skutil.utils import report_grid_score_detail
 from skutil.grid_search import _as_numpy
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
@@ -100,4 +101,13 @@ def test_large_grid():
 	if not tr_score >= te_score:
 		warnings.warn('expected training accuracy to be higher (train: %.5f, test: %.5f)' % (tr_score, te_score))
 
+	# grid score reports:
+	# assert fails for bad percentile
+	assert_fails(report_grid_score_detail, ValueError, **{'random_search':grid, 'percentile':0.0})
+	assert_fails(report_grid_score_detail, ValueError, **{'random_search':grid, 'percentile':1.0})
 
+	# assert fails for bad y_axis
+	assert_fails(report_grid_score_detail, ValueError, **{'random_search':grid, 'y_axis':'bad_axis'})
+
+	# assert passes otherwise
+	report = report_grid_score_detail(grid, charts=False, percentile=0.95) # just ensure percentile works
