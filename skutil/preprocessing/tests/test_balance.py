@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
-from skutil.preprocessing.balance import _BaseBalancer
+from skutil.preprocessing.balance import _BaseBalancer, _pd_frame_to_np
 from skutil.utils.tests.utils import assert_fails
 import warnings
 
@@ -20,6 +20,11 @@ def _get_three_results(sampler):
 	a,b = sampler.balance(x), sampler.balance(y)
 	sampler.ratio = 0.2
 	return a, b, sampler.balance(y)
+
+def test_pd_frame_to_np():
+	x = X.target
+	assert isinstance(_pd_frame_to_np(x), np.ndarray)
+	assert isinstance(_pd_frame_to_np(x.values), np.ndarray)
 
 def test_oversample():
 	a, b, c = _get_three_results(OversamplingClassBalancer(y='target', ratio=0.5))
@@ -154,7 +159,7 @@ def test_undersample():
 def test_superclass_not_implemented():
 	# anon balancer
 	class AnonBalancer(_BaseBalancer):
-		def __init__(self, ratio=0.2, y=None, as_df=True):
+		def __init__(self, y=None, ratio=0.2, as_df=True):
 			super(AnonBalancer, self).__init__(ratio, y, as_df)
 
 		def balance(self, X):

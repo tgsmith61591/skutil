@@ -18,6 +18,7 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
+from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
 from skutil.h2o.grid_search import _as_numpy
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
@@ -27,6 +28,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 	H2OStratifiedKFold, h2o_train_test_split, 
 	_validate_shuffle_split_init, _validate_shuffle_split,
 	_val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
+from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
 
 from sklearn.datasets import load_iris, load_boston
@@ -1168,6 +1170,40 @@ def test_h2o_with_conn():
 			pass
 
 
+	def balance():
+		if X is not None:
+			# test that we can turn a frame's first col into a np array
+			x = _pd_frame_to_np(X) # just gets back the first col...
+			assert isinstance(x, np.ndarray)
+
+			# upload to cloud with the target
+			f = F.copy()
+			f['species'] = iris.target
+
+			try:
+				Y = from_pandas(f)
+			except Exception as e:
+				Y = None
+
+			if Y is not None:
+				# assert undersampling the balance changes nothing:
+				b = H2OUndersamplingClassBalancer(target_feature='species').balance(Y)
+				assert b.shape[0] == Y.shape[0]
+
+				# assert oversampling is NotImplemented right now...
+				b = H2OOversamplingClassBalancer(target_feature='species').balance(Y)
+				assert b is NotImplemented
+
+				# do a real undersample
+				x = Y[:60, :] # 50 zeros, 10 ones
+				b = UndersamplingClassBalancer(y='species', ratio=0.5).balance(x).as_data_frame(use_pandas=True)
+				assert b.shape[0] == 30
+				cts = b.species.value_counts()
+				assert cts[0] == 20
+				assert cts[1] == 10
+
+		else:
+			pass
 
 
 	# run them
@@ -1187,4 +1223,5 @@ def test_h2o_with_conn():
 	mem_est()
 	corr()
 	interactions()
+	balance()
 

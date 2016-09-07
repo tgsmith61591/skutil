@@ -4,6 +4,7 @@ Custom H2O transformers
 
 from .base import *
 from .select import *
+from .balance import *
 from .pipeline import *
 from .grid_search import *
 from .transform import *
