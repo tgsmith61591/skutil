@@ -5,7 +5,7 @@ Cythonize pyx files into C files as needed.
 
 Usage: cythonize [root_dir]
 
-Default [root_dir] is 'sklearn'.
+Default [root_dir] is 'skutil'.
 
 Checks pyx files to see if they have been changed relative to their
 corresponding C files.  If they have, then runs cython on these files to
@@ -22,9 +22,7 @@ It is called by ./setup.py sdist so that sdist package can be installed without
 cython
 
 Originally written by Dag Sverre Seljebotn, and adapted from statsmodel 0.6.1
-(Modified BSD 3-clause)
-
-I copied it for skutil.
+(Modified BSD 3-clause); I copied it from sklearn/build_tools for skutil.
 
 Note: this script does not check any of the dependent C libraries; it only
 operates on the Cython .pyx files or their corresponding Cython header (.pxd)
