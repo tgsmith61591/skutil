@@ -66,9 +66,6 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 	"""Oversample the minority classes until they are represented
 	at the target proportion to the majority class.
 
-	NOTE: this is currently NotImplemented, as H2O does not
-	currently permit "re-ordering" (resampling) of rows!!
-
 	Parameters
 	----------
 	target_feature : str
@@ -90,16 +87,34 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 		"""Apply the oversampling balance operation. Oversamples
 		the minority class to the provided ratio of minority
 		class(es) : majority class.
-
-		NOTE: this is currently NotImplemented, as H2O does not
-		currently permit "re-ordering" (resampling) of rows!!
 		
 		Parameters
 		----------
 		X : H2OFrame, shape [n_samples, n_features]
 			The data to balance
 		"""
-		return NotImplemented
+
+		# check on state of X
+		frame = _check_is_frame(X)
+
+		# get the partitioner
+		partitioner = _OversamplingBalancePartitioner(frame, 
+			self.target_feature, self.ratio, _validate_x_y_ratio)
+		sample_idcs = partitioner.get_indices()
+
+		# since H2O won't allow us to resample (it's considered rearranging)
+		# we need to rbind at each point of duplication... this can be pretty
+		# inefficient, so we might need to get clever about this...
+		new_frame = None
+
+		for i in sample_idcs:
+			row = frame[i, :]
+			if new_frame is None:
+				new_frame = row
+			else:
+				new_frame = new_frame.rbind(row)
+
+		return new_frame
 
 
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
@@ -148,9 +163,6 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 		X : H2OFrame, shape [n_samples, n_features]
 			The data to balance
 		"""
-
-		# localize
-		ratio = self.ratio
 
 		# check on state of X
 		frame = _check_is_frame(X)
