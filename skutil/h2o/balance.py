@@ -40,7 +40,8 @@ def _validate_x_y_ratio(X, y, ratio):
 	y = _validate_target(y) # cast to string type
 
 	# generate cts. Have to get kludgier in h2o...
-	unq_vals = X[y].unique().as_data_frame(use_pandas=True)[y].values # numpy array of unique vals
+	unq_vals = X[y].unique()
+	unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values # numpy array of unique vals
 	unq_cts = dict([(val, X[y][X[y]==val].shape[0]) for val in unq_vals])
 
 	# validate is < max classes

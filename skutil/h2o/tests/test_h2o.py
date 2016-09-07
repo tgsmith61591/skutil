@@ -1192,7 +1192,7 @@ def test_h2o_with_conn():
 
 				# do a real undersample
 				x = Y[:60, :] # 50 zeros, 10 ones
-				b = UndersamplingClassBalancer(y='species', ratio=0.5).balance(x).as_data_frame(use_pandas=True)
+				b = H2OUndersamplingClassBalancer(target_feature='species', ratio=0.5).balance(x).as_data_frame(use_pandas=True)
 				assert b.shape[0] == 30
 				cts = b.species.value_counts()
 				assert cts[0] == 20
@@ -1200,7 +1200,7 @@ def test_h2o_with_conn():
 
 				# assert oversampling works
 				y = Y[:105, :]
-				d = H2OOversamplingClassBalancer(y='species', ratio=1.0).balance(y).as_data_frame(use_pandas=True)
+				d = H2OOversamplingClassBalancer(target_feature='species', ratio=1.0).balance(y).as_data_frame(use_pandas=True)
 				assert d.shape[0] == 150
 
 				cts= d.species.value_counts()
