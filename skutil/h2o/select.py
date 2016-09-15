@@ -22,6 +22,7 @@ from .base import (NAWarning,
 
 __all__ = [
 	'BaseH2OFeatureSelector',
+	'H2OFeatureDropper',
 	'H2OMulticollinearityFilterer',
 	'H2ONearZeroVarianceFilterer',
 	'H2OSparseFeatureDropper'
@@ -95,6 +96,40 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
 		check_is_fitted(self, 'drop_')
 		X = _check_is_frame(X)
 		return X[_retain_features(X, self.drop_)]
+
+
+
+###############################################################################
+class H2OFeatureDropper(BaseH2OFeatureSelector):
+	"""A very simple class to be used at the beginning or any stage of an
+	H2OPipeline that will drop the given features from the remainder of the pipe.
+
+	This is useful when you have many features, but only a few to drop.
+	Rather than passing the feature_names arg as the delta between many
+	features and the several to drop, this allows you to drop them and keep
+	feature_names as None in future steps.
+
+	Parameters
+	----------
+	feature_names : array_like (str)
+		The list of names to drop
+
+	target_feature : str (default None)
+		The name of the target feature (is excluded from the fit)
+	"""
+
+	def __init__(self, feature_names, target_feature=None):
+		super(H2OFeatureDropper, self).__init__(feature_names=feature_names,
+												target_feature=target_feature)
+
+	def fit(self, X, y=None):
+		# We validate the features_names is a list or iterable
+		if hasattr(self.feature_names, '__iter__'):
+			self.drop_ = [i for i in self.feature_names]
+		else:
+			raise ValueError('expected iterable for feature_names')
+
+		return self
 
 
 

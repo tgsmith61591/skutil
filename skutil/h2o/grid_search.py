@@ -423,11 +423,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 				score /= float(n_folds)
 
 			scores.append((score, parameters))
-			# TODO: shall we also store the test_fold_sizes?
 			grid_scores.append(_CVScoreTuple(
 				parameters,
 				score,
 				np.array(all_scores)))
+
 		# Store the computed scores
 		self.grid_scores_ = grid_scores
 
@@ -447,6 +447,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 		if self.verbose > 1:
 			msg = 'Target: %s; %s' % (self.target_feature, ', '.join('%s=%s' % (k,v)
 									 for k, v in six.iteritems(best.parameters) ))
+			print("\nFitting best hyperparameters across all folds")
 			print("[BEST] %s %s" % (msg, (64 - len(msg)) * '.'))
 
 

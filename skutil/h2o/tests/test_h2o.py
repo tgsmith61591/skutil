@@ -1211,6 +1211,16 @@ def test_h2o_with_conn():
 		else:
 			pass
 
+	def feature_dropper():
+		if X is not None:
+			dropper = H2OFeatureDropper(feature_names=[X.columns[0]])
+			Y = dropper.fit_transform(X)
+			assert Y.shape[1] == X.shape[1]-1
+			assert not X.columns[0] in Y.columns
+
+		else:
+			pass
+
 
 	# run them
 	multicollinearity()
@@ -1230,4 +1240,5 @@ def test_h2o_with_conn():
 	corr()
 	interactions()
 	balance()
+	feature_dropper()
 
