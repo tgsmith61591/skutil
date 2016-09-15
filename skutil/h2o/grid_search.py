@@ -18,7 +18,7 @@ from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixi
 from ..base import overrides
 from ..utils import is_numeric, report_grid_score_detail
 from ..grid_search import _CVScoreTuple, _check_param_grid
-from ..metrics import ActStatisticalReport
+from ..metrics import GainsStatisticalReport
 from .split import check_cv
 from .split import *
 
@@ -56,7 +56,7 @@ except ImportError as i:
 __all__ = [
 	'H2OGridSearchCV',
 	'H2ORandomizedSearchCV',
-	'H2OActuarialRandomizedSearchCV'
+	'H2OGainsRandomizedSearchCV'
 ]
 
 
@@ -342,8 +342,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 		self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
 
-		# the addition of the actuarial search necessitates some hackiness.
-		# if we have the attr 'extra_args_' then we know it's an actuarial search
+		# the addition of the gains search necessitates some hackiness.
+		# if we have the attr 'extra_args_' then we know it's an gains search
 		xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None
 
 		# do fits, scores
@@ -370,7 +370,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 			self.validation_scores = []
 
 			if xtra is not None:
-				self.val_score_report_ = ActStatisticalReport(
+				self.val_score_report_ = GainsStatisticalReport(
 					n_folds=n_folds, 
 					n_iter= n_fits//n_folds,
 					iid=self.iid)
@@ -414,7 +414,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 						self.target_feature, val_scorer, self.scoring_params, 
 						self.is_regression_, **kwargs)
 
-					# if it's actuarial scorer, handles the iid condition internally...
+					# if it's gains scorer, handles the iid condition internally...
 					self.validation_scores.append(val_score)
 
 			if self.iid:
@@ -628,9 +628,11 @@ def _val_exp_loss_prem(x,y,z):
 	return str(x), str(y), str(z) if z is not None else z
 
 
-class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
+class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 	"""A grid search that scores based on actuarial metrics
-	(See skutil.metrics.ActStatisticalReport)
+	(See skutil.metrics.GainsStatisticalReport). This is a more
+	customized form of grid search, and must use a gains metric
+	provided by the GainsStatisticalReport.
 	"""
 
 	def __init__(self, estimator, param_grid,
@@ -642,7 +644,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 				 verbose=0, iid=True, #n_groups=10,
 				 validation_frame=None):
 
-		super(H2OActuarialRandomizedSearchCV, self).__init__(
+		super(H2OGainsRandomizedSearchCV, self).__init__(
 				estimator=estimator,
 				param_grid=param_grid,
 				feature_names=feature_names,
@@ -660,7 +662,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		self.premium_feature = premium_feature
 
 		# our score method will ALWAYS be the same
-		self.score_report_ = ActStatisticalReport(
+		self.score_report_ = GainsStatisticalReport(
 			score_by=scoring, 
 			n_folds=check_cv(cv).get_n_splits(), 
 			n_iter=n_iter,
@@ -685,7 +687,7 @@ class H2OActuarialRandomizedSearchCV(H2ORandomizedSearchCV):
 		return self._fit(frame, sampled_params)
 
 	def report_scores(self):
-		"""Get the actuarial report"""
+		"""Get the gains report"""
 		check_is_fitted(self, 'best_estimator_')
 		report_res = self.score_report_.as_data_frame()
 		n_obs, _ = report_res.shape

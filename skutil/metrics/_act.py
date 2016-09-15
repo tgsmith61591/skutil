@@ -5,7 +5,7 @@ import abc
 
 
 __all__ = [
-	'ActStatisticalReport'
+	'GainsStatisticalReport'
 ]
 
 def _as_numpy(*args):
@@ -25,11 +25,11 @@ def _as_numpy(*args):
 	return arrs
 
 
-class ActStatisticalReport(object):
+class GainsStatisticalReport(object):
 	"""A class that computes actuarial statistics
 	for predictions given exposure and loss data.
 	Primarily intended for use with 
-	skutil.h2o.H2OActuarialRandomizedSearchCV
+	skutil.h2o.H2OGainsRandomizedSearchCV
 
 	Parameters
 	----------
@@ -91,6 +91,8 @@ class ActStatisticalReport(object):
 			for metric in self.__metrics__:
 				new_stats['%s_mean'%metric] = [] # the mean scores
 				new_stats['%s_std' %metric] = [] # the std scores
+				new_stats['%s_min' %metric] = [] # the min scores
+				new_stats['%s_max' %metric] = [] # the max scores
 				idx = 0
 
 				for _ in range(n_iter):
@@ -117,8 +119,13 @@ class ActStatisticalReport(object):
 					# append the mean score, and then the std of the scores for the folds
 					new_stats['%s_mean'%metric].append(fold_score)
 					new_stats['%s_std' %metric].append(np.std(all_fold_scores))
+					new_stats['%s_min' %metric].append(np.min(all_fold_scores))
+					new_stats['%s_max' %metric].append(np.max(all_fold_scores))
 
-			return pd.DataFrame.from_dict(new_stats)
+			df = pd.DataFrame.from_dict(new_stats)
+
+			# let's order by names
+			return df[sorted(df.columns.values)]
 
 
 	def _compute_stats(self, pred, expo, loss, prem):
