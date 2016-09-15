@@ -6,6 +6,7 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 from sklearn.datasets import load_iris
 from skutil.utils import *
 from skutil.utils.util import __min_log__, __max_exp__
+from skutil.base import suppress_warnings
 from .utils import assert_fails
 
 
@@ -23,7 +24,15 @@ X['perfect'] = X[[1]]
 def _check_equal(L1, L2):
     return len(L1) == len(L2) and sorted(L1) == sorted(L2)
 
+def test_suppress():
+	@suppress_warnings
+	def raise_warning():
+		warnings.warn('warning', UserWarning)
 
+	with warnings.catch_warnings(record=True) as w:
+		warnings.simplefilter("always")
+		raise_warning() # should be caught
+		assert len(w) == 0, 'expected no warning to be thrown'
 
 def test_safe_log_exp():
 	assert log(0) == __min_log__

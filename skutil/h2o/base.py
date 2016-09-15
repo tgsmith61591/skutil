@@ -177,7 +177,12 @@ class VizMixin:
 		metric : str
 			The performance metric to evaluate, i.e., MSE
 		"""
-		raise NotImplementedError('this must be implemented by a subclass')
+
+		# Initially were raising but now want to just return NI.
+		# It should be perfectly valid for a class not to implement
+		# something from a mixin, but not necessarily from an abstract
+		# parent. Thus, any mixins should just return the NI singleton
+		return NotImplemented
 
 
 class BaseH2OFunctionWrapper(BaseEstimator):

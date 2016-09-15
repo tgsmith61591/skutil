@@ -114,7 +114,8 @@ class _BaseBalancePartitioner:
 		The ratio at which to sample
 
 	validation_function : callable, optional (default=_validate_x_y_ratio)
-		The function that will validate X, y and the ratio
+		The function that will validate X, y and the ratio. This function
+		differs for H2OFrames.
 	"""
 	__metaclass__ = abc.ABCMeta
 

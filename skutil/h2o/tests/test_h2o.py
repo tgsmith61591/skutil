@@ -839,7 +839,7 @@ def test_h2o_with_conn():
 
 			# define our grid search
 			rand_state=42
-			search = H2OActuarialRandomizedSearchCV(
+			search = H2OGainsRandomizedSearchCV(
 									estimator=pipe,
 									param_grid=hyper_params,
 									exposure_feature='expo',

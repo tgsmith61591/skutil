@@ -1,10 +1,14 @@
+from __future__ import absolute_import, division, print_function
+import warnings
+
 
 __all__ = [
 	'ModuleImportWarning',
 	'overrides',
 	'SamplingWarning',
 	'SelectiveMixin',
-	'SelectiveWarning'
+	'SelectiveWarning',
+	'suppress_warnings'
 ]
 
 ###############################################################################
@@ -12,13 +16,21 @@ def overrides(interface_class):
 	"""Decorator for methods that override super methods.
 	Nice syntactic sugar and easy to follow OOP on sources like Git.
 	"""
-
 	def overrider(method):
 		assert(method.__name__ in dir(interface_class)), '%s.%s must override a super method!' % (
 															interface_class.__name__, method.__name__)
 		return method
 	return overrider
 
+def suppress_warnings(func):
+	"""Decorator to force a method to suppress
+	all warnings it may raise.
+	"""
+	def suppressor(*args, **kwargs):
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore")
+			return func(*args, **kwargs)
+	return suppressor
 
 class ModuleImportWarning(UserWarning):
 	"""Custom warning used to notify user a non-critical import failed, and to
@@ -51,4 +63,7 @@ class SelectiveMixin:
 		return self.cols
 
 	def set_features(self, cols=None):
+		"""This might corrupt your fit...
+		FIXME: add _reset to entire class
+		"""
 		self.cols = cols
