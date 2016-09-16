@@ -227,6 +227,9 @@ def test_multi_collinearity():
 	transformer = MulticollinearityFilterer(threshold=1.0).fit(X)
 	assert not transformer.drop
 
+	# make sure non-square will fail
+	assert_fails(filter_collinearity, ValueError, pd.DataFrame.from_records(np.ones((3,2))), 0.6)
+
 
 def test_nzv_filterer():
 	transformer = NearZeroVarianceFilterer().fit(X)
@@ -329,3 +332,4 @@ def test_enumLC():
 	assert not combos._enumLC(QRDecomposition(iris.data))
 
 	assert_array_equal( combos._enumLC(QRDecomposition(y))[0], np.array([2, 1]) )
+

@@ -139,8 +139,7 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 				k = str(k) # h2o likes unicode...
 
 				# likewise, if the v is unicode, let's make it a string.
-				if isinstance(v, unicode):
-					v = str(v)
+				v = v if not isinstance(v, unicode) else str(v)
 
 				#if (not k in PARM_IGNORE) and (not v is None):
 				#	e._parms[k] = v

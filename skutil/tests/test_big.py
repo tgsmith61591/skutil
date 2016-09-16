@@ -97,9 +97,9 @@ def test_large_grid():
 	# evaluate score (SHOULD be better than random...)
 	tr_score, te_score = accuracy_score(y_train, tr_pred), accuracy_score(y_test, te_pred)
 
-	# do we want to do this?
-	if not tr_score >= te_score:
-		warnings.warn('expected training accuracy to be higher (train: %.5f, test: %.5f)' % (tr_score, te_score))
+	# do we want to do this? Probably not because it's reliant on chance
+	# if not tr_score >= te_score:
+	# 	warnings.warn('expected training accuracy to be higher (train: %.5f, test: %.5f)' % (tr_score, te_score))
 
 	# grid score reports:
 	# assert fails for bad percentile

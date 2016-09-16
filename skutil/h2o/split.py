@@ -194,7 +194,7 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 			yield test_mask
 
 	def _iter_test_indices(self, frame, y=None):
-		raise NotImplementedError
+		raise NotImplementedError('this method must be implemented by a subclass')
 
 	@abstractmethod
 	def get_n_splits(self):
