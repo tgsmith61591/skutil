@@ -320,7 +320,7 @@ def test_h2o_with_conn():
 				pipe = H2OPipeline([
 						('nzv', H2ONearZeroVarianceFilterer()),
 						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-						('mc', H2OGradientBoostingEstimator(distribution='multinomial',ntrees=5))
+						('mc',  H2OGradientBoostingEstimator(distribution='multinomial',ntrees=5))
 					], 
 					feature_names=F.columns.tolist(),
 					target_feature='species'
@@ -346,7 +346,7 @@ def test_h2o_with_conn():
 				)
 
 				# won't even get here...
-				pipe.fit(train)
+				# pipe.fit(train)
 			except TypeError as t:
 				failed = True
 			assert failed
@@ -359,14 +359,14 @@ def test_h2o_with_conn():
 				pipe = H2OPipeline([
 						('nzv', H2ONearZeroVarianceFilterer()),
 						('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
-						('est', RandomForestClassifier)
+						('est', RandomForestClassifier())
 					], 
 					feature_names=F.columns.tolist(),
 					target_feature='species'
 				)
 
 				# won't even get here...
-				pipe.fit(train)
+				# pipe.fit(train)
 			except TypeError as t:
 				failed =True
 			assert failed
