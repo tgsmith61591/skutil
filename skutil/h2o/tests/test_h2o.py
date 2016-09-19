@@ -1212,6 +1212,7 @@ def test_h2o_with_conn():
 		else:
 			pass
 
+
 	def encode():
 		P = load_iris_df()
 		P['letter'] = ['a' if x==0 else 'b' if x==1 else 'c' for x in P.Species]
@@ -1236,6 +1237,18 @@ def test_h2o_with_conn():
 
 			assert 'letter' in y.columns
 			assert y[['letter.a', 'letter.b', 'letter.c']].sum() == 149
+
+		else:
+			pass
+
+
+	def feature_dropper():
+		if X is not None:
+			dropper = H2OFeatureDropper(feature_names=[X.columns[0]])
+			Y = dropper.fit_transform(X)
+			assert Y.shape[1] == X.shape[1]-1
+			assert not X.columns[0] in Y.columns
+
 		else:
 			pass
 
@@ -1259,4 +1272,5 @@ def test_h2o_with_conn():
 	interactions()
 	balance()
 	encode()
+	feature_dropper()
 
