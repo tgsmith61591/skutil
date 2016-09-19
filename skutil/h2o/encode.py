@@ -83,7 +83,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
 				rep = 'NA'
 
 			# returns int vec of 1s and 0s
-			dummies = y == rep
+			dummies = (y == rep)
 			dummies.columns = ['%s.%s' % (col_name, clz if not isnan else 'nan')]
 
 			# cbind
@@ -96,7 +96,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
 class H2OSafeOneHotEncoder(BaseH2OTransformer):
 	"""Given a set of feature_names, one-hot encodes (dummies)
 	a set of vecs into an expanded set of dummied columns. Will
-	drop the original columns after tranformation, unless otherwise 
+	drop the original columns after transformation, unless otherwise 
 	specified.
 
 	Parameters
