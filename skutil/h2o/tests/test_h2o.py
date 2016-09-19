@@ -14,6 +14,7 @@ from h2o.estimators import (H2ORandomForestEstimator,
 
 from skutil.h2o import from_pandas, from_array
 from skutil.h2o.base import *
+from skutil.h2o.encode import *
 from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
@@ -1211,6 +1212,33 @@ def test_h2o_with_conn():
 		else:
 			pass
 
+	def encode():
+		P = load_iris_df()
+		P['letter'] = ['a' if x==0 else 'b' if x==1 else 'c' for x in P.Species]
+		P.loc[0,'letter'] = 'NA'
+
+		try:
+			Y = from_pandas(P)
+		except Exception as e:
+			Y = None
+
+		if Y is not None:
+			# default encoder
+			encoder = H2OSafeOneHotEncoder(feature_names=['letter'])
+			y = encoder.fit_transform(Y)
+
+			assert not 'letter' in y.columns
+			assert all([i in y.columns for i in ('letter.nan', 'letter.a', 'letter.b', 'letter.c')])
+
+			# no drop encoder
+			encoder = H2OSafeOneHotEncoder(feature_names=['letter'], drop_after_encoded=False)
+			y = encoder.fit_transform(Y)
+
+			assert 'letter' in y.columns
+			assert y[['letter.a', 'letter.b', 'letter.c']].sum() == 149
+		else:
+			pass
+
 
 	# run them
 	multicollinearity()
@@ -1230,4 +1258,5 @@ def test_h2o_with_conn():
 	corr()
 	interactions()
 	balance()
+	encode()
 

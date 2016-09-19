@@ -3,12 +3,13 @@ Custom H2O transformers
 """
 
 from .base import *
-from .select import *
 from .balance import *
-from .pipeline import *
+from .encode import *
 from .grid_search import *
-from .transform import *
+from .pipeline import *
+from .select import *
 from .split import *
+from .transform import *
 from .util import *
 
 __all__ = [s for s in dir() if not s.startswith("_")] ## Remove hiddens
