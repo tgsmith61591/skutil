@@ -175,14 +175,15 @@ def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwa
 							 	str(encoder.classes_), 
 							 	str(set(pred))))
 
+	# This shouldn't matter: ** args are copies
 	# pop all of the kwargs into the parms
-	for k,v in six.iteritems(kwargs):
+	# for k,v in six.iteritems(kwargs):
 		# we could warn, but parms is affected in place, so we won't...
 		#if k in parms:
 		#	warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
-		parms[k] = v
+	# 	parms[k] = v
 
-	return scorer(y_truth, pred, **parms)
+	return scorer(y_truth, pred, **kwargs) #**parms)
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
@@ -681,7 +682,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
 		# we can do this once to avoid many as_data_frame operations
 		self.extra_args_ = {
-			'expo' : _as_numpy(frame[expo]),
+			'expo' : _as_numpy(frame[exp]),
 			'loss' : _as_numpy(frame[loss]),
 			'prem' : _as_numpy(frame[prem]) if prem is not None else None
 		}
