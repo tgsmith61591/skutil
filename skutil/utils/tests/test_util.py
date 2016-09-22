@@ -135,7 +135,8 @@ def test_validate_on_non_df():
 	x = iris.data
 	validate_is_pd(x, None)
 
-	assert_fails(validate_is_pd, ValueError, 'asdf', 'asdf')
+	# it will try to create a DF out of a String
+	assert_fails(validate_is_pd, TypeError, 'asdf', 'asdf')
 
 	# try on list of list and no cols
 	x = [[1,2,3],[4,5,6],[7,8,9]]
