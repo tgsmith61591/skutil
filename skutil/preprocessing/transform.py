@@ -8,6 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals.joblib import Parallel, delayed
+from sklearn.externals import six
 from scipy.stats import boxcox
 from scipy import optimize
 from .encode import _get_unseen
@@ -66,7 +67,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
         self.fun = fun
         self.kwargs = kwargs
 
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         """Validate the args
         
         Parameters
@@ -76,10 +77,6 @@ class FunctionMapper(_BaseSelectiveTransformer):
         
         y : Passthrough for Pipeline compatibility
         """
-        # this function is a bit strange, because we can accept a single col:
-        if isinstance(self.cols, str):
-            self.cols = [self.cols]
-
         # Check this second in this case
         X, self.cols = validate_is_pd(X, self.cols)
 
@@ -106,10 +103,11 @@ class FunctionMapper(_BaseSelectiveTransformer):
         
         y : Passthrough for Pipeline compatibility
         """
-        X, _ = validate_is_pd(X, self.cols)
+        X, cols = validate_is_pd(X, self.cols)
+        cols = cols if not cols is None else X.columns
 
         # apply the function
-        X[self.cols or X.columns] = X[self.cols or X.columns].apply(lambda x: self.fun(x, **self.kwargs))
+        X[cols] = X[cols].apply(lambda x: self.fun(x, **self.kwargs))
         return X
 
 
