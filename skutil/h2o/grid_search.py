@@ -345,8 +345,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
 		# the addition of the gains search necessitates some hackiness.
 		# if we have the attr 'extra_args_' then we know it's an gains search
-		xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None
-		xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None
+		xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None       # np arrays themselves
+		xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None # the names of the prem,exp,loss features
 
 		# do fits, scores
 		out = [
@@ -371,7 +371,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 			score_validation = True
 			self.validation_scores = []
 
-			if xtra is not None:
+			if xtra_nms is not None:
 				self.val_score_report_ = GainsStatisticalReport(
 					n_folds=n_folds, 
 					n_iter= n_fits//n_folds,
@@ -383,7 +383,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 				kwargs = {
 					'expo' : _as_numpy(self.validation_frame[xtra_nms['expo']]),
 					'loss' : _as_numpy(self.validation_frame[xtra_nms['loss']]),
-					'prem' : _as_numpy(self.validation_frame[xtra_nms['prem']]) if (xtra['prem'] is not None) else None
+					'prem' : _as_numpy(self.validation_frame[xtra_nms['prem']]) if (xtra_nms['prem'] is not None) else None
 				}
 			else:
 				kwargs = {}
@@ -701,6 +701,8 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 		# clear extra_args_, because they might take lots of mem
 		# we can do this because a re-fit will re-assign them anyways
 		del self.extra_args_
+		del self.extra_names_
+		
 		return the_fit
 
 	def report_scores(self):
