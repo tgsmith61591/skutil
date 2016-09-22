@@ -43,14 +43,9 @@ class GainsStatisticalReport(object):
 		The number of folds that are being fit. 
 	"""
 
-
-	__metrics__ = [
-		'lift', 'gini'
-	]
-
 	# maximizing score functions must be multiplied by
 	# -1 in order to most "minimize" some loss function
-	__signs__ = {
+	_signs = {
 		'lift' : -1,
 		'gini' : -1
 	}
@@ -59,7 +54,8 @@ class GainsStatisticalReport(object):
 		self.n_groups = 10
 		self.score_by = score_by
 
-		self.stats = {m:[] for m in self.__metrics__}
+		met = self._signs.keys()
+		self.stats = {m:[] for m in met}
 		self.sample_sizes = []
 
 		self.n_folds = n_folds
@@ -67,9 +63,9 @@ class GainsStatisticalReport(object):
 		self.iid = iid
 
 		# validate score_by
-		if not score_by in self.__metrics__:
+		if not score_by in self._signs:
 			raise ValueError('score_by must be in %s, but got %s'
-				% (', '.join(self.__metrics__), score_by))
+				% (', '.join(met), score_by))
 
 		if n_folds and not n_iter:
 			raise ValueError('if n_folds is set, must set n_iter')
@@ -83,12 +79,12 @@ class GainsStatisticalReport(object):
 		else:
 			# otherwise they are cross validation scores...
 			# ensure divisibility...
-			n_obs, n_folds, n_iter = len(self.stats[self.__metrics__[0]]), self.n_folds, self.n_iter
+			n_obs, n_folds, n_iter = len(self.stats[self._signs.keys()[0]]), self.n_folds, self.n_iter
 			if not (n_folds * n_iter) == n_obs:
 				raise ValueError('n_obs is not divisible by n_folds and n_iter')
 
 			new_stats = {}
-			for metric in self.__metrics__:
+			for metric in self._signs.keys():
 				new_stats['%s_mean'%metric] = [] # the mean scores
 				new_stats['%s_std' %metric] = [] # the std scores
 				new_stats['%s_min' %metric] = [] # the min scores
@@ -158,7 +154,7 @@ class GainsStatisticalReport(object):
 
 		# return the score we want... grid search is MINIMIZING
 		# so we need to return negative for maximizing metrics
-		return self.stats[self.score_by][-1] * self.__signs__[self.score_by]
+		return self.stats[self.score_by][-1] * self._signs[self.score_by]
 
 
 	def fit_fold(self, pred, expo, loss, prem=None):
@@ -184,7 +180,7 @@ class GainsStatisticalReport(object):
 		# compute the metrics. This relies on the convention
 		# that the computation method is the name of the metric
 		# preceded by an underscore...
-		for metric in self.__metrics__:
+		for metric in self._signs.keys():
 			self.stats[metric].append(
 				getattr(self, '_%s'%metric)(**kwargs)
 			)

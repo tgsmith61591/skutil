@@ -210,20 +210,21 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 	train = sorted(train)
 	test = sorted(test)
 
+	# if act_args, then it's a gains search. We just need to slice
+	# our existing numpy arrays
+	if act_args is not None:
+		kwargs = {
+			'expo' : act_args['expo'][test],
+			'loss' : act_args['loss'][test],
+			'prem' : act_args['prem'][test] if act_args['prem'] is not None else None
+		}
+	else:
+		kwargs = {}
+
 
 	# generate split
 	train_frame = frame[train, :]
 	test_frame = frame[test, :]
-
-	# if xtra args, it's act...
-	if act_args is not None:
-		kwargs = {
-			'expo' : _as_numpy(test_frame[act_args['expo']]),
-			'loss' : _as_numpy(test_frame[act_args['loss']]),
-			'prem' : _as_numpy(test_frame[act_args['prem']]) if (act_args['prem'] is not None) else None
-		}
-	else:
-		kwargs = {}
 
 	start_time = time.time()
 
@@ -677,14 +678,21 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 										  random_state=self.random_state)
 
 		exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
+
+		# we can do this once to avoid many as_data_frame operations
 		self.extra_args_ = {
-			'expo':exp,
-			'loss':loss,
-			'prem':prem
+			'expo' : _as_numpy(frame[expo]),
+			'loss' : _as_numpy(frame[loss]),
+			'prem' : _as_numpy(frame[prem]) if prem is not None else None
 		}
 
 		# do fit
-		return self._fit(frame, sampled_params)
+		the_fit = self._fit(frame, sampled_params)
+
+		# clear extra_args_, because they might take lots of mem
+		# we can do this because a re-fit will re-assign them anyways
+		del self.extra_args_
+		return the_fit
 
 	def report_scores(self):
 		"""Get the gains report"""
