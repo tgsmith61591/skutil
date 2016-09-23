@@ -395,7 +395,7 @@ def _is_int(x, tp):
     # if there's no difference between the two, then it's an int.
     return (x - x.astype('int')).abs().sum() == 0
 
-def pd_stats(X, col_type='all'):
+def pd_stats(X, col_type='all', na_str='--'):
     """Get a descriptive report of the elements in the data frame.
     Builds on existing pandas `describe` method.
 
@@ -424,7 +424,7 @@ def pd_stats(X, col_type='all'):
     type_dict = {}
 
     # the string to use when we don't want to populate a cell
-    _nastr = '--'
+    _nastr = na_str
 
     # objects are going to get dropped in the describe() call,
     # so we need to add them back in with dicts of nastr for all...
