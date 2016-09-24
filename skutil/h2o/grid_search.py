@@ -333,7 +333,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         cv = check_cv(self.cv)
 
         # make list of strings
-        self.feature_names, self.target_feature = validate_x_y(self.feature_names, self.target_feature)
+        self.feature_names, self.target_feature = validate_x_y(X, self.feature_names, self.target_feature)
         nms = {
             'feature_names' : self.feature_names,
             'target_feature': self.target_feature

@@ -42,7 +42,7 @@ class NAWarning(UserWarning):
     within an h2o frame (h2o can handle NA values)
     """
 
-def _frame_from_x_y(X, x, y):
+def _frame_from_x_y(X, x, y, return_x_y=False):
     """Subset the H2OFrame if necessary. This is used in
     transformers where a target feature and feature names are
     provided.
@@ -59,7 +59,9 @@ def _frame_from_x_y(X, x, y):
         The target feature. This will be dropped from the frame
     """
     x, y = validate_x_y(X, x, y)
-    return _check_is_frame(X)[x]
+    X =_check_is_frame(X)[x]
+
+    return X if not return_x_y else (X, x, y)
 
 
 def _check_is_frame(X):
@@ -124,13 +126,13 @@ def validate_x_y(X, feature_names, target_feature):
     """
     if feature_names is not None:
 
-	    # validate feature_names
-	    if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
-	        raise TypeError('feature_names must be an iterable of strings. '
-	                        'Got %s' % str(feature_names))
-	else:
-		X = _check_is_frame(X)
-		feature_names = X.columns
+        # validate feature_names
+        if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
+            raise TypeError('feature_names must be an iterable of strings. '
+                            'Got %s' % str(feature_names))
+    else:
+        X = _check_is_frame(X)
+        feature_names = X.columns
 
 
     # we can allow it to be None...
