@@ -10,10 +10,12 @@ from sklearn.externals import six
 
 import h2o
 from h2o.frame import H2OFrame
+
+# in different versions, we get different exceptions
 try:
     from h2o.backend.connection import H2OServerError
 except ImportError as e:
-    H2OServerError = EnvironmentError # Gosh, they make it tough on us...
+    H2OServerError = EnvironmentError
 
 from pkg_resources import parse_version
 from ..utils import is_numeric
@@ -56,27 +58,8 @@ def _frame_from_x_y(X, x, y):
     y : str
         The target feature. This will be dropped from the frame
     """
-
-    # subset frame if necessary
-    if x is not None:
-        # x is not None
-
-        if y is not None:
-            # x is not None and y is not None
-            # remove y from x, potentially
-            x = [i for i in x if not (i==y)]
-
-        # X = X[[i for i in x if i in X.columns]]
-        X = X[[i for i in x]] # let error fall through?
-
-    elif y is not None:
-        # x is None, but y is not.
-        # we've already handled the "both not null" condition above...
-        X = X[[i for i in X.columns if not (i==y)]] # make list
-
-    # otherwise x might be None AND y might be none, in which case
-    # we would just return X, as we use all columns for x and there is no y
-    return X
+    x, y = validate_x_y(X, x, y)
+    return _check_is_frame(X)[x]
 
 
 def _check_is_frame(X):
@@ -118,7 +101,8 @@ def _retain_features(X, exclude):
     return [x for x in X.columns if not x in exclude]
 
 
-def validate_x_y(feature_names, target_feature):
+
+def validate_x_y(X, feature_names, target_feature):
     """Validate the feature_names and target_feature arguments
     passed to an H2OTransformer.
 
@@ -138,11 +122,16 @@ def validate_x_y(feature_names, target_feature):
     -------
     (feature_names, target_feature)
     """
+    if feature_names is not None:
 
-    # validate feature_names
-    if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
-        raise TypeError('feature_names must be an iterable of strings. '
-                        'Got %s' % str(feature_names))
+	    # validate feature_names
+	    if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
+	        raise TypeError('feature_names must be an iterable of strings. '
+	                        'Got %s' % str(feature_names))
+	else:
+		X = _check_is_frame(X)
+		feature_names = X.columns
+
 
     # we can allow it to be None...
     if target_feature is None:
@@ -155,7 +144,10 @@ def validate_x_y(feature_names, target_feature):
         target_feature = str(target_feature)
 
     # make list of strings, return target_feature too
-    return [str(i) for i in feature_names], target_feature
+    # we know feature_names are not none, here so remove
+    # the target_feature from the feature_names
+    return [str(i) for i in feature_names if not i == target_feature], target_feature
+
 
 
 class VizMixin:
