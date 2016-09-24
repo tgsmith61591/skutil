@@ -14,6 +14,7 @@ except ImportError as e:
     from h2o.estimators.estimator_base import H2OEstimator
 
 from .pipeline import H2OPipeline
+from .frame import _check_is_1d_frame
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from ..base import overrides
 from ..utils import is_numeric, report_grid_score_detail
@@ -111,12 +112,10 @@ def _as_numpy(_1d_h2o_frame):
     """Takes a single column h2o frame and
     converts it into a numpy array
     """
-    n_cols = _1d_h2o_frame.shape[1]
-    if not n_cols == 1:
-        raise ValueError('expected single column frame, got %d' % n_cols)
+    f = _check_is_1d_frame(_1d_h2o_frame)
     
-    nm = str(_1d_h2o_frame.columns[0])
-    return _1d_h2o_frame[nm].as_data_frame(use_pandas=True)[nm].values
+    nm = str(f.columns[0])
+    return f[nm].as_data_frame(use_pandas=True)[nm].values
 
 
 def _clone_h2o_obj(estimator, ignore=False, **kwargs):
