@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division
 from sklearn.externals import six
 import numpy as np
 import pandas as pd
@@ -8,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals.joblib import Parallel, delayed
+from sklearn.externals import six
 from scipy.stats import boxcox
 from scipy import optimize
 from .encode import _get_unseen
@@ -21,10 +23,15 @@ __all__ = [
     'InteractionTermTransformer',
     'SelectiveScaler',
     'SpatialSignTransformer',
-    'YeoJohnsonTransformer',
+    'YeoJohnsonTransformer'
 ]
 
+# A very small number used to measure differences.
+# If the absolute difference between two numbers is
+# <= EPS, it is considered equal.
 EPS = 1e-12
+
+# A very small number used to represent zero.
 ZERO = 1e-16
 
 
@@ -66,7 +73,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
         self.fun = fun
         self.kwargs = kwargs
 
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         """Validate the args
         
         Parameters
@@ -76,10 +83,6 @@ class FunctionMapper(_BaseSelectiveTransformer):
         
         y : Passthrough for Pipeline compatibility
         """
-        # this function is a bit strange, because we can accept a single col:
-        if isinstance(self.cols, str):
-            self.cols = [self.cols]
-
         # Check this second in this case
         X, self.cols = validate_is_pd(X, self.cols)
 
@@ -106,10 +109,11 @@ class FunctionMapper(_BaseSelectiveTransformer):
         
         y : Passthrough for Pipeline compatibility
         """
-        X, _ = validate_is_pd(X, self.cols)
+        X, cols = validate_is_pd(X, self.cols)
+        cols = cols if not cols is None else X.columns
 
         # apply the function
-        X[self.cols or X.columns] = X[self.cols or X.columns].apply(lambda x: self.fun(x, **self.kwargs))
+        X[cols] = X[cols].apply(lambda x: self.fun(x, **self.kwargs))
         return X
 
 
@@ -502,7 +506,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
 
         return self
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         """Perform Yeo-Johnson transformation
 
         Parameters
@@ -531,7 +535,7 @@ def _yj_trans_single_x(x, lam):
             return (np.power(x + 1, lam) - 1.0) / lam
 
         ## Case 2: x >= 0 and lambda is zero
-        return np.log(x + 1)
+        return log(x + 1)
     else:
         ## Case 2: x < 0 and lambda is not two
         if not lam == 2.0:
@@ -540,7 +544,7 @@ def _yj_trans_single_x(x, lam):
             return -numer / denom
 
         ## Case 4: x < 0 and lambda is two
-        return -np.log(-x + 1)
+        return -log(-x + 1)
 
 def _yj_transform_y(y, lam):
     """Transform a single y, given a single lambda value.
@@ -678,7 +682,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         super(SpatialSignTransformer, self).__init__(cols=cols, as_df=as_df)
         self.n_jobs = n_jobs
         
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         """Estimate the squared norms for each feature, provided X
         
         Parameters
@@ -688,24 +692,20 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         
         y : Passthrough for Pipeline compatibility
         """
+
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
         
-        ## Now estimate the lambdas in parallel
+        ## Now get sqnms in parallel
         self.sq_nms_ = dict(zip(cols,
             Parallel(n_jobs=self.n_jobs)(
                 delayed(_sq_norm_single)
                 (X[nm]) for nm in cols)))
-
-        ## What if a squared norm is zero? We want to avoid a divide-by-zero situation...
-        for k,v in six.iteritems(self.sq_nms_):
-            if v == 0.0:
-                self.sq_nms_[k] = np.inf
         
         return self
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         """Perform spatial sign transformation
         
         Parameters
@@ -718,18 +718,21 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
         sq_nms_ = self.sq_nms_
-        cols = X.columns if not self.cols else self.cols
 
         ## scale by norms
-        for nm in cols:
-            X[nm] /= sq_nms_[nm]
+        for nm, the_norm in six.iteritems(sq_nms_):
+            X[nm] /= the_norm
         
         return X if self.as_df else X.as_matrix()
 
 
-def _sq_norm_single(x):
-    x = np.array(x)
-    return np.dot(x, x)
+def _sq_norm_single(x, zero_action=np.inf):
+    x = np.asarray(x)
+    nrm = np.dot(x, x)
+
+    ## What if a squared norm is zero? We want to 
+    ## avoid a divide-by-zero situation...
+    return nrm if not nrm == 0 else zero_action
 
 
 

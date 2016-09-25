@@ -224,20 +224,7 @@ def test_strange_input():
 	SelectivePCA(cols=[]).fit_transform(x)
 
 	# test bad input
-	failed = False
-	try:
-		print(validate_is_pd("bad", None))
-	except ValueError as v:
-		failed = True
-	assert failed
-
-	# test bad cols input
-	failed = False
-	try:
-		print(validate_is_pd(x, 'blah'))
-	except ValueError as v:
-		failed = True
-	assert failed
+	assert_fails(validate_is_pd, TypeError, "bad", None)
 
 
 def test_selective_scale():

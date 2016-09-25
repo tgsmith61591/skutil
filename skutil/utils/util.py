@@ -130,7 +130,10 @@ def _val_cols(cols):
 
     # try to make cols a list
     if not hasattr(cols, '__iter__'):
-        raise ValueError('cols must be an iterable sequence')
+        if isinstance(cols, six.string_types):
+            return [cols]
+        else:
+            raise ValueError('cols must be an iterable sequence')
     return [c for c in cols] # make it a list implicitly, make no guarantees about elements
 
 def _def_headers(X):
@@ -311,8 +314,12 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         if cols is not None and len(cols) == 0:
             cols = None
 
-        # avoid multiple isinstances
+        # avoid multiple isinstance checks
         is_df = isinstance(X, pd.DataFrame)
+
+        # we do want to make sure the X at least is "array-like"
+        if not hasattr(X, '__iter__'):
+            raise TypeError('X (type=%s) cannot be cast to DataFrame' % type(X))
 
         # case 1, we have names but the X is not a frame
         if not is_df and cols is not None:
@@ -388,7 +395,7 @@ def _is_int(x, tp):
     # if there's no difference between the two, then it's an int.
     return (x - x.astype('int')).abs().sum() == 0
 
-def pd_stats(X, col_type='all'):
+def pd_stats(X, col_type='all', na_str='--'):
     """Get a descriptive report of the elements in the data frame.
     Builds on existing pandas `describe` method.
 
@@ -417,7 +424,7 @@ def pd_stats(X, col_type='all'):
     type_dict = {}
 
     # the string to use when we don't want to populate a cell
-    _nastr = '--'
+    _nastr = na_str
 
     # objects are going to get dropped in the describe() call,
     # so we need to add them back in with dicts of nastr for all...

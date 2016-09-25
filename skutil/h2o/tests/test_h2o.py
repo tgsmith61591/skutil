@@ -391,7 +391,7 @@ def test_h2o_with_conn():
 
 	def grid():
 		# test as_numpy
-		assert_fails(_as_numpy, ValueError, F) # fails if not 1 col
+		assert_fails(_as_numpy, (ValueError, TypeError), F) # fails because not H2OFrame
 
 
 		f = F.copy()
