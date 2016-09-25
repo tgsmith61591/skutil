@@ -118,14 +118,18 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         The name of the target feature (is excluded from the fit)
     """
 
-    def __init__(self, feature_names, target_feature=None):
+    def __init__(self, feature_names=None, target_feature=None):
         super(H2OFeatureDropper, self).__init__(feature_names=feature_names,
                                                 target_feature=target_feature)
 
     def fit(self, X, y=None):
+        fn = self.feature_names
+        if fn is None:
+            fn = []
+
         # We validate the features_names is a list or iterable
-        if hasattr(self.feature_names, '__iter__'):
-            self.drop_ = [i for i in self.feature_names]
+        if hasattr(fn, '__iter__'):
+            self.drop_ = [i for i in fn]
         else:
             raise ValueError('expected iterable for feature_names')
 

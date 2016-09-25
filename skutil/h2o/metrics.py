@@ -71,6 +71,6 @@ def h2o_accuracy_score(y_actual, y_predict, sample_weight=None):
     score : float
     """
     _check_targets(y_actual, y_predict)
-    return _weighted_sum(y_actual==y_predict, sample_weight)
+    return _weighted_sum(y_actual==y_predict, sample_weight) / y_actual.shape[0]
 
 

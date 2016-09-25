@@ -136,15 +136,15 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         x, y = validate_x_y(frame, self.feature_names, self.target_feature)
         self.target_feature = y # reset to the cleaned one, if necessary...
         
+        # ===== This shouldn't be in Pipeline's control, should be in the Estimators'
         # First, if there are any columns in the frame that are not in x, y drop them
         # we need to reappend y to make sure it doesn't get dropped out by the
         # frame_from_x_y method
-        xy = [p for p in x]
-        if y is not None:
-            xy.append(y)
-        
+        #xy = [p for p in x]
+        #if y is not None:
+        #    xy.append(y)
         # retain only XY
-        frame = frame[xy]
+        #frame = frame[xy]
         
         # get the fit
         Xt, self.training_cols_ = self._pre_transform(frame)
