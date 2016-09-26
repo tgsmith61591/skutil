@@ -133,8 +133,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             pipeline.
         """
         self._reset() # reset if needed
-        x, y = validate_x_y(frame, self.feature_names, self.target_feature)
-        self.target_feature = y # reset to the cleaned one, if necessary...
+
+        # reset to the cleaned ones, if necessary...
+        self.feature_names, self.target_feature = validate_x_y(frame, self.feature_names, self.target_feature)
         
         # ===== This shouldn't be in Pipeline's control, should be in the Estimators'
         # First, if there are any columns in the frame that are not in x, y drop them
@@ -151,13 +152,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         
         # if the last step is not an h2o estimator, we need to do things differently...
         if isinstance(self.steps[-1][1], H2OEstimator):
-            self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=y)
+            self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=self.target_feature)
         else:
             _est = self.steps[-1][1]
 
             # set the instance members
             _est.feature_names = self.training_cols_
-            _est.target_feature = y
+            _est.target_feature = self.target_feature
 
             # do the fit
             _est.fit(Xt)
