@@ -557,6 +557,19 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # now save the rest of things...
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+            
+    @if_delegate_has_method(delegate='best_estimator_')
+    def varimp(self, use_pandas=True):
+        """Get the variable importance, if the final
+        estimator implements such a function.
+
+        Parameters
+        ----------
+        use_pandas : bool, optional (default=True)
+            Whether to return a pandas dataframe
+        """
+        return self.best_estimator_.varimp(use_pandas=use_pandas)
     
 
 
