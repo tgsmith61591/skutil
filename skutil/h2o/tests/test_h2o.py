@@ -531,6 +531,10 @@ def test_h2o_with_conn():
 										else:
 											raise
 
+									# try varimp
+									if hasattr(grid, 'varimp'):
+										grid.varimp()
+
 
 			# can we just fit one with a validation frame for coverage?
 			pipe = H2OPipeline([

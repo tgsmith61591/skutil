@@ -313,3 +313,17 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Xt = transform.transform(Xt)
             
         return Xt
+
+
+    @if_delegate_has_method(delegate='_final_estimator')
+    def varimp(self, use_pandas=True):
+        """Get the variable importance, if the final
+        estimator implements such a function.
+
+        Parameters
+        ----------
+        use_pandas : bool, optional (default=True)
+            Whether to return a pandas dataframe
+        """
+        return self._final_estimator.varimp(use_pandas=use_pandas)
+
