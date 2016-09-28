@@ -55,7 +55,7 @@ def test_large_grid():
 	if not SK18:
 		custom_cv = KFold(n=y_train.shape[0], n_folds=3, shuffle=True, random_state=42)
 	else:
-		custom_cv = KFold(n_folds=3, shuffle=True, random_state=42)
+		custom_cv = KFold(n_splits=3, shuffle=True, random_state=42)
 
 	# define the pipe
 	pipe = Pipeline([

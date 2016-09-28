@@ -27,7 +27,7 @@ try:
     # get our train/test
     X_train, X_test, y_train, y_test = train_test_split(X, iris.target, train_size=0.75, random_state=42)
     # default CV does not shuffle, so we define our own
-    custom_cv = KFold(n_folds=5, shuffle=True, random_state=42)
+    custom_cv = KFold(n_splits=5, shuffle=True, random_state=42)
 except ImportError as i:
     from sklearn.cross_validation import train_test_split, KFold
 
