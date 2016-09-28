@@ -3,7 +3,6 @@ language: python
 python:
   - "2.7"
   - "3.3"
-  - "3.5"
 
 before_install:
   - sudo apt-get -qq update
@@ -35,11 +34,14 @@ install:
   - conda info -a
 
   # dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython coveralls matplotlib seaborn
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython
   - source activate test-environment
 
   # Coverage packages
   - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  - pip install coveralls
+  - pip install matplotlib
+  - pip install seaborn
   - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
   - python setup.py develop
 
