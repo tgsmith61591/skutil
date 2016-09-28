@@ -148,7 +148,7 @@ def validate_x_y(X, feature_names, target_feature):
     # make list of strings, return target_feature too
     # we know feature_names are not none, here so remove
     # the target_feature from the feature_names
-    return [str(i) for i in feature_names if not i == target_feature], target_feature
+    return [str(i) for i in feature_names if not str(i) == target_feature], target_feature
 
 
 
@@ -296,6 +296,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         if warn_if_exists and os.path.exists(location):
             warnings.warn('Overwriting existing path: %s' %location, UserWarning)
 
+        # models that have H2OEstimators
         if hasattr(self, '_save_internal'):
             kwargs = {} if not kwargs else kwargs
             kwargs['location'] = location

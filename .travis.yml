@@ -2,10 +2,6 @@ sudo: true
 language: python
 python:
   - "2.7"
-  #- "3.2"
-  #- "3.3"
-  #- "3.4"
-  #- "3.5"
 
 before_install:
   - sudo apt-get -qq update
@@ -41,7 +37,10 @@ install:
   - source activate test-environment
 
   # Coverage packages
-  - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install --yes -c dan_blanchard python-coveralls nose-cov;
+    fi
+
   - pip install coveralls
   - pip install matplotlib
   - pip install seaborn
@@ -50,8 +49,15 @@ install:
 
 ## Run tests
 script: 
-  - nosetests --with-coverage --cover-package=skutil --logging-level=INFO
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
+    else
+      nosetests --logging-level=INFO;
+    fi
 
 ## Compute coverage
 after_success:
-  - coveralls
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      coveralls;
+    fi
+
