@@ -462,13 +462,20 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             best_estimator.set_params(**best.parameters)
             best_estimator.fit(X)
 
+
+        # Set the best estimator, and remove the estimator--
+        # unlike sklearn, estimator won't pickle, so we
+        # will need to remove it
         self.best_estimator_ = best_estimator
+        self.estimator = None
 
         return self
+
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
         return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.scoring_params, self.is_regression_)
+
 
     def predict(self, frame):
         check_is_fitted(self, 'best_estimator_')
@@ -478,6 +485,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         frame = _check_is_frame(frame)
         return self.best_estimator_.predict(frame)
+
 
     @overrides(VizMixin)
     def plot(self, timestep, metric):
@@ -501,6 +509,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # read the model portion, delete the model path
         ex = None
+        the_h2o_est = None
         for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
             try:
                 the_h2o_est = h2o.load_model(pth)
@@ -509,7 +518,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     ex = e
                 else:
                     # only throws if fails twice
-                    raise ex        
+                    raise ex   
+
+            # break if successfully loaded
+            if the_h2o_est is not None:
+                break     
 
         # delete the model path
         del model.model_loc_
