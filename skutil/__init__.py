@@ -4,7 +4,7 @@ sklearn-esque transformers for python
 import sys, warnings
 from .utils import log, exp # want these visible at module level
 
-__version__ = '0.0.53.working'
+__version__ = '0.0.53.py3'
 
 try:
     # This variable is injected in the __builtins__ by the build
