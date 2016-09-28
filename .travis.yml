@@ -2,6 +2,7 @@ sudo: true
 language: python
 python:
   - "2.7"
+  - "3.3"
 
 before_install:
   - sudo apt-get -qq update
@@ -50,9 +51,9 @@ install:
 ## Run tests
 script: 
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      nosetests --with-coverage --cover-package=skutil --logging-level=INFO
+      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
     else
-      nosetests --logging-level=INFO
+      nosetests --logging-level=INFO;
     fi
 
 ## Compute coverage
