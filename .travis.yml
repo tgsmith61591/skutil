@@ -33,20 +33,31 @@ install:
   - conda info -a
 
   # dependencies
-  # - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython
-  # source activate test-environment
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose scikit-learn pandas coverage cython seaborn
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython
+  - source activate test-environment
 
   # Coverage packages
-  - conda install --yes -c dan_blanchard python-coveralls nose-cov
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install --yes -c dan_blanchard python-coveralls nose-cov;
+    fi
+
   - pip install coveralls
+  - pip install matplotlib
+  - pip install seaborn
   - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
   - python setup.py develop
 
 ## Run tests
 script: 
-  - nosetests --with-coverage --cover-package=skutil --logging-level=INFO
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      nosetests --with-coverage --cover-package=skutil --logging-level=INFO
+    else
+      nosetests --logging-level=INFO
+    fi
 
 ## Compute coverage
 after_success:
-  - coveralls
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      coveralls;
+    fi
+
