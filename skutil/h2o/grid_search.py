@@ -286,7 +286,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                  target_feature, scoring=None, 
                  n_jobs=1, scoring_params=None, 
                  cv=5, verbose=0, iid=True,
-                 validation_frame=None):
+                 validation_frame=None,
+                 minimize='bias'):
 
         super(BaseH2OSearchCV, self).__init__(target_feature=target_feature,
                                               min_version=self._min_version,
@@ -301,12 +302,18 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         self.verbose = verbose
         self.iid = iid
         self.validation_frame = validation_frame
+        self.minimize = minimize
 
     def _fit(self, X, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
         X = _check_is_frame(X) # if it's a frame, will be turned into a matrix
-
+        minimize = self.minimize
         estimator = self.estimator
+
+        # ensure minimize is in {'bias':'variance'}
+        min_permitted = ['bias', 'variance']
+        if not minimize in min_permitted:
+            raise ValueError('minimize must be one of %s, but got %s' % (', '.join(min_permitted), str(minimize)))
 
         # validate the estimator... for grid search, we ONLY ALLOW the last step
         # of the grid search estimator to be an H2OEstimator. That means pipelines
@@ -433,10 +440,15 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # Store the computed scores
         self.grid_scores_ = grid_scores
 
+
         # Find the best parameters by comparing on the mean validation score:
         # note that `sorted` is deterministic in the way it breaks ties
-        best = sorted(grid_scores, key=lambda x: x.mean_validation_score,
-                      reverse=True)[0]
+        if minimize == 'bias':
+            best = sorted(grid_scores, key=lambda x: x.mean_validation_score, reverse=True)[0]
+        else: # we already know it's variance otherwise
+            best = sorted(grid_scores, key=lambda x: x.cv_validation_scores.std(), reverse=False)[0]
+
+
         self.best_params_ = best.parameters
         self.best_score_ = best.mean_validation_score
 
@@ -593,7 +605,8 @@ class H2OGridSearchCV(BaseH2OSearchCV):
                  scoring=None, n_jobs=1, 
                  scoring_params=None, cv=5, 
                  verbose=0, iid=True,
-                 validation_frame=None):
+                 validation_frame=None,
+                 minimize='bias'):
 
         super(H2OGridSearchCV, self).__init__(
                 estimator=estimator,
@@ -602,7 +615,8 @@ class H2OGridSearchCV(BaseH2OSearchCV):
                 scoring=scoring, n_jobs=n_jobs,
                 scoring_params=scoring_params,
                 cv=cv, verbose=verbose,
-                iid=iid, validation_frame=validation_frame
+                iid=iid, validation_frame=validation_frame,
+                minimize=minimize
             )
 
         self.param_grid = param_grid
@@ -620,7 +634,8 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
                  scoring=None, n_jobs=1, 
                  scoring_params=None, cv=5, 
                  verbose=0, iid=True,
-                 validation_frame=None):
+                 validation_frame=None,
+                 minimize='bias'):
 
         super(H2ORandomizedSearchCV, self).__init__(
                 estimator=estimator,
@@ -629,7 +644,8 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
                 scoring=scoring, n_jobs=n_jobs,
                 scoring_params=scoring_params,
                 cv=cv, verbose=verbose,
-                iid=iid, validation_frame=validation_frame
+                iid=iid, validation_frame=validation_frame,
+                minimize=minimize
             )
 
         self.param_grid = param_grid
@@ -671,7 +687,8 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  random_state=None, scoring='lift', 
                  n_jobs=1, scoring_params=None, cv=5, 
                  verbose=0, iid=True, #n_groups=10,
-                 validation_frame=None):
+                 validation_frame=None,
+                 minimize='bias'):
 
         super(H2OGainsRandomizedSearchCV, self).__init__(
                 estimator=estimator,
@@ -682,7 +699,8 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                 scoring=scoring, n_jobs=n_jobs,
                 scoring_params=scoring_params,
                 cv=cv, verbose=verbose,
-                iid=iid, validation_frame=validation_frame
+                iid=iid, validation_frame=validation_frame,
+                minimize=minimize
             )
 
         #self.n_groups = 10

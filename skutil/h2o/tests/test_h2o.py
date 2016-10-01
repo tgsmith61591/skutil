@@ -459,6 +459,7 @@ def test_h2o_with_conn():
 
 									# should we shuffle?
 									do_shuffle = choice([True, False])
+									minimize = choice(['bias', 'variance'])
 
 									# just for coverage...
 									which_cv = choice([
@@ -480,7 +481,7 @@ def test_h2o_with_conn():
 											feature_names=F.columns.tolist(), target_feature='species',
 											param_grid=get_param_grid(estimator),
 											scoring=scoring, iid=iid, verbose=verbose,
-											cv=which_cv)
+											cv=which_cv, minimize=minimize)
 									else:
 
 										# pipify -- the feature names, etc., will be set in the grid
@@ -503,7 +504,7 @@ def test_h2o_with_conn():
 										grid = grid_module(pipe, param_grid=params,
 											feature_names=F.columns.tolist(), target_feature='species',
 											scoring=scoring, iid=iid, verbose=verbose,
-											cv=which_cv)
+											cv=which_cv, minimize=minimize)
 
 
 									# if it's a random search CV obj, let's keep it brief
