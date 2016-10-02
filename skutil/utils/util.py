@@ -587,7 +587,8 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True, 
-        ascending=True, percentile=0.975, y_axis='score', sort_by='score'):
+        ascending=True, percentile=0.975, y_axis='score', sort_by='score',
+        highlight_best=True):
     """Return plots and dataframe of results, given a fitted grid search.
     Note that if Matplotlib is not installed, a warning will be thrown
     and no plots will be generated.
@@ -617,6 +618,11 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     sort_by : str, optional (default='score')
         The col to sort by. This is not validated, in case
         the user wants to sort by a parameter column.
+
+    highlight_best : bool, optional (default=True)
+        If set to True, charts is True, and sort_results is 
+        also True, then highlights the point in the top
+        position of the model DF.
     """
     valid_axes = ('score', 'std')
 
@@ -648,9 +654,24 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
-            if col not in valid_axes:
-                plt.scatter(result_df[col], result_df[y_axis])
+            if col not in valid_axes: # skip score / std
+                ser = result_df[col]
+                color = ['blue' for i in range(ser.shape[0])]
+
+                # highlight if needed
+                if sort_results and highlight_best:
+                    color[0] = 'red'
+
+                # build scatter plot
+                plt.scatter(ser, result_df[y_axis], color=color)
                 plt.title(col)
+                plt.ylabel(y_axis)
+
+                # if there's a '__' in the col, split it
+                x_lab = col if not '__' in col else col.split('__')[-1]
+                plt.xlabel(x_lab)
+
+                # render
                 plt.show()
 
         for col in list(result_df.columns[result_df.dtypes == "object"]):

@@ -440,14 +440,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # Store the computed scores
         self.grid_scores_ = grid_scores
 
-
         # Find the best parameters by comparing on the mean validation score:
         # note that `sorted` is deterministic in the way it breaks ties
-        if minimize == 'bias':
-            best = sorted(grid_scores, key=lambda x: x.mean_validation_score, reverse=True)[0]
-        else: # we already know it's variance otherwise
-            best = sorted(grid_scores, key=lambda x: x.cv_validation_scores.std(), reverse=False)[0]
-
+        is_bias = minimize == 'bias'
+        the_key = (lambda x: x.mean_validation_score) if is_bias else (lambda x: x.cv_validation_scores.std()) # else == variance
+        best = sorted(grid_scores, key=the_key, reverse=is_bias)[0]
 
         self.best_params_ = best.parameters
         self.best_score_ = best.mean_validation_score
