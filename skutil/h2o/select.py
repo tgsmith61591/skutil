@@ -13,9 +13,9 @@ from h2o.frame import H2OFrame
 
 from ..feature_selection import filter_collinearity
 from ..utils import is_numeric
-from .base import (NAWarning, 
-                   BaseH2OTransformer, 
-                   _check_is_frame, 
+from .base import (NAWarning,
+                   BaseH2OTransformer,
+                   _check_is_frame,
                    _retain_features,
                    _frame_from_x_y)
 
@@ -90,7 +90,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
                                                  target_feature=target_feature,
                                                  min_version=min_version,
                                                  max_version=max_version)
-            
+
     def transform(self, X):
         # validate state, frame
         check_is_fitted(self, 'drop_')
@@ -159,7 +159,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     ----------
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
-    
+
     drop_ : array_like
         The array of column names to drop
     """
@@ -211,10 +211,10 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     ----------
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
-    
+
     threshold : float, default 0.85
         The threshold above which to filter correlated features
-        
+
     na_warn : bool (default True)
         Whether to warn if any NAs are present
 
@@ -232,23 +232,23 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     mean_abs_correlations_ : list, float
         The corresponding mean absolute correlations of each drop_ name
     """
-    
+
     _min_version = '3.8.2.9'
     _max_version = None
-    
-    def __init__(self, feature_names=None, target_feature=None, threshold=0.85, 
+
+    def __init__(self, feature_names=None, target_feature=None, threshold=0.85,
                  na_warn=True, na_rm=False, use='complete.obs'):
 
         super(H2OMulticollinearityFilterer, self).__init__(feature_names=feature_names,
-                                                           target_feature=target_feature, 
+                                                           target_feature=target_feature,
                                                            min_version=self._min_version,
                                                            max_version=self._max_version)
         self.threshold = threshold
         self.na_warn = na_warn
         self.na_rm = na_rm
         self.use = use
-        
-        
+
+
     def fit(self, X):
         """Fit the multicollinearity filterer.
 
@@ -260,8 +260,8 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
         self.fit_transform(X)
         return self
-    
-    
+
+
     def fit_transform(self, X):
         """Fit the multicollinearity filterer and
         return the transformed H2OFrame, X.
@@ -276,16 +276,16 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
-        
+
         ## Generate absolute correlation matrix
         c = frame.cor(use=use, na_rm=self.na_rm).abs().as_data_frame(use_pandas=True)
         c.columns = frame.columns # set the cols to the same names
         c.index = frame.columns
-        
+
         ## get drops list
         self.drop_, self.mean_abs_correlations_, self.correlations_ = filter_collinearity(c, self.threshold)
         return self.transform(X)
-        
+
 
 
 class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
@@ -299,7 +299,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
     threshold : float, default 1e-6
         The threshold below which to declare "zero variance"
-        
+
     na_warn : bool (default True)
         Whether to warn if any NAs are present
 
@@ -314,15 +314,15 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     drop : list, string
         The columns to drop
     """
-    
+
     _min_version = '3.8.2.9'
     _max_version = None
-    
-    def __init__(self, feature_names=None, target_feature=None, threshold=1e-6, 
+
+    def __init__(self, feature_names=None, target_feature=None, threshold=1e-6,
                  na_warn=True, na_rm=False, use='complete.obs'):
 
         super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
-                                                          target_feature=target_feature, 
+                                                          target_feature=target_feature,
                                                           min_version=self._min_version,
                                                           max_version=self._max_version)
         self.threshold = threshold
@@ -356,13 +356,14 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
 
-        cols = frame.columns
-        variances = [frame[n].var(use=use, na_rm=self.na_rm) for n in cols]
-        var_mask = np.asarray(variances) < thresh
+        # get covariance matrix, extract the diagonal
+        cols = np.asarray([str(n) for n in frame.columns])
+        diag = np.diagonal(frame.var(na_rm=self.na_rm, use=use).as_data_frame(use_pandas=True).as_matrix())
 
-        self.drop_ = [str(n) for n in np.asarray(cols)[var_mask]] # make them strings
-        self.var_ = dict(zip(self.drop_, np.asarray(variances)[var_mask]))
+        # create mask
+        var_mask = diag < thresh
+
+        self.drop_ = cols[var_mask].tolist() # make list
+        self.var_ = dict(zip(self.drop_, diag[var_mask]))
 
         return self.transform(X)
-            
-        
