@@ -496,6 +496,18 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         return self.best_estimator_.predict(frame)
 
 
+    def fit_predict(self, frame):
+        """Fit the grid search on the given frame,
+        and then generate predictions.
+
+        Parameters
+        ----------
+        frame : H2OFrame
+            The frame to fit
+        """
+        return self.fit(frame).predict(frame)
+
+
     @overrides(VizMixin)
     def plot(self, timestep, metric):
         check_is_fitted(self, 'best_estimator_')

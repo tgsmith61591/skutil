@@ -18,7 +18,7 @@ from ..base import overrides
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
-from sklearn.utils.metaestimators import if_delegate_has_method
+from ..utils.metaestimators import if_delegate_has_method
 
 try:
     import cPickle as pickle
@@ -309,6 +309,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         return self.steps[-1][-1].predict(Xt)
 
 
+    @if_delegate_has_method(delegate='_final_estimator', method='predict')
+    def fit_predict(self, frame):
+        """Fit all the transforms one after the other and transform the
+        data, then fit the transformed data using the final estimator. Finally,
+        either predict on the final step.
+        
+        Parameters
+        ----------
+        frame : h2o Frame
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+        """
+        return self.fit(frame).predict(frame)
+
+
     @if_delegate_has_method(delegate='_final_estimator')
     def transform(self, frame):
         """Applies transforms to the data. Valid only if the 
@@ -325,6 +340,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Xt = transform.transform(Xt)
             
         return Xt
+
+
+    @if_delegate_has_method(delegate='_final_estimator', method='transform')
+    def fit_transform(self, frame):
+        """Fit all the transforms one after the other and transform the
+        data, then fit the transformed data using the final estimator. Finally,
+        either transform on the final step.
+        
+        Parameters
+        ----------
+        frame : h2o Frame
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+        """
+        return self.fit(frame).transform(frame)
 
 
     @if_delegate_has_method(delegate='_final_estimator')
