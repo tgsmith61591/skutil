@@ -7,9 +7,11 @@ from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 
+
 __all__ = [
     'H2OInteractionTermTransformer',
-    'H2OSelectiveImputer'
+    'H2OSelectiveImputer',
+    'H2OSelectiveScaler'
 ]
 
 
@@ -178,6 +180,83 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
         # this is going to impact it in place...
         return X
+
+
+
+class H2OSelectiveScaler(BaseH2OTransformer):
+    """A class that will scale selected features in the H2OFrame.
+
+    Parameters
+    ----------
+    feature_names : array_like (string)
+        names of features on which to apply trans
+
+    target_feature : str
+        name of target feature (ignored in fit and transform)
+
+    with_mean : bool, optional (default=True)
+        should subtract mean?
+
+    with_std : bool, optional (default=True)
+        should divide by std?
+    """
+
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self, feature_names=None, target_feature=None, 
+                 with_mean=True, with_std=True):
+        super(H2OSelectiveScaler, self).__init__(feature_names=feature_names,
+                                                 target_feature=target_feature,
+                                                 min_version=self._min_version,
+                                                 max_version=self._max_version)
+
+        self.with_mean = with_mean
+        self.with_std = with_std
+
+    def fit(self, X):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+        frame : H2OFrame, shape [n_samples, n_features]
+            The data to transform
+        """
+        frame = _check_is_frame(X)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        self.cols_ = [str(i) for i in frame.columns]
+
+        # get and std
+        if self.with_mean:
+            self.means = dict(zip(self.cols_, flatten_all(frame.mean())))
+
+        if self.with_std:
+            self.stds = dict(zip(self.cols_, flatten_all(frame.sd())))
+
+        return self
+
+
+    def transform(self, X):
+        """Do the transformation
+
+        Parameters
+        ----------
+        frame : H2OFrame, shape [n_samples, n_features]
+            The data to transform
+        """
+        check_is_fitted(self, 'cols_')
+        frame = _check_is_frame(X)[X.columns] # get a copy...
+
+        if (not self.with_mean) and (not self.with_std):
+            return frame # nothing to change...
+
+        for nm in self.cols_:
+            if self.with_mean:
+                frame[nm] -= self.means[nm]
+            if self.with_std:
+                frame[nm] /= self.stds[nm]
+
+        return frame
 
 
 
