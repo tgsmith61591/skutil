@@ -533,8 +533,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             if the_h2o_est is not None:
                 break     
 
-        # delete the model path
-        del model.model_loc_
+        # we no longer delete this attribute! What if you want to load it twice?
+        # delete the model path attr
+        # del model.model_loc_
 
         # if self.estimator is None, then it's simply the H2OEstimator,
         # otherwise it's going to be the H2OPipeline
@@ -542,7 +543,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             model.best_estimator_ = the_h2o_est
         else:
             model.best_estimator_.steps[-1] = (model.est_name_, the_h2o_est)
-            del model.est_name_
+            # del model.est_name_
 
         return model
 
@@ -570,15 +571,23 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         force = kwargs.pop('force', False)
         self.model_loc_ = h2o.save_model(model=the_h2o_est, path=model_loc, force=force)
 
-        # set to none for pickling...
+        # set to none for pickling, and then restore
         if is_pipe:
+            last_step_ = estimator.steps[-1]
             estimator.steps[-1] = None
         else:
+            last_step_ = self.best_estimator_
             self.best_estimator_ = None
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+        # restore state for re-use
+        if is_pipe:
+            estimator.steps[-1] = last_step_
+        else:
+            self.best_estimator_ = last_step_
 
             
     @if_delegate_has_method(delegate='best_estimator_')

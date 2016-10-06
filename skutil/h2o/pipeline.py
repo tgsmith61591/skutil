@@ -252,8 +252,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                         raise ex        
 
             model.steps[-1] = (model.est_name_, the_h2o_model)
-            del model.model_loc_
-            del model.est_name_
+
+            # no longer delete these attributes!! What if we
+            # are interested in loading twice in a row?
+            # del model.model_loc_
+            # del model.est_name_
 
         return model
 
@@ -270,11 +273,20 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
             # set the _final_estimator to None just for pickling
             self.est_name_ = self.steps[-1][0]
+
+            # let's keep a pointer to the last step, so
+            # after the pickling we can reassign it to retain state
+            last_step_ = self.steps[-1]
             self.steps[-1] = None
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+        # after pickle, we can add the last_step_ back in.
+        # this allows re-use/re-predict after saving to disk
+        if ends_in_h2o:
+            self.steps[-1] = last_step_
 
 
         
