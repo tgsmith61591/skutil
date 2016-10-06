@@ -241,8 +241,8 @@ def test_h2o_with_conn():
                 # fit pipe...
                 pipe.fit(train)
 
-                # refit for _reset coverage...
-                pipe.fit(train)
+                # refit for _reset coverage, assert fit_predict works...
+                pipe.fit_predict(train)
 
                 # try predicting
                 pipe.predict(test)
@@ -261,7 +261,7 @@ def test_h2o_with_conn():
                 target_feature='species'
             )
 
-            X_transformed = pipe.fit(train).transform(train)
+            X_transformed = pipe.fit_transform(train)
 
 
 
@@ -552,7 +552,8 @@ def test_h2o_with_conn():
                 scoring='accuracy_score', iid=True, verbose=0, cv=2,
                 validation_frame=frame)
 
-            grid.fit(frame)
+            # get coverage on fit_predict
+            grid.fit_predict(frame)
 
 
 
