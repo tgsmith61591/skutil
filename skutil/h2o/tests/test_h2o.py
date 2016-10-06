@@ -1064,7 +1064,7 @@ def test_h2o_with_conn():
 
             # assert we can predict with it even
             # when it's not reloaded yet (fix issue #7)
-            pipe.predict(Y)
+            pipe.transform(Y)
 
             # load and transform
             pipe = H2OPipeline.load(the_path)
