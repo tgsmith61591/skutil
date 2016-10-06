@@ -30,7 +30,8 @@ from skutil.h2o.split import (check_cv, H2OKFold,
     _validate_shuffle_split_init, _validate_shuffle_split,
     _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
-from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler
+from skutil.utils import flatten_all
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -1277,6 +1278,30 @@ def test_h2o_with_conn():
         else:
             pass
 
+    def scale():
+        def almost_eq(x,y,eps=1e-8):
+            return abs(x-y) < eps
+
+        if X is not None:
+            scaler = H2OSelectiveScaler()
+            trans = scaler.fit_transform(X)
+
+            # assert mean zero
+            means = flatten_all(trans.mean())
+            assert all([almost_eq(x,0) for x in means])
+
+            # assert std one
+            sds = flatten_all(trans.sd())
+            assert all([almost_eq(x,1) for x in sds])
+
+            # assert X not affected
+            X_means = flatten_all(X.mean())
+            assert not all([almost_eq(x,0) for x in X_means])
+        else:
+            pass
+
+
+
 
     # run them
     multicollinearity()
@@ -1298,4 +1323,5 @@ def test_h2o_with_conn():
     balance()
     encode()
     feature_dropper()
+    scale()
 
