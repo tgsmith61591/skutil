@@ -1295,7 +1295,7 @@ def test_h2o_with_conn():
             assert all([almost_eq(x,1) for x in sds])
 
             # assert X not affected
-            X_means = flatten_all(X.means())
+            X_means = flatten_all(X.mean())
             assert not all([almost_eq(x,0) for x in X_means])
         else:
             pass
