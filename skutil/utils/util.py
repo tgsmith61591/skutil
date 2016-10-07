@@ -264,7 +264,8 @@ def flatten_all_generator(container):
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
     """
     if not hasattr(container, '__iter__'):
-        return container
+        yield container
+        
     for i in container:
         if hasattr(i, '__iter__'):
             for j in flatten_all_generator(i):
