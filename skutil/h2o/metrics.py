@@ -328,9 +328,9 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
 
     # apply sample weight if necessary
     if sample_weight is not None:
-        abs_diff *= sample_weight
+        diff *= sample_weight
 
-    return flatten_all(abs_diff.mean())[0]
+    return flatten_all(diff.mean())[0]
 
 
 
