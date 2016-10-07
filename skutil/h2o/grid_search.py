@@ -64,7 +64,7 @@ __all__ = [
 
 SCORERS = {
     'accuracy_score'           : accuracy_score,
-    'explained_variance_score' : explained_variance_score,
+    #'explained_variance_score' : explained_variance_score,
     'f1_score'                 : f1_score,
     'log_loss'                 : log_loss,
     'mean_absolute_error'      : mean_absolute_error,

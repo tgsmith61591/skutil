@@ -14,6 +14,7 @@ __all__ = [
     'h2o_mean_absolute_error',
     'h2o_mean_squared_error',
     'h2o_median_absolute_error',
+    'h2o_r2_score',
     'make_h2o_scorer',
 ]
 
@@ -45,6 +46,14 @@ def _is_int(x):
     if not x.isnumeric():
         return False
     return (x.round(digits=0) - x).sum() == 0
+
+def _get_mean(x):
+    """Internal method. Gets the mean from
+    an H2O frame (single col). Since the mean
+    inconsistently returns a list in some versions,
+    this extracts the value.
+    """
+    return flatten_all(x.mean())[0]
 
 
 def _unique_labels(y_true, y_pred):
@@ -207,7 +216,8 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     -------
     score : float
     """
-    return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).mean())[0]
+    return _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
+
 
 
 def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
@@ -233,6 +243,56 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     score : float
     """
     return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
+
+
+
+def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
+    """R^2 score for H2O frames
+
+    Parameters
+    ----------
+    y_actual : 1d H2OFrame
+        The ground truth
+
+    y_predict : 1d H2OFrame
+        The predicted labels
+
+    sample_weight : 1d H2OFrame, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+    Returns
+    -------
+    score : float
+    """
+
+    y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
+    _err_for_discrete(y_type)
+
+    # compute the numerator & denominator precursors
+    diff = (y_actual - y_predict)
+    sq_diff = diff * diff
+    mean_centered = y_actual - _get_mean(y_actual)
+    sq_mean_centered = mean_centered * mean_centered
+
+    # compute the numerator and denominator
+    if sample_weight is not None:
+        numerator = (sample_weight * sq_diff).sum()
+        denominator = (sample_weight * sq_mean_centered).sum()
+    else:
+        numerator = sq_diff.sum()
+        denominator = sq_mean_centered.sum()
+
+
+    nonzero_denom = denominator != 0
+    nonzero_numer = numerator != 0
+    valid_score = nonzero_numer & nonzero_denom
+
+    # generate output
+    return 1 - (numerator[valid_score] / denominator[valid_score])
 
 
 

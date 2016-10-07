@@ -22,6 +22,7 @@ from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
 from skutil.h2o.grid_search import _as_numpy
+from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
@@ -1277,6 +1278,43 @@ def test_h2o_with_conn():
         else:
             pass
 
+    def metrics():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
+            assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+
+            # test making the scorer
+            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+            assert accuracy_scorer(Y['species'], Y['species']) == 1.0
+
+            # Test MAE, MSE
+            reg_target = Y['sepal length (cm)']
+            shifted_down = reg_target - 1
+
+            # test on shifted down
+            assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
+
+            # test on same
+            assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
+
+            # test R^2 on the same
+            assert h2o_r2_score(reg_target, reg_target) == 1.0
+        else:
+            pass
+
 
     # run them
     multicollinearity()
@@ -1298,4 +1336,5 @@ def test_h2o_with_conn():
     balance()
     encode()
     feature_dropper()
+    metrics()
 
