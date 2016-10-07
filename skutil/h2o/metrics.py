@@ -11,7 +11,10 @@ from ..utils import flatten_all
 
 __all__ = [
     'h2o_accuracy_score',
-    'make_scorer'
+    'h2o_mean_absolute_error',
+    'h2o_mean_squared_error',
+    'h2o_median_absolute_error',
+    'make_h2o_scorer',
 ]
 
 
@@ -34,6 +37,9 @@ def _err_for_continuous(typ):
     if typ == 'continuous':
         raise ValueError('continuous response unsupported for classification metric')
 
+def _err_for_discrete(typ):
+    if typ != 'continuous':
+        raise ValueError('discrete response unsupported for regression metric')
 
 def _is_int(x):
     if not x.isnumeric():
@@ -65,6 +71,7 @@ def _type_of_target(y):
         * 'multiclass'
         * 'unknown'
     """
+    _check_is_1d_frame(y)
     if _get_bool(y.isfactor()) or _is_int(y):
         unq = y.unique()
         return 'unknown' if unq.shape[0] < 2 else\
@@ -161,19 +168,162 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     return _weighted_sum(y_actual==y_predict, sample_weight, normalize)
 
 
-def make_scorer(score_function, y_true):
+
+def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
+    """Compute absolute difference between actual and predict"""
+    y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
+    _err_for_discrete(y_type)
+
+    # compute abs diff
+    abs_diff = (y_actual - y_predict).abs()
+
+    # apply sample weight if necessary
+    if sample_weight is not None:
+        abs_diff *= sample_weight
+
+    return abs_diff
+
+
+
+def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
+    """MAE score for H2O frames
+
+    Parameters
+    ----------
+    y_actual : 1d H2OFrame
+        The ground truth
+
+    y_predict : 1d H2OFrame
+        The predicted labels
+
+    sample_weight : 1d H2OFrame, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+    Returns
+    -------
+    score : float
+    """
+    return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).mean())[0]
+
+
+def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
+    """Median abs error score for H2O frames
+
+    Parameters
+    ----------
+    y_actual : 1d H2OFrame
+        The ground truth
+
+    y_predict : 1d H2OFrame
+        The predicted labels
+
+    sample_weight : 1d H2OFrame, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+    Returns
+    -------
+    score : float
+    """
+    return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
+
+
+
+def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None):
+    """MSE score for H2O frames
+
+    Parameters
+    ----------
+    y_actual : 1d H2OFrame
+        The ground truth
+
+    y_predict : 1d H2OFrame
+        The predicted labels
+
+    sample_weight : 1d H2OFrame, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+    Returns
+    -------
+    score : float
+    """
+
+    y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
+    _err_for_discrete(y_type)
+
+    # compute abs diff
+    diff = (y_actual - y_predict)
+    diff *= diff # square it...
+
+    # apply sample weight if necessary
+    if sample_weight is not None:
+        abs_diff *= sample_weight
+
+    return flatten_all(abs_diff.mean())[0]
+
+
+
+def make_h2o_scorer(score_function, y_true):
     """Make a scoring function from a callable.
+    The signature for the callable should resemble:
+
+        ```some_function(y_true, y_pred, y_type=None...)```
+
+    Parameters
+    ----------
+    score_function : callable
+        The function
+
+    y_true : H2OFrame
+        An H2O frame (the ground truth). This is
+        used to determine before hand whether the
+        type is binary or multiclass.
     """
     return _H2OScorer(score_function, y_true).score
 
 
 class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
+    """A class that wraps a custom scoring function for use
+    with H2OFrames. The first two arguments in the scoring function
+    signature should resemble the following: 
+
+        ```some_function(y_true, y_pred, y_type=None...)```
+
+    Any specific scoring kwargs should be passed to the ```score```
+    function in the class instance.
+
+    Parameters
+    ----------
+    score_function : callable
+        The function
+
+    y_true : H2OFrame
+        An H2O frame (the ground truth). This is
+        used to determine before hand whether the
+        type is binary or multiclass.
+    """
+
     def __init__(self, score_function, y_true):
         if not hasattr(score_function, '__call__'):
             raise TypeError('score_function must be callable')
 
         self.fun_ = score_function
-        self.y_true = _type_of_target(y_true)
+        self.y_type = _type_of_target(y_true)
 
     def score(self, y_true, y_pred, **kwargs):
+        # confirm are h2o frames
+        for fr in (y_true, y_pred):
+            _check_is_1d_frame(fr)
+
         return self.fun_(y_true, y_pred, y_type=self.y_type, **kwargs)
