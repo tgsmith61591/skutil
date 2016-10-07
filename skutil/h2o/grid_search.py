@@ -707,7 +707,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  verbose=0, iid=True, #n_groups=10,
                  validation_frame=None,
                  minimize='bias', 
-                 error_score=0.0):
+                 error_score=np.nan):
 
         super(H2OGainsRandomizedSearchCV, self).__init__(
                 estimator=estimator,

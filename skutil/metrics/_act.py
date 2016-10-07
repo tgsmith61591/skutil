@@ -42,7 +42,7 @@ class GainsStatisticalReport(object):
     n_folds : int, optional (default=None)
         The number of folds that are being fit. 
 
-    error_score : float, optional (default=0.0)
+    error_score : float, optional (default=np.nan)
         The score to return for a qcut error
     """
 
@@ -54,7 +54,7 @@ class GainsStatisticalReport(object):
     }
 
     def __init__(self, n_groups=10, n_folds=None, n_iter=None, 
-                 score_by='lift', iid=True, error_score=0.0):
+                 score_by='lift', iid=True, error_score=np.nan):
 
         self.n_groups = 10
         self.score_by = score_by
