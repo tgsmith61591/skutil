@@ -1,6 +1,7 @@
 from __future__ import division, absolute_import, print_function
 import pandas as pd
 import numpy as np
+import warnings
 import abc
 
 
@@ -44,6 +45,9 @@ class GainsStatisticalReport(object):
 
     error_score : float, optional (default=np.nan)
         The score to return for a qcut error
+
+    warn_on_error : bool, optional (default=True)
+        Whether to warn for an error_score event
     """
 
     # maximizing score functions must be multiplied by
@@ -54,7 +58,8 @@ class GainsStatisticalReport(object):
     }
 
     def __init__(self, n_groups=10, n_folds=None, n_iter=None, 
-                 score_by='lift', iid=True, error_score=np.nan):
+                 score_by='lift', iid=True, error_score=np.nan,
+                 warn_on_error=True):
 
         self.n_groups = 10
         self.score_by = score_by
@@ -66,6 +71,8 @@ class GainsStatisticalReport(object):
         self.n_folds = n_folds
         self.n_iter = n_iter
         self.iid = iid
+        self.error_score = error_score
+        self.warn_on_error = warn_on_error
 
         # validate score_by
         if not score_by in self._signs:
@@ -74,6 +81,7 @@ class GainsStatisticalReport(object):
 
         if n_folds and not n_iter:
             raise ValueError('if n_folds is set, must set n_iter')
+
 
     def as_data_frame(self):
         """Get the report in the form of a dataframe"""
@@ -190,7 +198,10 @@ class GainsStatisticalReport(object):
                 self.stats[metric].append(
                     getattr(self, '_%s'%metric)(**kwargs)
                 )
-        except: # for a qcut error...
+        except ValueError as v: # for a qcut error...
+            if self.warn_on_error:
+                warnings.warn('Encountered non-unique bin edges. Score defaults to %s'
+                              %str(self.error_score), UserWarning)
             for metric in self._signs.keys():
                 self.stats[metric].append(self.error_score)
             
