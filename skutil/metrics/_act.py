@@ -46,8 +46,9 @@ class GainsStatisticalReport(object):
     error_score : float, optional (default=np.nan)
         The score to return for a qcut error
 
-    warn_on_error : bool, optional (default=True)
-        Whether to warn for an error_score event
+    error_behavior : str, optional (default='warn')
+        One of {'warn', 'raise', 'ignore'}. How to handle non-unique
+        biin edges in pd.qcut
     """
 
     # maximizing score functions must be multiplied by
@@ -59,7 +60,7 @@ class GainsStatisticalReport(object):
 
     def __init__(self, n_groups=10, n_folds=None, n_iter=None, 
                  score_by='lift', iid=True, error_score=np.nan,
-                 warn_on_error=True):
+                 error_behavior='warn'):
 
         self.n_groups = 10
         self.score_by = score_by
@@ -72,7 +73,7 @@ class GainsStatisticalReport(object):
         self.n_iter = n_iter
         self.iid = iid
         self.error_score = error_score
-        self.warn_on_error = warn_on_error
+        self.error_behavior = error_behavior
 
         # validate score_by
         if not score_by in self._signs:
@@ -174,8 +175,14 @@ class GainsStatisticalReport(object):
         """Used to fit a single fold of predicted values, 
         exposure and loss data.
         """
-        pred, expo, loss = _as_numpy(pred, expo, loss)
+        # check params
+        if not self.error_behavior in ('warn','raise','ignore'):
+            raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). ' 
+                             'Encountered %s' % str(self.error_behavior))
+        on_error = self.error_behavior
 
+
+        pred, expo, loss = _as_numpy(pred, expo, loss)
         if prem is None:
             prem = np.copy(expo)
         else:
@@ -199,9 +206,13 @@ class GainsStatisticalReport(object):
                     getattr(self, '_%s'%metric)(**kwargs)
                 )
         except ValueError as v: # for a qcut error...
-            if self.warn_on_error:
+            if on_error == 'raise':
+                raise v
+            elif on_error == 'warn':
                 warnings.warn('Encountered non-unique bin edges. Score defaults to %s'
                               %str(self.error_score), UserWarning)
+
+            # if it's ignore, it will pass.
             for metric in self._signs.keys():
                 self.stats[metric].append(self.error_score)
             

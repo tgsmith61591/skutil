@@ -696,6 +696,10 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     (See skutil.metrics.GainsStatisticalReport). This is a more
     customized form of grid search, and must use a gains metric
     provided by the GainsStatisticalReport.
+
+    Parameters
+    ----------
+
     """
 
     def __init__(self, estimator, param_grid,
@@ -706,7 +710,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  n_jobs=1, scoring_params=None, cv=5, 
                  verbose=0, iid=True, #n_groups=10,
                  validation_frame=None, minimize='bias', 
-                 error_score=np.nan, warn_on_error=True):
+                 error_score=np.nan, error_behavior='warn'):
 
         super(H2OGainsRandomizedSearchCV, self).__init__(
                 estimator=estimator,
@@ -732,7 +736,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
             n_folds=check_cv(cv).get_n_splits(), 
             n_iter=n_iter,
             iid=iid, error_score=error_score,
-            warn_on_error=warn_on_error)
+            error_behavior=error_behavior)
 
         self.scoring = self.score_report_._score ## callable -- resets scoring
 
