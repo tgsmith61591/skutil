@@ -292,7 +292,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     valid_score = nonzero_numer & nonzero_denom
 
     # generate output
-    return 1 - (numerator[valid_score] / denominator[valid_score])
+    return 1 - (numerator / denominator)
 
 
 
