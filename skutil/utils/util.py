@@ -265,13 +265,13 @@ def flatten_all_generator(container):
     """
     if not hasattr(container, '__iter__'):
         yield container
-        
-    for i in container:
-        if hasattr(i, '__iter__'):
-            for j in flatten_all_generator(i):
-                yield j
-        else:
-            yield i
+    else:
+        for i in container:
+            if hasattr(i, '__iter__'):
+                for j in flatten_all_generator(i):
+                    yield j
+            else:
+                yield i
 
 def shuffle_dataframe(X):
     X, _ = validate_is_pd(X, None, False)
