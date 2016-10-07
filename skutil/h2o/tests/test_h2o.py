@@ -1312,6 +1312,10 @@ def test_h2o_with_conn():
 
             # test R^2 on the same
             assert h2o_r2_score(reg_target, reg_target) == 1.0
+
+            # test errors
+            assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
+            assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
         else:
             pass
 
