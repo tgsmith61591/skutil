@@ -29,4 +29,4 @@ def if_delegate_has_method(delegate, method=None):
         delegate = (delegate,)
 
     return lambda fn: _IffHasAttrDescriptor(fn, delegate, 
-        attribute_name=method if not method is None else fn.__name__)
+        attribute_name=(method if method is not None else fn.__name__))

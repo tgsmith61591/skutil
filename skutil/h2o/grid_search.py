@@ -18,6 +18,7 @@ from .frame import _check_is_1d_frame
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from ..base import overrides
 from ..utils import is_numeric, report_grid_score_detail
+from ..utils.metaestimators import if_delegate_has_method
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .metrics import h2o_accuracy_score
@@ -29,7 +30,6 @@ from sklearn.externals.joblib import logger
 from sklearn.base import clone, MetaEstimatorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
-from sklearn.utils.metaestimators import if_delegate_has_method
 from sklearn.metrics import (accuracy_score,
                              explained_variance_score,
                              f1_score,
