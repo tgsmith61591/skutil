@@ -4,10 +4,18 @@ import numpy as np
 import warnings
 import numbers
 import scipy.stats as st
+
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
 from sklearn.datasets import load_iris
 from sklearn.externals import six
+
+import pandas.core.algorithms as algos
+import pandas.core.nanops as nanops
+from pandas.core.api import Series
+from pandas.core.categorical import Categorical
+from pandas.tools.tile import _format_levels
+
 from ..base import SelectiveWarning, ModuleImportWarning
 
 try:
@@ -54,9 +62,19 @@ __all__ = [
     'pd_stats',
     'report_confusion_matrix',
     'report_grid_score_detail',
+    'safe_qcut',
     'shuffle_dataframe',
-    'validate_is_pd'
+    'validate_is_pd',
+    'QCutWarning'
 ]
+
+
+## Classes
+class QCutWarning(UserWarning):
+    """Denotes that a UserWarning has
+    been raised from the safe_qcut function
+    """
+    pass
 
 
 
@@ -554,6 +572,12 @@ def is_entirely_numeric(X):
     return X.shape[1] == len(get_numeric(X))
 
 
+def is_integer(x):
+    return isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+
+def is_float(x):
+    return isinstance(x, (float, np.float))
+
 def is_numeric(x):
     """Determines whether the arg is numeric
 
@@ -561,7 +585,7 @@ def is_numeric(x):
     ----------
     x : anytype
     """
-    return isinstance(x, (numbers.Integral, int, float, long, np.int, np.float, np.long))
+    return is_float(x) or is_integer(x)
 
 
 def load_iris_df(include_tgt=True, tgt_name="Species"):
@@ -584,6 +608,118 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
         X[tgt_name] = iris.target
         
     return X
+
+
+def safe_qcut(x, q, labels=None, retbins=False, precision=3):
+    """This will perform a safe version of the Pandas
+    qcut function, and will not raise an Exception for non-unique
+    bins, but will warn instead.
+
+    Parameters
+    ----------
+    x : ndarray or Series
+
+    q : integer or array of quantiles
+        Number of quantiles. 10 for deciles, 4 for quartiles, etc. Alternately
+        array of quantiles, e.g. [0, .25, .5, .75, 1.] for quartiles
+
+    labels : array or boolean, default None
+        Used as labels for the resulting bins. Must be of the same length as
+        the resulting bins. If False, return only integer indicators of the
+        bins.
+
+    retbins : bool, optional
+        Whether to return the bins or not. Can be useful if bins is given
+        as a scalar.
+
+    precision : int
+        The precision at which to store and display the bins labels
+
+
+    Returns
+    -------
+    out : Categorical or Series or array of integers if labels is False
+        The return type (Categorical or Series) depends on the input: a Series
+        of type category if input is a Series else Categorical. Bins are
+        represented as categories when categorical data is returned.
+
+    bins : ndarray of floats
+        Returned only if `retbins` is True.
+    """
+    if is_integer(q):
+        quantiles = np.linspace(0, 1, q + 1)
+    else:
+        quantiles = q
+
+    bins = algos.quantile(x, quantiles)
+    return _bins_to_cuts(x, bins, labels=labels, retbins=retbins,
+                         precision=precision, include_lowest=True)
+
+
+
+def _bins_to_cuts(x, bins, right=True, labels=None, retbins=False,
+                  precision=3, name=None, include_lowest=False):
+    x_is_series = isinstance(x, Series)
+    series_index = None
+
+    if x_is_series:
+        series_index = x.index
+        if name is None:
+            name = x.name
+
+    x = np.asarray(x)
+
+    side = 'left' if right else 'right'
+    ids = bins.searchsorted(x, side=side)
+
+    if len(algos.unique(bins)) < len(bins):
+        warnings.warn('Bin edges must be unique: %s' 
+                      % repr(bins), UserWarning)
+
+    if include_lowest:
+        ids[x == bins[0]] = 1
+
+    na_mask = pd.isnull(x) | (ids == len(bins)) | (ids == 0)
+    has_nas = na_mask.any()
+
+    if labels is not False:
+        if labels is None:
+            increases = 0
+            while True:
+                try:
+                    levels = _format_levels(bins, precision, right=right,
+                                            include_lowest=include_lowest)
+                except ValueError:
+                    increases += 1
+                    precision += 1
+                    if increases >= 20:
+                        raise
+                else:
+                    break
+
+        else:
+            if len(labels) != len(bins) - 1:
+                raise ValueError('Bin labels must be one fewer than '
+                                 'the number of bin edges')
+            levels = labels
+
+        levels = np.asarray(levels, dtype=object)
+        np.putmask(ids, na_mask, 0)
+        fac = Categorical(ids - 1, levels, ordered=True, fastpath=True)
+    else:
+        fac = ids - 1
+        if has_nas:
+            fac = fac.astype(np.float64)
+            np.putmask(fac, na_mask, np.nan)
+
+    if x_is_series:
+        fac = Series(fac, index=series_index, name=name)
+
+    if not retbins:
+        return fac
+
+    return fac, bins
+
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True, 

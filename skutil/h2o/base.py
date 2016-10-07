@@ -17,6 +17,13 @@ try:
 except ImportError as e:
     H2OServerError = EnvironmentError
 
+
+try:
+    from h2o.exceptions import H2OConnectionError
+except ImportError as e:
+    H2OConnectionError = EnvironmentError
+
+
 from pkg_resources import parse_version
 from ..utils import is_numeric
 
@@ -262,7 +269,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         # test connection, warn where needed
         try:
             g = h2o.frames() # returns a dict of frames
-        except (EnvironmentError, ValueError, H2OServerError) as v:
+        except (EnvironmentError, ValueError, H2OServerError, H2OConnectionError) as v:
             warnings.warn('h2o has not been started; '
                           'initializing an H2O transformer without '
                           'a connection will not cause any issues, '

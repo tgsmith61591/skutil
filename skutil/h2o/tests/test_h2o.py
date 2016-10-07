@@ -97,6 +97,7 @@ def test_h2o_with_conn():
     #F = load_iris_df(include_tgt=False)
     X = None
 
+
     try:
         h2o.init()
         #h2o.init(ip='localhost', port=54321) # this might throw a warning
@@ -121,6 +122,7 @@ def test_h2o_with_conn():
 
         if X is None:
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
+
 
 
     def catch_warning_assert_thrown(fun, kwargs):
