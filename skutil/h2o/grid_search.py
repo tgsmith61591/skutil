@@ -705,9 +705,8 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  random_state=None, scoring='lift', 
                  n_jobs=1, scoring_params=None, cv=5, 
                  verbose=0, iid=True, #n_groups=10,
-                 validation_frame=None,
-                 minimize='bias', 
-                 error_score=np.nan):
+                 validation_frame=None, minimize='bias', 
+                 error_score=np.nan, warn_on_error=True):
 
         super(H2OGainsRandomizedSearchCV, self).__init__(
                 estimator=estimator,
@@ -732,8 +731,8 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
             score_by=scoring, 
             n_folds=check_cv(cv).get_n_splits(), 
             n_iter=n_iter,
-            iid=iid,
-            error_score=error_score)
+            iid=iid, error_score=error_score,
+            warn_on_error=warn_on_error)
 
         self.scoring = self.score_report_._score ## callable -- resets scoring
 
