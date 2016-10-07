@@ -2,6 +2,7 @@ from __future__ import division, absolute_import, print_function
 import pandas as pd
 import numpy as np
 import abc
+from ..utils import safe_qcut
 
 
 __all__ = [
@@ -129,7 +130,7 @@ class GainsStatisticalReport(object):
 		pred_ser = pd.Series(pred)
 		loss_to_returns = np.sum(loss) / np.sum(prem)
 
-		rank = pd.qcut(pred_ser, n_groups, labels=False)
+		rank = safe_qcut(pred_ser, n_groups, labels=False)
 		n_groups = np.amax(rank) + 1
 		groups = np.arange(n_groups)
 
