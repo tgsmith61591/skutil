@@ -836,4 +836,5 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
         for fr in (y_true, y_pred):
             _check_is_1d_frame(fr)
 
-        return self.fun_(y_true, y_pred, y_type=self.y_type, **kwargs)
+        return self.fun_(y_actual=y_true, y_predict=y_pred, 
+                         y_type=self.y_type, **kwargs)

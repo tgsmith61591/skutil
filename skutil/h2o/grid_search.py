@@ -39,16 +39,6 @@ from sklearn.base import clone, MetaEstimatorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
 from sklearn.utils.metaestimators import if_delegate_has_method
-#from sklearn.metrics import (accuracy_score,
-#                             explained_variance_score,
-#                             f1_score,
-#                             log_loss,
-#                             mean_absolute_error,
-#                             mean_squared_error,
-#                             median_absolute_error,
-#                             precision_score,
-#                             r2_score,
-#                             recall_score)
 
 try:
     import cPickle as pickle
@@ -194,7 +184,7 @@ def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwa
         #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
     #   parms[k] = v
 
-    return scorer(y_truth, pred, **kwargs) #**parms)
+    return scorer(y_truth, pred, **kwargs)
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
