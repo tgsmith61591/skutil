@@ -450,15 +450,11 @@ def test_h2o_with_conn():
 
 
 
-            # test on all the types of metrics...
+            # test on all the types of classification metrics...
             mtrcs = [
                 h2o_accuracy_score,
                 h2o_f1_score,
-                h2o_mean_absolute_error,
-                h2o_mean_squared_error,
-                h2o_median_absolute_error,
                 h2o_precision_score,
-                h2o_r2_score,
                 h2o_recall_score,
                 None,
                 'bad'

@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
-from ..h2o.utils import h2o_col_to_numpy
+from ..h2o.util import h2o_col_to_numpy
 import pandas as pd
 import numpy as np
 import abc
