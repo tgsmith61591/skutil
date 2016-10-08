@@ -470,9 +470,11 @@ def test_h2o_with_conn():
             }
 
             for mtc in mtrcs:
+                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'micro'}
                 grd = H2ORandomizedSearchCV(estimator=pipe,
                                             feature_names=F.columns.tolist(), target_feature='species',
-                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1)
+                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
+                                            scoring_params=kwargs)
 
                 if mtc in ('bad', None):
                     assert_fails(grd.fit, ValueError, frame)
