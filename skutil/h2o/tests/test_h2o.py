@@ -412,7 +412,7 @@ def test_h2o_with_conn():
 
         # try uploading...
         try:
-            frame = new_h2o_frame(f)
+            frame = new_h2o_frame(fr)
         except Exception as e:
             frame = None
 
