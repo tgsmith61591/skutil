@@ -466,7 +466,7 @@ def test_h2o_with_conn():
 
             pipe = H2OPipeline([
                 ('nzv', H2ONearZeroVarianceFilterer()),
-                ('est', estimator)
+                ('est', H2ORandomForestEstimator())
             ])
 
             hyp = {
