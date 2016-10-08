@@ -492,11 +492,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
+
         if self.extra_args_ is not None:
             e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
+
             kwargs = {
                 'expo' : frame[e],
-                'loss' : frame[l]
+                'loss' : frame[l],
                 'prem' : frame[p] if p is not None else None
             }
         else:
