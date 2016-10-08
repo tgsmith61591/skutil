@@ -20,7 +20,7 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
-from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
+from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
@@ -444,10 +444,45 @@ def test_h2o_with_conn():
                                         feature_names=F.columns.tolist(), target_feature='species',
                                         param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
 
-            # it will fail in the fit method...
+            # it will fail in the fit method because there's no estimator at the end...
             assert_fails(grd.fit, TypeError, frame)
 
 
+
+
+            # test on all the types of metrics...
+            mtrcs = [
+                h2o_accuracy_score,
+                h2o_f1_score,
+                h2o_mean_absolute_error,
+                h2o_mean_squared_error,
+                h2o_median_absolute_error,
+                h2o_precision_score,
+                h2o_r2_score,
+                h2o_recall_score,
+                None,
+                'bad'
+            ]
+
+            pipe = H2OPipeline([
+                ('nzv', H2ONearZeroVarianceFilterer()),
+                ('est', estimator)
+            ])
+
+            hyp = {
+                'nzv__threshold' : [0.5, 0.6]
+            }
+
+            for mtc in mtrcs:
+                grd = H2ORandomizedSearchCV(estimator=pipe,
+                                            feature_names=F.columns.tolist(), target_feature='species',
+                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1)
+
+                if mtc in ('bad', None):
+                    assert_fails(grd.fit, ValueError, frame)
+                else:
+                    # should pass
+                    grd.fit(frame)
 
 
             for is_random in [False, True]:
@@ -455,7 +490,7 @@ def test_h2o_with_conn():
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
-                                for scoring in ['accuracy_score', 'bad', None, h2o_accuracy_score]:
+                                for scoring in ['accuracy_score']:
 
                                     # should we shuffle?
                                     do_shuffle = choice([True, False])
@@ -1341,6 +1376,43 @@ def test_h2o_with_conn():
             pass
 
 
+    def bincount():
+        col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
+        wt1 = [1,1,1,1,1]
+        wt2 = [1,0.5,1,1,1]
+        wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
+        wp2 = pd.DataFrame(pd.Series(wt2, name='a'))
+
+        try:
+            C = new_h2o_frame(col)
+            W1= new_h2o_frame(wp1)
+            W2= new_h2o_frame(wp2)
+        except Exception as e:
+            C = None
+            W1 = None
+            W2 = None
+
+        if any([i is None for i in (C, W1, W2)]):
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=W1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            # test failures
+            assert_fails(h2o_bincount, TypeError, col)
+            assert_fails(h2o_bincount, ValueError, C, [0,0,0,0]) # fail for dim mismatch
+            assert_fails(h2o_bincount, ValueError, C, wt1, -1) # negative minlength
+        else:
+            pass
+
+
     # run them
     multicollinearity()
     nzv()
@@ -1363,4 +1435,5 @@ def test_h2o_with_conn():
     feature_dropper()
     metrics()
     encoder()
+    bincount()
 

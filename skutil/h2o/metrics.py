@@ -10,6 +10,7 @@ from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .transform import H2OLabelEncoder
 from .frame import _check_is_1d_frame
+from .utils import h2o_bincount
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
 from ..utils import flatten_all
@@ -522,10 +523,10 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
 
 
     if y_predict.shape[0]:
-        pred_sum = _bincount(y_predict, weights=sample_weight,
+        pred_sum = h2o_bincount(y_predict, weights=sample_weight,
                              minlength=len(labels))
     if y_actual.shape[0]:
-        true_sum = _bincount(y_actual, weights=sample_weight,
+        true_sum = h2o_bincount(y_actual, weights=sample_weight,
                              minlength=len(labels))
 
     # Retain only selected labels
@@ -614,17 +615,6 @@ def _prf_divide(numerator, denominator, metric, modifier, average, warn_for):
         msg = msg.format('in {0}s with'.format(axis1))
     warnings.warn(msg, UserWarning, stacklevel=2)
     return result
-
-
-def _bincount(bins, weights=None, minlength=None):
-    """Applies the np.bincount to the H2OFrame.
-
-    Returns
-    -------
-    np.ndarray
-    """
-    ## TODO - return np.ndarray
-    pass
 
 
 

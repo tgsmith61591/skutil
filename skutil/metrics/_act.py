@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
+from ..h2o.utils import h2o_col_to_numpy
 import pandas as pd
 import numpy as np
 import abc
@@ -14,10 +15,8 @@ def _as_numpy(*args):
         if not isinstance(x, np.ndarray):
             # if an H2OFrame, just return the first col
             if isinstance(x, H2OFrame):
-                _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
-                return x[x.columns[0]].values
-
-            if hasattr(x, '__iter__'):
+                return h2o_col_to_numpy(x)
+            elif hasattr(x, '__iter__'):
                 return np.asarray(x)
             else:
                 raise TypeError('cannot create numpy array out of type=%s' % type(x))
