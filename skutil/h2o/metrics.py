@@ -190,7 +190,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
 
 
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
-                 sample_weight=None):
+                 sample_weight=None, y_type=None):
     """Compute the F1 score, the weighted average of the precision and the
     recall:
 
@@ -246,12 +246,12 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     """
     return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
                            pos_label=pos_label, average=average,
-                           sample_weight=sample_weight)
+                           sample_weight=sample_weight, y_type=y_type)
 
 
 
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
-                    average='binary', sample_weight=None):
+                    average='binary', sample_weight=None, y_type=None):
     """Compute the F-beta score
 
     The F-beta score is the weighted harmonic mean of precision and recall.
@@ -313,13 +313,14 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
                                                      pos_label=pos_label,
                                                      average=average,
                                                      warn_for=('f-score',),
-                                                     sample_weight=sample_weight)
+                                                     sample_weight=sample_weight,
+                                                     y_type=y_type)
     return f
 
 
 
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
-                        average='binary', sample_weight=None):
+                        average='binary', sample_weight=None, y_type=None):
     """Compute the precision
 
     Precision is the ratio ``tp / (tp + fp)`` where ``tp`` is the number of
@@ -379,14 +380,15 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                                                      pos_label=pos_label,
                                                      average=average,
                                                      warn_for=('precision',),
-                                                     sample_weight=sample_weight)
+                                                     sample_weight=sample_weight, 
+                                                     y_type=y_type)
 
     return p
 
 
 
 def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
-                     average='binary', sample_weight=None):
+                     average='binary', sample_weight=None, y_type=None):
     """Compute the recall
 
     Precision is the ratio ``tp / (tp + fn)`` where ``tp`` is the number of
@@ -446,7 +448,8 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
                                                      pos_label=pos_label,
                                                      average=average,
                                                      warn_for=('precision',),
-                                                     sample_weight=sample_weight)
+                                                     sample_weight=sample_weight, 
+                                                     y_type=y_type)
 
     return r
 
