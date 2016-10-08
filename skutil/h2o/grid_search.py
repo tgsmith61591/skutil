@@ -150,7 +150,7 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
     return est
 
 
-def _score(estimator, frame, target_feature, scorer, parms, is_regression, **kwargs):
+def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
     # this is a bottleneck:
     # y_truth = _as_numpy(frame[target_feature])
     y_truth = frame[target_feature]
@@ -221,7 +221,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
             'prem' : act_args['prem'][test] if act_args['prem'] is not None else None
         }
     else:
-        kwargs = {}
+        kwargs = scoring_params
 
 
     # generate split
@@ -257,7 +257,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
 
     # score model
-    test_score = _score(estimator, test_frame, target_feature, scorer, scoring_params, is_regression, **kwargs)
+    test_score = _score(estimator, test_frame, target_feature, scorer, is_regression, **kwargs)
 
     # h2o is verbose.. if we are too, print a new line:
     if verbose > 1:
@@ -298,7 +298,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         self.feature_names = feature_names
         self.scoring = scoring
         self.n_jobs = n_jobs
-        self.scoring_params = scoring_params if not scoring_params is None else {}
+        self.scoring_params = scoring_params if scoring_params else {}
         self.cv = cv
         self.verbose = verbose
         self.iid = iid
@@ -402,7 +402,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     'prem' : _as_numpy(self.validation_frame[xtra_nms['prem']]) if (xtra_nms['prem'] is not None) else None
                 }
             else:
-                kwargs = {}
+                kwargs = self.scoring_params
                 val_scorer = self.scorer_
         else:
             score_validation = False
@@ -429,8 +429,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 # score validation set if necessary
                 if score_validation:
                     val_score = _score(this_estimator, self.validation_frame, 
-                        self.target_feature, val_scorer, self.scoring_params, 
-                        self.is_regression_, **kwargs)
+                        self.target_feature, val_scorer, self.is_regression_, 
+                        **kwargs)
 
                     # if it's gains scorer, handles the iid condition internally...
                     self.validation_scores.append(val_score)
@@ -492,7 +492,17 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
-        return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.scoring_params, self.is_regression_)
+        if self.extra_args_ is not None:
+            e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
+            kwargs = {
+                'expo' : frame[e],
+                'loss' : frame[l]
+                'prem' : frame[p] if p is not None else None
+            }
+        else:
+            kwargs = self.scoring_params
+
+        return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.is_regression_, **kwargs)
 
 
     def predict(self, frame):
