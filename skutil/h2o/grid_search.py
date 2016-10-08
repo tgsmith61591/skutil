@@ -350,12 +350,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                                  'Got %s' % (', '.join(SCORERS.keys()), scoring))
 
             # make an h2o scorer
-            self.scorer_ = make_h2o_scorer(SCORERS[scoring], X[self.target_feature]).score
+            self.scorer_ = make_h2o_scorer(SCORERS[scoring], X[self.target_feature])
         elif xtra is not None: # this is a gains search, and we don't need to h2o-ize it
             self.scorer_ = scoring
         # else we'll let it fail through if it's a bad callable
         else:
-            self.scorer_ = make_h2o_scorer(scoring, X[self.target_feature]).score
+            self.scorer_ = make_h2o_scorer(scoring, X[self.target_feature])
 
 
 
