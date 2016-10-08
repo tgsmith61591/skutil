@@ -1,8 +1,14 @@
+"""Metrics for scoring H2O model predictions"""
+# Author: Taylor Smith
+# adapted from sklearn for use with skutil & H2OFrames
+
 from __future__ import absolute_import, division, print_function
 import numpy as np
 import abc
+import warnings
 from h2o.frame import H2OFrame
 from sklearn.externals import six
+from .transform import H2OLabelEncoder
 from .frame import _check_is_1d_frame
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
@@ -11,11 +17,15 @@ from ..utils import flatten_all
 
 __all__ = [
     'h2o_accuracy_score',
+    'h2o_f1_score',
+    'h2o_fbeta_score',
     'h2o_mean_absolute_error',
     'h2o_mean_squared_error',
     'h2o_median_absolute_error',
+    'h2o_precision_score',
+    'h2o_recall_score',
     'h2o_r2_score',
-    'make_h2o_scorer',
+    'make_h2o_scorer'
 ]
 
 
@@ -175,6 +185,446 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
     _err_for_continuous(y_type)
     return _weighted_sum(y_actual==y_predict, sample_weight, normalize)
+
+
+
+def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
+                 sample_weight=None):
+    """Compute the F1 score, the weighted average of the precision and the
+    recall:
+
+        F1 = 2 * (precision * recall) / (precision + recall)
+
+    Parameters
+    ----------
+    y_actual : H2OFrame
+        The actual labels
+
+    y_predict : H2OFrame
+        The predicted labels
+
+    labels : list, optional (default=None)
+        The set of labels to include when ``average != 'binary'``, and their
+        order if ``average is None``. By default all labels in ``y_actual`` and
+        ``y_predict`` are used in sorted order.
+
+    pos_label : str or int, optional (default=1)
+        The class to report if ``average=='binary'`` and the data is binary.
+        If the data are multiclass, this will be ignored.
+
+    average : str
+        One of ('binary', 'micro', 'macro', 'weighted'). This parameter is
+        required for multiclass targets. If ``None``, the scores for each 
+        class are returned. Otherwise, this determines the type of averaging
+        performed on the data:
+
+        ``'binary'``:
+            Only report results for the class specified by ``pos_label``.
+            This is applicable only if targets (``y_{true,pred}``) are binary.
+
+        ``'micro'``:
+            Calculate metrics globally by counting the total true positives,
+            false negatives and false positives.
+
+        ``'macro'``:
+            Calculate metrics for each label, and find their unweighted
+            mean.  This does not take label imbalance into account.
+
+        ``'weighted'``:
+            Calculate metrics for each label, and find their average, weighted
+            by support (the number of true instances for each label). This
+            alters 'macro' to account for label imbalance; it can result in an
+            F-score that is not between precision and recall.
+
+    sample_weight : H2OFrame, optional (default=None)
+        The sample weights
+
+    Returns
+    -------
+    float
+    """
+    return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
+                           pos_label=pos_label, average=average,
+                           sample_weight=sample_weight)
+
+
+
+def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
+                    average='binary', sample_weight=None):
+    """Compute the F-beta score
+
+    The F-beta score is the weighted harmonic mean of precision and recall.
+
+    Parameters
+    ----------
+    y_actual : H2OFrame
+        The actual labels
+
+    y_predict : H2OFrame
+        The predicted labels
+
+    beta : float
+        The beta value for the F-score
+
+    labels : list, optional (default=None)
+        The set of labels to include when ``average != 'binary'``, and their
+        order if ``average is None``. By default all labels in ``y_actual`` and
+        ``y_predict`` are used in sorted order.
+
+    pos_label : str or int, optional (default=1)
+        The class to report if ``average=='binary'`` and the data is binary.
+        If the data are multiclass, this will be ignored.
+
+    average : str
+        One of ('binary', 'micro', 'macro', 'weighted'). This parameter is
+        required for multiclass targets. If ``None``, the scores for each 
+        class are returned. Otherwise, this determines the type of averaging
+        performed on the data:
+
+        ``'binary'``:
+            Only report results for the class specified by ``pos_label``.
+            This is applicable only if targets (``y_{true,pred}``) are binary.
+
+        ``'micro'``:
+            Calculate metrics globally by counting the total true positives,
+            false negatives and false positives.
+
+        ``'macro'``:
+            Calculate metrics for each label, and find their unweighted
+            mean.  This does not take label imbalance into account.
+
+        ``'weighted'``:
+            Calculate metrics for each label, and find their average, weighted
+            by support (the number of true instances for each label). This
+            alters 'macro' to account for label imbalance; it can result in an
+            F-score that is not between precision and recall.
+
+    sample_weight : H2OFrame, optional (default=None)
+        The sample weights
+
+    Returns
+    -------
+    float
+    """
+    _, _, f, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
+                                                     beta=beta,
+                                                     labels=labels,
+                                                     pos_label=pos_label,
+                                                     average=average,
+                                                     warn_for=('f-score',),
+                                                     sample_weight=sample_weight)
+    return f
+
+
+
+def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
+                        average='binary', sample_weight=None):
+    """Compute the precision
+
+    Precision is the ratio ``tp / (tp + fp)`` where ``tp`` is the number of
+    true positives and ``fp`` the number of false positives.
+
+    Parameters
+    ----------
+    y_actual : H2OFrame
+        The actual labels
+
+    y_predict : H2OFrame
+        The predicted labels
+
+    labels : list, optional (default=None)
+        The set of labels to include when ``average != 'binary'``, and their
+        order if ``average is None``. By default all labels in ``y_actual`` and
+        ``y_predict`` are used in sorted order.
+
+    pos_label : str or int, optional (default=1)
+        The class to report if ``average=='binary'`` and the data is binary.
+        If the data are multiclass, this will be ignored.
+
+    average : str
+        One of ('binary', 'micro', 'macro', 'weighted'). This parameter is
+        required for multiclass targets. If ``None``, the scores for each 
+        class are returned. Otherwise, this determines the type of averaging
+        performed on the data:
+
+        ``'binary'``:
+            Only report results for the class specified by ``pos_label``.
+            This is applicable only if targets (``y_{true,pred}``) are binary.
+
+        ``'micro'``:
+            Calculate metrics globally by counting the total true positives,
+            false negatives and false positives.
+
+        ``'macro'``:
+            Calculate metrics for each label, and find their unweighted
+            mean.  This does not take label imbalance into account.
+
+        ``'weighted'``:
+            Calculate metrics for each label, and find their average, weighted
+            by support (the number of true instances for each label). This
+            alters 'macro' to account for label imbalance; it can result in an
+            F-score that is not between precision and recall.
+
+    sample_weight : H2OFrame, optional (default=None)
+        The sample weights
+
+    Returns
+    -------
+    float
+    """
+
+    p, _, _, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
+                                                     labels=labels,
+                                                     pos_label=pos_label,
+                                                     average=average,
+                                                     warn_for=('precision',),
+                                                     sample_weight=sample_weight)
+
+    return p
+
+
+
+def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
+                     average='binary', sample_weight=None):
+    """Compute the recall
+
+    Precision is the ratio ``tp / (tp + fn)`` where ``tp`` is the number of
+    true positives and ``fn`` the number of false negatives.
+
+    Parameters
+    ----------
+    y_actual : H2OFrame
+        The actual labels
+
+    y_predict : H2OFrame
+        The predicted labels
+
+    labels : list, optional (default=None)
+        The set of labels to include when ``average != 'binary'``, and their
+        order if ``average is None``. By default all labels in ``y_actual`` and
+        ``y_predict`` are used in sorted order.
+
+    pos_label : str or int, optional (default=1)
+        The class to report if ``average=='binary'`` and the data is binary.
+        If the data are multiclass, this will be ignored.
+
+    average : str
+        One of ('binary', 'micro', 'macro', 'weighted'). This parameter is
+        required for multiclass targets. If ``None``, the scores for each 
+        class are returned. Otherwise, this determines the type of averaging
+        performed on the data:
+
+        ``'binary'``:
+            Only report results for the class specified by ``pos_label``.
+            This is applicable only if targets (``y_{true,pred}``) are binary.
+
+        ``'micro'``:
+            Calculate metrics globally by counting the total true positives,
+            false negatives and false positives.
+
+        ``'macro'``:
+            Calculate metrics for each label, and find their unweighted
+            mean.  This does not take label imbalance into account.
+
+        ``'weighted'``:
+            Calculate metrics for each label, and find their average, weighted
+            by support (the number of true instances for each label). This
+            alters 'macro' to account for label imbalance; it can result in an
+            F-score that is not between precision and recall.
+
+    sample_weight : H2OFrame, optional (default=None)
+        The sample weights
+
+    Returns
+    -------
+    float
+    """
+
+    _, r, _, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
+                                                     labels=labels,
+                                                     pos_label=pos_label,
+                                                     average=average,
+                                                     warn_for=('precision',),
+                                                     sample_weight=sample_weight)
+
+    return r
+
+
+
+def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label=1, 
+                                        sample_weight=None, y_type=None, average=None,
+                                        labels=None, warn_for=('precision','recall',
+                                            'f-score')):
+
+    average_options = (None, 'micro', 'macro', 'weighted')
+    if average not in average_options and average != 'binary':
+        raise ValueError('average should be one of %s'
+                         % str(average_options))
+    if beta <= 0:
+        raise ValueError('beta should be >0 in the F-beta score')
+
+    y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
+    _err_for_continuous(y_type)
+
+    # get all the unique labels
+    _ = y_actual.unique().rbind(y_predict.unique()).unique().as_data_frame(use_pandas=True)
+    present_labels = sorted(_[_.columns[0]].values)
+
+    if average == 'binary':
+        if y_type == 'binary':
+            if pos_label not in present_labels:
+                if len(present_labels) < 2:
+                    # only negative
+                    return (0.0, 0.0, 0.0, 0.0)
+                else:
+                    raise ValueError("pos_label=%r is not a valid label: %r"
+                                     % (pos_label, present_labels))
+
+            labels = [pos_label]
+        else:
+            raise ValueError('Target is %s but average="binary". Choose '
+                             'another average setting' % y_type)
+    elif not pos_label in (None, 1):
+        warnings.warn('Note that pos_label (set to %r) is ignored when '
+                      'average != "binary" (got %r). You may use '
+                      'labels=[pos_label] to specify a single positive class.'
+                      % (pos_label, average), UserWarning)
+
+    if labels is None:
+        labels = present_labels
+        n_labels = None
+    else:
+        n_labels = len(labels)
+        labels = np.hstack([labels, np.setdiff1d(present_labels, labels, 
+                                                 assume_unique=True)])
+
+    # calculate tp_sum, pred_sum, true_sum
+
+    le = H2OLabelEncoder()
+    y_actual = le.fit_transform(y_actual)
+    y_predict = le.transform(y_predict)
+    sorted_labels = le.classes_
+
+    # labels now from 0 to len(labels) - 1
+    tp = y_actual == y_predict
+    tp_bins = y_actual[tp]
+    if sample_weight is not None:
+        tp_bins_weights = sample_weight[tp]
+    else:
+        tp_bins_weights = None
+
+
+    if tp_bins.shape[0]:
+        tp_sum = _bincount(tp_bins, weights=tp_bins_weights,
+                           minlength=len(labels))
+    else:
+        true_sum = pred_sum = tp_sum = np.zeros(len(labels))
+
+
+    if y_predict.shape[0]:
+        pred_sum = _bincount(y_predict, weights=sample_weight,
+                             minlength=len(labels))
+    if y_actual.shape[0]:
+        true_sum = _bincount(y_actual, weights=sample_weight,
+                             minlength=len(labels))
+
+    # Retain only selected labels
+    indices = np.searchsorted(sorted_labels, labels[:n_labels])
+    tp_sum = tp_sum[indices]
+    true_sum = true_sum[indices]
+    pred_sum = pred_sum[indices]
+
+
+    if average == 'micro':
+        tp_sum = np.array([tp_sum.sum()])
+        pred_sum = np.array([pred_sum.sum()])
+        true_sum = np.array([true_sum.sum()])
+
+    # Now do divisions
+
+    beta2 = beta ** 2
+    with np.errstate(divide='ignore', invalid='ignore'):
+        # Divide, and on zero-division, set scores to 0 and warn:
+
+        # Oddly, we may get an "invalid" rather than a "divide" error
+        # here.
+        precision = _prf_divide(tp_sum, pred_sum,
+                                'precision', 'predicted', average, warn_for)
+        recall = _prf_divide(tp_sum, true_sum,
+                             'recall', 'true', average, warn_for)
+        # Don't need to warn for F: either P or R warned, or tp == 0 where pos
+        # and true are nonzero, in which case, F is well-defined and zero
+        f_score = ((1 + beta2) * precision * recall /
+                   (beta2 * precision + recall))
+        f_score[tp_sum == 0] = 0.0
+
+    # averaging the results
+
+    if average == 'weighted':
+        weights = true_sum
+        if weights.sum() == 0:
+            return 0, 0, 0, None
+    else:
+        weights = None
+
+    if average is not None:
+        assert average != 'binary' or len(precision) == 1
+        precision = np.average(precision, weights=weights)
+        recall = np.average(recall, weights=weights)
+        f_score = np.average(f_score, weights=weights)
+        true_sum = None # return no support
+
+    return precision, recall, f_score, true_sum
+
+
+
+def _prf_divide(numerator, denominator, metric, modifier, average, warn_for):
+    """Adapted from sklearn.metrics for use with skutil and
+    H2OFrames in particular.
+    """
+
+    result = numerator / denominator
+    mask = denominator == 0.0
+    if not np.any(mask):
+        return result
+
+    # remove infs
+    result[mask] = 0.0
+
+    axis0 = 'sample'
+    axis1 = 'label'
+    if average == 'samples':
+        axis0, axis1 = axis1, axis0
+
+    # build appropriate warning
+    if metric in warn_for and 'f-score' in warn_for:
+        msg_start = '{0} and F-score are'.format(metric.title())
+    elif metric in warn_for:
+        msg_start = '{0} is'.format(metric.title())
+    elif 'f-score' in warn_for:
+        msg_start = 'F-score is'
+    else:
+        return result
+
+    msg = ('{0} ill-defined and being set to 0.0 {{0}} '
+           'no {1} {2}s.'.format(msg_start, modifier, axis0))
+    if len(mask) == 1:
+        msg = msg.format('due to')
+    else:
+        msg = msg.format('in {0}s with'.format(axis1))
+    warnings.warn(msg, UserWarning, stacklevel=2)
+    return result
+
+
+def _bincount(bins, weights=None, minlength=None):
+    """Applies the np.bincount to the H2OFrame.
+
+    Returns
+    -------
+    np.ndarray
+    """
+    ## TODO - return np.ndarray
+    pass
 
 
 

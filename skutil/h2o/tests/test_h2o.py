@@ -31,7 +31,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
     _validate_shuffle_split_init, _validate_shuffle_split,
     _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
-from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OLabelEncoder
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -1281,6 +1281,7 @@ def test_h2o_with_conn():
     def metrics():
         irs = F.copy()
         irs['species'] = iris.target
+        irs['letters'] = ['a' if i==0 else 'b' if i==1 else 'c' for i in iris.target]
         irs['arbitrary'] = [3 for i in range(irs.shape[0])]
 
         try:
@@ -1290,6 +1291,7 @@ def test_h2o_with_conn():
 
         if Y is not None:
             assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
+            assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
             assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
 
             # test making the scorer
@@ -1316,6 +1318,26 @@ def test_h2o_with_conn():
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
             assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
+            
+        else:
+            pass
+
+    def encoder():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['target'] = [5 if i==0 else 6 if i==1 else 7 for i in iris.target]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            encoder = H2OLabelEncoder()
+            trans = encoder.fit_transform(Y['target'])
+
+            assert (Y['species']==trans).sum() == Y.shape[0]
+            assert (Y['target']==trans).sum() == 0 # assert not changed in place
         else:
             pass
 
@@ -1341,4 +1363,5 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     metrics()
+    encoder()
 
