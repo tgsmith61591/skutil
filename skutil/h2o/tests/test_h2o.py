@@ -35,7 +35,6 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
@@ -456,7 +455,7 @@ def test_h2o_with_conn():
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
-                                for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
+                                for scoring in ['accuracy_score', 'bad', None, h2o_accuracy_score]:
 
                                     # should we shuffle?
                                     do_shuffle = choice([True, False])
@@ -1318,7 +1317,7 @@ def test_h2o_with_conn():
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
             assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
-            
+
         else:
             pass
 
