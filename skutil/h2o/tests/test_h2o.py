@@ -402,6 +402,14 @@ def test_h2o_with_conn():
         # shuffle the rows
         f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
 
+        # append five times
+        fr = None
+        for i in range(5):
+            if fr is None:
+                fr = f
+            else:
+                fr = pd.concat([fr, f], axis=0)
+
         # try uploading...
         try:
             frame = new_h2o_frame(f)
