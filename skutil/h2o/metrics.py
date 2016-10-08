@@ -10,7 +10,7 @@ from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .transform import H2OLabelEncoder
 from .frame import _check_is_1d_frame
-from .utils import h2o_bincount
+from .util import h2o_bincount
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
 from ..utils import flatten_all
