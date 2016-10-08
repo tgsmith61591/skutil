@@ -1,4 +1,6 @@
 from __future__ import division, absolute_import, print_function
+from h2o.frame import H2OFrame
+from ..h2o.util import h2o_col_to_numpy
 import pandas as pd
 import numpy as np
 import warnings
@@ -12,7 +14,10 @@ __all__ = [
 def _as_numpy(*args):
     def _single_as_numpy(x):
         if not isinstance(x, np.ndarray):
-            if hasattr(x, '__iter__'):
+            # if an H2OFrame, just return the first col
+            if isinstance(x, H2OFrame):
+                return h2o_col_to_numpy(x)
+            elif hasattr(x, '__iter__'):
                 return np.asarray(x)
             else:
                 raise TypeError('cannot create numpy array out of type=%s' % type(x))
@@ -179,9 +184,8 @@ class GainsStatisticalReport(object):
         if not self.error_behavior in ('warn','raise','ignore'):
             raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). ' 
                              'Encountered %s' % str(self.error_behavior))
+
         on_error = self.error_behavior
-
-
         pred, expo, loss = _as_numpy(pred, expo, loss)
         if prem is None:
             prem = np.copy(expo)
@@ -216,8 +220,6 @@ class GainsStatisticalReport(object):
             for metric in self._signs.keys():
                 self.stats[metric].append(self.error_score)
             
-
-        self.sample_sizes.append(pred.shape[0])
         return self
 
     def _lift(self, **kwargs):

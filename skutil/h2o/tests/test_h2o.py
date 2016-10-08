@@ -20,8 +20,9 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
-from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
+from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount
 from skutil.h2o.grid_search import _as_numpy
+from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
@@ -30,12 +31,11 @@ from skutil.h2o.split import (check_cv, H2OKFold,
     _validate_shuffle_split_init, _validate_shuffle_split,
     _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
-from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
 from skutil.utils import flatten_all
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
@@ -405,9 +405,17 @@ def test_h2o_with_conn():
         # shuffle the rows
         f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
 
+        # append five times
+        fr = None
+        for i in range(5):
+            if fr is None:
+                fr = f
+            else:
+                fr = pd.concat([fr, f], axis=0)
+
         # try uploading...
         try:
-            frame = new_h2o_frame(f)
+            frame = new_h2o_frame(fr)
         except Exception as e:
             frame = None
 
@@ -447,10 +455,43 @@ def test_h2o_with_conn():
                                         feature_names=F.columns.tolist(), target_feature='species',
                                         param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
 
-            # it will fail in the fit method...
+            # it will fail in the fit method because there's no estimator at the end...
             assert_fails(grd.fit, TypeError, frame)
 
 
+
+
+            # test on all the types of classification metrics...
+            mtrcs = [
+                h2o_accuracy_score,
+                h2o_f1_score,
+                h2o_precision_score,
+                h2o_recall_score,
+                None,
+                'bad'
+            ]
+
+            pipe = H2OPipeline([
+                ('nzv', H2ONearZeroVarianceFilterer()),
+                ('est', H2ORandomForestEstimator())
+            ])
+
+            hyp = {
+                'nzv__threshold' : [0.5, 0.6]
+            }
+
+            for mtc in mtrcs:
+                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'micro'}
+                grd = H2ORandomizedSearchCV(estimator=pipe,
+                                            feature_names=F.columns.tolist(), target_feature='species',
+                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
+                                            scoring_params=kwargs)
+
+                if mtc in ('bad', None):
+                    assert_fails(grd.fit, ValueError, frame)
+                else:
+                    # should pass
+                    grd.fit(frame)
 
 
             for is_random in [False, True]:
@@ -458,7 +499,7 @@ def test_h2o_with_conn():
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
-                                for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
+                                for scoring in ['accuracy_score']:
 
                                     # should we shuffle?
                                     do_shuffle = choice([True, False])
@@ -1303,6 +1344,105 @@ def test_h2o_with_conn():
             pass
 
 
+    def metrics():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['letters'] = ['a' if i==0 else 'b' if i==1 else 'c' for i in iris.target]
+        irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
+            assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
+            assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+
+            # test making the scorer
+            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+            assert accuracy_scorer(Y['species'], Y['species']) == 1.0
+
+            # Test MAE, MSE
+            reg_target = Y['sepal length (cm)']
+            shifted_down = reg_target - 1
+
+            # test on shifted down
+            assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
+
+            # test on same
+            assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
+
+            # test R^2 on the same
+            assert h2o_r2_score(reg_target, reg_target) == 1.0
+
+            # test errors
+            assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
+            assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
+
+        else:
+            pass
+
+    def encoder():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['target'] = [5 if i==0 else 6 if i==1 else 7 for i in iris.target]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            encoder = H2OLabelEncoder()
+            trans = encoder.fit_transform(Y['target'])
+
+            assert (Y['species']==trans).sum() == Y.shape[0]
+            assert (Y['target']==trans).sum() == 0 # assert not changed in place
+        else:
+            pass
+
+
+    def bincount():
+        col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
+        wt1 = [1,1,1,1,1]
+        wt2 = [1,0.5,1,1,1]
+        wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
+        wp2 = pd.DataFrame(pd.Series(wt2, name='a'))
+
+        try:
+            C = new_h2o_frame(col)
+            W1= new_h2o_frame(wp1)
+            W2= new_h2o_frame(wp2)
+        except Exception as e:
+            C = None
+            W1 = None
+            W2 = None
+
+        if any([i is None for i in (C, W1, W2)]):
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=W1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            # test failures
+            assert_fails(h2o_bincount, TypeError, col)
+            assert_fails(h2o_bincount, ValueError, C, [0,0,0,0]) # fail for dim mismatch
+            assert_fails(h2o_bincount, ValueError, C, wt1, -1) # negative minlength
+        else:
+            pass
 
 
     # run them
@@ -1326,4 +1466,7 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
+    metrics()
+    encoder()
+    bincount()
 

@@ -272,12 +272,15 @@ def flatten_all_generator(container):
     >>> flatten_all_generator(a)
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
     """
-    for i in container:
-        if hasattr(i, '__iter__'):
-            for j in flatten_all_generator(i):
-                yield j
-        else:
-            yield i
+    if not hasattr(container, '__iter__'):
+        yield container
+    else:
+        for i in container:
+            if hasattr(i, '__iter__'):
+                for j in flatten_all_generator(i):
+                    yield j
+            else:
+                yield i
 
 def shuffle_dataframe(X):
     X, _ = validate_is_pd(X, None, False)
