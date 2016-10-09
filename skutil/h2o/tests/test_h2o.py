@@ -172,7 +172,7 @@ def test_h2o_with_conn():
             # load and transform...
             filterer = H2OMulticollinearityFilterer.load(the_path)
             x = filterer.transform(IRIS)
-            assert x.shape[1] == 2
+            assert x.shape[1] == 3
 
         else:
             pass
