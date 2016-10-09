@@ -32,14 +32,18 @@ __all__ = [
 def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
     """Load the iris dataset into an H2OFrame"""
     X = from_pandas(load_iris_df(include_tgt, tgt_name, shuffle))
-    X[tgt_name] = X[tgt_name].asfactor()
+    if include_tgt:
+        X[tgt_name] = X[tgt_name].asfactor()
+
     return X
 
 
 def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
     """Load the breast cancer dataset into an H2OFrame"""
     X = from_pandas(load_breast_cancer_df(include_tgt, tgt_name, shuffle))
-    X[tgt_name] = X[tgt_name].asfactor()
+    if include_tgt:
+        X[tgt_name] = X[tgt_name].asfactor()
+
     return X
 
 

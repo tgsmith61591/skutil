@@ -686,14 +686,8 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     # list of dicts
     df_list = []
 
-    # convert each score tuple into dicts
-    # SK18 introduces a different var for random search:
-    try:
-        scrs = random_search.cv_results_
-    except AttributeError as ae:
-        scrs = random_search.grid_scores_
-
-    for score in scrs:
+    # convert each score tuple into dicts -- this will eventually be deprecated...
+    for score in random_search.grid_scores_:
         results_dict = dict(score.parameters) # the parameter tuple or sampler
         results_dict["score"] = score.mean_validation_score
         results_dict["std"] = score.cv_validation_scores.std() * z_score
