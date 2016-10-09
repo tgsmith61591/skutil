@@ -24,7 +24,7 @@ from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_binco
     load_iris_h2o, load_breast_cancer_h2o)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
-from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
+from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -746,10 +746,18 @@ def test_h2o_with_conn():
                 failed = True
             assert failed
 
+
+        # we'll try the stratified split on the BC dataset
+        try:
+            B = new_h2o_frame(load_breast_cancer_df(tgt_name='target'))
+        except Exception as e:
+            B = None
+
+        if B is not None:
             # can we force this weird stratified behavior where
             # n_train and n_train don't add up to enough rows?
-            splitter = H2OStratifiedShuffleSplit(test_size=0.0473)
-            splits = [x for x in splitter.split(Y, 'species')] # it's a list of tuples
+            splitter = H2OStratifiedShuffleSplit(test_size=0.2473)
+            splits = [x for x in splitter.split(B, 'target')] # it's a list of tuples
 
 
 
