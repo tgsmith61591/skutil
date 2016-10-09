@@ -844,8 +844,8 @@ def test_h2o_with_conn():
 
         # now upload to cloud...
         try:
-            train = from_pandas(X_train)
-            test = from_pandas(X_test)
+            train = new_h2o_frame(X_train)
+            test = new_h2o_frame(X_test)
         except Exception as e:
             train = None
             test = None
@@ -863,7 +863,7 @@ def test_h2o_with_conn():
             hyper_params = {
                 'nzv__threshold'  : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
                 'mcf__threshold'  : uniform(0.85, 0.15),
-                'gbm__ntrees'    : randint(25, 100),
+                'gbm__ntrees'     : randint(25, 100),
                 'gbm__max_depth'  : randint(2, 8),
                 'gbm__min_rows'   : randint(8, 25)
             }
@@ -1436,7 +1436,6 @@ def test_h2o_with_conn():
     anon_class()
     cv()
     split_tsts()
-    act_search()
     sparse()
     impute()
     persist()
@@ -1447,4 +1446,5 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
+    act_search()
 
