@@ -792,7 +792,8 @@ def make_h2o_scorer(score_function, y_true):
         used to determine before hand whether the
         type is binary or multiclass.
     """
-    return _H2OScorer(score_function, y_true).score
+    score_class = _H2OScorer(score_function, y_true)
+    return score_class, score_class.score
 
 
 class _H2OScorer(six.with_metaclass(abc.ABCMeta)):

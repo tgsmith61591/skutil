@@ -165,6 +165,8 @@ class GainsStatisticalReport(object):
 
         return tab, agg_rlr, n_groups
 
+    def score(self, _, pred, **kwargs):
+        return self._score(_, pred, **kwargs)
 
     def _score(self, _, pred, **kwargs):
         ## For scoring from gridsearch...

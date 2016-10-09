@@ -396,12 +396,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                                  'Got %s' % (', '.join(SCORERS.keys()), scoring))
 
             # make an h2o scorer
-            self.scorer_ = make_h2o_scorer(SCORERS[scoring], X[self.target_feature])
+            self.scoring_class_, self.scorer_ = make_h2o_scorer(SCORERS[scoring], X[self.target_feature])
         elif xtra is not None: # this is a gains search, and we don't need to h2o-ize it
             self.scorer_ = scoring
         # else we'll let it fail through if it's a bad callable
         else:
-            self.scorer_ = make_h2o_scorer(scoring, X[self.target_feature])
+            self.scoring_class_, self.scorer_ = make_h2o_scorer(scoring, X[self.target_feature])
 
 
 
@@ -633,6 +633,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             model.best_estimator_.steps[-1] = (model.est_name_, the_h2o_est)
             # del model.est_name_
 
+        # add scorer_ back in
+        self.scorer_ = self.scoring_class_.score
+
         return model
 
 
@@ -667,6 +670,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             last_step_ = self.best_estimator_
             self.best_estimator_ = None
 
+        # delete the scoring_ method for pickling
+        scm = self.scorer_
+        self.scorer_ = None
+
         # now save the rest of things...
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
@@ -676,6 +683,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             estimator.steps[-1] = last_step_
         else:
             self.best_estimator_ = last_step_
+
+        # reinstate scorer_
+        self.scorer_ = scm
 
             
     @if_delegate_has_method(delegate='best_estimator_')
@@ -1007,6 +1017,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
             iid=iid, error_score=error_score,
             error_behavior=error_behavior)
 
+        self.scoring_class_ = self.score_report_
         self.scoring = self.score_report_._score ## callable -- resets scoring
 
 

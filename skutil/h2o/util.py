@@ -4,6 +4,7 @@ import h2o
 import warnings
 import pandas as pd
 
+from pkg_resources import parse_version
 from ..utils import (validate_is_pd, human_bytes, corr_plot, 
                      load_breast_cancer_df, load_iris_df,
                      load_boston_df)
@@ -160,8 +161,14 @@ def from_pandas(X):
     """
     pd, _ = validate_is_pd(X, None)
 
+    # older version of h2o are super funky with this
+    if parse_version(h2o.__version__) < parse_version('3.10.0.7'):
+        h = 1
+    else:
+        h = 0
+
     # if h2o hasn't started, we'll let this fail through
-    return H2OFrame.from_python(X, header=0, column_names=X.columns.tolist())
+    return H2OFrame.from_python(X, header=h, column_names=X.columns.tolist())
 
 
 def from_array(X, column_names=None):

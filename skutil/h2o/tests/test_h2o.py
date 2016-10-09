@@ -1337,7 +1337,7 @@ def test_h2o_with_conn():
             assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
 
             # test making the scorer
-            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+            _, accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
             assert accuracy_scorer(Y['species'], Y['species']) == 1.0
 
             # Test MAE, MSE
