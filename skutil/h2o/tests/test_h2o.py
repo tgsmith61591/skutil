@@ -21,7 +21,7 @@ from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount, 
-    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
+    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o, is_integer, is_float)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
@@ -1411,7 +1411,6 @@ def test_h2o_with_conn():
             pass
 
     def load_frames():
-
         if X is not None:
             # all of these assertions pass locally, but not on travis
             # for some strange reason... 
@@ -1428,10 +1427,29 @@ def test_h2o_with_conn():
         else:
             pass
 
+    def isinteger_isfloat():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['letters'] = ['a' if i==0 else 'b' if i==1 else 'c' for i in iris.target]
+
+        try:
+            I = from_pandas(irs)
+        except Exception as e:
+            I = None
+
+        if I is not None:
+            assert is_integer(I['species'])
+            assert is_float(I['sepal width (cm)'])
+            assert not is_integer(I['letters'])
+            assert not is_float(I['letters'])
+        else:
+            pass
+
+
 
     # run the tests -- put new or commonly failing tests 
     # up front as smoke tests. i.e., act, persist and grid
-    load_frames()
+    isinteger_isfloat()
     act_search()
     persist()
     grid()
@@ -1453,4 +1471,5 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
+    load_frames()
 
