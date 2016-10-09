@@ -145,7 +145,7 @@ def test_h2o_with_conn():
 
         if IRIS is not None:
             # one way or another, we can initialize it
-            filterer = H2OMulticollinearityFilterer(threshold=0.6, target_name=TGT_NAME)
+            filterer = H2OMulticollinearityFilterer(threshold=0.6, target_feature=TGT_NAME)
             assert not filterer.max_version
 
             x = filterer.fit_transform(IRIS)
@@ -225,8 +225,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', estimator)
                     ], 
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
+                    feature_names=IRIS_NAMES,
+                    target_feature=TGT_NAME
                 )
 
                 # fit pipe...
@@ -248,8 +248,8 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer(threshold=0.9))
                 ], 
-                feature_names=F.columns.tolist(),
-                target_feature='species'
+                feature_names=IRIS_NAMES,
+                target_feature=TGT_NAME
             )
 
             X_transformed = pipe.fit_transform(train)
@@ -263,8 +263,8 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer())
                 ], 
-                feature_names=F.columns.tolist(),
-                target_feature='species'
+                feature_names=IRIS_NAMES,
+                target_feature=TGT_NAME
             )
 
             # here's where we test...
@@ -280,7 +280,7 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                     ], 
-                    feature_names=F.columns.tolist(),
+                    feature_names=IRIS_NAMES,
                     target_feature=y
                 )
                 
@@ -299,7 +299,7 @@ def test_h2o_with_conn():
                     ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                 ], 
                 feature_names=1,
-                target_feature='species'
+                target_feature=TGT_NAME
             )
 
             assert_fails(pipe.fit, TypeError, train)
@@ -314,8 +314,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('mc',  H2OGradientBoostingEstimator(distribution='multinomial',ntrees=5))
                     ], 
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
+                    feature_names=IRIS_NAMES,
+                    target_feature=TGT_NAME
                 )
 
                 # won't even get here...
@@ -333,8 +333,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                     ], 
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
+                    feature_names=IRIS_NAMES,
+                    target_feature=TGT_NAME
                 )
 
                 # won't even get here...
@@ -353,8 +353,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', RandomForestClassifier())
                     ], 
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
+                    feature_names=IRIS_NAMES,
+                    target_feature=TGT_NAME
                 )
 
                 # won't even get here...
@@ -369,7 +369,7 @@ def test_h2o_with_conn():
                     ('mcf', H2OMulticollinearityFilterer(threshold=0.1)), # will retain one
                     ('nzv', H2ONearZeroVarianceFilterer(threshold=100)), # super high thresh
                     ('est', H2ORandomForestEstimator())
-                ], feature_names=F.columns.tolist(), target_feature='species'
+                ], feature_names=IRIS_NAMES, target_feature=TGT_NAME
             )
 
             # this will fail because no cols are retained
@@ -594,11 +594,9 @@ def test_h2o_with_conn():
 
 
         # let's do one pass with a stratified K fold... but we need to increase our data length, 
-        # lest we lose records on the split, which will throw errors...
-        f = pd.concat([f,f,f,f,f], axis=0) # times FIVE!
-
-        # shuffle the rows
-        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+        # lest we lose records on the split, which will throw errors... also shuffle
+        f = load_iris_df(tgt_name=TGT_NAME, shuffle=True)
+        f = shuffle_dataframe(pd.concat([f,f,f,f,f], axis=0)) # times FIVE!
 
         # try uploading again...
         try:
@@ -619,7 +617,7 @@ def test_h2o_with_conn():
                 }
 
                 grid = H2ORandomizedSearchCV(pipe, param_grid=params,
-                    feature_names=F.columns.tolist(), target_feature='species',
+                    feature_names=IRIS_NAMES, target_feature=TGT_NAME,
                     scoring='accuracy_score', n_iter=2, cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
 
                 # do fit
