@@ -99,7 +99,7 @@ def h2o_bincount(bins, weights=None, minlength=None):
         raise ValueError('values must be positive')
 
     # make sure they're all ints
-    if np.abs(unq_arr.astype(np.int) - unq_arr) > 0:
+    if np.abs((unq_arr.astype(np.int) - unq_arr).sum()) > 0:
         raise ValueError('values must be ints')
 
     # check weights
