@@ -483,7 +483,7 @@ def test_h2o_with_conn():
                                             param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
                                             scoring_params=kwargs)
 
-                if mtc in ('bad', None):
+                if mtc == 'bad':
                     assert_fails(grd.fit, ValueError, frame)
                 else:
                     # should pass
@@ -1402,16 +1402,17 @@ def test_h2o_with_conn():
             pass
 
 
-    # run them
+    # run the tests -- put the commonly failing tests 
+    # up front as smoke tests. i.e., act and grid
     act_search()
     persist()
+    grid()
     encoder()
     bincount()
     metrics()
     multicollinearity()
     nzv()
     pipeline()
-    grid()
     anon_class()
     cv()
     split_tsts()
