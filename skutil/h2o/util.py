@@ -128,7 +128,9 @@ def h2o_bincount(bins, weights=None, minlength=None):
     # update our bins
     for val in unq_arr:
         mask = all_vals == val
-        output[val] = (all_vals[mask].sum() * weights[mask])
+        array_ones = np.ones(mask.sum())
+        weight_vals = weights[mask]
+        output[val] = np.dot(array_ones, weight_vals)
 
     return output
 
