@@ -7,7 +7,7 @@ import scipy.stats as st
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from ..base import SelectiveWarning, ModuleImportWarning
 
@@ -50,6 +50,8 @@ __all__ = [
     'human_bytes',
     'is_entirely_numeric',
     'is_numeric',
+    'load_boston_df',
+    'load_breast_cancer_df',
     'load_iris_df',
     'log',
     'pd_stats',
@@ -272,12 +274,15 @@ def flatten_all_generator(container):
     >>> flatten_all_generator(a)
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
     """
-    for i in container:
-        if hasattr(i, '__iter__'):
-            for j in flatten_all_generator(i):
-                yield j
-        else:
-            yield i
+    if not hasattr(container, '__iter__'):
+        yield container
+    else:
+        for i in container:
+            if hasattr(i, '__iter__'):
+                for j in flatten_all_generator(i):
+                    yield j
+            else:
+                yield i
 
 def shuffle_dataframe(X):
     X, _ = validate_is_pd(X, None, False)
@@ -579,7 +584,7 @@ def is_numeric(x):
     return is_float(x) or is_integer(x)
 
 
-def load_iris_df(include_tgt=True, tgt_name="Species"):
+def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
     """Loads the iris dataset into a dataframe with the
     target set as the "Species" feature or whatever name
     is specified.
@@ -591,6 +596,9 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
 
     tgt_name : str, optional (default="Species")
         The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
     """
     iris = load_iris()
     X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
@@ -598,7 +606,57 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
     if include_tgt:
         X[tgt_name] = iris.target
         
-    return X
+    return X if not shuffle else shuffle_dataframe(X)
+
+
+def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
+    """Loads the breast cancer dataset into a dataframe with the
+    target set as the "target" feature or whatever name
+    is specified.
+
+    Parameters
+    ----------
+    include_tgt : bool, optional (default=True)
+        Whether to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
+    """
+    bc = load_breast_cancer()
+    X = pd.DataFrame.from_records(data=bc.data, columns=bc.feature_names)
+
+    if include_tgt:
+        X[tgt_name] = bc.target
+        
+    return X if not shuffle else shuffle_dataframe(X)
+
+
+def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
+    """Loads the boston housing dataset into a dataframe with the
+    target set as the "target" feature or whatever name
+    is specified.
+
+    Parameters
+    ----------
+    include_tgt : bool, optional (default=True)
+        Whether to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
+    """
+    bo = load_boston()
+    X = pd.DataFrame.from_records(data=bo.data, columns=bo.feature_names)
+
+    if include_tgt:
+        X[tgt_name] = bo.target
+        
+    return X if not shuffle else shuffle_dataframe(X)
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True, 
@@ -654,7 +712,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     # list of dicts
     df_list = []
 
-    # convert each score tuple into dicts
+    # convert each score tuple into dicts -- this will eventually be deprecated...
     for score in random_search.grid_scores_:
         results_dict = dict(score.parameters) # the parameter tuple or sampler
         results_dict["score"] = score.mean_validation_score

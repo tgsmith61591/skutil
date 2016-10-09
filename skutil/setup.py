@@ -24,20 +24,20 @@ def configuration(parent_package = '', top_path = None):
 	config.add_subpackage('decomposition')
 	config.add_subpackage('odr') # needs to happen before feature selection -- has its own setup...
 	config.add_subpackage('feature_selection')
-	config.add_subpackage('h2o')
 	config.add_subpackage('linear_model')
 	config.add_subpackage('model_selection')
 	config.add_subpackage('preprocessing')
 	config.add_subpackage('utils')
+	config.add_subpackage('h2o')
 
 	## module tests -- must be added after others!
 	config.add_subpackage('decomposition/tests')
-	config.add_subpackage('h2o/tests')
 	config.add_subpackage('feature_selection/tests')
 	config.add_subpackage('linear_model/tests')
 	config.add_subpackage('odr/tests')
 	config.add_subpackage('preprocessing/tests')
 	config.add_subpackage('utils/tests')
+	config.add_subpackage('h2o/tests')
 
 	## Modules with cython
 	config.add_subpackage('metrics')

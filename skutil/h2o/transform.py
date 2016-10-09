@@ -3,6 +3,8 @@ import numpy as np
 import numbers
 from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
 from ..utils import is_numeric, flatten_all
+from .frame import _check_is_1d_frame
+from .util import h2o_col_to_numpy, _unq_vals_col
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
@@ -10,6 +12,7 @@ from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
     'H2OInteractionTermTransformer',
+    'H2OLabelEncoder',
     'H2OSelectiveImputer',
     'H2OSelectiveScaler'
 ]
@@ -22,6 +25,74 @@ def _flatten_one(x):
     type for each item in the vec.
     """
     return x[0] if hasattr(x, '__iter__') else x
+
+
+class H2OLabelEncoder(BaseH2OTransformer):
+    """Encode categorical values in a H2OFrame (single column)
+    into ordinal labels 0 - len(column) - 1.
+
+    Example (given ``column``):
+        
+    >>> column
+      C1
+    ----
+       5
+       6
+       5
+       7
+       7
+    [5 rows x 1 column]
+
+    >>> H2OLabelEncoder().fit_transform(column)
+      C1
+    ----
+       0
+       1
+       0
+       2
+       2
+    [5 rows x 1 column]
+    """
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self):
+        super(H2OLabelEncoder, self).__init__(feature_names=None,
+                                              target_feature=None,
+                                              min_version=self._min_version,
+                                              max_version=self._max_version)
+
+    def fit(self, column):
+        column = _check_is_1d_frame(column)
+        c1_nm, unq = _unq_vals_col(column)
+
+        # get sorted classes, and map of classes to order
+        self.classes_ = unq[c1_nm].values
+        self.map_ = dict(zip(unq[c1_nm].values, unq.index.values))
+
+        return self
+
+
+    def transform(self, column):
+        check_is_fitted(self, 'classes_')
+        column = _check_is_1d_frame(column)
+
+        # ensure no unseen labels
+        unq = h2o_col_to_numpy(column.unique())
+
+        # get a copy
+        column = column[column.columns[0]]
+
+        if any([i not in self.classes_ for i in unq]):
+            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
+                             % (str(self.classes_), str(unq)))
+
+        # encode
+        for k,v in six.iteritems(self.map_):
+            column[column==k] = v
+
+        return column
+
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):

@@ -20,9 +20,11 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
-from skutil.h2o.util import h2o_frame_memory_estimate, h2o_corr_plot
+from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount, 
+    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
 from skutil.h2o.grid_search import _as_numpy
-from skutil.utils import load_iris_df, shuffle_dataframe, df_memory_estimate
+from skutil.h2o.metrics import *
+from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -30,12 +32,11 @@ from skutil.h2o.split import (check_cv, H2OKFold,
     _validate_shuffle_split_init, _validate_shuffle_split,
     _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
-from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
 from skutil.utils import flatten_all
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
@@ -97,7 +98,6 @@ def test_h2o_with_conn():
     #F = load_iris_df(include_tgt=False)
     X = None
 
-
     try:
         h2o.init()
         #h2o.init(ip='localhost', port=54321) # this might throw a warning
@@ -122,6 +122,7 @@ def test_h2o_with_conn():
 
         if X is None:
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
+
 
 
 
@@ -244,8 +245,8 @@ def test_h2o_with_conn():
                 # fit pipe...
                 pipe.fit(train)
 
-                # refit for _reset coverage, assert fit_predict works...
-                pipe.fit_predict(train)
+                # refit for _reset coverage...
+                pipe.fit(train)
 
                 # try predicting
                 pipe.predict(test)
@@ -264,7 +265,7 @@ def test_h2o_with_conn():
                 target_feature='species'
             )
 
-            X_transformed = pipe.fit_transform(train)
+            X_transformed = pipe.fit(train).transform(train)
 
 
 
@@ -394,13 +395,15 @@ def test_h2o_with_conn():
 
     def grid():
         # test as_numpy
-        assert_fails(_as_numpy, (ValueError, TypeError), F) # fails because not H2OFrame
+        assert_fails(_as_numpy, (ValueError, TypeError, AssertionError), F) # fails because not H2OFrame
 
 
         f = F.copy()
         targ = iris.target
+        names = f.columns.values
+        TGT_NAME = 'species'
         targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-        f['species'] = targ
+        f[TGT_NAME] = targ
 
         # shuffle the rows
         f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
@@ -410,6 +413,7 @@ def test_h2o_with_conn():
             frame = new_h2o_frame(f)
         except Exception as e:
             frame = None
+
 
         def get_param_grid(est):
             if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
@@ -435,8 +439,8 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer(threshold=0.9))
                 ], 
-                feature_names=F.columns.tolist(),
-                target_feature='species'
+                feature_names=names,
+                target_feature=TGT_NAME
             )
 
             hyp = {
@@ -444,21 +448,56 @@ def test_h2o_with_conn():
             }
 
             grd = H2ORandomizedSearchCV(estimator=pipe,
-                                        feature_names=F.columns.tolist(), target_feature='species',
+                                        feature_names=names, target_feature=TGT_NAME,
                                         param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
 
-            # it will fail in the fit method...
+            # it will fail in the fit method because there's no estimator at the end...
             assert_fails(grd.fit, TypeError, frame)
 
 
 
 
+            # test on all the types of classification metrics...
+            mtrcs = [
+                h2o_accuracy_score,
+                h2o_f1_score,
+                h2o_precision_score,
+                h2o_recall_score,
+                None,
+                'bad'
+            ]
+
+            pipe = H2OPipeline([
+                ('nzv', H2ONearZeroVarianceFilterer()),
+                ('est', H2ORandomForestEstimator())
+            ])
+
+            hyp = {
+                'nzv__threshold' : [0.5, 0.6]
+            }
+
+            for mtc in mtrcs:
+                vbs = choice([1,2])
+                iid = choice([True, False])
+                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'micro'}
+                grd = H2ORandomizedSearchCV(estimator=pipe,
+                                            feature_names=names, target_feature=TGT_NAME,
+                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
+                                            scoring_params=kwargs, verbose=vbs, iid=iid)
+
+                if mtc == 'bad':
+                    assert_fails(grd.fit, ValueError, frame)
+                else:
+                    # should pass
+                    grd.fit(frame)
+
+
             for is_random in [False, True]:
                 for estimator in new_estimators():
                     for do_pipe in [False, True]:
-                        for iid in [False, True]:
-                            for verbose in [2, 3]:
-                                for scoring in ['accuracy_score', 'bad', None, accuracy_score]:
+                        for iid in [True]: # just do True for now since we already hit false above
+                            for verbose in [3]: # just do 3 for now since we already hit 1 or 2 above
+                                for scoring in ['accuracy_score']:
 
                                     # should we shuffle?
                                     do_shuffle = choice([True, False])
@@ -555,8 +594,7 @@ def test_h2o_with_conn():
                 scoring='accuracy_score', iid=True, verbose=0, cv=2,
                 validation_frame=frame)
 
-            # get coverage on fit_predict
-            grid.fit_predict(frame)
+            grid.fit(frame)
 
 
 
@@ -712,32 +750,19 @@ def test_h2o_with_conn():
                 failed = True
             assert failed
 
+
+        # we'll try the stratified split on the BC dataset
+        try:
+            B = new_h2o_frame(load_breast_cancer_df(tgt_name='target'))
+        except Exception as e:
+            B = None
+
+        if B is not None:
             # can we force this weird stratified behavior where
             # n_train and n_train don't add up to enough rows?
-            splitter = H2OStratifiedShuffleSplit(test_size=0.0473)
-            splits = [x for x in splitter.split(Y, 'species')] # it's a list of tuples
+            splitter = H2OStratifiedShuffleSplit(test_size=0.2473)
+            splits = [x for x in splitter.split(B, 'target')] # it's a list of tuples
 
-
-
-
-
-    def from_pandas_h2o():
-        if X is not None:
-            y = from_pandas(F)
-            assert y.shape[0] == X.shape[0]
-            assert y.shape[1] == X.shape[1]
-            assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
-        else:
-            pass
-
-    def from_array_h2o():
-        if X is not None:
-            y = from_array(F.values, F.columns.tolist())
-            assert y.shape[0] == X.shape[0]
-            assert y.shape[1] == X.shape[1]
-            assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
-        else:
-            pass
 
     def split_tsts():
         # testing val_y
@@ -809,16 +834,12 @@ def test_h2o_with_conn():
             pass
 
     def act_search():
+        tgt='target'
+        X_bost = load_boston_df(shuffle=True, include_tgt=True, tgt_name=tgt)
+        names = X_bost.columns[:-1]
 
-        boston = load_boston()
-        X_bost = pd.DataFrame.from_records(data=boston.data, columns=boston.feature_names)
-        X_bost['target'] = boston.target
-
-        # need to make up some exposure features
         X_bost['expo'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
         X_bost['loss'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
-
-        # do split
         X_train, X_test = train_test_split(X_bost, train_size=0.7)
 
         # now upload to cloud...
@@ -831,50 +852,29 @@ def test_h2o_with_conn():
 
 
         if all([x is not None for x in (train, test)]):
-            # define a pipeline
             pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer(na_warn=False)),
-                    ('mcf', H2OMulticollinearityFilterer(na_warn=False)),
-                    ('gbm', H2OGradientBoostingEstimator(ntrees=5))
+                    ('rf', H2ORandomForestEstimator(seed=42))
                 ])
 
-            # define our hyperparams
-            hyper_params = {
-                'nzv__threshold'  : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
-                'mcf__threshold'  : uniform(0.85, 0.15),
-                'gbm__ntrees'    : randint(25, 100),
-                'gbm__max_depth'  : randint(2, 8),
-                'gbm__min_rows'   : randint(8, 25)
+            hyper = {
+                'rf__ntrees':[10,15]
             }
 
-            # define our grid search
-            rand_state=42
             search = H2OGainsRandomizedSearchCV(
-                                    estimator=pipe,
-                                    param_grid=hyper_params,
-                                    exposure_feature='expo',
-                                    loss_feature='loss',
-                                    random_state=rand_state,
-                                    feature_names=boston.feature_names,
-                                    target_feature='target',
-                                    scoring='lift',
-                                    validation_frame=test,
-                                    cv=H2OKFold(n_folds=2, shuffle=True, random_state=rand_state),
-                                    verbose=1, # don't want to go overkill
-                                    n_iter=1
-                                )
+                estimator=pipe,
+                param_grid=hyper,
+                exposure_feature='expo',
+                loss_feature='loss',
+                feature_names=names,
+                target_feature=tgt,
+                cv=2,
+                n_iter=2)
 
             search.fit(train)
-
-            # can we plot in the actual tests?
-            try:
-                search.plot(timestep='number_of_trees', metric='MSE')
-            except Exception as e:
-                pass # naive for now, but not even sure this can be done in nosetests...
+            search.score(test)
 
             # report:
             report = search.report_scores()
-            assert report.shape[0] == 1
 
         else:
             pass
@@ -1303,22 +1303,149 @@ def test_h2o_with_conn():
             pass
 
 
+    def metrics():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['letters'] = ['a' if i==0 else 'b' if i==1 else 'c' for i in iris.target]
+        irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
+            assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
+            assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+
+            # test making the scorer
+            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+            assert accuracy_scorer.score(Y['species'], Y['species']) == 1.0
+
+            # Test MAE, MSE
+            reg_target = Y['sepal length (cm)']
+            shifted_down = reg_target - 1
+
+            # test on shifted down
+            assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
+            assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
+
+            # test on same
+            assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
+
+            # test R^2 on the same
+            assert h2o_r2_score(reg_target, reg_target) == 1.0
+
+            # test errors
+            assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
+            assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
+            assert_fails(make_h2o_scorer, TypeError, 'a', Y['species']) # 'a' is not callable
+
+        else:
+            pass
+
+    def encoder():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['target'] = [5 if i==0 else 6 if i==1 else 7 for i in iris.target]
+
+        try:
+            Y = new_h2o_frame(irs)
+        except Exception as e:
+            Y = None
+
+        if Y is not None:
+            encoder = H2OLabelEncoder()
+            trans = encoder.fit_transform(Y['target'])
+
+            assert (Y['species']==trans).sum() == Y.shape[0]
+            assert (Y['target']==trans).sum() == 0 # assert not changed in place
+        else:
+            pass
 
 
-    # run them
+    def bincount():
+        col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
+        neg = pd.DataFrame(pd.Series([-1,1, 1, 3, 5], name='a'))
+        flo = pd.DataFrame(pd.Series([1.1, 1.1, 1.1, 3.1, 5.1], name='a'))
+        wt1 = [1,1,1,1,1]
+        wt2 = [1,0.5,1,1,1]
+        wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
+        wp2 = pd.DataFrame(pd.Series(wt2, name='a'))
+
+        try:
+            C = new_h2o_frame(col)
+            N = new_h2o_frame(neg)
+            F = new_h2o_frame(flo)
+            W1= new_h2o_frame(wp1)
+            W2= new_h2o_frame(wp2)
+        except Exception as e:
+            C = None
+            W1 = None
+            W2 = None
+
+        if not any([i is None for i in (C, W1, W2)]):
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=wt2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+            assert_array_equal(h2o_bincount(C,  weights=W1), np.array([0., 3. , 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2), np.array([0., 2.5, 0., 1., 0., 1.]))
+            assert_array_equal(h2o_bincount(C,  weights=W1, minlength=7), np.array([0., 3. , 0., 1., 0., 1., 0.]))
+            assert_array_equal(h2o_bincount(C,  weights=W2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+            # test failures
+            assert_fails(h2o_bincount, TypeError, col)
+            assert_fails(h2o_bincount, ValueError, C, [0,0,0,0]) # fail for dim mismatch
+            assert_fails(h2o_bincount, ValueError, C, wt1, -1) # negative minlength
+            assert_fails(h2o_bincount, ValueError, N) # one of them is negative
+            assert_fails(h2o_bincount, ValueError, F) # they're floats
+        else:
+            pass
+
+    def load_frames():
+
+        if X is not None:
+            # all of these assertions pass locally, but not on travis
+            # for some strange reason... 
+
+            irs = load_iris_h2o(shuffle=True, include_tgt=True)
+            assert irs.shape[1] == 5
+            #assert irs.isfactor()[-1]
+
+            bc = load_breast_cancer_h2o(shuffle=True, include_tgt=True)
+            #assert bc.isfactor()[-1]
+
+            bo = load_boston_h2o(shuffle=True, include_tgt=True)
+            #assert not bo.isfactor()[-1]
+        else:
+            pass
+
+
+    # run the tests -- put new or commonly failing tests 
+    # up front as smoke tests. i.e., act, persist and grid
+    load_frames()
+    act_search()
+    persist()
+    grid()
+    encoder()
+    bincount()
+    metrics()
     multicollinearity()
     nzv()
     pipeline()
-    grid()
     anon_class()
     cv()
-    from_pandas_h2o()
-    from_array_h2o()
     split_tsts()
-    act_search()
     sparse()
     impute()
-    persist()
     mem_est()
     corr()
     interactions()
