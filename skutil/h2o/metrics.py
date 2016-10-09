@@ -66,12 +66,6 @@ def _get_mean(x):
     """
     return flatten_all(x.mean())[0]
 
-
-def _unique_labels(y_true, y_pred):
-    df = y_true.unique().rbind(y_pred.unique()).unique()
-    return df[df.columns[0]].tolist()
-
-
 def _type_of_target(y):
     """Determine the type of data indicated by target `y`.
     Adapted from sklearn.utils.multiclass.type_of_target.

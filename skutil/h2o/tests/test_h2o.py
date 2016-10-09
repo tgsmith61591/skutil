@@ -21,7 +21,7 @@ from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount, 
-    load_iris_h2o, load_breast_cancer_h2o)
+    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
@@ -477,11 +477,13 @@ def test_h2o_with_conn():
             }
 
             for mtc in mtrcs:
+                vbs = choice([1,2])
+                iid = choice([True, False])
                 kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'micro'}
                 grd = H2ORandomizedSearchCV(estimator=pipe,
                                             feature_names=names, target_feature=TGT_NAME,
                                             param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
-                                            scoring_params=kwargs)
+                                            scoring_params=kwargs, verbose=vbs, iid=iid)
 
                 if mtc == 'bad':
                     assert_fails(grd.fit, ValueError, frame)
@@ -493,8 +495,8 @@ def test_h2o_with_conn():
             for is_random in [False, True]:
                 for estimator in new_estimators():
                     for do_pipe in [False, True]:
-                        for iid in [False, True]:
-                            for verbose in [2, 3]:
+                        for iid in [True]: # just do True for now since we already hit false above
+                            for verbose in [3]: # just do 3 for now since we already hit 1 or 2 above
                                 for scoring in ['accuracy_score']:
 
                                     # should we shuffle?
@@ -1341,6 +1343,7 @@ def test_h2o_with_conn():
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
             assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
+            assert_fails(make_h2o_scorer, TypeError, 'a', Y['species']) # 'a' is not callable
 
         else:
             pass
@@ -1367,6 +1370,8 @@ def test_h2o_with_conn():
 
     def bincount():
         col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
+        neg = pd.DataFrame(pd.Series([-1,1, 1, 3, 5], name='a'))
+        flo = pd.DataFrame(pd.Series([1.1, 1.1, 1.1, 3.1, 5.1], name='a'))
         wt1 = [1,1,1,1,1]
         wt2 = [1,0.5,1,1,1]
         wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
@@ -1374,6 +1379,8 @@ def test_h2o_with_conn():
 
         try:
             C = new_h2o_frame(col)
+            N = new_h2o_frame(neg)
+            F = new_h2o_frame(flo)
             W1= new_h2o_frame(wp1)
             W2= new_h2o_frame(wp2)
         except Exception as e:
@@ -1398,12 +1405,30 @@ def test_h2o_with_conn():
             assert_fails(h2o_bincount, TypeError, col)
             assert_fails(h2o_bincount, ValueError, C, [0,0,0,0]) # fail for dim mismatch
             assert_fails(h2o_bincount, ValueError, C, wt1, -1) # negative minlength
+            assert_fails(h2o_bincount, ValueError, N) # one of them is negative
+            assert_fails(h2o_bincount, ValueError, F) # they're floats
+        else:
+            pass
+
+    def load_frames():
+
+        if X is not None:
+            irs = load_iris_h2o(shuffle=True, include_tgt=True)
+            assert irs.shape[1] == 5
+            assert irs.isfactor()[-1]
+
+            bc = load_breast_cancer_h2o(shuffle=True, include_tgt=True)
+            assert bc.isfactor()[-1]
+
+            bo = load_boston_h2o(shuffle=True, include_tgt=True)
+            assert not bo.isfactor()[-1]
         else:
             pass
 
 
-    # run the tests -- put the commonly failing tests 
-    # up front as smoke tests. i.e., act and grid
+    # run the tests -- put new or commonly failing tests 
+    # up front as smoke tests. i.e., act, persist and grid
+    load_frames()
     act_search()
     persist()
     grid()

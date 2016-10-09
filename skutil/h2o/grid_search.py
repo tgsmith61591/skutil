@@ -869,8 +869,6 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         return self._fit(frame, sampled_params)
 
 
-
-
 def _val_exp_loss_prem(x,y,z):
     """Takes three strings (or unicode) and cleans them
     for indexing an H2OFrame.
