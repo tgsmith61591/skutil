@@ -7,7 +7,7 @@ import scipy.stats as st
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, load_breast_cancer
 from sklearn.externals import six
 from ..base import SelectiveWarning, ModuleImportWarning
 
@@ -50,6 +50,7 @@ __all__ = [
     'human_bytes',
     'is_entirely_numeric',
     'is_numeric',
+    'load_breast_cancer_df',
     'load_iris_df',
     'log',
     'pd_stats',
@@ -582,7 +583,7 @@ def is_numeric(x):
     return is_float(x) or is_integer(x)
 
 
-def load_iris_df(include_tgt=True, tgt_name="Species"):
+def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
     """Loads the iris dataset into a dataframe with the
     target set as the "Species" feature or whatever name
     is specified.
@@ -594,6 +595,9 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
 
     tgt_name : str, optional (default="Species")
         The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
     """
     iris = load_iris()
     X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
@@ -601,7 +605,32 @@ def load_iris_df(include_tgt=True, tgt_name="Species"):
     if include_tgt:
         X[tgt_name] = iris.target
         
-    return X
+    return X if not shuffle else shuffle_dataframe(X)
+
+
+def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
+    """Loads the breast cancer dataset into a dataframe with the
+    target set as the "target" feature or whatever name
+    is specified.
+
+    Parameters
+    ----------
+    include_tgt : bool, optional (default=True)
+        Whether to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
+    """
+    bc = load_breast_cancer()
+    X = pd.DataFrame.from_records(data=bc.data, columns=bc.feature_names)
+
+    if include_tgt:
+        X[tgt_name] = bc.target
+        
+    return X if not shuffle else shuffle_dataframe(X)
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True, 

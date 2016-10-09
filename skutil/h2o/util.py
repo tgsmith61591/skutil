@@ -4,7 +4,8 @@ import h2o
 import warnings
 import pandas as pd
 
-from ..utils import validate_is_pd, human_bytes, corr_plot
+from ..utils import (validate_is_pd, human_bytes, corr_plot, 
+                     load_breast_cancer_df, load_iris_df)
 from .transform import _unq_vals_col
 from .frame import _check_is_1d_frame
 from .select import _validate_use
@@ -21,8 +22,25 @@ __all__ = [
     'h2o_bincount',
     'h2o_col_to_numpy',
     'h2o_corr_plot',
-    'h2o_frame_memory_estimate'
+    'h2o_frame_memory_estimate',
+    'load_iris_h2o',
+    'load_breast_cancer_h2o'
 ]
+
+
+
+def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
+    """Load the iris dataset into an H2OFrame"""
+    X = from_pandas(load_iris_df(include_tgt, tgt_name, shuffle))
+    X[tgt_name] = X[tgt_name].asfactor()
+    return X
+
+
+def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
+    """Load the breast cancer dataset into an H2OFrame"""
+    X = from_pandas(load_breast_cancer_df(include_tgt, tgt_name, shuffle))
+    X[tgt_name] = X[tgt_name].asfactor()
+    return X
 
 
 def h2o_col_to_numpy(column):
