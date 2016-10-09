@@ -10,7 +10,7 @@ from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .transform import H2OLabelEncoder
 from .frame import _check_is_1d_frame
-from .util import h2o_bincount
+from .util import h2o_bincount, h2o_col_to_numpy
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
 from ..utils import flatten_all
@@ -471,8 +471,7 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
     _err_for_continuous(y_type)
 
     # get all the unique labels
-    _ = y_actual.unique().rbind(y_predict.unique()).unique().as_data_frame(use_pandas=True)
-    present_labels = sorted(_[_.columns[0]].values)
+    present_labels = sorted(h2o_col_to_numpy(y_actual.unique().rbind(y_predict.unique()).unique()))
 
     if average == 'binary':
         if y_type == 'binary':
