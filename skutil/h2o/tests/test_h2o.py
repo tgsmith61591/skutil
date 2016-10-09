@@ -761,13 +761,11 @@ def test_h2o_with_conn():
 
 
 
-
-
     def from_pandas_h2o():
         if X is not None:
             y = from_pandas(F)
-            assert y.shape[0] == F.shape[0]
-            assert y.shape[1] == F.shape[1]
+            assert y.shape[0] == X.shape[0]
+            assert y.shape[1] == X.shape[1]
             assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
         else:
             pass
@@ -775,8 +773,8 @@ def test_h2o_with_conn():
     def from_array_h2o():
         if X is not None:
             y = from_array(F.values, F.columns.tolist())
-            assert y.shape[0] == F.shape[0]
-            assert y.shape[1] == F.shape[1]
+            assert y.shape[0] == X.shape[0]
+            assert y.shape[1] == X.shape[1]
             assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
         else:
             pass
