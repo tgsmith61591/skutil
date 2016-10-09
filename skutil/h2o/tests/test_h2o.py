@@ -1391,7 +1391,7 @@ def test_h2o_with_conn():
             W1 = None
             W2 = None
 
-        if any([i is None for i in (C, W1, W2)]):
+        if not any([i is None for i in (C, W1, W2)]):
             assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
             assert_array_equal(h2o_bincount(C,  weights=wt1), np.array([0., 3. , 0., 1., 0., 1.]))
             assert_array_equal(h2o_bincount(C,  weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))

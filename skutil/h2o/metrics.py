@@ -519,7 +519,7 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
 
 
     if tp_bins.shape[0]:
-        tp_sum = _bincount(tp_bins, weights=tp_bins_weights,
+        tp_sum = h2o_bincount(tp_bins, weights=tp_bins_weights,
                            minlength=len(labels))
     else:
         true_sum = pred_sum = tp_sum = np.zeros(len(labels))
