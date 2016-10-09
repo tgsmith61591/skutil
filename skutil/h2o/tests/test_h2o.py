@@ -100,6 +100,8 @@ def test_h2o_with_conn():
     X = None
     BC = None
     IRIS = None
+    BC_NO_TGT = None
+    IRIS_NO_TGT = None
     RAND_STATE = 42
     TGT_NAME = "TARGET"
 
@@ -114,13 +116,22 @@ def test_h2o_with_conn():
         time.sleep(10)
         X = new_h2o_frame(F)
 
-        # load BC and IRIS
-        BC          = load_breast_cancer_h2o(shuffle=True, tgt_name=TGT_NAME)
-        BC_NO_TGT   = load_breast_cancer_h2o(shuffle=True, include_tgt=False)
-        BC_NAMES    = [str(s) for s in BC_NO_TGT.columns]
-        IRIS        = load_iris_h2o(shuffle=True, tgt_name=TGT_NAME)
-        IRIS_NO_TGT = load_iris_h2o(shuffle=True, include_tgt=False)
-        IRIS_NAMES  = [str(s) for s in IRIS_NO_TGT.columns]
+        # load BC and then upload
+        BC            = load_breast_cancer_df(shuffle=True, tgt_name=TGT_NAME)
+        BC_NO_TGT     = load_breast_cancer_df(shuffle=True, include_tgt=False)
+        BC_NAMES      = [str(s) for s in BC_NO_TGT.columns]
+        BC[TGT_NAME]  = ['true' if i == 1 else 'false' for i in BC[TGT_NAME]]
+        BC            = new_h2o_frame(BC)
+        BC_NO_TGT     = new_h2o_frame(BC_NO_TGT)
+
+        # load iris and then upload
+        IRIS          = load_iris_df(shuffle=True, tgt_name=TGT_NAME)
+        IRIS_NO_TGT   = load_iris_df(shuffle=True, include_tgt=False)
+        IRIS_NAMES    = [str(s) for s in IRIS_NO_TGT.columns]
+        IRIS[TGT_NAME]= ['a' if i==0 else 'b' if i==1 else 'c' for i in IRIS[TGT_NAME]]
+        IRIS          = new_h2o_frame(IRIS)
+        IRIS_NO_TGT   = new_h2o_frame(IRIS_NO_TGT)
+
     except Exception as e:
         #raise #for debugging
 
@@ -138,6 +149,10 @@ def test_h2o_with_conn():
 
         if X is None:
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
+            BC = None
+            BC_NO_TGT = None
+            IRIS = None
+            IRIS_NO_TGT = None  
 
 
 
@@ -384,8 +399,9 @@ def test_h2o_with_conn():
         # test as_numpy
         assert_fails(_as_numpy, (ValueError, TypeError, AssertionError), F) # fails because not H2OFrame
 
-        # We'll use breast cancer
-        frame = BC
+        # choose a frame, either IRIS or BC...
+        frame = IRIS
+        names = IRIS_NAMES if frame is IRIS else BC_NAMES
 
 
         def get_param_grid(est):
@@ -412,7 +428,7 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer(threshold=0.9))
                 ], 
-                feature_names=BC_NAMES,
+                feature_names=names,
                 target_feature=TGT_NAME
             )
 
@@ -421,7 +437,7 @@ def test_h2o_with_conn():
             }
 
             grd = H2ORandomizedSearchCV(estimator=pipe,
-                                        feature_names=BC_NAMES, target_feature=TGT_NAME,
+                                        feature_names=names, target_feature=TGT_NAME,
                                         param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
 
             # it will fail in the fit method because there's no estimator at the end...
@@ -450,9 +466,9 @@ def test_h2o_with_conn():
             }
 
             for mtc in mtrcs:
-                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'binary'}
+                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':('binary' if frame is BC else 'micro')}
                 grd = H2ORandomizedSearchCV(estimator=pipe,
-                                            feature_names=BC_NAMES, target_feature=TGT_NAME,
+                                            feature_names=names, target_feature=TGT_NAME,
                                             param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
                                             scoring_params=kwargs)
 
@@ -464,7 +480,7 @@ def test_h2o_with_conn():
 
 
             for is_random in [False, True]:
-                for estimator in new_estimators(binomial=True):
+                for estimator in new_estimators(binomial=(frame is BC)):
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
@@ -491,7 +507,7 @@ def test_h2o_with_conn():
                                     if not do_pipe:
                                         # we're just testing the search on actual estimators
                                         grid = grid_module(estimator=estimator,
-                                            feature_names=BC_NAMES, target_feature=TGT_NAME,
+                                            feature_names=names, target_feature=TGT_NAME,
                                             param_grid=get_param_grid(estimator),
                                             scoring=scoring, iid=iid, verbose=verbose,
                                             cv=which_cv, minimize=minimize)
@@ -515,7 +531,7 @@ def test_h2o_with_conn():
                                             }
 
                                         grid = grid_module(pipe, param_grid=params,
-                                            feature_names=BC_NAMES, target_feature=TGT_NAME,
+                                            feature_names=names, target_feature=TGT_NAME,
                                             scoring=scoring, iid=iid, verbose=verbose,
                                             cv=which_cv, minimize=minimize)
 
@@ -561,7 +577,7 @@ def test_h2o_with_conn():
             }
 
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
-                feature_names=BC_NAMES, target_feature=TGT_NAME,
+                feature_names=names, target_feature=TGT_NAME,
                 scoring='accuracy_score', iid=True, verbose=0, cv=2,
                 validation_frame=frame)
 

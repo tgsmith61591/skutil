@@ -60,7 +60,9 @@ def _validate_use(X, use, na_warn):
         raise ValueError('expected one of (%s) but got %s' % (', '.join(_valid_use), use))
 
     # check on NAs
-    if na_warn:
+    if use == 'complete.obs':
+        pass
+    elif na_warn: # only warn if not using complete.obs
         nasum = X.isna().sum()
         if nasum > 0:
             warnings.warn('%i NA value(s) in frame; using "complete.obs"' % nasum)
