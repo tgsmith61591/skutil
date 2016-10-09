@@ -124,7 +124,7 @@ def h2o_bincount(bins, weights=None, minlength=None):
         if weights.shape[0] != all_vals.shape[0]:
             raise ValueError('dim mismatch in weights and bins')
     else:
-        weights = np.ones(array_ones.shape[0])
+        weights = np.ones(all_vals.shape[0])
 
     # update our bins
     for val in unq_arr:
