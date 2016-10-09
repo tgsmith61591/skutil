@@ -55,15 +55,15 @@ def new_h2o_frame(X):
     return  Y
 
 
-def new_estimators(binomial=False):
+def new_estimators():
     """Returns a tuple of newly initialized estimators to test all of them
     with the skutil framework. This ensures it will work with all the estimators...
     """
     return (
             H2ORandomForestEstimator(ntrees=5),
             #H2OGeneralizedLinearEstimator(family='multinomial'),
-            H2OGradientBoostingEstimator(distribution=('multinomial' if not binomial else 'bernoulli'), ntrees=5),
-            H2ODeepLearningEstimator(distribution=('multinomial' if not binomial else 'bernoulli'), epochs=1, hidden=[5,5])
+            H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5),
+            H2ODeepLearningEstimator(distribution='multinomial', epochs=1, hidden=[10,10])
         )
 
 
@@ -206,7 +206,6 @@ def test_h2o_with_conn():
         else:
             pass
 
-
     def pipeline():
         f = F.copy()
         targ = iris.target
@@ -244,8 +243,8 @@ def test_h2o_with_conn():
                 # fit pipe...
                 pipe.fit(train)
 
-                # refit for _reset coverage, assert fit_predict works...
-                pipe.fit_predict(train)
+                # refit for _reset coverage...
+                pipe.fit(train)
 
                 # try predicting
                 pipe.predict(test)
@@ -264,7 +263,7 @@ def test_h2o_with_conn():
                 target_feature='species'
             )
 
-            X_transformed = pipe.fit_transform(train)
+            X_transformed = pipe.fit(train).transform(train)
 
 
 
@@ -490,7 +489,7 @@ def test_h2o_with_conn():
 
 
             for is_random in [False, True]:
-                for estimator in new_estimators(binomial=False):
+                for estimator in new_estimators():
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
@@ -517,7 +516,7 @@ def test_h2o_with_conn():
                                     if not do_pipe:
                                         # we're just testing the search on actual estimators
                                         grid = grid_module(estimator=estimator,
-                                            feature_names=names, target_feature=TGT_NAME,
+                                            feature_names=F.columns.tolist(), target_feature='species',
                                             param_grid=get_param_grid(estimator),
                                             scoring=scoring, iid=iid, verbose=verbose,
                                             cv=which_cv, minimize=minimize)
@@ -541,7 +540,7 @@ def test_h2o_with_conn():
                                             }
 
                                         grid = grid_module(pipe, param_grid=params,
-                                            feature_names=names, target_feature=TGT_NAME,
+                                            feature_names=F.columns.tolist(), target_feature='species',
                                             scoring=scoring, iid=iid, verbose=verbose,
                                             cv=which_cv, minimize=minimize)
 
@@ -587,12 +586,11 @@ def test_h2o_with_conn():
             }
 
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
-                feature_names=names, target_feature=TGT_NAME,
+                feature_names=F.columns.tolist(), target_feature='species',
                 scoring='accuracy_score', iid=True, verbose=0, cv=2,
                 validation_frame=frame)
 
-            # get coverage on fit_predict
-            grid.fit_predict(frame)
+            grid.fit(frame)
 
 
 
@@ -620,9 +618,11 @@ def test_h2o_with_conn():
 
 
         # let's do one pass with a stratified K fold... but we need to increase our data length, 
-        # lest we lose records on the split, which will throw errors... also shuffle
-        f = load_iris_df(tgt_name=TGT_NAME, shuffle=True)
-        f = shuffle_dataframe(pd.concat([f,f,f,f,f], axis=0)) # times FIVE!
+        # lest we lose records on the split, which will throw errors...
+        f = pd.concat([f,f,f,f,f], axis=0) # times FIVE!
+
+        # shuffle the rows
+        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
 
         # try uploading again...
         try:
@@ -643,7 +643,7 @@ def test_h2o_with_conn():
                 }
 
                 grid = H2ORandomizedSearchCV(pipe, param_grid=params,
-                    feature_names=names, target_feature=TGT_NAME,
+                    feature_names=F.columns.tolist(), target_feature='species',
                     scoring='accuracy_score', n_iter=2, cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
 
                 # do fit
