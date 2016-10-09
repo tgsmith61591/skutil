@@ -124,6 +124,15 @@ def test_h2o_with_conn():
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
 
 
+    def catch_warning_assert_thrown(fun, kwargs):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            ret = fun(**kwargs)
+            #assert len(w) > 0 if X is None else True, 'expected warning to be thrown'
+            return ret
+
+
 
     def multicollinearity():
         # one way or another, we can initialize it
