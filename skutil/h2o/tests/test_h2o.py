@@ -55,15 +55,15 @@ def new_h2o_frame(X):
     return  Y
 
 
-def new_estimators(fmly='multinomial'):
+def new_estimators(binomial=False):
     """Returns a tuple of newly initialized estimators to test all of them
     with the skutil framework. This ensures it will work with all the estimators...
     """
     return (
             H2ORandomForestEstimator(ntrees=5),
             #H2OGeneralizedLinearEstimator(family='multinomial'),
-            H2OGradientBoostingEstimator(distribution=fmly, ntrees=5),
-            H2ODeepLearningEstimator(distribution=fmly, epochs=1, hidden=[5,5])
+            H2OGradientBoostingEstimator(distribution=('multinomial' if not binomial else 'bernoulli'), ntrees=5),
+            H2ODeepLearningEstimator(distribution=('multinomial' if not binomial else 'bernoulli'), epochs=1, hidden=[5,5])
         )
 
 
@@ -464,7 +464,7 @@ def test_h2o_with_conn():
 
 
             for is_random in [False, True]:
-                for estimator in new_estimators(fmly='binomial'):
+                for estimator in new_estimators(binomial=True):
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
