@@ -188,7 +188,8 @@ def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
         #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
     #   parms[k] = v
 
-    return scorer(y_truth, pred, **kwargs)
+    # it's calling and h2o scorer at this point
+    return scorer.score(y_truth, pred, **kwargs)
 
 
 
@@ -212,7 +213,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     target_feature : str
         The name of the target feature
 
-    scorer : callable
+    scorer : H2OScorer
         The scoring function
 
     parameters : dict
@@ -364,6 +365,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
     def _fit(self, X, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
         X = _check_is_frame(X) # if it's a frame, will be turned into a matrix
+        self.feature_names, self.target_feature = validate_x_y(X, self.feature_names, self.target_feature)
+        self.is_regression_ = (not X[self.target_feature].isfactor()[0])
+
+        # local scope
         minimize = self.minimize
         estimator = self.estimator
 
@@ -388,28 +393,36 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # we need to require scoring...
         scoring = self.scoring
-        if scoring is None:
-            raise ValueError('require string or callable for scoring')
-        elif isinstance(scoring, str):
-            if not scoring in SCORERS:
-                raise ValueError('Scoring must be one of (%s) or a callable. '
-                                 'Got %s' % (', '.join(SCORERS.keys()), scoring))
-
-            # make an h2o scorer
-            self.scoring_class_, self.scorer_ = make_h2o_scorer(SCORERS[scoring], X[self.target_feature])
-        elif xtra is not None: # this is a gains search, and we don't need to h2o-ize it
-            self.scorer_ = scoring
-        # else we'll let it fail through if it's a bad callable
+        if hasattr(self, 'scoring_class_') or xtra is not None: # this is a gains search, and we don't need to h2o-ize it
+            pass
         else:
-            self.scoring_class_, self.scorer_ = make_h2o_scorer(scoring, X[self.target_feature])
+            if scoring is None:
+                # set defaults
+                if self.is_regression_:
+                    scoring = 'r2_score'
+                else:
+                    scoring = 'accuracy_score'
+
+            # make strs into scoring functions
+            if isinstance(scoring, str):
+                if not scoring in SCORERS:
+                    raise ValueError('Scoring must be one of (%s) or a callable. '
+                                     'Got %s' % (', '.join(SCORERS.keys()), scoring))
+
+                scoring = SCORERS[scoring]
+            # make it a scorer
+            if hasattr(scoring, '__call__'):
+                self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
+            else: # should be impossible to get here
+                raise TypeError('expected string or callable for scorer, but got %s' %type(self.scoring))
 
 
 
         # validate CV
         cv = check_cv(self.cv)
 
-        # make list of strings
-        self.feature_names, self.target_feature = validate_x_y(X, self.feature_names, self.target_feature)
+
+        # clone estimator
         nms = {
             'feature_names' : self.feature_names,
             'target_feature': self.target_feature
@@ -417,7 +430,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # do first clone, remember to set the names...
         base_estimator = _clone_h2o_obj(self.estimator, **nms)
-        self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
 
         # do fits, scores
@@ -425,7 +437,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             _fit_and_score(estimator=_clone_h2o_obj(base_estimator),
                            frame=X, feature_names=self.feature_names,
                            target_feature=self.target_feature,
-                           scorer=self.scorer_, parameters=params,
+                           scorer=self.scoring_class_, parameters=params,
                            verbose=self.verbose, scoring_params=self.scoring_params,
                            train=train, test=test, is_regression=self.is_regression_,
                            act_args=xtra, cv_fold=cv_fold, iteration=iteration)
@@ -450,7 +462,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     iid=self.iid)
 
                 # set scoring function
-                val_scorer = self.val_score_report_._score
+                val_scorer = self.val_score_report_
 
                 kwargs = {
                     'expo' : _as_numpy(self.validation_frame[xtra_nms['expo']]),
@@ -459,7 +471,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 }
             else:
                 kwargs = self.scoring_params
-                val_scorer = self.scorer_
+                val_scorer = self.scoring_class_
         else:
             score_validation = False
 
@@ -537,29 +549,17 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             best_estimator.fit(X)
 
 
-        # Set the best estimator, and remove the estimator--
-        # unlike sklearn, estimator won't pickle, so we
-        # will need to remove it
+        # Set the best estimator
         self.best_estimator_ = best_estimator
-        self.estimator = None
 
         return self
 
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
-        if hasattr(self, 'extra_args_') and self.extra_args_ is not None:
-            e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
-
-            kwargs = {
-                'expo' : frame[e],
-                'loss' : frame[l],
-                'prem' : frame[p] if p is not None else None
-            }
-        else:
-            kwargs = self.scoring_params
-
-        return _score(self.best_estimator_, frame, self.target_feature, self.scorer_, self.is_regression_, **kwargs)
+        return _score(self.best_estimator_, frame, self.target_feature, 
+                      self.scoring_class_, self.is_regression_, 
+                      **self.scoring_params)
 
 
     def predict(self, frame):
@@ -633,8 +633,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             model.best_estimator_.steps[-1] = (model.est_name_, the_h2o_est)
             # del model.est_name_
 
-        # add scorer_ back in
-        self.scorer_ = self.scoring_class_.score
+        # TODO: what do we make the estimator after the load?
+        # we can't re-fit without one...
 
         return model
 
@@ -642,6 +642,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
     def _save_internal(self, **kwargs):
         check_is_fitted(self, 'best_estimator_')
         estimator = self.best_estimator_
+        estimator2= self.estimator
 
         loc = kwargs.pop('location')
         model_loc = kwargs.pop('model_location')
@@ -670,9 +671,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             last_step_ = self.best_estimator_
             self.best_estimator_ = None
 
-        # delete the scoring_ method for pickling
-        scm = self.scorer_
-        self.scorer_ = None
+        # make the self.estimator None for the pickling
+        self.estimator = None
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
@@ -684,8 +684,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             self.best_estimator_ = last_step_
 
-        # reinstate scorer_
-        self.scorer_ = scm
+        # also reinstate estimator for re-fitting
+        self.estimator = estimator2
 
             
     @if_delegate_has_method(delegate='best_estimator_')
@@ -1010,15 +1010,14 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         self.premium_feature = premium_feature
 
         # our score method will ALWAYS be the same
-        self.score_report_ = GainsStatisticalReport(
+        self.scoring_class_ = GainsStatisticalReport(
             score_by=scoring, 
             n_folds=check_cv(cv).get_n_splits(), 
             n_iter=n_iter,
             iid=iid, error_score=error_score,
             error_behavior=error_behavior)
 
-        self.scoring_class_ = self.score_report_
-        self.scoring = self.score_report_._score ## callable -- resets scoring
+        self.scoring = None # the scoring_class_ will do the scoring
 
 
     def fit(self, frame):
@@ -1046,16 +1045,17 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         the_fit = self._fit(frame, sampled_params)
 
         # clear extra_args_, because they might take lots of mem
-        # we can do this because a re-fit will re-assign them anyways
+        # we can do this because a re-fit will re-assign them anyways.
+        # don't delete the extra_names_ though, because they're used in
+        # scoring the incoming frame.
         del self.extra_args_
-        del self.extra_names_
 
         return the_fit
 
     def report_scores(self):
         """Get the gains report"""
         check_is_fitted(self, 'best_estimator_')
-        report_res = self.score_report_.as_data_frame()
+        report_res = self.scoring_class_.as_data_frame()
         n_obs, _ = report_res.shape
 
         # Need to cbind the parameters... we don't care about ["score", "std"]
@@ -1079,4 +1079,19 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         rdf.index = ['Iter_%i' %i for i in range(self.n_iter)]
         return rdf
+
+    @overrides(BaseH2OSearchCV)
+    def score(self, frame):
+        check_is_fitted(self, 'best_estimator_')
+        e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
+
+        kwargs = {
+            'expo' : frame[e],
+            'loss' : frame[l],
+            'prem' : frame[p] if p is not None else None
+        }
+
+        return _score(self.best_estimator_, frame, self.target_feature, 
+                      self.scoring_class_, self.is_regression_, 
+                      **kwargs)
 

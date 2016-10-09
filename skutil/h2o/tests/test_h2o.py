@@ -124,6 +124,8 @@ def test_h2o_with_conn():
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
 
 
+
+
     def catch_warning_assert_thrown(fun, kwargs):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -1337,8 +1339,8 @@ def test_h2o_with_conn():
             assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
 
             # test making the scorer
-            _, accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
-            assert accuracy_scorer(Y['species'], Y['species']) == 1.0
+            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+            assert accuracy_scorer.score(Y['species'], Y['species']) == 1.0
 
             # Test MAE, MSE
             reg_target = Y['sepal length (cm)']

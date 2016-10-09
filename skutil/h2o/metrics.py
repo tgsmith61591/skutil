@@ -793,7 +793,7 @@ def make_h2o_scorer(score_function, y_true):
         type is binary or multiclass.
     """
     score_class = _H2OScorer(score_function, y_true)
-    return score_class, score_class.score
+    return score_class
 
 
 class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
