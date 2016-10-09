@@ -90,18 +90,11 @@ def h2o_bincount(bins, weights=None, minlength=None):
     minlength : int, optional (default=None)
         The min length of the output array
     """
-    if isinstance(bins, H2OFrame):
-        bins = _check_is_1d_frame(bins) # ensure 1d
-        _, unq = _unq_vals_col(bins)
-        unq_arr = h2o_col_to_numpy(unq)
-    elif isinstance(bins, pd.DataFrame): # we'll accept PD because of metrics...
-        if bins.shape[1] != 1:
-            raise ValueError('expected 1d, got column dimension=%i'%bins.shape[1])
-        unq_arr = bins.unique()
-    else:
-        raise TypeError('expected H2OFrame or pd.DataFrame, got %s' % str(bins))
+    bins = _check_is_1d_frame(bins)
+    _, unq = _unq_vals_col(bins)
 
     # ensure all positive
+    unq_arr = unq[_].values
     if any(unq_arr < 0):
         raise ValueError('values must be positive')
 
