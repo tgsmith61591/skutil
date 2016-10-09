@@ -96,18 +96,8 @@ def test_h2o_with_conn():
     iris = load_iris()
     F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
     #F = load_iris_df(include_tgt=False)
-
     X = None
-    BC = None
-    IRIS = None
-    BC_NO_TGT = None
-    IRIS_NO_TGT = None
-    RAND_STATE = 42
-    TGT_NAME = "TARGET"
 
-
-
-    # INITIALIZE EVERYTHING
     try:
         h2o.init()
         #h2o.init(ip='localhost', port=54321) # this might throw a warning
@@ -115,23 +105,6 @@ def test_h2o_with_conn():
         # sleep before trying this:
         time.sleep(10)
         X = new_h2o_frame(F)
-
-        # load BC and then upload
-        BC            = load_breast_cancer_df(shuffle=True, tgt_name=TGT_NAME)
-        BC_NO_TGT     = load_breast_cancer_df(shuffle=True, include_tgt=False)
-        BC_NAMES      = [str(s) for s in BC_NO_TGT.columns]
-        BC[TGT_NAME]  = ['true' if i == 1 else 'false' for i in BC[TGT_NAME]]
-        BC            = new_h2o_frame(BC)
-        BC_NO_TGT     = new_h2o_frame(BC_NO_TGT)
-
-        # load iris and then upload
-        IRIS          = load_iris_df(shuffle=True, tgt_name=TGT_NAME)
-        IRIS_NO_TGT   = load_iris_df(shuffle=True, include_tgt=False)
-        IRIS_NAMES    = [str(s) for s in IRIS_NO_TGT.columns]
-        IRIS[TGT_NAME]= ['a' if i==0 else 'b' if i==1 else 'c' for i in IRIS[TGT_NAME]]
-        IRIS          = new_h2o_frame(IRIS)
-        IRIS_NO_TGT   = new_h2o_frame(IRIS_NO_TGT)
-
     except Exception as e:
         #raise #for debugging
 
@@ -149,56 +122,50 @@ def test_h2o_with_conn():
 
         if X is None:
             warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
-            BC = None
-            BC_NO_TGT = None
-            IRIS = None
-            IRIS_NO_TGT = None  
 
 
 
     def multicollinearity():
+        # one way or another, we can initialize it
+        filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6})
+        assert not filterer.max_version
 
-        if IRIS is not None:
-            # one way or another, we can initialize it
-            filterer = H2OMulticollinearityFilterer(threshold=0.6, target_feature=TGT_NAME)
-            assert not filterer.max_version
-
-            x = filterer.fit_transform(IRIS)
-            assert x.shape[1] == 3, 'expected 3 columns, but got %i' % x.shape[1]
+        if X is not None:
+            x = filterer.fit_transform(X)
+            assert x.shape[1] == 2
 
 
             # test some exceptions...
-            assert_fails(filterer.fit, TypeError, F) # this will fail because it's not an H2OFrame
+            assert_fails(filterer.fit, TypeError, F)
 
-            # test with a different target feature
+            # test with a target feature
             tgt = 'sepal length (cm)'
-            new_filterer = H2OMulticollinearityFilterer(threshold=0.6, target_feature=tgt)
-            x = new_filterer.fit_transform(IRIS)
+            new_filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold':0.6, 'target_feature':tgt})
+            x = new_filterer.fit_transform(X)
 
             # h2o throws weird error because it override __contains__, so use the comprehension
             assert tgt in [c for c in x.columns], 'target feature was accidentally dropped...'
 
             # assert save/load works
-            filterer.fit(IRIS)
+            filterer.fit(X)
             the_path = 'mcf.pkl'
             filterer.save(the_path, warn_if_exists=False)
             assert os.path.exists(the_path)
 
             # load and transform...
             filterer = H2OMulticollinearityFilterer.load(the_path)
-            x = filterer.transform(IRIS)
-            assert x.shape[1] == 3
+            x = filterer.transform(X)
+            assert x.shape[1] == 2
 
         else:
             pass
 
 
     def nzv():
-        filterer = H2ONearZeroVarianceFilterer(threshold=1e-8)
+        filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold':1e-8})
         assert not filterer.max_version
 
-
-        # let's add a zero var feature to F and upload to cloud
+        # let's add a zero var feature to F
         f = F.copy()
         f['zerovar'] = np.zeros(F.shape[0])
 
@@ -212,10 +179,13 @@ def test_h2o_with_conn():
             y = filterer.fit_transform(Y)
             assert len(filterer.drop_) == 1
             assert y.shape[1] == 4
+        else:
+            pass
 
-            # test with a diff target feature
+        # test with a target feature
+        if X is not None:
             tgt = 'sepal length (cm)'
-            new_filterer = H2ONearZeroVarianceFilterer(threshold=1e-8, target_feature=tgt)
+            new_filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold':1e-8, 'target_feature':tgt})
             y = new_filterer.fit_transform(Y)
 
             assert len(new_filterer.drop_) == 1
@@ -229,10 +199,28 @@ def test_h2o_with_conn():
 
 
     def pipeline():
-        if IRIS is not None:
-            # do split
-            train, test = h2o_train_test_split(IRIS, train_size=0.7)
+        f = F.copy()
+        targ = iris.target
+        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
 
+        # do split
+        X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
+        
+        # add the y into the matrix for h2o's sake -- pandas will throw a warning here...
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("ignore")
+            X_train['species'] = y_train
+            X_test['species'] = y_test
+
+        try:
+            train = new_h2o_frame(X_train)
+            test  = new_h2o_frame(X_test)
+        except Exception as e:
+            train = None
+            test  = None
+
+
+        if train is not None:
             for estimator in new_estimators():
                 # define pipe
                 pipe = H2OPipeline([
@@ -240,8 +228,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', estimator)
                     ], 
-                    feature_names=IRIS_NAMES,
-                    target_feature=TGT_NAME
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
                 )
 
                 # fit pipe...
@@ -263,8 +251,8 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer(threshold=0.9))
                 ], 
-                feature_names=IRIS_NAMES,
-                target_feature=TGT_NAME
+                feature_names=F.columns.tolist(),
+                target_feature='species'
             )
 
             X_transformed = pipe.fit_transform(train)
@@ -278,8 +266,8 @@ def test_h2o_with_conn():
                     ('nzv', H2ONearZeroVarianceFilterer()),
                     ('mc',  H2OMulticollinearityFilterer())
                 ], 
-                feature_names=IRIS_NAMES,
-                target_feature=TGT_NAME
+                feature_names=F.columns.tolist(),
+                target_feature='species'
             )
 
             # here's where we test...
@@ -295,7 +283,7 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                     ], 
-                    feature_names=IRIS_NAMES,
+                    feature_names=F.columns.tolist(),
                     target_feature=y
                 )
                 
@@ -314,7 +302,7 @@ def test_h2o_with_conn():
                     ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                 ], 
                 feature_names=1,
-                target_feature=TGT_NAME
+                target_feature='species'
             )
 
             assert_fails(pipe.fit, TypeError, train)
@@ -329,8 +317,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('mc',  H2OGradientBoostingEstimator(distribution='multinomial',ntrees=5))
                     ], 
-                    feature_names=IRIS_NAMES,
-                    target_feature=TGT_NAME
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
                 )
 
                 # won't even get here...
@@ -348,8 +336,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
                     ], 
-                    feature_names=IRIS_NAMES,
-                    target_feature=TGT_NAME
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
                 )
 
                 # won't even get here...
@@ -368,8 +356,8 @@ def test_h2o_with_conn():
                         ('mc',  H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', RandomForestClassifier())
                     ], 
-                    feature_names=IRIS_NAMES,
-                    target_feature=TGT_NAME
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
                 )
 
                 # won't even get here...
@@ -384,7 +372,7 @@ def test_h2o_with_conn():
                     ('mcf', H2OMulticollinearityFilterer(threshold=0.1)), # will retain one
                     ('nzv', H2ONearZeroVarianceFilterer(threshold=100)), # super high thresh
                     ('est', H2ORandomForestEstimator())
-                ], feature_names=IRIS_NAMES, target_feature=TGT_NAME
+                ], feature_names=F.columns.tolist(), target_feature='species'
             )
 
             # this will fail because no cols are retained
@@ -399,9 +387,22 @@ def test_h2o_with_conn():
         # test as_numpy
         assert_fails(_as_numpy, (ValueError, TypeError, AssertionError), F) # fails because not H2OFrame
 
-        # choose a frame, either IRIS or BC...
-        frame = IRIS
-        names = frame.columns[:-1]
+
+        f = F.copy()
+        targ = iris.target
+        names = f.columns.values
+        TGT_NAME = 'species'
+        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+        f[TGT_NAME] = targ
+
+        # shuffle the rows
+        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+        # try uploading...
+        try:
+            frame = new_h2o_frame(f)
+        except Exception as e:
+            frame = None
 
 
         def get_param_grid(est):
@@ -466,7 +467,7 @@ def test_h2o_with_conn():
             }
 
             for mtc in mtrcs:
-                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':('binary' if frame is BC else 'micro')}
+                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average':'micro'}
                 grd = H2ORandomizedSearchCV(estimator=pipe,
                                             feature_names=names, target_feature=TGT_NAME,
                                             param_grid=hyp, scoring=mtc, cv=2, n_iter=1, 
@@ -480,7 +481,7 @@ def test_h2o_with_conn():
 
 
             for is_random in [False, True]:
-                for estimator in new_estimators(binomial=(frame is BC)):
+                for estimator in new_estimators(binomial=False):
                     for do_pipe in [False, True]:
                         for iid in [False, True]:
                             for verbose in [2, 3]:
@@ -633,7 +634,7 @@ def test_h2o_with_conn():
                 }
 
                 grid = H2ORandomizedSearchCV(pipe, param_grid=params,
-                    feature_names=IRIS_NAMES, target_feature=TGT_NAME,
+                    feature_names=names, target_feature=TGT_NAME,
                     scoring='accuracy_score', n_iter=2, cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
 
                 # do fit
