@@ -85,6 +85,7 @@ class GainsStatisticalReport(object):
             raise ValueError('score_by must be in %s, but got %s'
                 % (', '.join(met), score_by))
 
+        # how many to store in the scoring method?
         if n_folds and not n_iter:
             raise ValueError('if n_folds is set, must set n_iter')
 
@@ -166,19 +167,62 @@ class GainsStatisticalReport(object):
         return tab, agg_rlr, n_groups
 
     def score(self, _, pred, **kwargs):
-        return self._score(_, pred, **kwargs)
+        """Scores the new predictions on the truth set,
+        and stores the results in the internal stats array.
 
-    def _score(self, _, pred, **kwargs):
+        Parameters
+        ----------
+        _ : H2OFrame, np.ndarray
+            The truth set
+
+        pred : H2OFrame, np.ndarray
+            The predictions
+        """
+        return self._score(_, pred, True, **kwargs)
+
+
+    def score_no_store(self, _, pred, **kwargs):
+        """Scores the new predictions on the truth set,
+        and does not store the results in the internal 
+        stats array.
+
+        Parameters
+        ----------
+        _ : H2OFrame, np.ndarray
+            The truth set
+
+        pred : H2OFrame, np.ndarray
+            The predictions
+        """
+        return self._score(_, pred, False, **kwargs)
+
+
+    def _score(self, _, pred, store, **kwargs):
+        """Scores the new predictions on the truth set.
+
+        Parameters
+        ----------
+        _ : H2OFrame, np.ndarray
+            The truth set
+
+        pred : H2OFrame, np.ndarray
+            The predictions
+
+        store : bool, optional (default=True)
+            Whether to store the results. If called from a grid search,
+            this will store the results. If called from the grid search
+            ```score``` method after fit, it will not.
+        """
         ## For scoring from gridsearch...
         expo, loss, prem = kwargs.get('expo'), kwargs.get('loss'), kwargs.get('prem', None)
-        self.fit_fold(pred, expo, loss, prem)
+        self.fit_fold(pred, expo, loss, prem, store)
 
         # return the score we want... grid search is MINIMIZING
         # so we need to return negative for maximizing metrics
         return self.stats[self.score_by][-1] * self._signs[self.score_by]
 
 
-    def fit_fold(self, pred, expo, loss, prem=None):
+    def fit_fold(self, pred, expo, loss, prem=None, store=True):
         """Used to fit a single fold of predicted values, 
         exposure and loss data.
         """
@@ -207,10 +251,11 @@ class GainsStatisticalReport(object):
             # compute the metrics. This relies on the convention
             # that the computation method is the name of the metric
             # preceded by an underscore...
-            for metric in self._signs.keys():
-                self.stats[metric].append(
-                    getattr(self, '_%s'%metric)(**kwargs)
-                )
+            if store:
+                for metric in self._signs.keys():
+                    self.stats[metric].append(
+                        getattr(self, '_%s'%metric)(**kwargs)
+                    )
         except ValueError as v: # for a qcut error...
             if on_error == 'raise':
                 raise v
@@ -219,9 +264,11 @@ class GainsStatisticalReport(object):
                               %str(self.error_score), UserWarning)
 
             # if it's ignore, it will pass.
-            for metric in self._signs.keys():
-                self.stats[metric].append(self.error_score)
+            if store:
+                for metric in self._signs.keys():
+                    self.stats[metric].append(self.error_score)
             
+        self.sample_sizes.append(pred.shape[0])
         return self
 
     def _lift(self, **kwargs):

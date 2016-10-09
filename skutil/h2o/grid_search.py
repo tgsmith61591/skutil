@@ -1009,15 +1009,19 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         self.loss_feature = loss_feature
         self.premium_feature = premium_feature
 
-        # our score method will ALWAYS be the same
-        self.scoring_class_ = GainsStatisticalReport(
-            score_by=scoring, 
-            n_folds=check_cv(cv).get_n_splits(), 
-            n_iter=n_iter,
-            iid=iid, error_score=error_score,
-            error_behavior=error_behavior)
 
-        self.scoring = None # the scoring_class_ will do the scoring
+        # for re-fitting, we need these kwargs saved
+        self.grsttngs_ = {
+            'score_by'      : scoring,
+            'n_folds'       : check_cv(cv).get_n_splits(),
+            'n_iter'        : n_iter,
+            'iid'           : iid,
+            'error_score'   : error_score,
+            'error_behavior': error_behavior
+        }
+
+        # the scoring_class_ (set in ``fit``) will do the scoring
+        self.scoring = None 
 
 
     def fit(self, frame):
@@ -1025,9 +1029,11 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                                           self.n_iter,
                                           random_state=self.random_state)
 
-        exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
+        # set our score class
+        self.scoring_class_ = GainsStatisticalReport(**self.grsttngs_)
 
         # we can do this once to avoid many as_data_frame operations
+        exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
         self.extra_args_ = {
             'expo' : _as_numpy(frame[exp]),
             'loss' : _as_numpy(frame[loss]),
@@ -1053,7 +1059,15 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         return the_fit
 
     def report_scores(self):
-        """Get the gains report"""
+        """Create a dataframe report for the fitting and scoring of the
+        gains search. Will report lift, gini and any other relevant metrics.
+        If a validation set was included, will also report validation scores.
+
+        Returns
+        -------
+        rdf : pd.DataFrame
+            The grid search report
+        """
         check_is_fitted(self, 'best_estimator_')
         report_res = self.scoring_class_.as_data_frame()
         n_obs, _ = report_res.shape
@@ -1082,6 +1096,15 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     @overrides(BaseH2OSearchCV)
     def score(self, frame):
+        """Predict and score on a new frame. Note that this method
+        will not store performance metrics in the report that ```report_score```
+        generates.
+
+        Parameters
+        ----------
+        frame : H2OFrame
+            The frame on which to predict and score performance.
+        """
         check_is_fitted(self, 'best_estimator_')
         e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
 
@@ -1091,7 +1114,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
             'prem' : frame[p] if p is not None else None
         }
 
-        return _score(self.best_estimator_, frame, self.target_feature, 
-                      self.scoring_class_, self.is_regression_, 
-                      **kwargs)
+        y_truth = frame[self.target_feature]
+        pred = self.best_estimator_.predict(frame)['predict']
+        return self.scoring_class_.score_no_store(y_truth, pred, **kwargs)
 
