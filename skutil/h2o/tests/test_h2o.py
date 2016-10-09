@@ -832,13 +832,12 @@ def test_h2o_with_conn():
             pass
 
     def act_search():
-        X_bost = load_boston_df()
+        tgt='target'
+        X_bost = load_boston_df(shuffle=True, include_tgt=True, tgt_name=tgt)
+        names = X_bost.columns[:-1]
 
-        # need to make up some exposure features
         X_bost['expo'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
         X_bost['loss'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
-
-        # do split
         X_train, X_test = train_test_split(X_bost, train_size=0.7)
 
         # now upload to cloud...
@@ -851,49 +850,29 @@ def test_h2o_with_conn():
 
 
         if all([x is not None for x in (train, test)]):
-            # define a pipeline
             pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer(na_warn=False)),
-                    ('mcf', H2OMulticollinearityFilterer(na_warn=False)),
-                    ('gbm', H2OGradientBoostingEstimator(ntrees=5))
+                    ('rf', H2ORandomForestEstimator(seed=42))
                 ])
 
-            # define our hyperparams
-            hyper_params = {
-                'nzv__threshold'  : uniform(1e-8, 1e-2), #[1e-8, 1e-6, 1e-4, 1e-2],
-                'mcf__threshold'  : uniform(0.85, 0.15),
-                'gbm__ntrees'     : randint(25, 100),
-                'gbm__max_depth'  : randint(2, 8),
-                'gbm__min_rows'   : randint(8, 25)
+            hyper = {
+                'rf__ntrees':[10,15]
             }
 
-            # define our grid search
-            rand_state=42
             search = H2OGainsRandomizedSearchCV(
-                                    estimator=pipe,
-                                    param_grid=hyper_params,
-                                    exposure_feature='expo',
-                                    loss_feature='loss',
-                                    random_state=rand_state,
-                                    feature_names=train.columns[:-1],
-                                    target_feature='target',
-                                    scoring='lift',
-                                    validation_frame=test,
-                                    cv=H2OKFold(n_folds=2, shuffle=True, random_state=rand_state),
-                                    verbose=1,
-                                    n_iter=1)
+                estimator=pipe,
+                param_grid=hyper,
+                exposure_feature='expo',
+                loss_feature='loss',
+                feature_names=names,
+                target_feature=tgt,
+                cv=2,
+                n_iter=2)
 
             search.fit(train)
-
-            # can we plot in the actual tests?
-            try:
-                search.plot(timestep='number_of_trees', metric='MSE')
-            except Exception as e:
-                pass # naive for now, but not even sure this can be done in nosetests...
+            search.score(test)
 
             # report:
             report = search.report_scores()
-            assert report.shape[0] == 1
 
         else:
             pass
