@@ -5,7 +5,8 @@ import warnings
 import pandas as pd
 
 from ..utils import (validate_is_pd, human_bytes, corr_plot, 
-                     load_breast_cancer_df, load_iris_df)
+                     load_breast_cancer_df, load_iris_df,
+                     load_boston_df)
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import _check_is_frame
@@ -23,6 +24,7 @@ __all__ = [
     'h2o_corr_plot',
     'h2o_frame_memory_estimate',
     'load_iris_h2o',
+    'load_boston_h2o',
     'load_breast_cancer_h2o'
 ]
 
@@ -43,6 +45,12 @@ def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
     if include_tgt:
         X[tgt_name] = X[tgt_name].asfactor()
 
+    return X
+
+
+def load_boston_h2o(include_tgt=True, tgt_name="target", shuffle=False):
+    """Load the boston housing dataset into an H2OFrame"""
+    X = from_pandas(load_boston_df(include_tgt, tgt_name, shuffle))
     return X
 
 

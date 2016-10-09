@@ -24,7 +24,7 @@ from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_binco
     load_iris_h2o, load_breast_cancer_h2o)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
-from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate
+from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold, 
@@ -830,10 +830,7 @@ def test_h2o_with_conn():
             pass
 
     def act_search():
-
-        boston = load_boston()
-        X_bost = pd.DataFrame.from_records(data=boston.data, columns=boston.feature_names)
-        X_bost['target'] = boston.target
+        X_bost = load_boston_df()
 
         # need to make up some exposure features
         X_bost['expo'] = [1+np.random.rand() for i in range(X_bost.shape[0])]
@@ -844,8 +841,8 @@ def test_h2o_with_conn():
 
         # now upload to cloud...
         try:
-            train = new_h2o_frame(X_train)
-            test = new_h2o_frame(X_test)
+            train = from_pandas(X_train)
+            test = from_pandas(X_test)
         except Exception as e:
             train = None
             test = None
@@ -876,14 +873,13 @@ def test_h2o_with_conn():
                                     exposure_feature='expo',
                                     loss_feature='loss',
                                     random_state=rand_state,
-                                    feature_names=boston.feature_names,
+                                    feature_names=train.columns[:-1],
                                     target_feature='target',
                                     scoring='lift',
                                     validation_frame=test,
                                     cv=H2OKFold(n_folds=2, shuffle=True, random_state=rand_state),
-                                    verbose=1, # don't want to go overkill
-                                    n_iter=1
-                                )
+                                    verbose=1,
+                                    n_iter=1)
 
             search.fit(train)
 
@@ -1426,6 +1422,8 @@ def test_h2o_with_conn():
 
 
     # run them
+    act_search()
+    persist()
     encoder()
     bincount()
     metrics()
@@ -1438,7 +1436,6 @@ def test_h2o_with_conn():
     split_tsts()
     sparse()
     impute()
-    persist()
     mem_est()
     corr()
     interactions()
@@ -1446,5 +1443,4 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
-    act_search()
 

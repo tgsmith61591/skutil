@@ -7,7 +7,7 @@ import scipy.stats as st
 
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix as cm
-from sklearn.datasets import load_iris, load_breast_cancer
+from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from ..base import SelectiveWarning, ModuleImportWarning
 
@@ -50,6 +50,7 @@ __all__ = [
     'human_bytes',
     'is_entirely_numeric',
     'is_numeric',
+    'load_boston_df',
     'load_breast_cancer_df',
     'load_iris_df',
     'log',
@@ -629,6 +630,31 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     if include_tgt:
         X[tgt_name] = bc.target
+        
+    return X if not shuffle else shuffle_dataframe(X)
+
+
+def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
+    """Loads the boston housing dataset into a dataframe with the
+    target set as the "target" feature or whatever name
+    is specified.
+
+    Parameters
+    ----------
+    include_tgt : bool, optional (default=True)
+        Whether to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target feature
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle the rows
+    """
+    bo = load_boston()
+    X = pd.DataFrame.from_records(data=bo.data, columns=bo.feature_names)
+
+    if include_tgt:
+        X[tgt_name] = bo.target
         
     return X if not shuffle else shuffle_dataframe(X)
 
