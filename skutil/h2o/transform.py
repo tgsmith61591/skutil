@@ -4,6 +4,7 @@ import numbers
 from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
+from .util import h2o_col_to_numpy, _unq_vals_col
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
@@ -24,22 +25,6 @@ def _flatten_one(x):
     type for each item in the vec.
     """
     return x[0] if hasattr(x, '__iter__') else x
-
-
-def _unq_vals_col(column):
-    """Get the unique values and column name
-    from a column.
-
-    Return
-    ------
-    str, np.ndarray : tuple
-        (c1_nm, unq)
-    """
-    unq = column.unique().as_data_frame(use_pandas=True)
-    c1_nm = unq.columns[0]
-    unq = unq[unq.columns[0]].sort_values().reset_index()
-
-    return c1_nm, unq
 
 
 class H2OLabelEncoder(BaseH2OTransformer):
@@ -93,13 +78,17 @@ class H2OLabelEncoder(BaseH2OTransformer):
         column = _check_is_1d_frame(column)
 
         # ensure no unseen labels
-        c1_nm, unq = _unq_vals_col(column)
-        column = column[c1_nm] # get a copy
+        unq = h2o_col_to_numpy(column.unique())
+
+        # get a copy
+        column = column[column.columns[0]]
+
         if any([i not in self.classes_ for i in unq]):
-            raise ValueError('unseen labels')
+            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
+                             % (str(self.classes_), str(unq)))
 
         # encode
-        for k,v in six.externals(self.map_):
+        for k,v in six.iteritems(self.map_):
             column[column==k] = v
 
         return column

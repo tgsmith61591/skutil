@@ -6,7 +6,6 @@ import pandas as pd
 
 from ..utils import (validate_is_pd, human_bytes, corr_plot, 
                      load_breast_cancer_df, load_iris_df)
-from .transform import _unq_vals_col
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import _check_is_frame
@@ -58,6 +57,22 @@ def h2o_col_to_numpy(column):
     x = _check_is_1d_frame(column)
     _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
     return _1d[_1d.columns[0]].values
+
+
+def _unq_vals_col(column):
+    """Get the unique values and column name
+    from a column.
+
+    Return
+    ------
+    str, np.ndarray : tuple
+        (c1_nm, unq)
+    """
+    unq = column.unique().as_data_frame(use_pandas=True)
+    c1_nm = unq.columns[0]
+    unq = unq[unq.columns[0]].sort_values().reset_index()
+
+    return c1_nm, unq
 
 
 def h2o_bincount(bins, weights=None, minlength=None):
