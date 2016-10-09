@@ -401,7 +401,7 @@ def test_h2o_with_conn():
 
         # choose a frame, either IRIS or BC...
         frame = IRIS
-        names = IRIS_NAMES if frame is IRIS else BC_NAMES
+        names = frame.columns[:-1]
 
 
         def get_param_grid(est):
