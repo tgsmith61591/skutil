@@ -102,18 +102,6 @@ def h2o_bincount(bins, weights=None, minlength=None):
     if np.abs((unq_arr.astype(np.int) - unq_arr).sum()) > 0:
         raise ValueError('values must be ints')
 
-    # check weights
-    if weights is not None:
-        if isinstance(weights, (list, tuple)):
-            weights = np.asarray(weights)
-        elif isinstance(weights, H2OFrame):
-            weights = h2o_col_to_numpy(weights)
-
-        if weights.shape[0] != all_vals.shape[0]:
-            raise ValueError('dim mismatch in weights and bins')
-    else:
-        weights = np.ones(bins.shape[0])
-
     # adjust minlength
     if minlength is None:
         minlength = 1
@@ -124,6 +112,19 @@ def h2o_bincount(bins, weights=None, minlength=None):
     # create our output array
     all_vals = h2o_col_to_numpy(bins)
     output = np.zeros(np.maximum(minlength, unq_arr.max()+1))
+
+
+    # check weights
+    if weights is not None:
+        if isinstance(weights, (list, tuple)):
+            weights = np.asarray(weights)
+        elif isinstance(weights, H2OFrame):
+            weights = h2o_col_to_numpy(weights)
+
+        if weights.shape[0] != all_vals.shape[0]:
+            raise ValueError('dim mismatch in weights and bins')
+    else:
+        weights = np.ones(array_ones.shape[0])
 
     # update our bins
     for val in unq_arr:
