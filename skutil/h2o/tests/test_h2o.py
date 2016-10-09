@@ -760,25 +760,6 @@ def test_h2o_with_conn():
             splits = [x for x in splitter.split(B, 'target')] # it's a list of tuples
 
 
-
-    def from_pandas_h2o():
-        if X is not None:
-            y = from_pandas(F)
-            assert y.shape[0] == X.shape[0]
-            assert y.shape[1] == X.shape[1]
-            assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
-        else:
-            pass
-
-    def from_array_h2o():
-        if X is not None:
-            y = from_array(F.values, F.columns.tolist())
-            assert y.shape[0] == X.shape[0]
-            assert y.shape[1] == X.shape[1]
-            assert all(y.columns[i] == F.columns.tolist()[i] for i in range(y.shape[1]))
-        else:
-            pass
-
     def split_tsts():
         # testing val_y
         assert_fails(_val_y, TypeError, 1)
@@ -1445,14 +1426,15 @@ def test_h2o_with_conn():
 
 
     # run them
+    encoder()
+    bincount()
+    metrics()
     multicollinearity()
     nzv()
     pipeline()
     grid()
     anon_class()
     cv()
-    from_pandas_h2o()
-    from_array_h2o()
     split_tsts()
     act_search()
     sparse()
@@ -1465,7 +1447,4 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
-    metrics()
-    encoder()
-    bincount()
 
