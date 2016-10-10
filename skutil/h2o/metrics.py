@@ -36,7 +36,7 @@ def _get_bool(x):
     so we need to extract the True/False value
 
     Parameter
-
+    ---------
     x : bool or iterable
         The boolean to extract
     """
@@ -53,6 +53,7 @@ def _err_for_continuous(typ):
     if typ == 'continuous':
         raise ValueError('continuous response unsupported for classification metric')
 
+
 def _err_for_discrete(typ):
     """Throw ValueError if typ is
     not continuous. Used as a utility
@@ -60,6 +61,7 @@ def _err_for_discrete(typ):
     """
     if typ != 'continuous':
         raise ValueError('discrete response unsupported for regression metric')
+
 
 def _get_mean(x):
     """Internal method. Gets the mean from
@@ -69,18 +71,19 @@ def _get_mean(x):
     """
     return flatten_all(x.mean())[0]
 
+
 def _type_of_target(y):
     """Determine the type of data indicated by target `y`.
     Adapted from sklearn.utils.multiclass.type_of_target.
     If is int, will treat the column as a factor.
 
     Parameters
-
+    ----------
     y : H2OFrame
         the y variable
 
     Returns
-
+    -------
     target_type : string
         One of:
         * 'continuous'
@@ -103,7 +106,7 @@ def _check_targets(y_true, y_pred, y_type=None):
     of the lengths of the columns match.
 
     Parameters
-
+    ----------
     y_true, y_pred : both H2OFrames
     """
     frms = [_check_is_1d_frame(arg) for arg in (y_true, y_pred)]
@@ -123,7 +126,6 @@ def _check_targets(y_true, y_pred, y_type=None):
     return y_type, y_true, y_pred
     
 
-
 def _average(score, weights=None):
     if weights is not None:
         x = score * weights
@@ -138,7 +140,7 @@ def _weighted_sum(sample_score, sample_weight, normalize):
     method for use with H2O frames.
 
     Parameters
-
+    ----------
     sample_score : H2OFrame
         The binary vector
 
@@ -159,7 +161,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     """Accuracy classification score for H2O
 
     Parameters
-
+    ----------
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -188,13 +190,13 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
 
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
                  sample_weight=None, y_type=None):
-    """Compute the F1 score, the weighted average of the precision and the
-    recall:
+    """Compute the F1 score, the weighted average of the precision 
+    and the recall:
 
-        F1 = 2 * (precision * recall) / (precision + recall)
+        ``F1 = 2 * (precision * recall) / (precision + recall)``
 
     Parameters
-
+    ----------
     y_actual : H2OFrame
         The actual labels
 
@@ -238,7 +240,7 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
         The sample weights
 
     Returns
-
+    -------
     float
     """
     return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
@@ -249,12 +251,11 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
 
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
                     average='binary', sample_weight=None, y_type=None):
-    """Compute the F-beta score
-
-    The F-beta score is the weighted harmonic mean of precision and recall.
+    """Compute the F-beta score.  The F-beta score is the weighted harmonic 
+    mean of precision and recall.
 
     Parameters
-
+    ----------
     y_actual : H2OFrame
         The actual labels
 
@@ -301,7 +302,7 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
         The sample weights
 
     Returns
-
+    -------
     float
     """
     _, _, f, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
@@ -318,13 +319,11 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
 
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                         average='binary', sample_weight=None, y_type=None):
-    """Compute the precision
-
-    Precision is the ratio ``tp / (tp + fp)`` where ``tp`` is the number of
-    true positives and ``fp`` the number of false positives.
+    """Compute the precision.  Precision is the ratio ``tp / (tp + fp)`` where ``tp`` 
+    is the number of true positives and ``fp`` the number of false positives.
 
     Parameters
-
+    ----------
     y_actual : H2OFrame
         The actual labels
 
@@ -368,7 +367,7 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
         The sample weights
 
     Returns
-
+    -------
     float
     """
 
@@ -392,7 +391,7 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
     true positives and ``fn`` the number of false negatives.
 
     Parameters
-
+    ----------
     y_actual : H2OFrame
         The actual labels
 
@@ -436,7 +435,7 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
         The sample weights
 
     Returns
-
+    -------
     float
     """
 
@@ -637,7 +636,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     """MAE score for H2O frames
 
     Parameters
-
+    ----------
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -652,7 +651,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
         The type of the column. If None, will be determined.
 
     Returns
-
+    -------
     score : float
     """
     return _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
@@ -663,7 +662,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     """Median abs error score for H2O frames
 
     Parameters
-
+    ----------
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -678,7 +677,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
         The type of the column. If None, will be determined.
 
     Returns
-
+    -------
     score : float
     """
     return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
@@ -689,7 +688,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     """R^2 score for H2O frames
 
     Parameters
-
+    ----------
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -704,7 +703,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
         The type of the column. If None, will be determined.
 
     Returns
-
+    -------
     score : float
     """
 
@@ -739,7 +738,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     """MSE score for H2O frames
 
     Parameters
-
+    ----------
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -754,7 +753,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
         The type of the column. If None, will be determined.
 
     Returns
-
+    -------
     score : float
     """
 
@@ -780,7 +779,7 @@ def make_h2o_scorer(score_function, y_true):
         ```some_function(y_true, y_pred, y_type=None...)```
 
     Parameters
-
+    ----------
     score_function : callable
         The function
 
@@ -804,7 +803,7 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
     function in the class instance.
 
     Parameters
-
+    ----------
     score_function : callable
         The function
 

@@ -2210,8 +2210,8 @@ static PyObject *__pyx_codeobj__35;
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
 
 /* Python wrapper */
@@ -2942,38 +2942,38 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
   __Pyx_RefNannySetupContext("__pyx_fuse_0_hilbert_matrix_fast", 0);
 
   /* "skutil/metrics/_kernel_fast.pyx":33
- * 	cdef INTP i, j, k
- * 	cdef double sxy, sx, sy
- * 	cdef INTP n_samples_X = X.shape[0]             # <<<<<<<<<<<<<<
- * 	cdef INTP n_features_X= X.shape[1]
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP i, j, k
+ *     cdef double sxy, sx, sy
+ *     cdef INTP n_samples_X = X.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_features_X= X.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  */
   __pyx_v_n_samples_X = (__pyx_v_X.shape[0]);
 
   /* "skutil/metrics/_kernel_fast.pyx":34
- * 	cdef double sxy, sx, sy
- * 	cdef INTP n_samples_X = X.shape[0]
- * 	cdef INTP n_features_X= X.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef double sxy, sx, sy
+ *     cdef INTP n_samples_X = X.shape[0]
+ *     cdef INTP n_features_X= X.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
  */
   __pyx_v_n_features_X = (__pyx_v_X.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":35
- * 	cdef INTP n_samples_X = X.shape[0]
- * 	cdef INTP n_features_X= X.shape[1]
- * 	cdef INTP n_features_Y= Y.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_samples_X = X.shape[0]
+ *     cdef INTP n_features_X= X.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]             # <<<<<<<<<<<<<<
  * 
- * 	with nogil:
+ *     with nogil:
  */
   __pyx_v_n_features_Y = (__pyx_v_Y.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":37
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
  */
   {
       #ifdef WITH_THREAD
@@ -2984,70 +2984,70 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
 
         /* "skutil/metrics/_kernel_fast.pyx":38
  * 
- * 	with nogil:
- * 		for i in range(n_samples_X):             # <<<<<<<<<<<<<<
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi
+ *     with nogil:
+ *         for i in range(n_samples_X):             # <<<<<<<<<<<<<<
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi
  */
         __pyx_t_1 = __pyx_v_n_samples_X;
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
           /* "skutil/metrics/_kernel_fast.pyx":39
- * 	with nogil:
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):             # <<<<<<<<<<<<<<
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *     with nogil:
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):             # <<<<<<<<<<<<<<
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
  */
           __pyx_t_3 = __pyx_v_n_features_Y;
           for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
             __pyx_v_j = __pyx_t_4;
 
             /* "skutil/metrics/_kernel_fast.pyx":40
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo
  */
             __pyx_v_sx = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":41
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
  */
             __pyx_v_sy = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":42
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]
  */
             __pyx_v_sxy = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":43
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]
  */
             __pyx_t_5 = __pyx_v_n_features_X;
             for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
               __pyx_v_k = __pyx_t_6;
 
               /* "skutil/metrics/_kernel_fast.pyx":44
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
- * 					sy += Y[k, j] * Y[k, j]
- * 					sxy += X[i, k] * Y[k, j]
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
+ *                     sy += Y[k, j] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]
  */
               __pyx_t_7 = __pyx_v_i;
               __pyx_t_8 = __pyx_v_k;
@@ -3056,10 +3056,10 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
               __pyx_v_sx = (__pyx_v_sx + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_7 * __pyx_v_X.strides[0]) ) + __pyx_t_8 * __pyx_v_X.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_9 * __pyx_v_X.strides[0]) ) + __pyx_t_10 * __pyx_v_X.strides[1]) )))));
 
               /* "skutil/metrics/_kernel_fast.pyx":45
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]             # <<<<<<<<<<<<<<
- * 					sxy += X[i, k] * Y[k, j]
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]             # <<<<<<<<<<<<<<
+ *                     sxy += X[i, k] * Y[k, j]
  * 
  */
               __pyx_t_11 = __pyx_v_k;
@@ -3069,11 +3069,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
               __pyx_v_sy = (__pyx_v_sy + ((*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_11 * __pyx_v_Y.strides[0]) ) + __pyx_t_12 * __pyx_v_Y.strides[1]) ))) * (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_13 * __pyx_v_Y.strides[0]) ) + __pyx_t_14 * __pyx_v_Y.strides[1]) )))));
 
               /* "skutil/metrics/_kernel_fast.pyx":46
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]
- * 					sxy += X[i, k] * Y[k, j]             # <<<<<<<<<<<<<<
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]             # <<<<<<<<<<<<<<
  * 
- * 				res[i, j] = ((2 * sxy) - sx - sy) * scalar
+ *                 res[i, j] = ((2 * sxy) - sx - sy) * scalar
  */
               __pyx_t_15 = __pyx_v_i;
               __pyx_t_16 = __pyx_v_k;
@@ -3083,9 +3083,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
             }
 
             /* "skutil/metrics/_kernel_fast.pyx":48
- * 					sxy += X[i, k] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]
  * 
- * 				res[i, j] = ((2 * sxy) - sx - sy) * scalar             # <<<<<<<<<<<<<<
+ *                 res[i, j] = ((2 * sxy) - sx - sy) * scalar             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -3097,11 +3097,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
       }
 
       /* "skutil/metrics/_kernel_fast.pyx":37
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -3118,8 +3118,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_6_hilbert_matrix_fast(
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
 
   /* function exit code */
@@ -3244,38 +3244,38 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
   __Pyx_RefNannySetupContext("__pyx_fuse_1_hilbert_matrix_fast", 0);
 
   /* "skutil/metrics/_kernel_fast.pyx":33
- * 	cdef INTP i, j, k
- * 	cdef double sxy, sx, sy
- * 	cdef INTP n_samples_X = X.shape[0]             # <<<<<<<<<<<<<<
- * 	cdef INTP n_features_X= X.shape[1]
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP i, j, k
+ *     cdef double sxy, sx, sy
+ *     cdef INTP n_samples_X = X.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_features_X= X.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  */
   __pyx_v_n_samples_X = (__pyx_v_X.shape[0]);
 
   /* "skutil/metrics/_kernel_fast.pyx":34
- * 	cdef double sxy, sx, sy
- * 	cdef INTP n_samples_X = X.shape[0]
- * 	cdef INTP n_features_X= X.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef double sxy, sx, sy
+ *     cdef INTP n_samples_X = X.shape[0]
+ *     cdef INTP n_features_X= X.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
  */
   __pyx_v_n_features_X = (__pyx_v_X.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":35
- * 	cdef INTP n_samples_X = X.shape[0]
- * 	cdef INTP n_features_X= X.shape[1]
- * 	cdef INTP n_features_Y= Y.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef INTP n_samples_X = X.shape[0]
+ *     cdef INTP n_features_X= X.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]             # <<<<<<<<<<<<<<
  * 
- * 	with nogil:
+ *     with nogil:
  */
   __pyx_v_n_features_Y = (__pyx_v_Y.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":37
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
  */
   {
       #ifdef WITH_THREAD
@@ -3286,70 +3286,70 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
 
         /* "skutil/metrics/_kernel_fast.pyx":38
  * 
- * 	with nogil:
- * 		for i in range(n_samples_X):             # <<<<<<<<<<<<<<
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi
+ *     with nogil:
+ *         for i in range(n_samples_X):             # <<<<<<<<<<<<<<
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi
  */
         __pyx_t_1 = __pyx_v_n_samples_X;
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
           /* "skutil/metrics/_kernel_fast.pyx":39
- * 	with nogil:
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):             # <<<<<<<<<<<<<<
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *     with nogil:
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):             # <<<<<<<<<<<<<<
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
  */
           __pyx_t_3 = __pyx_v_n_features_Y;
           for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
             __pyx_v_j = __pyx_t_4;
 
             /* "skutil/metrics/_kernel_fast.pyx":40
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi             # <<<<<<<<<<<<<<
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo
  */
             __pyx_v_sx = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":41
- * 			for j in range(n_features_Y):
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
+ *             for j in range(n_features_Y):
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?             # <<<<<<<<<<<<<<
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
  */
             __pyx_v_sy = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":42
- * 				sx = 0 # reset for every xi
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]
+ *                 sx = 0 # reset for every xi
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo             # <<<<<<<<<<<<<<
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]
  */
             __pyx_v_sxy = 0.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":43
- * 				sy = 0 # reset for every yi... might be a better way to keep track of this?
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]
+ *                 sy = 0 # reset for every yi... might be a better way to keep track of this?
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y             # <<<<<<<<<<<<<<
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]
  */
             __pyx_t_5 = __pyx_v_n_features_X;
             for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
               __pyx_v_k = __pyx_t_6;
 
               /* "skutil/metrics/_kernel_fast.pyx":44
- * 				sxy = 0 # reset for every unique XiYi combo
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
- * 					sy += Y[k, j] * Y[k, j]
- * 					sxy += X[i, k] * Y[k, j]
+ *                 sxy = 0 # reset for every unique XiYi combo
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]             # <<<<<<<<<<<<<<
+ *                     sy += Y[k, j] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]
  */
               __pyx_t_7 = __pyx_v_i;
               __pyx_t_8 = __pyx_v_k;
@@ -3358,10 +3358,10 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
               __pyx_v_sx = (__pyx_v_sx + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_7 * __pyx_v_X.strides[0]) ) + __pyx_t_8 * __pyx_v_X.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_9 * __pyx_v_X.strides[0]) ) + __pyx_t_10 * __pyx_v_X.strides[1]) )))));
 
               /* "skutil/metrics/_kernel_fast.pyx":45
- * 				for k in range(n_features_X): # k also equals the number of rows in Y
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]             # <<<<<<<<<<<<<<
- * 					sxy += X[i, k] * Y[k, j]
+ *                 for k in range(n_features_X): # k also equals the number of rows in Y
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]             # <<<<<<<<<<<<<<
+ *                     sxy += X[i, k] * Y[k, j]
  * 
  */
               __pyx_t_11 = __pyx_v_k;
@@ -3371,11 +3371,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
               __pyx_v_sy = (__pyx_v_sy + ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_11 * __pyx_v_Y.strides[0]) ) + __pyx_t_12 * __pyx_v_Y.strides[1]) ))) * (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_Y.data + __pyx_t_13 * __pyx_v_Y.strides[0]) ) + __pyx_t_14 * __pyx_v_Y.strides[1]) )))));
 
               /* "skutil/metrics/_kernel_fast.pyx":46
- * 					sx += X[i, k] * X[i, k]
- * 					sy += Y[k, j] * Y[k, j]
- * 					sxy += X[i, k] * Y[k, j]             # <<<<<<<<<<<<<<
+ *                     sx += X[i, k] * X[i, k]
+ *                     sy += Y[k, j] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]             # <<<<<<<<<<<<<<
  * 
- * 				res[i, j] = ((2 * sxy) - sx - sy) * scalar
+ *                 res[i, j] = ((2 * sxy) - sx - sy) * scalar
  */
               __pyx_t_15 = __pyx_v_i;
               __pyx_t_16 = __pyx_v_k;
@@ -3385,9 +3385,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
             }
 
             /* "skutil/metrics/_kernel_fast.pyx":48
- * 					sxy += X[i, k] * Y[k, j]
+ *                     sxy += X[i, k] * Y[k, j]
  * 
- * 				res[i, j] = ((2 * sxy) - sx - sy) * scalar             # <<<<<<<<<<<<<<
+ *                 res[i, j] = ((2 * sxy) - sx - sy) * scalar             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -3399,11 +3399,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
       }
 
       /* "skutil/metrics/_kernel_fast.pyx":37
- * 	cdef INTP n_features_Y= Y.shape[1]
+ *     cdef INTP n_features_Y= Y.shape[1]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(n_samples_X):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(n_samples_X):
+ *             for j in range(n_features_Y):
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -3420,8 +3420,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
 
   /* function exit code */
@@ -3438,8 +3438,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_8_hilbert_matrix_fast(
  * 
  * 
  * def _hilbert_dot_fast(np.ndarray[np.float_t, ndim=1, mode='c'] x,             # <<<<<<<<<<<<<<
- * 					np.ndarray[np.float_t, ndim=1, mode='c'] y,
- * 					FLOAT scalar):
+ *                     np.ndarray[np.float_t, ndim=1, mode='c'] y,
+ *                     FLOAT scalar):
  */
 
 /* Python wrapper */
@@ -3558,10 +3558,10 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
   __pyx_pybuffernd_y.diminfo[0].strides = __pyx_pybuffernd_y.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_y.diminfo[0].shape = __pyx_pybuffernd_y.rcbuffer->pybuffer.shape[0];
 
   /* "skutil/metrics/_kernel_fast.pyx":55
- * 					FLOAT scalar):
- * 	cdef int i
- * 	cdef double s1 = 0, s2 = 0, s3 = 0 # initialize the sums             # <<<<<<<<<<<<<<
- * 	cdef int len_x = x.shape[0]
+ *                     FLOAT scalar):
+ *     cdef int i
+ *     cdef double s1 = 0, s2 = 0, s3 = 0 # initialize the sums             # <<<<<<<<<<<<<<
+ *     cdef int len_x = x.shape[0]
  * 
  */
   __pyx_v_s1 = 0.0;
@@ -3569,20 +3569,20 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
   __pyx_v_s3 = 0.0;
 
   /* "skutil/metrics/_kernel_fast.pyx":56
- * 	cdef int i
- * 	cdef double s1 = 0, s2 = 0, s3 = 0 # initialize the sums
- * 	cdef int len_x = x.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef int i
+ *     cdef double s1 = 0, s2 = 0, s3 = 0 # initialize the sums
+ *     cdef int len_x = x.shape[0]             # <<<<<<<<<<<<<<
  * 
- * 	with nogil:
+ *     with nogil:
  */
   __pyx_v_len_x = (__pyx_v_x->dimensions[0]);
 
   /* "skutil/metrics/_kernel_fast.pyx":58
- * 	cdef int len_x = x.shape[0]
+ *     cdef int len_x = x.shape[0]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(len_x):
- * 			s1 += x[i] * y[i]
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(len_x):
+ *             s1 += x[i] * y[i]
  */
   {
       #ifdef WITH_THREAD
@@ -3593,31 +3593,31 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
 
         /* "skutil/metrics/_kernel_fast.pyx":59
  * 
- * 	with nogil:
- * 		for i in range(len_x):             # <<<<<<<<<<<<<<
- * 			s1 += x[i] * y[i]
- * 			s2 += x[i] * x[i]
+ *     with nogil:
+ *         for i in range(len_x):             # <<<<<<<<<<<<<<
+ *             s1 += x[i] * y[i]
+ *             s2 += x[i] * x[i]
  */
         __pyx_t_1 = __pyx_v_len_x;
         for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
           __pyx_v_i = __pyx_t_2;
 
           /* "skutil/metrics/_kernel_fast.pyx":60
- * 	with nogil:
- * 		for i in range(len_x):
- * 			s1 += x[i] * y[i]             # <<<<<<<<<<<<<<
- * 			s2 += x[i] * x[i]
- * 			s3 += y[i] * y[i]
+ *     with nogil:
+ *         for i in range(len_x):
+ *             s1 += x[i] * y[i]             # <<<<<<<<<<<<<<
+ *             s2 += x[i] * x[i]
+ *             s3 += y[i] * y[i]
  */
           __pyx_t_3 = __pyx_v_i;
           __pyx_t_4 = __pyx_v_i;
           __pyx_v_s1 = (__pyx_v_s1 + ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_float_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_x.diminfo[0].strides)) * (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_float_t *, __pyx_pybuffernd_y.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_y.diminfo[0].strides))));
 
           /* "skutil/metrics/_kernel_fast.pyx":61
- * 		for i in range(len_x):
- * 			s1 += x[i] * y[i]
- * 			s2 += x[i] * x[i]             # <<<<<<<<<<<<<<
- * 			s3 += y[i] * y[i]
+ *         for i in range(len_x):
+ *             s1 += x[i] * y[i]
+ *             s2 += x[i] * x[i]             # <<<<<<<<<<<<<<
+ *             s3 += y[i] * y[i]
  * 
  */
           __pyx_t_5 = __pyx_v_i;
@@ -3625,11 +3625,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
           __pyx_v_s2 = (__pyx_v_s2 + ((*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_float_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_x.diminfo[0].strides)) * (*__Pyx_BufPtrCContig1d(__pyx_t_5numpy_float_t *, __pyx_pybuffernd_x.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_x.diminfo[0].strides))));
 
           /* "skutil/metrics/_kernel_fast.pyx":62
- * 			s1 += x[i] * y[i]
- * 			s2 += x[i] * x[i]
- * 			s3 += y[i] * y[i]             # <<<<<<<<<<<<<<
+ *             s1 += x[i] * y[i]
+ *             s2 += x[i] * x[i]
+ *             s3 += y[i] * y[i]             # <<<<<<<<<<<<<<
  * 
- * 	return scalar * (2 * s1 - s2 - s3)
+ *     return scalar * (2 * s1 - s2 - s3)
  */
           __pyx_t_7 = __pyx_v_i;
           __pyx_t_8 = __pyx_v_i;
@@ -3638,11 +3638,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
       }
 
       /* "skutil/metrics/_kernel_fast.pyx":58
- * 	cdef int len_x = x.shape[0]
+ *     cdef int len_x = x.shape[0]
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(len_x):
- * 			s1 += x[i] * y[i]
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(len_x):
+ *             s1 += x[i] * y[i]
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -3656,9 +3656,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
   }
 
   /* "skutil/metrics/_kernel_fast.pyx":64
- * 			s3 += y[i] * y[i]
+ *             s3 += y[i] * y[i]
  * 
- * 	return scalar * (2 * s1 - s2 - s3)             # <<<<<<<<<<<<<<
+ *     return scalar * (2 * s1 - s2 - s3)             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -3673,8 +3673,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
  * 
  * 
  * def _hilbert_dot_fast(np.ndarray[np.float_t, ndim=1, mode='c'] x,             # <<<<<<<<<<<<<<
- * 					np.ndarray[np.float_t, ndim=1, mode='c'] y,
- * 					FLOAT scalar):
+ *                     np.ndarray[np.float_t, ndim=1, mode='c'] y,
+ *                     FLOAT scalar):
  */
 
   /* function exit code */
@@ -3703,8 +3703,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_2_hilbert_dot_fast(CYT
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
 
 /* Python wrapper */
@@ -4423,38 +4423,38 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
   __Pyx_RefNannySetupContext("__pyx_fuse_0_spline_kernel_fast", 0);
 
   /* "skutil/metrics/_kernel_fast.pyx":71
- * 						floating_array_2d_t res):
- * 	cdef int i, j, k
- * 	cdef int m = X.shape[0]             # <<<<<<<<<<<<<<
- * 	cdef int n = X.shape[1]
- * 	cdef int n_features_Y = Y.shape[1]
+ *                         floating_array_2d_t res):
+ *     cdef int i, j, k
+ *     cdef int m = X.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef int n = X.shape[1]
+ *     cdef int n_features_Y = Y.shape[1]
  */
   __pyx_v_m = (__pyx_v_X.shape[0]);
 
   /* "skutil/metrics/_kernel_fast.pyx":72
- * 	cdef int i, j, k
- * 	cdef int m = X.shape[0]
- * 	cdef int n = X.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef int n_features_Y = Y.shape[1]
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef int i, j, k
+ *     cdef int m = X.shape[0]
+ *     cdef int n = X.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef int n_features_Y = Y.shape[1]
+ *     cdef double prod, front, mid, back, a, b, min_el
  */
   __pyx_v_n = (__pyx_v_X.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":73
- * 	cdef int m = X.shape[0]
- * 	cdef int n = X.shape[1]
- * 	cdef int n_features_Y = Y.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef int m = X.shape[0]
+ *     cdef int n = X.shape[1]
+ *     cdef int n_features_Y = Y.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
  */
   __pyx_v_n_features_Y = (__pyx_v_Y.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":76
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(m):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(m):
+ *             for j in range(n_features_Y):
  */
   {
       #ifdef WITH_THREAD
@@ -4465,9 +4465,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
 
         /* "skutil/metrics/_kernel_fast.pyx":77
  * 
- * 	with nogil:
- * 		for i in range(m):             # <<<<<<<<<<<<<<
- * 			for j in range(n_features_Y):
+ *     with nogil:
+ *         for i in range(m):             # <<<<<<<<<<<<<<
+ *             for j in range(n_features_Y):
  * 
  */
         __pyx_t_1 = __pyx_v_m;
@@ -4475,11 +4475,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
           __pyx_v_i = __pyx_t_2;
 
           /* "skutil/metrics/_kernel_fast.pyx":78
- * 	with nogil:
- * 		for i in range(m):
- * 			for j in range(n_features_Y):             # <<<<<<<<<<<<<<
+ *     with nogil:
+ *         for i in range(m):
+ *             for j in range(n_features_Y):             # <<<<<<<<<<<<<<
  * 
- * 				## Reinitialize this for each vector dot
+ *                 ## Reinitialize this for each vector dot
  */
           __pyx_t_3 = __pyx_v_n_features_Y;
           for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
@@ -4487,19 +4487,19 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
 
             /* "skutil/metrics/_kernel_fast.pyx":81
  * 
- * 				## Reinitialize this for each vector dot
- * 				prod = 1             # <<<<<<<<<<<<<<
+ *                 ## Reinitialize this for each vector dot
+ *                 prod = 1             # <<<<<<<<<<<<<<
  * 
- * 				for k in range(n):
+ *                 for k in range(n):
  */
             __pyx_v_prod = 1.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":83
- * 				prod = 1
+ *                 prod = 1
  * 
- * 				for k in range(n):             # <<<<<<<<<<<<<<
- * 					a = X[i, k] # the element in the X matrix
- * 					b = Y[j, k] # the element in the Y matrix
+ *                 for k in range(n):             # <<<<<<<<<<<<<<
+ *                     a = X[i, k] # the element in the X matrix
+ *                     b = Y[j, k] # the element in the Y matrix
  */
             __pyx_t_5 = __pyx_v_n;
             for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
@@ -4507,9 +4507,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":84
  * 
- * 				for k in range(n):
- * 					a = X[i, k] # the element in the X matrix             # <<<<<<<<<<<<<<
- * 					b = Y[j, k] # the element in the Y matrix
+ *                 for k in range(n):
+ *                     a = X[i, k] # the element in the X matrix             # <<<<<<<<<<<<<<
+ *                     b = Y[j, k] # the element in the Y matrix
  * 
  */
               __pyx_t_7 = __pyx_v_i;
@@ -4517,11 +4517,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
               __pyx_v_a = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_7 * __pyx_v_X.strides[0]) ) + __pyx_t_8 * __pyx_v_X.strides[1]) )));
 
               /* "skutil/metrics/_kernel_fast.pyx":85
- * 				for k in range(n):
- * 					a = X[i, k] # the element in the X matrix
- * 					b = Y[j, k] # the element in the Y matrix             # <<<<<<<<<<<<<<
+ *                 for k in range(n):
+ *                     a = X[i, k] # the element in the X matrix
+ *                     b = Y[j, k] # the element in the Y matrix             # <<<<<<<<<<<<<<
  * 
- * 					# get the min between the two
+ *                     # get the min between the two
  */
               __pyx_t_9 = __pyx_v_j;
               __pyx_t_10 = __pyx_v_k;
@@ -4529,39 +4529,39 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":88
  * 
- * 					# get the min between the two
- * 					if a < b:             # <<<<<<<<<<<<<<
- * 						min_el = a
- * 					else:
+ *                     # get the min between the two
+ *                     if a < b:             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
  */
               __pyx_t_11 = ((__pyx_v_a < __pyx_v_b) != 0);
               if (__pyx_t_11) {
 
                 /* "skutil/metrics/_kernel_fast.pyx":89
- * 					# get the min between the two
- * 					if a < b:
- * 						min_el = a             # <<<<<<<<<<<<<<
- * 					else:
- * 						min_el = b
+ *                     # get the min between the two
+ *                     if a < b:
+ *                         min_el = a             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         min_el = b
  */
                 __pyx_v_min_el = __pyx_v_a;
 
                 /* "skutil/metrics/_kernel_fast.pyx":88
  * 
- * 					# get the min between the two
- * 					if a < b:             # <<<<<<<<<<<<<<
- * 						min_el = a
- * 					else:
+ *                     # get the min between the two
+ *                     if a < b:             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
  */
                 goto __pyx_L12;
               }
 
               /* "skutil/metrics/_kernel_fast.pyx":91
- * 						min_el = a
- * 					else:
- * 						min_el = b             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
+ *                         min_el = b             # <<<<<<<<<<<<<<
  * 
- * 					# compute the three parts
+ *                     # compute the three parts
  */
               /*else*/ {
                 __pyx_v_min_el = __pyx_v_b;
@@ -4570,45 +4570,45 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":94
  * 
- * 					# compute the three parts
- * 					front = a * b * (min_el + 1)             # <<<<<<<<<<<<<<
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0
+ *                     # compute the three parts
+ *                     front = a * b * (min_el + 1)             # <<<<<<<<<<<<<<
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0
  */
               __pyx_v_front = ((__pyx_v_a * __pyx_v_b) * (__pyx_v_min_el + 1.0));
 
               /* "skutil/metrics/_kernel_fast.pyx":95
- * 					# compute the three parts
- * 					front = a * b * (min_el + 1)
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)             # <<<<<<<<<<<<<<
- * 					back = pow(min_el, 3) / 3.0
- * 					prod *= (((front + 1) - mid) + back)
+ *                     # compute the three parts
+ *                     front = a * b * (min_el + 1)
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)             # <<<<<<<<<<<<<<
+ *                     back = pow(min_el, 3) / 3.0
+ *                     prod *= (((front + 1) - mid) + back)
  */
               __pyx_v_mid = (((__pyx_v_a + __pyx_v_b) / 2.0) * (__pyx_v_min_el * __pyx_v_min_el));
 
               /* "skutil/metrics/_kernel_fast.pyx":96
- * 					front = a * b * (min_el + 1)
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0             # <<<<<<<<<<<<<<
- * 					prod *= (((front + 1) - mid) + back)
+ *                     front = a * b * (min_el + 1)
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0             # <<<<<<<<<<<<<<
+ *                     prod *= (((front + 1) - mid) + back)
  * 
  */
               __pyx_v_back = (pow(__pyx_v_min_el, 3.0) / 3.0);
 
               /* "skutil/metrics/_kernel_fast.pyx":97
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0
- * 					prod *= (((front + 1) - mid) + back)             # <<<<<<<<<<<<<<
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0
+ *                     prod *= (((front + 1) - mid) + back)             # <<<<<<<<<<<<<<
  * 
- * 				## assign to output matrix
+ *                 ## assign to output matrix
  */
               __pyx_v_prod = (__pyx_v_prod * (((__pyx_v_front + 1.0) - __pyx_v_mid) + __pyx_v_back));
             }
 
             /* "skutil/metrics/_kernel_fast.pyx":100
  * 
- * 				## assign to output matrix
- * 				res[i, j] = prod             # <<<<<<<<<<<<<<
+ *                 ## assign to output matrix
+ *                 res[i, j] = prod             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -4620,11 +4620,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
       }
 
       /* "skutil/metrics/_kernel_fast.pyx":76
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(m):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(m):
+ *             for j in range(n_features_Y):
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -4641,8 +4641,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_12_spline_kernel_fast(
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
 
   /* function exit code */
@@ -4755,38 +4755,38 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
   __Pyx_RefNannySetupContext("__pyx_fuse_1_spline_kernel_fast", 0);
 
   /* "skutil/metrics/_kernel_fast.pyx":71
- * 						floating_array_2d_t res):
- * 	cdef int i, j, k
- * 	cdef int m = X.shape[0]             # <<<<<<<<<<<<<<
- * 	cdef int n = X.shape[1]
- * 	cdef int n_features_Y = Y.shape[1]
+ *                         floating_array_2d_t res):
+ *     cdef int i, j, k
+ *     cdef int m = X.shape[0]             # <<<<<<<<<<<<<<
+ *     cdef int n = X.shape[1]
+ *     cdef int n_features_Y = Y.shape[1]
  */
   __pyx_v_m = (__pyx_v_X.shape[0]);
 
   /* "skutil/metrics/_kernel_fast.pyx":72
- * 	cdef int i, j, k
- * 	cdef int m = X.shape[0]
- * 	cdef int n = X.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef int n_features_Y = Y.shape[1]
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef int i, j, k
+ *     cdef int m = X.shape[0]
+ *     cdef int n = X.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef int n_features_Y = Y.shape[1]
+ *     cdef double prod, front, mid, back, a, b, min_el
  */
   __pyx_v_n = (__pyx_v_X.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":73
- * 	cdef int m = X.shape[0]
- * 	cdef int n = X.shape[1]
- * 	cdef int n_features_Y = Y.shape[1]             # <<<<<<<<<<<<<<
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef int m = X.shape[0]
+ *     cdef int n = X.shape[1]
+ *     cdef int n_features_Y = Y.shape[1]             # <<<<<<<<<<<<<<
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
  */
   __pyx_v_n_features_Y = (__pyx_v_Y.shape[1]);
 
   /* "skutil/metrics/_kernel_fast.pyx":76
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(m):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(m):
+ *             for j in range(n_features_Y):
  */
   {
       #ifdef WITH_THREAD
@@ -4797,9 +4797,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
 
         /* "skutil/metrics/_kernel_fast.pyx":77
  * 
- * 	with nogil:
- * 		for i in range(m):             # <<<<<<<<<<<<<<
- * 			for j in range(n_features_Y):
+ *     with nogil:
+ *         for i in range(m):             # <<<<<<<<<<<<<<
+ *             for j in range(n_features_Y):
  * 
  */
         __pyx_t_1 = __pyx_v_m;
@@ -4807,11 +4807,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
           __pyx_v_i = __pyx_t_2;
 
           /* "skutil/metrics/_kernel_fast.pyx":78
- * 	with nogil:
- * 		for i in range(m):
- * 			for j in range(n_features_Y):             # <<<<<<<<<<<<<<
+ *     with nogil:
+ *         for i in range(m):
+ *             for j in range(n_features_Y):             # <<<<<<<<<<<<<<
  * 
- * 				## Reinitialize this for each vector dot
+ *                 ## Reinitialize this for each vector dot
  */
           __pyx_t_3 = __pyx_v_n_features_Y;
           for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
@@ -4819,19 +4819,19 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
 
             /* "skutil/metrics/_kernel_fast.pyx":81
  * 
- * 				## Reinitialize this for each vector dot
- * 				prod = 1             # <<<<<<<<<<<<<<
+ *                 ## Reinitialize this for each vector dot
+ *                 prod = 1             # <<<<<<<<<<<<<<
  * 
- * 				for k in range(n):
+ *                 for k in range(n):
  */
             __pyx_v_prod = 1.0;
 
             /* "skutil/metrics/_kernel_fast.pyx":83
- * 				prod = 1
+ *                 prod = 1
  * 
- * 				for k in range(n):             # <<<<<<<<<<<<<<
- * 					a = X[i, k] # the element in the X matrix
- * 					b = Y[j, k] # the element in the Y matrix
+ *                 for k in range(n):             # <<<<<<<<<<<<<<
+ *                     a = X[i, k] # the element in the X matrix
+ *                     b = Y[j, k] # the element in the Y matrix
  */
             __pyx_t_5 = __pyx_v_n;
             for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_5; __pyx_t_6+=1) {
@@ -4839,9 +4839,9 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":84
  * 
- * 				for k in range(n):
- * 					a = X[i, k] # the element in the X matrix             # <<<<<<<<<<<<<<
- * 					b = Y[j, k] # the element in the Y matrix
+ *                 for k in range(n):
+ *                     a = X[i, k] # the element in the X matrix             # <<<<<<<<<<<<<<
+ *                     b = Y[j, k] # the element in the Y matrix
  * 
  */
               __pyx_t_7 = __pyx_v_i;
@@ -4849,11 +4849,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
               __pyx_v_a = (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_7 * __pyx_v_X.strides[0]) ) + __pyx_t_8 * __pyx_v_X.strides[1]) )));
 
               /* "skutil/metrics/_kernel_fast.pyx":85
- * 				for k in range(n):
- * 					a = X[i, k] # the element in the X matrix
- * 					b = Y[j, k] # the element in the Y matrix             # <<<<<<<<<<<<<<
+ *                 for k in range(n):
+ *                     a = X[i, k] # the element in the X matrix
+ *                     b = Y[j, k] # the element in the Y matrix             # <<<<<<<<<<<<<<
  * 
- * 					# get the min between the two
+ *                     # get the min between the two
  */
               __pyx_t_9 = __pyx_v_j;
               __pyx_t_10 = __pyx_v_k;
@@ -4861,39 +4861,39 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":88
  * 
- * 					# get the min between the two
- * 					if a < b:             # <<<<<<<<<<<<<<
- * 						min_el = a
- * 					else:
+ *                     # get the min between the two
+ *                     if a < b:             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
  */
               __pyx_t_11 = ((__pyx_v_a < __pyx_v_b) != 0);
               if (__pyx_t_11) {
 
                 /* "skutil/metrics/_kernel_fast.pyx":89
- * 					# get the min between the two
- * 					if a < b:
- * 						min_el = a             # <<<<<<<<<<<<<<
- * 					else:
- * 						min_el = b
+ *                     # get the min between the two
+ *                     if a < b:
+ *                         min_el = a             # <<<<<<<<<<<<<<
+ *                     else:
+ *                         min_el = b
  */
                 __pyx_v_min_el = __pyx_v_a;
 
                 /* "skutil/metrics/_kernel_fast.pyx":88
  * 
- * 					# get the min between the two
- * 					if a < b:             # <<<<<<<<<<<<<<
- * 						min_el = a
- * 					else:
+ *                     # get the min between the two
+ *                     if a < b:             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
  */
                 goto __pyx_L12;
               }
 
               /* "skutil/metrics/_kernel_fast.pyx":91
- * 						min_el = a
- * 					else:
- * 						min_el = b             # <<<<<<<<<<<<<<
+ *                         min_el = a
+ *                     else:
+ *                         min_el = b             # <<<<<<<<<<<<<<
  * 
- * 					# compute the three parts
+ *                     # compute the three parts
  */
               /*else*/ {
                 __pyx_v_min_el = __pyx_v_b;
@@ -4902,45 +4902,45 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
 
               /* "skutil/metrics/_kernel_fast.pyx":94
  * 
- * 					# compute the three parts
- * 					front = a * b * (min_el + 1)             # <<<<<<<<<<<<<<
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0
+ *                     # compute the three parts
+ *                     front = a * b * (min_el + 1)             # <<<<<<<<<<<<<<
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0
  */
               __pyx_v_front = ((__pyx_v_a * __pyx_v_b) * (__pyx_v_min_el + 1.0));
 
               /* "skutil/metrics/_kernel_fast.pyx":95
- * 					# compute the three parts
- * 					front = a * b * (min_el + 1)
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)             # <<<<<<<<<<<<<<
- * 					back = pow(min_el, 3) / 3.0
- * 					prod *= (((front + 1) - mid) + back)
+ *                     # compute the three parts
+ *                     front = a * b * (min_el + 1)
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)             # <<<<<<<<<<<<<<
+ *                     back = pow(min_el, 3) / 3.0
+ *                     prod *= (((front + 1) - mid) + back)
  */
               __pyx_v_mid = (((__pyx_v_a + __pyx_v_b) / 2.0) * (__pyx_v_min_el * __pyx_v_min_el));
 
               /* "skutil/metrics/_kernel_fast.pyx":96
- * 					front = a * b * (min_el + 1)
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0             # <<<<<<<<<<<<<<
- * 					prod *= (((front + 1) - mid) + back)
+ *                     front = a * b * (min_el + 1)
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0             # <<<<<<<<<<<<<<
+ *                     prod *= (((front + 1) - mid) + back)
  * 
  */
               __pyx_v_back = (pow(__pyx_v_min_el, 3.0) / 3.0);
 
               /* "skutil/metrics/_kernel_fast.pyx":97
- * 					mid = ((a + b) / 2.0) * (min_el * min_el)
- * 					back = pow(min_el, 3) / 3.0
- * 					prod *= (((front + 1) - mid) + back)             # <<<<<<<<<<<<<<
+ *                     mid = ((a + b) / 2.0) * (min_el * min_el)
+ *                     back = pow(min_el, 3) / 3.0
+ *                     prod *= (((front + 1) - mid) + back)             # <<<<<<<<<<<<<<
  * 
- * 				## assign to output matrix
+ *                 ## assign to output matrix
  */
               __pyx_v_prod = (__pyx_v_prod * (((__pyx_v_front + 1.0) - __pyx_v_mid) + __pyx_v_back));
             }
 
             /* "skutil/metrics/_kernel_fast.pyx":100
  * 
- * 				## assign to output matrix
- * 				res[i, j] = prod             # <<<<<<<<<<<<<<
+ *                 ## assign to output matrix
+ *                 res[i, j] = prod             # <<<<<<<<<<<<<<
  * 
  * 
  */
@@ -4952,11 +4952,11 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
       }
 
       /* "skutil/metrics/_kernel_fast.pyx":76
- * 	cdef double prod, front, mid, back, a, b, min_el
+ *     cdef double prod, front, mid, back, a, b, min_el
  * 
- * 	with nogil:             # <<<<<<<<<<<<<<
- * 		for i in range(m):
- * 			for j in range(n_features_Y):
+ *     with nogil:             # <<<<<<<<<<<<<<
+ *         for i in range(m):
+ *             for j in range(n_features_Y):
  */
       /*finally:*/ {
         /*normal exit:*/{
@@ -4973,8 +4973,8 @@ static PyObject *__pyx_pf_6skutil_7metrics_12_kernel_fast_14_spline_kernel_fast(
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
 
   /* function exit code */
@@ -19520,8 +19520,8 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
   __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
@@ -19540,8 +19540,8 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
   __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
@@ -19772,8 +19772,8 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
   __pyx_tuple__30 = PyTuple_Pack(13, __pyx_n_s_X, __pyx_n_s_Y, __pyx_n_s_res, __pyx_n_s_scalar, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_sxy, __pyx_n_s_sx, __pyx_n_s_sy, __pyx_n_s_n_samples_X, __pyx_n_s_n_features_X, __pyx_n_s_n_features_Y); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
@@ -19784,8 +19784,8 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def _hilbert_dot_fast(np.ndarray[np.float_t, ndim=1, mode='c'] x,             # <<<<<<<<<<<<<<
- * 					np.ndarray[np.float_t, ndim=1, mode='c'] y,
- * 					FLOAT scalar):
+ *                     np.ndarray[np.float_t, ndim=1, mode='c'] y,
+ *                     FLOAT scalar):
  */
   __pyx_tuple__32 = PyTuple_Pack(8, __pyx_n_s_x, __pyx_n_s_y, __pyx_n_s_scalar, __pyx_n_s_i, __pyx_n_s_s1, __pyx_n_s_s2, __pyx_n_s_s3, __pyx_n_s_len_x); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
@@ -19796,8 +19796,8 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
   __pyx_tuple__34 = PyTuple_Pack(16, __pyx_n_s_X, __pyx_n_s_Y, __pyx_n_s_res, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_m, __pyx_n_s_n, __pyx_n_s_n_features_Y, __pyx_n_s_prod, __pyx_n_s_front, __pyx_n_s_mid, __pyx_n_s_back, __pyx_n_s_a, __pyx_n_s_b, __pyx_n_s_min_el); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
@@ -20044,8 +20044,8 @@ PyMODINIT_FUNC PyInit__kernel_fast(void)
  * 
  * 
  * def _hilbert_matrix_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res,
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res,
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -20071,8 +20071,8 @@ PyMODINIT_FUNC PyInit__kernel_fast(void)
  * 
  * 
  * def _hilbert_dot_fast(np.ndarray[np.float_t, ndim=1, mode='c'] x,             # <<<<<<<<<<<<<<
- * 					np.ndarray[np.float_t, ndim=1, mode='c'] y,
- * 					FLOAT scalar):
+ *                     np.ndarray[np.float_t, ndim=1, mode='c'] y,
+ *                     FLOAT scalar):
  */
   __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_6skutil_7metrics_12_kernel_fast_3_hilbert_dot_fast, NULL, __pyx_n_s_skutil_metrics__kernel_fast); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -20083,8 +20083,8 @@ PyMODINIT_FUNC PyInit__kernel_fast(void)
  * 
  * 
  * def _spline_kernel_fast(floating_array_2d_t X,             # <<<<<<<<<<<<<<
- * 						floating_array_2d_t Y,
- * 						floating_array_2d_t res):
+ *                         floating_array_2d_t Y,
+ *                         floating_array_2d_t res):
  */
   __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
