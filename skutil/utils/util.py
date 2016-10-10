@@ -52,6 +52,8 @@ __all__ = [
     'is_integer',
     'is_float',
     'is_numeric',
+    'is_integer',
+    'is_float',
     'load_boston_df',
     'load_breast_cancer_df',
     'load_iris_df',
