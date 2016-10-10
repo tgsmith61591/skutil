@@ -1089,7 +1089,7 @@ def test_h2o_with_conn():
             for i, HE in enumerate([H2OGradientBoostingEstimator(ntrees=5),
                                     H2ODeepLearningEstimator(epochs=1, hidden=[5,5]),
                                     H2ORandomForestEstimator(ntrees=5),
-                                    H2OGeneralizedLinearEstimator(),
+                                    H2OGeneralizedLinearEstimator(family='multinomial'),
                                     H2ONaiveBayesEstimator()]):
 
                 pipe2 = H2OPipeline([
