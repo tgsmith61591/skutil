@@ -749,14 +749,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
             base_last_step_ = estimator.steps[-1]
             estimator.steps[-1] = None
+            self.base_estimator_parms_ = base_last_step_[1]._parms # it's a tuple...
         else:
             last_step_ = self.best_estimator_
             base_last_step_ = self.estimator
             self.best_estimator_ = None
             self.estimator = None
-
-        # the base estimator's params
-        self.base_estimator_parms_ = base_last_step_._parms 
+            self.base_estimator_parms_ = base_last_step_._parms 
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
