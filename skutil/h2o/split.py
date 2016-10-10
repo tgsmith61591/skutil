@@ -90,7 +90,7 @@ def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=No
 	"""Splits an H2OFrame into random train and test subsets
 
 	Parameters
-	----------
+
 	frame : H2OFrame
 		The h2o frame to split
 
@@ -164,12 +164,12 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 		"""Generate indices to split data into training and test.
 
 		Parameters
-		----------
+
 		frame : H2OFrame
 			The h2o frame to split
 
 		Returns
-		-------
+
 		train : ndarray
 			The training set indices for the split
 

@@ -22,7 +22,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 	the implementation in the R package, caret.
 
 	Parameters
-	----------
+
 	cols : array_like (string)
 		The features to select
 
@@ -37,7 +37,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 		"""Fit the linear combination filterer.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -51,7 +51,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 		return the filtered frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -102,7 +102,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 		input frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to transform
 
@@ -120,7 +120,7 @@ def _enumLC(decomp):
 	"""Perform a single iteration of linear combo scoping.
 
 	Parameters
-	----------
+
 	qr_decomp : a QRDecomposition object
 		The QR decomposition of the matrix
 	"""

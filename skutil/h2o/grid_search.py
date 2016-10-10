@@ -173,12 +173,12 @@ def _new_base_estimator(est, clonable_kwargs):
     an estimator to clone and fit.
 
     Parameters
-    ----------
+
     est : str
         The type of model to build
 
     Returns
-    -------
+
     estimator : H2OEstimator
         The cloned base estimator
     """
@@ -206,7 +206,7 @@ def _get_estimator_string(estimator):
     estimator.
 
     Parameters
-    ----------
+
     estimator : H2OEstimator
         The estimator
     """
@@ -275,7 +275,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     """Fits the current fold on the current parameters.
 
     Parameters
-    ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit
 
@@ -320,7 +320,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
 
     Returns
-    -------
+
     list : [test_score, len(test), estimator, parameters]
     """
     if parameters is None:
@@ -647,7 +647,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         and then generate predictions.
 
         Parameters
-        ----------
+
         frame : H2OFrame
             The frame to fit
         """
@@ -775,7 +775,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         estimator implements such a function.
 
         Parameters
-        ----------
+
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
         """
@@ -788,7 +788,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
     entire hyperparameter grid provided.
 
     Parameters
-    ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
 
@@ -863,7 +863,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
     at each iteration.
 
     Parameters
-    ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
 
@@ -955,7 +955,7 @@ def _val_exp_loss_prem(x,y,z):
     for indexing an H2OFrame.
 
     Parameters
-    ----------
+
     x : str
         exp name
 
@@ -966,7 +966,7 @@ def _val_exp_loss_prem(x,y,z):
         premium name
 
     Returns
-    -------
+
     tuple :
         str, str, (str or None)
     """
@@ -987,7 +987,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     provided by the GainsStatisticalReport.
 
     Parameters
-    ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
 
@@ -1143,7 +1143,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         If a validation set was included, will also report validation scores.
 
         Returns
-        -------
+
         rdf : pd.DataFrame
             The grid search report
         """

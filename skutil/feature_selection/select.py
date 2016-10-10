@@ -40,7 +40,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
 	the provided threshold.
 
 	Parameters
-	----------
+
 	cols : array_like (string)
 		The features from which to drop
 
@@ -51,7 +51,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
 		Whether to return a dataframe
 
 	Attributes
-	----------
+
 	sparsity_ : array_like, (n_cols,)
 		The array of sparsity values
 	
@@ -89,7 +89,7 @@ class FeatureDropper(_BaseFeatureSelector):
 	Pipeline that will drop the given features from the remainder of the pipe
 
 	Parameters
-	----------
+
 	cols : array_like (string)
 		The features to drop
 
@@ -113,7 +113,7 @@ class FeatureRetainer(_BaseFeatureSelector):
 	only propagate the given features throughout the remainder of the pipe
 
 	Parameters
-	----------
+
 	cols : array_like (string)
 		The features to select
 
@@ -169,7 +169,7 @@ def filter_collinearity(c, threshold):
 	MulticollinearityFilterer as well as the H2OMulticollinearityFilterer
 
 	Parameters
-	----------
+
 	c : pandas DataFrame
 		The correlation matrix
 
@@ -177,7 +177,7 @@ def filter_collinearity(c, threshold):
 		The threshold above which to filter
 
 	Returns
-	-------
+
 	drops, macor, crrz
 		(The drop list, the mean absolute correlations, and the correlation tuples)
 	"""
@@ -259,7 +259,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 	of each feature is considered, and the feature with the highsest MAC is discarded.
 
 	Parameters
-	----------
+
 	cols : array_like, string
 		The columns used to generate the correlation matrix
 
@@ -295,7 +295,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		"""Fit the multicollinearity filterer.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -311,7 +311,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		return the filtered frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -344,7 +344,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 		input frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to transform
 
@@ -368,7 +368,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 	a certain threshold.
 
 	Parameters
-	----------
+
 	cols : array_like, string
 		The columns to evaluate for potential drops
 
@@ -401,4 +401,3 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 			self.drop = None
 
 		return self
-

@@ -100,7 +100,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
     specified.
 
     Parameters
-    ----------
+
     feature_names : array_like (string)
         The features from which to drop
 
@@ -127,12 +127,12 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         """Fit the one hot encoder.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
 
         Returns
-        -------
+
         self
         """
 
@@ -154,12 +154,12 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         """Transform a new frame after fit.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to transform
 
         Returns
-        -------
+
         X_transform
         """
         check_is_fitted(self, 'encoders_')
@@ -187,6 +187,3 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         X = X.cbind(output)
 
         return X
-
-
-

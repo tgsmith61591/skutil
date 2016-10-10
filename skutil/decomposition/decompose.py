@@ -45,7 +45,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     decomposed.
 
     Parameters
-    ----------
+
     cols : array_like (string)
         names of columns on which to apply scaling
 
@@ -85,7 +85,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
 
     Attributes
-    ----------
+
     cols : array_like (string)
         the columns
 
@@ -148,7 +148,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     and returns the "concept space" of the decomposed features.
 
     Parameters
-    ----------
+
     cols : array_like (string)
         names of columns on which to apply scaling
 
@@ -173,7 +173,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
 
     Attributes
-    ----------
+
     cols : array_like (string)
         the columns
 
@@ -215,6 +215,3 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
         return self.svd_ if hasattr(self, 'svd_') else None
-
-
-

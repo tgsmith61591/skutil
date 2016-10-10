@@ -28,7 +28,7 @@ class SafeLabelEncoder(LabelEncoder):
     instead return a default value of 99999
     
     Attributes
-    ----------
+
     classes_ : the classes that are encoded
     """
         
@@ -59,7 +59,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     to the dataframe. Finally, it will return a numpy ndarray.
     
     Parameters
-    ----------
+
     fill : str, optional (default = 'Missing')
         The value that will fill the missing values in the column
 
@@ -67,7 +67,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         Whether to return a pandas dataframe
         
     Attributes
-    ----------
+
     fill : see above
 
     as_df : see above
@@ -92,7 +92,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         """Fit the estimator.
         
         Parameters
-        ----------
+
         X : pandas dataframe
         y : passthrough for Pipeline
         """
@@ -163,7 +163,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         re-appending them to the end.
         
         Parameters
-        ----------
+
         X : pandas dataframe
         """
         check_is_fitted(self, 'obj_cols_')

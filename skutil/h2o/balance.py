@@ -32,7 +32,6 @@ def _validate_x_y_ratio(X, y, ratio):
        1.0 (inclusive)
 
     Return
-    ------
     (cts, n_classes), a tuple with the sorted class value_counts and the number of classes
     """
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
@@ -68,7 +67,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     at the target proportion to the majority class.
 
     Parameters
-    ----------
+
     target_feature : str
         The name of the response column. The response column must be
         biclass, no more or less.
@@ -90,7 +89,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         class(es) : majority class.
         
         Parameters
-        ----------
+
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance
         """
@@ -135,7 +134,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     2  10
 
     Parameters
-    ----------
+
     target_feature : str
         The name of the response column. The response column must be
         biclass, no more or less.
@@ -160,7 +159,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         class(es) : majority class
         
         Parameters
-        ----------
+
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance
         """

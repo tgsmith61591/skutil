@@ -167,7 +167,7 @@ else:
             This uses the score defined by ``scoring`` where provided, and the
             ``best_estimator_.score`` method otherwise.
             Parameters
-            ----------
+
             X : array-like or pandas DataFrame, shape = [n_samples, n_features]
                 Input data, where n_samples is the number of samples and
                 n_features is the number of features.
@@ -176,10 +176,10 @@ else:
                 Target relative to X for classification or regression;
                 None for unsupervised learning.
             Returns
-            -------
+
             score : float
             Notes
-            -----
+
              * The long-standing behavior of this method changed in version 0.16.
              * It no longer uses the metric provided by ``estimator.score`` if the
                ``scoring`` parameter was set when fitting.
@@ -207,7 +207,7 @@ else:
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict``.
             Parameters
-            -----------
+
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -221,7 +221,7 @@ else:
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict_proba``.
             Parameters
-            -----------
+
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -235,7 +235,7 @@ else:
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict_log_proba``.
             Parameters
-            -----------
+
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -249,7 +249,7 @@ else:
             Only available if ``refit=True`` and the underlying estimator supports
             ``decision_function``.
             Parameters
-            -----------
+
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -263,7 +263,7 @@ else:
             Only available if the underlying estimator supports ``transform`` and
             ``refit=True``.
             Parameters
-            -----------
+
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -277,7 +277,7 @@ else:
             Only available if the underlying estimator implements ``inverse_transform`` and
             ``refit=True``.
             Parameters
-            -----------
+
             Xt : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
                 underlying estimator.
@@ -397,7 +397,7 @@ else:
         Read more in the :ref:`User Guide <grid_search>`.
 
         Parameters
-        ----------
+
         estimator : estimator object.
             A object of that type is instantiated for each grid point.
             This is assumed to implement the scikit-learn estimator interface.
@@ -472,7 +472,7 @@ else:
             step, which will always raise the error.
 
         Examples
-        --------
+
         >>> from sklearn import svm, grid_search, datasets
         >>> iris = datasets.load_iris()
         >>> parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
@@ -491,7 +491,7 @@ else:
                scoring=..., verbose=...)
 
         Attributes
-        ----------
+
         grid_scores_ : list of named tuples
             Contains scores for all parameter combinations in param_grid.
             Each entry corresponds to one parameter setting.
@@ -517,7 +517,7 @@ else:
             parameters for the model.
 
         Notes
-        ------
+
         The parameters selected are those that maximize the score of the left out
         data, unless an explicit score is passed in which case it is used instead.
         If `n_jobs` was set to a value higher than one, the data is copied for each
@@ -529,7 +529,7 @@ else:
         n_jobs`.
 
         See Also
-        ---------
+
         :class:`ParameterGrid`:
             generates all the combinations of a hyperparameter grid.
 
@@ -555,7 +555,7 @@ else:
         def fit(self, X, y=None):
             """Run fit with all sets of parameters.
             Parameters
-            ----------
+
             X : array-like, shape = [n_samples, n_features]
                 Training vector, where n_samples is the number of samples and
                 n_features is the number of features.
@@ -595,7 +595,7 @@ else:
         Read more in the :ref:`User Guide <randomized_parameter_search>`.
 
         Parameters
-        ----------
+
         estimator : estimator object.
             A object of that type is instantiated for each grid point.
             This is assumed to implement the scikit-learn estimator interface.
@@ -675,7 +675,7 @@ else:
             step, which will always raise the error.
 
         Attributes
-        ----------
+
         grid_scores_ : list of named tuples
             Contains scores for all parameter combinations in param_grid.
             Each entry corresponds to one parameter setting.
@@ -697,7 +697,7 @@ else:
             Parameter setting that gave the best results on the hold out data.
 
         Notes
-        -----
+
         The parameters selected are those that maximize the score of the held-out
         data, according to the scoring parameter.
         If `n_jobs` was set to a value higher than one, the data is copied for each
@@ -709,7 +709,7 @@ else:
         n_jobs`.
 
         See Also
-        --------
+
         :class:`GridSearchCV`:
             Does exhaustive search over a grid of parameters.
 
@@ -734,7 +734,7 @@ else:
         def fit(self, X, y=None):
             """Run fit on the estimator with randomly drawn parameters.
             Parameters
-            ----------
+
             X : array-like, shape = [n_samples, n_features]
                 Training vector, where n_samples in the number of samples and
                 n_features is the number of features.

@@ -26,7 +26,7 @@ def _validate_all_numeric(X):
 	ValueError
 
 	Raises
-	------
+
 	ValueError if not all columns are numeric
 	"""
 	if not is_entirely_numeric(X):
@@ -37,7 +37,7 @@ def _col_mode(col):
 	"""Get the mode from a series.
 
 	Returns
-	-------
+
 	The column's most common value.
 	"""
 	vals = col.value_counts()
@@ -50,7 +50,7 @@ def _val_values(vals):
 	If not, will raise a TypeError
 
 	Raises
-	------
+
 	TypeError if not all values are numeric or 
 	in valid values.
 	"""
@@ -71,7 +71,7 @@ class ImputerMixin:
 	This mixin is used for the H2O imputer, as well.
 
 	Attributes
-	----------
+
 	_def_fill : int (default=-999999)
 		The default fill value for NaN values
 	"""
@@ -82,7 +82,7 @@ class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin
 	"""A base class for all imputers. Handles assignment of the fill value.
 	
 	Parameters
-	----------
+
 	cols : array_like, optional (default=None)
 		The columns to impute
 
@@ -106,7 +106,7 @@ class SelectiveImputer(_BaseImputer):
 	with which to impute corresponding columns.
 	
 	Parameters
-	----------
+
 	cols : array_like, optional (default=None)
 		the features to impute
 
@@ -126,7 +126,7 @@ class SelectiveImputer(_BaseImputer):
 		transformed matrix or frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -208,7 +208,7 @@ class SelectiveImputer(_BaseImputer):
 		"""Transform a dataframe given the fit imputer.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -259,7 +259,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		"""Fit the BaggedImputer.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -274,7 +274,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		transformed matrix or frame.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
@@ -377,7 +377,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		"""Transform a dataframe given the fit imputer.
 
 		Parameters
-		----------
+
 		X : pandas DataFrame
 			The frame to fit
 
