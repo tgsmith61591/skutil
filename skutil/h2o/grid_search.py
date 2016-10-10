@@ -454,7 +454,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         if isinstance(estimator, H2OPipeline) and not isinstance(estimator._final_estimator, H2OEstimator):
             raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
                             'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
-        elif not isinstace(estimator, H2OEstimator):
+        elif not isinstance(estimator, H2OEstimator):
             raise TypeError('estimator must be an H2OPipeline or an H2OEstimator. Got %s' % type(estimator))
 
 
