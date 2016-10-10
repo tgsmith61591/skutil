@@ -451,9 +451,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # of the grid search estimator to be an H2OEstimator. That means pipelines
         # that don't end in an estimator are invalid. If it's not a pipeline, it must
         # be an h2oestimator
-        if isinstance(estimator, H2OPipeline) and not isinstance(estimator._final_estimator, H2OEstimator):
-            raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
-                            'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
+        if isinstance(estimator, H2OPipeline):
+            if not isinstance(estimator._final_estimator, H2OEstimator):
+                raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
+                                'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
         elif not isinstance(estimator, H2OEstimator):
             raise TypeError('estimator must be an H2OPipeline or an H2OEstimator. Got %s' % type(estimator))
 
