@@ -1086,11 +1086,11 @@ def test_h2o_with_conn():
 
 
             # test on grid with different types of estimators (keep em small)
-            for i, HE in enumerate(H2OGradientBoostingEstimator(ntrees=5),
-                                   H2ODeepLearningEstimator(epochs=1, hidden=[5,5]),
-                                   H2ORandomForestEstimator(ntrees=5),
-                                   H2OGeneralizedLinearEstimator(),
-                                   H2ONaiveBayesEstimator()):
+            for i, HE in enumerate([H2OGradientBoostingEstimator(ntrees=5),
+                                    H2ODeepLearningEstimator(epochs=1, hidden=[5,5]),
+                                    H2ORandomForestEstimator(ntrees=5),
+                                    H2OGeneralizedLinearEstimator(),
+                                    H2ONaiveBayesEstimator()]):
 
                 pipe2 = H2OPipeline([
                     ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
