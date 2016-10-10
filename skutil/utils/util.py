@@ -49,6 +49,8 @@ __all__ = [
     'get_numeric',
     'human_bytes',
     'is_entirely_numeric',
+    'is_integer',
+    'is_float',
     'is_numeric',
     'load_boston_df',
     'load_breast_cancer_df',
@@ -403,7 +405,7 @@ def _is_int(x, tp):
     """Determine whether a column can be cast to int
     without loss of data
     """
-    if not any([tp.startswith(i) for i in ('float', 'int')]):
+    if any([not tp.startswith(i) for i in ('float', 'int')]):
         return False
 
     # if there's no difference between the two, then it's an int.
