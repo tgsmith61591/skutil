@@ -10,7 +10,8 @@ from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
                             H2OGeneralizedLinearEstimator,
                             H2OGradientBoostingEstimator,
-                            H2ODeepLearningEstimator)
+                            H2ODeepLearningEstimator,
+                            H2ONaiveBayesEstimator)
 
 from skutil.h2o import from_pandas, from_array
 from skutil.h2o.base import *
@@ -24,6 +25,7 @@ from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_binco
     load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
+from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
@@ -90,6 +92,17 @@ def test_h2o_no_conn_needed():
 
         for kwargs in vs:
             assert_fails(AnonH2O, ValueError, **kwargs)
+
+    # test NotImplemented on anonymous VizMixin
+    class AnonViz(object, VizMixin):
+        def plot(self, timestep, metric):
+            return super(AnonViz, self).plot(timestep, metric)
+
+    assert AnonViz().plot(None, None) is NotImplemented
+
+    # test _val_exp_loss_prem
+    assert_fails(_val_exp_loss_prem, TypeError, 1,2,3) # they should be strings or unicode
+    assert_fails(_val_exp_loss_prem, TypeError, '1', '2', 3) # z should also be a string
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -597,26 +610,14 @@ def test_h2o_with_conn():
 
             grid.fit(frame)
 
-
-
-            # let's assert that this will fail for princompanalysis (or anything without 'predict')
-            """
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('est', H2OPrincipalComponentAnalysisEstimator())
-            ])
-
-            hyper = {
-                'nzv__threshold' : uniform(1e-6, 0.0025)
-            }
-
+            # also, can we make it fail for non-permitted minimizer?
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
                 feature_names=F.columns.tolist(), target_feature='species',
                 scoring='accuracy_score', iid=True, verbose=0, cv=2,
-                validation_frame=frame)
+                validation_frame=frame, minimize='bad_string')
 
-            assert_fails(grid.fit, ValueError, frame) # should fail due to not having 'predict'
-            """
+            assert_fails(grid.fit, ValueError, frame) # fails because of the minimize value
+
 
         else:
             pass
@@ -1079,26 +1080,63 @@ def test_h2o_with_conn():
             pipe = H2OPipeline.load(the_path)
             pred = pipe.transform(Y)
 
+            # assert that after load, we can refit again if we want
+            pipe.fit(Y)
 
 
-            # test on grid
-            pipe2 = H2OPipeline([
-                ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
-                ('est', H2OGradientBoostingEstimator(ntrees=5))
-            ])
 
+            # test on grid with different types of estimators (keep em small)
+            for i, HE in enumerate(H2OGradientBoostingEstimator(ntrees=5),
+                                   H2ODeepLearningEstimator(),
+                                   H2ORandomForestEstimator(ntrees=5),
+                                   H2OGeneralizedLinearEstimator(),
+                                   H2ONaiveBayesEstimator(epochs=1, hidden=[5,5])):
+
+                pipe2 = H2OPipeline([
+                    ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
+                    ('est', HE)
+                ])
+
+                hyp = {
+                    'mcf__threshold':[0.80,0.85,0.90,0.95]
+                }
+
+                grid = H2ORandomizedSearchCV(estimator=pipe2, 
+                                             param_grid=hyp, 
+                                             n_iter=1, cv=2,
+                                             feature_names=Y.columns[:4],
+                                             target_feature=Y.columns[4],
+                                             scoring='accuracy_score')
+                grid = grid.fit(Y)
+                the_path = 'grid_%i.pkl' % i
+                grid.save(the_path, warn_if_exists=False)
+                assert os.path.exists(the_path)
+
+                grid = H2ORandomizedSearchCV.load(the_path)
+                grid.predict(Y)
+
+                # assert we can load again (that attributes weren't deleted)
+                grid = H2ORandomizedSearchCV.load(the_path)
+                grid.predict(Y)
+
+                # now assert that after load, we can fit again...
+                grid.fit(Y)
+
+
+            # can we perform the same thing for a grid search with no pipeline?
+            est = H2OGradientBoostingEstimator(ntrees=5)
             hyp = {
-                'mcf__threshold':[0.80,0.85,0.90,0.95]
+                'ntrees' : [5,10]
             }
+            grid = H2ORandomizedSearchCV(estimator=est, 
+                                         param_grid=hyp, 
+                                         n_iter=1, cv=2,
+                                         feature_names=Y.columns[:4],
+                                         target_feature=Y.columns[4],
+                                         scoring='accuracy_score')
 
-            grid = H2ORandomizedSearchCV(estimator=pipe2, 
-                                        param_grid=hyp, 
-                                        n_iter=1, cv=2,
-                                        feature_names=Y.columns[:4],
-                                        target_feature=Y.columns[4],
-                                        scoring='accuracy_score')
             grid = grid.fit(Y)
-            the_path = 'grid.pkl'
+            the_path = 'grid_%i.pkl' % (i+1)
             grid.save(the_path, warn_if_exists=False)
             assert os.path.exists(the_path)
 
@@ -1109,9 +1147,8 @@ def test_h2o_with_conn():
             grid = H2ORandomizedSearchCV.load(the_path)
             grid.predict(Y)
 
-            # no assert that after load, we can fit again...
-            grid.fit(Y)
-
+            # now assert that after load, we can fit again...
+            grid.fit_predict(Y)
 
         else:
             pass
