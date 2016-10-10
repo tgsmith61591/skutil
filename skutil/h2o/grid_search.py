@@ -186,8 +186,8 @@ def _new_base_estimator(est, clonable_kwargs):
         'dl'  : H2ODeepLearningEstimator,
         'gbm' : H2OGradientBoostingEstimator,
         'glm' : H2OGeneralizedLinearEstimator,
-        'glrm': H2OGeneralizedLowRankEstimator,
-        'km'  : H2OKMeansEstimator,
+        #'glrm': H2OGeneralizedLowRankEstimator,
+        #'km'  : H2OKMeansEstimator,
         'nb'  : H2ONaiveBayesEstimator,
         'rf'  : H2ORandomForestEstimator
     }
@@ -216,14 +216,17 @@ def _get_estimator_string(estimator):
         return 'gbm'
     elif isinstance(estimator, H2OGeneralizedLinearEstimator):
         return 'glm'
-    elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
-        return 'glrm'
-    elif isinstance(estimator, H2OKMeansEstimator):
-        return 'km'
+    #elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
+    #    return 'glrm'
+    #elif isinstance(estimator, H2OKMeansEstimator):
+    #    return 'km'
     elif isinstance(estimator, H2ONaiveBayesEstimator):
         return 'nb'
-    else:
+    elif isinstance(estimator, H2ORandomForestEstimator):
         return 'rf'
+    else:
+        raise TypeError('unknown type for gridsearch: %s' 
+                        % type(estimator))
 
 
 def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
@@ -320,21 +323,16 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     -------
     list : [test_score, len(test), estimator, parameters]
     """
+    if parameters is None:
+        parameters = {}
 
-    
     if verbose > 1:
-        if parameters is None:
+        if not parameters:
             msg = ''
         else:
             msg = 'Target: %s; %s' % (target_feature, ', '.join('%s=%s' % (k,v)
                                      for k, v in parameters.items()))
         print("[CV (iter %i, fold %i)] %s %s" % (iteration, cv_fold, msg, (64 - len(msg)) * '.'))
-
-    # set the params for this estimator -- also set feature_names, target_feature
-    if not isinstance(estimator, (H2OEstimator, BaseH2OFunctionWrapper)):
-        raise TypeError('estimator must be either an H2OEstimator '
-                        'or a BaseH2OFunctionWrapper but got %s'
-                        % type(estimator))
 
 
     # h2o doesn't currently re-order rows... and sometimes will
@@ -451,10 +449,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # validate the estimator... for grid search, we ONLY ALLOW the last step
         # of the grid search estimator to be an H2OEstimator. That means pipelines
-        # that don't end in an estimator are invalid.
-        if isinstance(estimator, H2OPipeline) and not isinstance(estimator._final_estimator, H2OEstimator):
-            raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
-                            'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
+        # that don't end in an estimator are invalid. If it's not a pipeline, it must
+        # be an h2oestimator
+        if isinstance(estimator, H2OPipeline):
+            if not isinstance(estimator._final_estimator, H2OEstimator):
+                raise TypeError('if estimator is H2OPipeline, its _final_estimator must '
+                                'be of type H2OEstimator. Got %s' % type(estimator._final_estimator))
+        elif not isinstance(estimator, H2OEstimator):
+            raise TypeError('estimator must be an H2OPipeline or an H2OEstimator. Got %s' % type(estimator))
 
 
         # the addition of the gains search necessitates some hackiness.
@@ -636,10 +638,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     def predict(self, frame):
         check_is_fitted(self, 'best_estimator_')
-
-        if not hasattr(self, 'predict'):
-            return NotImplemented
-
         frame = _check_is_frame(frame)
         return self.best_estimator_.predict(frame)
 
