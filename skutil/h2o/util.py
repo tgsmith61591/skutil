@@ -24,9 +24,6 @@ __all__ = [
     'h2o_col_to_numpy',
     'h2o_corr_plot',
     'h2o_frame_memory_estimate',
-    'is_integer',
-    'is_float',
-    'is_numeric',
     'load_iris_h2o',
     'load_boston_h2o',
     'load_breast_cancer_h2o'
@@ -69,23 +66,6 @@ def h2o_col_to_numpy(column):
     x = _check_is_1d_frame(column)
     _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
     return _1d[_1d.columns[0]].values
-
-
-def is_numeric(x):
-    _check_is_1d_frame(x)
-    return flatten_all(x.isnumeric())[0]
-
-
-def is_integer(x):
-    _check_is_1d_frame(x)
-    if not is_numeric(x):
-        return False
-    return (x.round(digits=0) - x).sum() == 0
-
-
-def is_float(x):
-    _check_is_1d_frame(x)
-    return is_numeric(x) and not is_integer(x)
 
 
 def _unq_vals_col(column):

@@ -1108,6 +1108,9 @@ def test_h2o_with_conn():
             grid = H2ORandomizedSearchCV.load(the_path)
             grid.predict(Y)
 
+            # no assert that after load, we can fit again...
+            grid.fit(Y)
+
 
         else:
             pass
@@ -1449,9 +1452,8 @@ def test_h2o_with_conn():
 
     # run the tests -- put new or commonly failing tests 
     # up front as smoke tests. i.e., act, persist and grid
-    isinteger_isfloat()
-    act_search()
     persist()
+    act_search()
     grid()
     encoder()
     bincount()
@@ -1472,4 +1474,5 @@ def test_h2o_with_conn():
     feature_dropper()
     scale()
     load_frames()
+    isinteger_isfloat()
 

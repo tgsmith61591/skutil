@@ -43,6 +43,13 @@ from sklearn.externals.joblib import logger
 from sklearn.base import clone, MetaEstimatorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
+from h2o.estimators import (H2ODeepLearningEstimator, 
+                            H2OGradientBoostingEstimator, 
+                            H2OGeneralizedLinearEstimator,
+                            H2OGeneralizedLowRankEstimator,
+                            H2OKMeansEstimator,
+                            H2ONaiveBayesEstimator,
+                            H2ORandomForestEstimator)
 
 try:
     import cPickle as pickle
@@ -120,6 +127,13 @@ def _as_numpy(_1d_h2o_frame):
     return f[nm].as_data_frame(use_pandas=True)[nm].values
 
 
+def _kv_str(k,v):
+    k = str(k) # h2o likes unicode...
+    # likewise, if the v is unicode, let's make it a string.
+    v = v if not isinstance(v, unicode) else str(v)
+    return k,v
+
+
 def _clone_h2o_obj(estimator, ignore=False, **kwargs):
     # do initial clone
     est = clone(estimator)
@@ -138,10 +152,7 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
 
             # so it's the last step
             for k,v in six.iteritems(e._parms):
-                k = str(k) # h2o likes unicode...
-
-                # likewise, if the v is unicode, let's make it a string.
-                v = v if not isinstance(v, unicode) else str(v)
+                k,v = _kv_str(k,v)
 
                 #if (not k in PARM_IGNORE) and (not v is None):
                 #   e._parms[k] = v
@@ -152,6 +163,67 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
             pass
 
     return est
+
+
+def _new_base_estimator(est, clonable_kwargs):
+    """When the grid searches are pickled, the estimator
+    has to be dropped out. When we load it back in, we have
+    to reinstate a new one, since the fit is predicated on
+    being able to clone a base estimator, we've got to have
+    an estimator to clone and fit.
+
+    Parameters
+    ----------
+    est : str
+        The type of model to build
+
+    Returns
+    -------
+    estimator : H2OEstimator
+        The cloned base estimator
+    """
+    est_map = {
+        'dl'  : H2ODeepLearningEstimator,
+        'gbm' : H2OGradientBoostingEstimator,
+        'glm' : H2OGeneralizedLinearEstimator,
+        'glrm': H2OGeneralizedLowRankEstimator,
+        'km'  : H2OKMeansEstimator,
+        'nb'  : H2ONaiveBayesEstimator,
+        'rf'  : H2ORandomForestEstimator
+    }
+
+    estimator = est_map[est]() # initialize the new ones
+    for k,v in six.iteritems(clonable_kwargs):
+        k,v = _kv_str(k,v)
+        estimator._parms[k] = v
+
+    return estimator
+
+
+def _get_estimator_string(estimator):
+    """Looks up the estimator string in the reverse
+    dictionary. This way we can regenerate the base 
+    estimator.
+
+    Parameters
+    ----------
+    estimator : H2OEstimator
+        The estimator
+    """
+    if isinstance(estimator, H2ODeepLearningEstimator):
+        return 'dl'
+    elif isinstance(estimator, H2OGradientBoostingEstimator):
+        return 'gbm'
+    elif isinstance(estimator, H2OGeneralizedLinearEstimator):
+        return 'glm'
+    elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
+        return 'glrm'
+    elif isinstance(estimator, H2OKMeansEstimator):
+        return 'km'
+    elif isinstance(estimator, H2ONaiveBayesEstimator):
+        return 'nb'
+    else:
+        return 'rf'
 
 
 def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
@@ -629,21 +701,23 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # otherwise it's going to be the H2OPipeline
         if model.best_estimator_ is None:
             model.best_estimator_ = the_h2o_est
+            model.estimator = _new_base_estimator(model.est_type_, model.base_estimator_parms_)
         else:
             model.best_estimator_.steps[-1] = (model.est_name_, the_h2o_est)
-            # del model.est_name_
-
-        # TODO: what do we make the estimator after the load?
-        # we can't re-fit without one...
+            model.estimator.steps[-1] = (model.est_name_, _new_base_estimator(model.est_type_, model.base_estimator_parms_))
 
         return model
 
 
     def _save_internal(self, **kwargs):
         check_is_fitted(self, 'best_estimator_')
-        estimator = self.best_estimator_
-        estimator2= self.estimator
+        best_estimator = self.best_estimator_
+        estimator = self.estimator
 
+        # the base estimator's params
+        self.base_estimator_parms_ = estimator._parms
+
+        # where we'll save things
         loc = kwargs.pop('location')
         model_loc = kwargs.pop('model_location')
 
@@ -651,41 +725,52 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # we verify pre-fit that the _final_estimator is of type H2OEstimator,
         # we can assume nothing has changed internally...
         is_pipe = False
-        if isinstance(estimator, H2OPipeline):
-            self.est_name_ = estimator.steps[-1][0]
-            the_h2o_est = estimator._final_estimator
+        if isinstance(best_estimator, H2OPipeline):
+            self.est_name_ = best_estimator.steps[-1][0]  # don't need to duplicate--can use for base
+
+            the_h2o_est = best_estimator._final_estimator
+            the_base_est= estimator._final_estimator
+
             is_pipe = True
         else:
             # otherwise it's the H2OEstimator
-            the_h2o_est = estimator
+            the_h2o_est = best_estimator
+            the_base_est = estimator
 
-        # first, save the estimator...
+        # get the key that will map to the new H2OEstimator
+        self.est_type_ = _get_estimator_string(the_base_est)
+
+        # first, save the best estimator's H2O piece...
         force = kwargs.pop('force', False)
         self.model_loc_ = h2o.save_model(model=the_h2o_est, path=model_loc, force=force)
 
-        # set to none for pickling, and then restore
+
+        # set to none for pickling, and then restore state for scoring
         if is_pipe:
-            last_step_ = estimator.steps[-1]
+            last_step_ = best_estimator.steps[-1]
+            best_estimator.steps[-1] = None
+
+            base_last_step_ = estimator.steps[-1]
             estimator.steps[-1] = None
         else:
             last_step_ = self.best_estimator_
+            base_last_step_ = self.estimator
             self.best_estimator_ = None
+            self.estimator = None
 
-        # make the self.estimator None for the pickling
-        self.estimator = None
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
+
         # restore state for re-use
         if is_pipe:
-            estimator.steps[-1] = last_step_
+            best_estimator.steps[-1] = last_step_
+            estimator.steps[-1] = base_last_step_
         else:
             self.best_estimator_ = last_step_
-
-        # also reinstate estimator for re-fitting
-        self.estimator = estimator2
+            self.estimator = base_last_step_
 
             
     @if_delegate_has_method(delegate='best_estimator_')
