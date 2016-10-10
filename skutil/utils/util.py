@@ -49,6 +49,8 @@ __all__ = [
     'get_numeric',
     'human_bytes',
     'is_entirely_numeric',
+    'is_integer',
+    'is_float',
     'is_numeric',
     'is_integer',
     'is_float',
