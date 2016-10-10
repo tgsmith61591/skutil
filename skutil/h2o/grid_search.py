@@ -714,9 +714,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         best_estimator = self.best_estimator_
         estimator = self.estimator
 
-        # the base estimator's params
-        self.base_estimator_parms_ = estimator._parms
-
         # where we'll save things
         loc = kwargs.pop('location')
         model_loc = kwargs.pop('model_location')
@@ -758,6 +755,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             self.best_estimator_ = None
             self.estimator = None
 
+        # the base estimator's params
+        self.base_estimator_parms_ = base_last_step_._parms 
 
         # now save the rest of things...
         with open(loc, 'wb') as output:
