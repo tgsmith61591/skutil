@@ -9,8 +9,8 @@ import warnings
 from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .transform import H2OLabelEncoder
-from .frame import _check_is_1d_frame
-from .util import h2o_bincount, h2o_col_to_numpy, is_integer
+from .frame import _check_is_1d_frame, is_integer
+from .util import h2o_bincount, h2o_col_to_numpy
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
 from ..utils import flatten_all

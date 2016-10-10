@@ -21,7 +21,7 @@ from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount, 
-    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o, is_integer, is_float)
+    load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
@@ -34,6 +34,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
 from skutil.utils import flatten_all
+from skutil.h2o.frame import is_integer, is_float
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -1108,6 +1109,9 @@ def test_h2o_with_conn():
             grid = H2ORandomizedSearchCV.load(the_path)
             grid.predict(Y)
 
+            # no assert that after load, we can fit again...
+            grid.fit(Y)
+
 
         else:
             pass
@@ -1449,9 +1453,8 @@ def test_h2o_with_conn():
 
     # run the tests -- put new or commonly failing tests 
     # up front as smoke tests. i.e., act, persist and grid
-    isinteger_isfloat()
-    act_search()
     persist()
+    act_search()
     grid()
     encoder()
     bincount()
@@ -1472,4 +1475,5 @@ def test_h2o_with_conn():
     feature_dropper()
     scale()
     load_frames()
+    isinteger_isfloat()
 
