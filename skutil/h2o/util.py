@@ -7,7 +7,7 @@ import pandas as pd
 from pkg_resources import parse_version
 from ..utils import (validate_is_pd, human_bytes, corr_plot, 
                      load_breast_cancer_df, load_iris_df,
-                     load_boston_df)
+                     load_boston_df, flatten_all)
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import _check_is_frame

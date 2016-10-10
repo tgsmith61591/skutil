@@ -34,6 +34,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
 from skutil.utils import flatten_all
+from skutil.h2o.frame import is_integer, is_float
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -1108,6 +1109,9 @@ def test_h2o_with_conn():
             grid = H2ORandomizedSearchCV.load(the_path)
             grid.predict(Y)
 
+            # no assert that after load, we can fit again...
+            grid.fit(Y)
+
 
         else:
             pass
@@ -1411,7 +1415,6 @@ def test_h2o_with_conn():
             pass
 
     def load_frames():
-
         if X is not None:
             # all of these assertions pass locally, but not on travis
             # for some strange reason... 
@@ -1428,12 +1431,30 @@ def test_h2o_with_conn():
         else:
             pass
 
+    def isinteger_isfloat():
+        irs = F.copy()
+        irs['species'] = iris.target
+        irs['letters'] = ['a' if i==0 else 'b' if i==1 else 'c' for i in iris.target]
+
+        try:
+            I = from_pandas(irs)
+        except Exception as e:
+            I = None
+
+        if I is not None:
+            assert is_integer(I['species'])
+            assert is_float(I['sepal width (cm)'])
+            assert not is_integer(I['letters'])
+            assert not is_float(I['letters'])
+        else:
+            pass
+
+
 
     # run the tests -- put new or commonly failing tests 
     # up front as smoke tests. i.e., act, persist and grid
-    load_frames()
-    act_search()
     persist()
+    act_search()
     grid()
     encoder()
     bincount()
@@ -1453,4 +1474,6 @@ def test_h2o_with_conn():
     encode()
     feature_dropper()
     scale()
+    load_frames()
+    isinteger_isfloat()
 

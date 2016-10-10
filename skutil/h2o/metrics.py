@@ -9,7 +9,7 @@ import warnings
 from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .transform import H2OLabelEncoder
-from .frame import _check_is_1d_frame
+from .frame import _check_is_1d_frame, is_integer
 from .util import h2o_bincount, h2o_col_to_numpy
 from ..metrics import GainsStatisticalReport
 from ..base import overrides
@@ -46,17 +46,20 @@ def _get_bool(x):
 
 
 def _err_for_continuous(typ):
+    """Throw ValueError if typ is
+    continuous. Used as a utility
+    for type checking.
+    """
     if typ == 'continuous':
         raise ValueError('continuous response unsupported for classification metric')
 
 def _err_for_discrete(typ):
+    """Throw ValueError if typ is
+    not continuous. Used as a utility
+    for type checking.
+    """
     if typ != 'continuous':
         raise ValueError('discrete response unsupported for regression metric')
-
-def _is_int(x):
-    if not x.isnumeric():
-        return False
-    return (x.round(digits=0) - x).sum() == 0
 
 def _get_mean(x):
     """Internal method. Gets the mean from
@@ -86,7 +89,7 @@ def _type_of_target(y):
         * 'unknown'
     """
     _check_is_1d_frame(y)
-    if _get_bool(y.isfactor()) or _is_int(y):
+    if _get_bool(y.isfactor()) or is_integer(y):
         unq = y.unique()
         return 'unknown' if unq.shape[0] < 2 else\
             'binary' if unq.shape[0] == 2 else\
