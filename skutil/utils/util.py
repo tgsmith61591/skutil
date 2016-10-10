@@ -50,6 +50,8 @@ __all__ = [
     'human_bytes',
     'is_entirely_numeric',
     'is_numeric',
+    'is_integer',
+    'is_float',
     'load_boston_df',
     'load_breast_cancer_df',
     'load_iris_df',
