@@ -407,7 +407,7 @@ def _is_int(x, tp):
     """Determine whether a column can be cast to int
     without loss of data
     """
-    if any([not tp.startswith(i) for i in ('float', 'int')]):
+    if not any([tp.startswith(i) for i in ('float', 'int')]):
         return False
 
     # if there's no difference between the two, then it's an int.
