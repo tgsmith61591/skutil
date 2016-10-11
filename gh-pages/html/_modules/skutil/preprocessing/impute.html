@@ -1,0 +1,750 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.preprocessing.impute &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.preprocessing.impute</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.preprocessing.impute</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">is_classifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">Imputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">BaggingRegressor</span><span class="p">,</span> <span class="n">BaggingClassifier</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">SelectiveMixin</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_entirely_numeric</span><span class="p">,</span> <span class="n">get_numeric</span><span class="p">,</span> <span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">is_numeric</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+	<span class="s1">&#39;BaggedImputer&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;BaggedCategoricalImputer&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;ImputerMixin&#39;</span><span class="p">,</span>
+	<span class="s1">&#39;SelectiveImputer&#39;</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_all_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Validate that all columns in X</span>
+<span class="sd">	are numeric types. If not, raises a</span>
+<span class="sd">	ValueError</span>
+
+<span class="sd">	Raises</span>
+
+<span class="sd">	ValueError if not all columns are numeric</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">is_entirely_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+		<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;provided columns must be of only numeric columns&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_col_mode</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Get the mode from a series.</span>
+
+<span class="sd">	Returns</span>
+
+<span class="sd">	The column&#39;s most common value.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">vals</span> <span class="o">=</span> <span class="n">col</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+	<span class="k">return</span> <span class="n">vals</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vals</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="n">vals</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_val_values</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Validate that all values in the iterable</span>
+<span class="sd">	are either numeric, or in (&#39;mode&#39;, &#39;median&#39;, &#39;mean&#39;).</span>
+<span class="sd">	If not, will raise a TypeError</span>
+
+<span class="sd">	Raises</span>
+
+<span class="sd">	TypeError if not all values are numeric or </span>
+<span class="sd">	in valid values.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span>
+		<span class="p">(</span><span class="n">is_numeric</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">or</span> \
+			<span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">))</span> <span class="ow">and</span> \
+			<span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">))</span> \
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vals</span>
+	<span class="p">]):</span>
+		<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;All values in self.fill must be numeric or in (&quot;mode&quot;, &quot;mean&quot;, &quot;median&quot;). &#39;</span>
+						<span class="s1">&#39;Got: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span>
+
+
+<span class="c1">###############################################################################</span>
+
+<div class="viewcode-block" id="ImputerMixin"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.ImputerMixin">[docs]</a><span class="k">class</span> <span class="nc">ImputerMixin</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;A mixin for all imputer classes. Contains the default fill value. </span>
+<span class="sd">	This mixin is used for the H2O imputer, as well.</span>
+
+<span class="sd">	Attributes</span>
+
+<span class="sd">	_def_fill : int (default=-999999)</span>
+<span class="sd">		The default fill value for NaN values</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">_def_fill</span> <span class="o">=</span> <span class="o">-</span><span class="mi">999999</span></div>
+
+
+<span class="k">class</span> <span class="nc">_BaseImputer</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">SelectiveMixin</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">ImputerMixin</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;A base class for all imputers. Handles assignment of the fill value.</span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+
+<span class="sd">	cols : array_like, optional (default=None)</span>
+<span class="sd">		The columns to impute</span>
+
+<span class="sd">	as_df : bool, optional (default=True)</span>
+<span class="sd">		Whether to return a data frame</span>
+
+<span class="sd">	def_fill : int, float, string or iterable, optional (default=None)</span>
+<span class="sd">		The fill values to use for missing values in columns</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fill_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_def_fill</span> <span class="k">if</span> <span class="n">def_fill</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">def_fill</span>
+
+
+<div class="viewcode-block" id="SelectiveImputer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveImputer">[docs]</a><span class="k">class</span> <span class="nc">SelectiveImputer</span><span class="p">(</span><span class="n">_BaseImputer</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;A more customizable form on sklearn&#39;s Imputer class. This class</span>
+<span class="sd">	can handle more than mean, median or most common... it will also take</span>
+<span class="sd">	numeric values. Moreover, it will take a vector of strategies or values</span>
+<span class="sd">	with which to impute corresponding columns.</span>
+<span class="sd">	</span>
+<span class="sd">	Parameters</span>
+
+<span class="sd">	cols : array_like, optional (default=None)</span>
+<span class="sd">		the features to impute</span>
+
+<span class="sd">	as_df : boolean , optional (default=True)</span>
+<span class="sd">		whether to return a dataframe</span>
+
+<span class="sd">	def_fill : int, optional (default=None)</span>
+<span class="sd">		the fill to use for missing values in the training matrix </span>
+<span class="sd">		when fitting a SelectiveClassifier. If None, will default to &#39;mean&#39;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">SelectiveImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="p">,</span> <span class="n">def_fill</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SelectiveImputer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveImputer.fit">[docs]</a>	<span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Fit the CategoricalImputer and return the </span>
+<span class="sd">		transformed matrix or frame.</span>
+
+<span class="sd">		Parameters</span>
+
+<span class="sd">		X : pandas DataFrame</span>
+<span class="sd">			The frame to fit</span>
+
+<span class="sd">		y : None, passthrough for pipeline</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># check on state of X and cols</span>
+		<span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+		<span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+
+		<span class="c1"># validate the fill, do fit</span>
+		<span class="n">fill</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+			<span class="n">fill</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fill</span><span class="p">)</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">fill</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;self.fill must be either &quot;mode&quot;, &quot;mean&quot;, &quot;median&quot;, None, &#39;</span>
+								<span class="s1">&#39;a number, or an iterable. Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fill</span><span class="p">)</span>
+
+			<span class="k">if</span> <span class="n">fill</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
+				<span class="c1"># for each column to impute, we go through and get the value counts</span>
+				<span class="c1"># of each, sorting by the max...</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">modes_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_col_mode</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span>
+
+			<span class="k">elif</span> <span class="n">fill</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">modes_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">))))</span>
+
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">modes_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">))))</span>
+
+
+		<span class="c1"># if the fill is an iterable, we have to get a bit more stringent on our validation</span>
+		<span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+
+			<span class="c1"># if fill is a dictionary</span>
+			<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+				<span class="c1"># if it&#39;s a dict, we can assume that these are the cols...</span>
+				<span class="n">cols</span><span class="p">,</span> <span class="n">fill</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">fill</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="c1"># we reset self.cols in this case!!!</span>
+
+
+			<span class="c1"># we need to get the length of the iterable,</span>
+			<span class="c1"># make sure it matches the len of cols</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">fill</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;len of fill does not match that of cols&#39;</span><span class="p">)</span>
+
+			<span class="c1"># make sure they&#39;re all ints</span>
+			<span class="n">_val_values</span><span class="p">(</span><span class="n">fill</span><span class="p">)</span>
+			<span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+			<span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+				<span class="n">f</span> <span class="o">=</span> <span class="n">fill</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+				<span class="k">if</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+					<span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">the_col</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+					<span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
+						<span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_col_mode</span><span class="p">(</span><span class="n">the_col</span><span class="p">)</span>
+					<span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+						<span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmedian</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">modes_</span> <span class="o">=</span> <span class="n">d</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">fill</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;self.fill must be either &quot;mode&quot;, &quot;mean&quot;, &quot;median&quot;, None, &#39;</span>
+								<span class="s1">&#39;a number, or an iterable. Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">fill</span><span class="p">))</span>
+
+			<span class="c1"># either the fill is an int, or it&#39;s something the user provided...</span>
+			<span class="c1"># if it&#39;s not an int or float, we&#39;ll let it go and not catch it because</span>
+			<span class="c1"># the it&#39;s their fault they were dumb.</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">modes_</span> <span class="o">=</span> <span class="n">fill</span>
+
+		<span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="SelectiveImputer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveImputer.transform">[docs]</a>	<span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform a dataframe given the fit imputer.</span>
+
+<span class="sd">		Parameters</span>
+
+<span class="sd">		X : pandas DataFrame</span>
+<span class="sd">			The frame to fit</span>
+
+<span class="sd">		y : None, passthrough for pipeline</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;modes_&#39;</span><span class="p">)</span>
+		<span class="c1"># check on state of X and cols</span>
+		<span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+		<span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+
+		<span class="c1"># get the fills</span>
+		<span class="n">modes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modes_</span>
+
+		<span class="c1"># if it&#39;s a single int, easy:</span>
+		<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">modes</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+			<span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># it&#39;s a dict</span>
+			<span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+				<span class="n">X</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="n">nm</span><span class="p">])</span>
+
+		<span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_BaseBaggedImputer</span><span class="p">(</span><span class="n">_BaseImputer</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">base_estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_estimators</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+		<span class="n">max_samples</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bootstrap_features</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">oob_score</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+		<span class="n">def_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_classification</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+		<span class="nb">super</span><span class="p">(</span><span class="n">_BaseBaggedImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="n">def_fill</span><span class="p">)</span>
+
+		<span class="c1"># set self attributes</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">base_estimator</span> <span class="o">=</span> <span class="n">base_estimator</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">n_estimators</span> <span class="o">=</span> <span class="n">n_estimators</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">max_samples</span> <span class="o">=</span> <span class="n">max_samples</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">max_features</span> <span class="o">=</span> <span class="n">max_features</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bootstrap</span> <span class="o">=</span> <span class="n">bootstrap</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_features</span> <span class="o">=</span> <span class="n">bootstrap_features</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">oob_score</span> <span class="o">=</span> <span class="n">oob_score</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="o">=</span> <span class="n">is_classification</span>
+
+	<span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Fit the BaggedImputer.</span>
+
+<span class="sd">		Parameters</span>
+
+<span class="sd">		X : pandas DataFrame</span>
+<span class="sd">			The frame to fit</span>
+
+<span class="sd">		y : None, passthrough for pipeline</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span>
+
+	<span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Fit the BaggedImputer and return the </span>
+<span class="sd">		transformed matrix or frame.</span>
+
+<span class="sd">		Parameters</span>
+
+<span class="sd">		X : pandas DataFrame</span>
+<span class="sd">			The frame to fit</span>
+
+<span class="sd">		y : None, passthrough for pipeline</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># check on state of X and cols</span>
+		<span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+		<span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+
+		<span class="c1"># subset, validate</span>
+		<span class="c1"># we have to validate that all of the columns we&#39;re going to impute</span>
+		<span class="c1"># are numeric (this could be float, or int...).</span>
+		<span class="n">_validate_all_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
+
+		<span class="c1"># we need to get all of the numerics out of X, because these are</span>
+		<span class="c1"># the features we&#39;ll be modeling on.</span>
+		<span class="n">numeric_cols</span> <span class="o">=</span> <span class="n">get_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+		<span class="n">numerics</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">numeric_cols</span><span class="p">]</span>
+
+		<span class="c1"># if is_classification and our estimator is NOT, then we need to raise</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_estimator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_estimator</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;self.is_classification=True, &#39;</span>
+								<span class="s1">&#39;but base_estimator is not a classifier&#39;</span><span class="p">)</span>
+
+		<span class="c1"># set which estimator type to fit:</span>
+		<span class="n">_model</span> <span class="o">=</span> <span class="n">BaggingRegressor</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="k">else</span> <span class="n">BaggingClassifier</span>
+
+		<span class="c1"># if there&#39;s only one numeric, we know at this point it&#39;s the one</span>
+		<span class="c1"># we&#39;re imputing. In that case, there&#39;s too few cols on which to model</span>
+		<span class="k">if</span> <span class="n">numerics</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;too few numeric columns on which to model&#39;</span><span class="p">)</span>
+
+
+		<span class="c1"># the core algorithm:</span>
+		<span class="c1"># - for each col to impute</span>
+		<span class="c1">#   - subset to all numeric columns except the col to impute</span>
+		<span class="c1">#   - retain only the complete observations, separate the missing observations</span>
+		<span class="c1">#   - build a bagging regressor model to predict for observations with missing values</span>
+		<span class="c1">#   - fill in missing values in a copy of the dataframe</span>
+
+		<span class="n">models</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+			<span class="n">x</span> <span class="o">=</span> <span class="n">numerics</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>              <span class="c1"># get copy of numerics for this model iteration</span>
+			<span class="n">y_missing</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>    <span class="c1"># boolean vector of which are missing in the current y</span>
+			<span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>                   <span class="c1"># pop off the y vector from the matrix</span>
+
+			<span class="c1"># if y_missing is all of the rows, we need to bail</span>
+			<span class="k">if</span> <span class="n">y_missing</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+				<span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> has all missing values, cannot train model&#39;</span> <span class="o">%</span> <span class="n">col</span><span class="p">)</span>
+
+			<span class="c1"># at this point we&#39;ve identified which y values we need to predict, however, we still</span>
+			<span class="c1"># need to prep our x matrix... There are a few corner cases we need to account for:</span>
+			<span class="c1"># </span>
+			<span class="c1"># 1. there are no complete rows in the X matrix</span>
+			<span class="c1">#   - we can eliminate some columns to model on in this case, but there&#39;s no silver bullet</span>
+			<span class="c1"># 2. the cols selected for model building are missing in the rows needed to impute.</span>
+			<span class="c1">#   - this is a hard solution that requires even more NA imputation...</span>
+			<span class="c1"># </span>
+			<span class="c1"># the most &quot;catch-all&quot; solution is going to be to fill all missing values with some val, say -999999</span>
+
+			<span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill_</span><span class="p">)</span>
+			<span class="n">X_train</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">~</span><span class="n">y_missing</span><span class="p">]</span>          <span class="c1"># the rows that don&#39;t correspond to missing y values</span>
+			<span class="n">X_test</span>  <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">y_missing</span><span class="p">]</span>           <span class="c1"># the rows to &quot;predict&quot; on</span>
+			<span class="n">y_train</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">~</span><span class="n">y_missing</span><span class="p">]</span>          <span class="c1"># the training y vector</span>
+
+			<span class="c1"># define the model</span>
+			<span class="n">model</span> <span class="o">=</span> <span class="n">_model</span><span class="p">(</span>
+				<span class="n">base_estimator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_estimator</span><span class="p">,</span>
+				<span class="n">n_estimators</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_estimators</span><span class="p">,</span>
+				<span class="n">max_samples</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_samples</span><span class="p">,</span>
+				<span class="n">max_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_features</span><span class="p">,</span>
+				<span class="n">bootstrap</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bootstrap</span><span class="p">,</span>
+				<span class="n">bootstrap_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bootstrap_features</span><span class="p">,</span>
+				<span class="n">oob_score</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">oob_score</span><span class="p">,</span>
+				<span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span>
+				<span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">,</span>
+				<span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span>
+
+			<span class="c1"># fit the model</span>
+			<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+
+			<span class="c1"># predict on the missing values, stash the model and the features used to train it</span>
+			<span class="k">if</span> <span class="n">X_test</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># only do this step if there are actually any missing</span>
+				<span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+				<span class="n">X</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">y_missing</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_pred</span> <span class="c1"># fill the y vector missing slots and reassign back to X</span>
+
+			<span class="n">models</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+				<span class="s1">&#39;model&#39;</span>         <span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+				<span class="s1">&#39;feature_names&#39;</span> <span class="p">:</span> <span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+			<span class="p">}</span>
+
+
+		<span class="c1"># assign the model dict to self -- this is the &quot;fit&quot; portion</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">models_</span> <span class="o">=</span> <span class="n">models</span>
+		<span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+
+	<span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Transform a dataframe given the fit imputer.</span>
+
+<span class="sd">		Parameters</span>
+
+<span class="sd">		X : pandas DataFrame</span>
+<span class="sd">			The frame to fit</span>
+
+<span class="sd">		y : None, passthrough for pipeline</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;models_&#39;</span><span class="p">)</span>
+		<span class="c1"># check on state of X and cols</span>
+		<span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+		<span class="c1"># perform the transformations for missing vals</span>
+		<span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">models_</span>
+		<span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">kv</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">models</span><span class="p">):</span>
+			<span class="n">features</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">kv</span><span class="p">[</span><span class="s1">&#39;feature_names&#39;</span><span class="p">],</span> <span class="n">kv</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span>
+			<span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="c1"># the y we&#39;re predicting</span>
+
+			<span class="c1"># this will throw a key error if one of the features isn&#39;t there</span>
+			<span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">features</span><span class="p">]</span> <span class="c1"># we need another copy</span>
+
+			<span class="c1"># if col is in the features, there&#39;s something wrong internally</span>
+			<span class="k">assert</span> <span class="ow">not</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">features</span><span class="p">,</span> <span class="s1">&#39;predictive column should not be in fit features (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">col</span>
+
+			<span class="c1"># since this is a copy, we can add the missing vals where needed</span>
+			<span class="n">X_test</span> <span class="o">=</span> <span class="n">X_test</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill_</span><span class="p">)</span>
+
+			<span class="c1"># generate predictions, subset where y was null</span>
+			<span class="n">y_null</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+			<span class="n">pred_y</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">y_null</span><span class="p">])</span>
+
+			<span class="c1"># fill where necessary:</span>
+			<span class="k">if</span> <span class="n">y_null</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+				<span class="n">y</span><span class="p">[</span><span class="n">y_null</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred_y</span> <span class="c1"># fill where null</span>
+				<span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span> <span class="c1"># set back to X</span>
+
+		<span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+
+
+
+<div class="viewcode-block" id="BaggedCategoricalImputer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BaggedCategoricalImputer">[docs]</a><span class="k">class</span> <span class="nc">BaggedCategoricalImputer</span><span class="p">(</span><span class="n">_BaseBaggedImputer</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Performs imputation on select columns by using BaggingRegressors</span>
+<span class="sd">	on the provided columns.</span>
+
+<span class="sd">	cols : array_like, optional (default=None)</span>
+<span class="sd">		the features to impute</span>
+
+<span class="sd">	base_estimator : object or None, optional (default=None)</span>
+<span class="sd">		The base estimator to fit on random subsets of the dataset. </span>
+<span class="sd">		If None, then the base estimator is a decision tree.</span>
+
+<span class="sd">	n_estimators : int, optional (default=10)</span>
+<span class="sd">		The number of base estimators in the ensemble.</span>
+
+<span class="sd">	max_samples : int or float, optional (default=1.0)</span>
+<span class="sd">		The number of samples to draw from X to train each base estimator.</span>
+<span class="sd">		If int, then draw max_samples samples.</span>
+<span class="sd">		If float, then draw max_samples * X.shape[0] samples.</span>
+
+<span class="sd">	max_features : int or float, optional (default=1.0)</span>
+<span class="sd">		The number of features to draw from X to train each base estimator.</span>
+<span class="sd">		If int, then draw max_features features.</span>
+<span class="sd">		If float, then draw max_features * X.shape[1] features.</span>
+
+<span class="sd">	bootstrap : boolean, optional (default=True)</span>
+<span class="sd">		Whether samples are drawn with replacement.</span>
+
+<span class="sd">	bootstrap_features : boolean, optional (default=False)</span>
+<span class="sd">		Whether features are drawn with replacement.</span>
+
+<span class="sd">	oob_score : bool, optional (default=False)</span>
+<span class="sd">		Whether to use out-of-bag samples to estimate the generalization error.</span>
+
+<span class="sd">	n_jobs : int, optional (default=1)</span>
+<span class="sd">		The number of jobs to run in parallel for both fit and predict. If -1, </span>
+<span class="sd">		then the number of jobs is set to the number of cores.</span>
+<span class="sd">	</span>
+<span class="sd">	random_state : int, RandomState instance or None, optional (default=None)</span>
+<span class="sd">		If int, random_state is the seed used by the random number generator; If </span>
+<span class="sd">		RandomState instance, random_state is the random number generator; If None, </span>
+<span class="sd">		the random number generator is the RandomState instance used by np.random.</span>
+<span class="sd">	</span>
+<span class="sd">	verbose : int, optional (default=0)</span>
+<span class="sd">		Controls the verbosity of the building process.</span>
+
+<span class="sd">	as_df : boolean , optional (default=True)</span>
+<span class="sd">		whether to return a dataframe</span>
+
+<span class="sd">	def_fill : int, optional (default=None)</span>
+<span class="sd">		the fill to use for missing values in the training matrix </span>
+<span class="sd">		when fitting a BaggingClassifier. If None, will default to -999999</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">base_estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_estimators</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+		<span class="n">max_samples</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bootstrap_features</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">oob_score</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+		<span class="c1"># categorical imputer needs to be classification</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">BaggedCategoricalImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+			<span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="n">def_fill</span><span class="p">,</span> 
+			<span class="n">base_estimator</span><span class="o">=</span><span class="n">base_estimator</span><span class="p">,</span> <span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">,</span> 
+			<span class="n">max_samples</span><span class="o">=</span><span class="n">max_samples</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="n">max_features</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="n">bootstrap</span><span class="p">,</span> 
+			<span class="n">bootstrap_features</span><span class="o">=</span><span class="n">bootstrap_features</span><span class="p">,</span> <span class="n">oob_score</span><span class="o">=</span><span class="n">oob_score</span><span class="p">,</span> 
+			<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> 
+			<span class="n">is_classification</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="BaggedImputer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BaggedImputer">[docs]</a><span class="k">class</span> <span class="nc">BaggedImputer</span><span class="p">(</span><span class="n">_BaseBaggedImputer</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Performs imputation on select columns by using BaggingRegressors</span>
+<span class="sd">	on the provided columns.</span>
+
+<span class="sd">	cols : array_like, optional (default=None)</span>
+<span class="sd">		the features to impute</span>
+
+<span class="sd">	base_estimator : object or None, optional (default=None)</span>
+<span class="sd">		The base estimator to fit on random subsets of the dataset. </span>
+<span class="sd">		If None, then the base estimator is a decision tree.</span>
+
+<span class="sd">	n_estimators : int, optional (default=10)</span>
+<span class="sd">		The number of base estimators in the ensemble.</span>
+
+<span class="sd">	max_samples : int or float, optional (default=1.0)</span>
+<span class="sd">		The number of samples to draw from X to train each base estimator.</span>
+<span class="sd">		If int, then draw max_samples samples.</span>
+<span class="sd">		If float, then draw max_samples * X.shape[0] samples.</span>
+
+<span class="sd">	max_features : int or float, optional (default=1.0)</span>
+<span class="sd">		The number of features to draw from X to train each base estimator.</span>
+<span class="sd">		If int, then draw max_features features.</span>
+<span class="sd">		If float, then draw max_features * X.shape[1] features.</span>
+
+<span class="sd">	bootstrap : boolean, optional (default=True)</span>
+<span class="sd">		Whether samples are drawn with replacement.</span>
+
+<span class="sd">	bootstrap_features : boolean, optional (default=False)</span>
+<span class="sd">		Whether features are drawn with replacement.</span>
+
+<span class="sd">	oob_score : bool, optional (default=False)</span>
+<span class="sd">		Whether to use out-of-bag samples to estimate the generalization error.</span>
+
+<span class="sd">	n_jobs : int, optional (default=1)</span>
+<span class="sd">		The number of jobs to run in parallel for both fit and predict. If -1, </span>
+<span class="sd">		then the number of jobs is set to the number of cores.</span>
+<span class="sd">	</span>
+<span class="sd">	random_state : int, RandomState instance or None, optional (default=None)</span>
+<span class="sd">		If int, random_state is the seed used by the random number generator; If </span>
+<span class="sd">		RandomState instance, random_state is the random number generator; If None, </span>
+<span class="sd">		the random number generator is the RandomState instance used by np.random.</span>
+<span class="sd">	</span>
+<span class="sd">	verbose : int, optional (default=0)</span>
+<span class="sd">		Controls the verbosity of the building process.</span>
+
+<span class="sd">	as_df : boolean , optional (default=True)</span>
+<span class="sd">		whether to return a dataframe</span>
+
+<span class="sd">	def_fill : int, optional (default=None)</span>
+<span class="sd">		the fill to use for missing values in the training matrix </span>
+<span class="sd">		when fitting a BaggingRegressor. If None, will default to -999999</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">base_estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_estimators</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+		<span class="n">max_samples</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bootstrap_features</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+		<span class="n">oob_score</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+		<span class="c1"># invoke super constructor</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">BaggedImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+			<span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="n">def_fill</span><span class="p">,</span> 
+			<span class="n">base_estimator</span><span class="o">=</span><span class="n">base_estimator</span><span class="p">,</span> <span class="n">n_estimators</span><span class="o">=</span><span class="n">n_estimators</span><span class="p">,</span> 
+			<span class="n">max_samples</span><span class="o">=</span><span class="n">max_samples</span><span class="p">,</span> <span class="n">max_features</span><span class="o">=</span><span class="n">max_features</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="n">bootstrap</span><span class="p">,</span> 
+			<span class="n">bootstrap_features</span><span class="o">=</span><span class="n">bootstrap_features</span><span class="p">,</span> <span class="n">oob_score</span><span class="o">=</span><span class="n">oob_score</span><span class="p">,</span> 
+			<span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> 
+			<span class="n">is_classification</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+		
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

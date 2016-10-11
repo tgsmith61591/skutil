@@ -1,0 +1,522 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.utils module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="Code Examples" href="../examples/index.html"/>
+        <link rel="prev" title="skutil.preprocessing module" href="skutil_preprocessing.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.utils module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_utils.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="skutil-utils-module">
+<h1>skutil.utils module<a class="headerlink" href="#skutil-utils-module" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="skutil.utils.assert_fails">
+<code class="descclassname">skutil.utils.</code><code class="descname">assert_fails</code><span class="sig-paren">(</span><em>fun</em>, <em>expected=&lt;type 'exceptions.ValueError'&gt;</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/tests/utils.html#assert_fails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.assert_fails" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.corr_plot">
+<code class="descclassname">skutil.utils.</code><code class="descname">corr_plot</code><span class="sig-paren">(</span><em>X</em>, <em>plot_type='cor'</em>, <em>cmap='Blues_d'</em>, <em>n_levels=5</em>, <em>corr=None</em>, <em>method='pearson'</em>, <em>figsize=(11</em>, <em>9)</em>, <em>cmap_a=220</em>, <em>cmap_b=10</em>, <em>vmax=0.3</em>, <em>xticklabels=5</em>, <em>yticklabels=5</em>, <em>linewidths=0.5</em>, <em>cbar_kws={'shrink': 0.5}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#corr_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.corr_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a simple correlation plot given a dataframe.
+Note that this requires all datatypes to be numeric and finite!</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pd.DataFrame</span><dd>The pandas DataFrame</dd>
+<dt>plot_type</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;cor&#8217;)</span><dd>The type of plot, one of (&#8216;cor&#8217;, &#8216;kde&#8217;, &#8216;pair&#8217;)</dd>
+<dt>cmap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;Blues_d&#8217;)</span><dd>The color to use for the kernel density estimate plot
+if plot_type == &#8216;kde&#8217;</dd>
+<dt>n_levels</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=5)</span><dd>The number of levels to use for the kde plot 
+if plot_type == &#8216;kde&#8217;</dd>
+<dt>corr</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">&#8216;precomputed&#8217; or None, optional (default=None)</span><dd>If None, the correlation matrix is computed, otherwise
+if &#8216;precomputed&#8217;, X is treated as a correlation matrix.</dd>
+<dt>method</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;pearson&#8217;)</span><dd>The method to use for correlation</dd>
+<dt>figsize</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">tuple (int), optional (default=(11,9))</span><dd>The size of the image</dd>
+<dt>cmap_a</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=220)</span><dd>The colormap start point</dd>
+<dt>cmap_b</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd>The colormap end point</dd>
+<dt>vmax</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, optional (default=0.3)</span><dd>Arg for seaborn heatmap</dd>
+<dt>xticklabels</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=5)</span><dd>The spacing for X ticks</dd>
+<dt>yticklabels</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=5)</span><dd>The spacing for Y ticks</dd>
+<dt>linewidths</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, optional (default=0.5)</span><dd>The width of the lines</dd>
+<dt>cbar_kws</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional</span><dd>Any KWs to pass to seaborn&#8217;s heatmap when plot_type = &#8216;cor&#8217;</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.df_memory_estimate">
+<code class="descclassname">skutil.utils.</code><code class="descname">df_memory_estimate</code><span class="sig-paren">(</span><em>X</em>, <em>bit_est=32</em>, <em>unit='MB'</em>, <em>index=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#df_memory_estimate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.df_memory_estimate" title="Permalink to this definition">¶</a></dt>
+<dd><p>We estimate the memory footprint of an H2OFrame
+to determine, possibly, whether it&#8217;s capable of being
+held in memory or not.</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span><dd>The DataFrame in question</dd>
+<dt>bit_est</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=32)</span><dd>The estimated bit-size of each cell. The default
+assumes each cell is a signed 32-bit float</dd>
+<dt>unit</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;MB&#8217;)</span><dd>The units to report. One of (&#8216;MB&#8217;, &#8216;KB&#8217;, &#8216;GB&#8217;, &#8216;TB&#8217;)</dd>
+</dl>
+<dl class="docutils">
+<dt>mb</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The estimated number of UNIT held in the frame</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.exp">
+<code class="descclassname">skutil.utils.</code><code class="descname">exp</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>A safe mechanism for computing the exponential function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.flatten_all">
+<code class="descclassname">skutil.utils.</code><code class="descname">flatten_all</code><span class="sig-paren">(</span><em>container</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#flatten_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.flatten_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively flattens an arbitrarily nested iterable.
+WARNING: this function may produce a list of mixed types.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.flatten_all_generator">
+<code class="descclassname">skutil.utils.</code><code class="descname">flatten_all_generator</code><span class="sig-paren">(</span><em>container</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#flatten_all_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.flatten_all_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively flattens an arbitrarily nested iterable.
+WARNING: this function may produce a list of mixed types.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # returns a generator for this iterable</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.get_numeric">
+<code class="descclassname">skutil.utils.</code><code class="descname">get_numeric</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#get_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.get_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of indices of numeric dtypes variables</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF</span><dd>The dataframe</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.human_bytes">
+<code class="descclassname">skutil.utils.</code><code class="descname">human_bytes</code><span class="sig-paren">(</span><em>b</em>, <em>unit='MB'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#human_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.human_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get bytes in a human readable form</p>
+<dl class="docutils">
+<dt>b</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>The number of bytes</dd>
+<dt>unit</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;MB&#8217;)</span><dd>The units to report. One of (&#8216;MB&#8217;, &#8216;KB&#8217;, &#8216;GB&#8217;, &#8216;TB&#8217;)</dd>
+</dl>
+<dl class="docutils">
+<dt>mb</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The estimated number of UNIT held in the frame</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.is_entirely_numeric">
+<code class="descclassname">skutil.utils.</code><code class="descname">is_entirely_numeric</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_entirely_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_entirely_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether an entire pandas frame
+is numeric in dtypes.</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pd DataFrame</span><dd>The dataframe to test</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.is_numeric">
+<code class="descclassname">skutil.utils.</code><code class="descname">is_numeric</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether the arg is numeric</p>
+<p>x : anytype</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.load_boston_df">
+<code class="descclassname">skutil.utils.</code><code class="descname">load_boston_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_boston_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_boston_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the boston housing dataset into a dataframe with the
+target set as the &#8220;target&#8221; feature or whatever name
+is specified.</p>
+<dl class="docutils">
+<dt>include_tgt</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to include the target</dd>
+<dt>tgt_name</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8221;target&#8221;)</span><dd>The name of the target feature</dd>
+<dt>shuffle</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to shuffle the rows</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.load_breast_cancer_df">
+<code class="descclassname">skutil.utils.</code><code class="descname">load_breast_cancer_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_breast_cancer_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_breast_cancer_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the breast cancer dataset into a dataframe with the
+target set as the &#8220;target&#8221; feature or whatever name
+is specified.</p>
+<dl class="docutils">
+<dt>include_tgt</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to include the target</dd>
+<dt>tgt_name</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8221;target&#8221;)</span><dd>The name of the target feature</dd>
+<dt>shuffle</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to shuffle the rows</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.load_iris_df">
+<code class="descclassname">skutil.utils.</code><code class="descname">load_iris_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='Species'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_iris_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_iris_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the iris dataset into a dataframe with the
+target set as the &#8220;Species&#8221; feature or whatever name
+is specified.</p>
+<dl class="docutils">
+<dt>include_tgt</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to include the target</dd>
+<dt>tgt_name</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8221;Species&#8221;)</span><dd>The name of the target feature</dd>
+<dt>shuffle</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to shuffle the rows</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.log">
+<code class="descclassname">skutil.utils.</code><code class="descname">log</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A safe mechanism for computing a log</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.pd_stats">
+<code class="descclassname">skutil.utils.</code><code class="descname">pd_stats</code><span class="sig-paren">(</span><em>X</em>, <em>col_type='all'</em>, <em>na_str='--'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#pd_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.pd_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a descriptive report of the elements in the data frame.
+Builds on existing pandas <cite>describe</cite> method.</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pd.DataFrame</span><dd>The DataFrame</dd>
+<dt>col_type</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;all&#8217;)</span><dd>The types of columns to analyze. One of (&#8216;all&#8217;,
+&#8216;numeric&#8217;, &#8216;object&#8217;). If not all, will only return
+corresponding typed columns.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.report_confusion_matrix">
+<code class="descclassname">skutil.utils.</code><code class="descname">report_confusion_matrix</code><span class="sig-paren">(</span><em>actual</em>, <em>pred</em>, <em>return_metrics=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#report_confusion_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.report_confusion_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dataframe with the confusion matrix, and a series
+with the classification performance metrics.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.report_grid_score_detail">
+<code class="descclassname">skutil.utils.</code><code class="descname">report_grid_score_detail</code><span class="sig-paren">(</span><em>random_search</em>, <em>charts=True</em>, <em>sort_results=True</em>, <em>ascending=True</em>, <em>percentile=0.975</em>, <em>y_axis='score'</em>, <em>sort_by='score'</em>, <em>highlight_best=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#report_grid_score_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.report_grid_score_detail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return plots and dataframe of results, given a fitted grid search.
+Note that if Matplotlib is not installed, a warning will be thrown
+and no plots will be generated.</p>
+<dl class="docutils">
+<dt>random_search</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">BaseGridSearch</span><dd>The fitted grid search</dd>
+<dt>charts</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to plot the charts</dd>
+<dt>sort_results</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to sort the results based on score</dd>
+<dt>ascending</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>If sorted, whether to use asc or desc</dd>
+<dt>percentile</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, optional (default=0.975)</span><dd>The percentile point (0 &lt; percentile &lt; 1.0). The
+corresponding z-score will be multiplied
+by the cross validation score standard deviations.</dd>
+<dt>y_axis</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;score&#8217;)</span><dd>The y-axis of the charts. One of (&#8216;score&#8217;,&#8217;std&#8217;)</dd>
+<dt>sort_by</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;score&#8217;)</span><dd>The col to sort by. This is not validated, in case
+the user wants to sort by a parameter column.</dd>
+<dt>highlight_best</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>If set to True, charts is True, and sort_results is 
+also True, then highlights the point in the top
+position of the model DF.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.shuffle_dataframe">
+<code class="descclassname">skutil.utils.</code><code class="descname">shuffle_dataframe</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#shuffle_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.shuffle_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.validate_is_pd">
+<code class="descclassname">skutil.utils.</code><code class="descname">validate_is_pd</code><span class="sig-paren">(</span><em>X</em>, <em>cols</em>, <em>assert_all_finite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#validate_is_pd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.validate_is_pd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used within each SelectiveMixin fit method to determine whether
+the passed X is a dataframe, and whether the cols is appropriate.
+There are four scenarios (in the order in which they&#8217;re checked):</p>
+<ol class="arabic">
+<li><dl class="first docutils">
+<dt>Names is not None, but X is not a dataframe.</dt>
+<dd><p class="first last">Resolution: the method will attempt to return a DataFrame from the
+args provided (with default names), but catches any
+exception and raises a ValueError. A common case where this would work
+may be a numpy.ndarray as X, and a list as cols (where the list is either
+int indices or default names that the dataframe will take on).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>X is a DataFrame, but cols is None.</dt>
+<dd><p class="first last">Resolution: return a copy of the dataframe, and use all column names.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>X is a DataFrame and cols is not None.</dt>
+<dd><p class="first last">Return a copy of the dataframe, and use only the names provided. This is
+the typical use case.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>X is not a DataFrame, and cols is None.</dt>
+<dd><p class="first last">Resolution: this case will only work if the X can be built into a DataFrame.
+Otherwise, there will be a ValueError thrown.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="docutils">
+<dt>X, cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span><dd>the pd.DataFrame and the list of columns</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../examples/index.html" class="btn btn-neutral float-right" title="Code Examples" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_preprocessing.html" class="btn btn-neutral" title="skutil.preprocessing module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

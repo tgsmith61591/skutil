@@ -1,0 +1,504 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.h2o.util &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.h2o.util</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.h2o.util</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">h2o</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">human_bytes</span><span class="p">,</span> <span class="n">corr_plot</span><span class="p">,</span> 
+                     <span class="n">load_breast_cancer_df</span><span class="p">,</span> <span class="n">load_iris_df</span><span class="p">,</span>
+                     <span class="n">load_boston_df</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
+<span class="kn">from</span> <span class="nn">.select</span> <span class="k">import</span> <span class="n">_validate_use</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_check_is_frame</span>
+
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_array</span>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;from_array&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;from_pandas&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_bincount&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_col_to_numpy&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_corr_plot&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_frame_memory_estimate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_iris_h2o&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_boston_h2o&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_breast_cancer_h2o&#39;</span>
+<span class="p">]</span>
+
+
+
+<div class="viewcode-block" id="load_iris_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_iris_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_iris_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;Species&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the iris dataset into an H2OFrame&quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
+        <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span><span class="o">.</span><span class="n">asfactor</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="load_breast_cancer_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_breast_cancer_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_breast_cancer_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the breast cancer dataset into an H2OFrame&quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_breast_cancer_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
+        <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span><span class="o">.</span><span class="n">asfactor</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="load_boston_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_boston_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_boston_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load the boston housing dataset into an H2OFrame&quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_boston_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">X</span></div>
+
+
+<div class="viewcode-block" id="h2o_col_to_numpy"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_col_to_numpy">[docs]</a><span class="k">def</span> <span class="nf">h2o_col_to_numpy</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a 1d numpy array from a</span>
+<span class="sd">    single H2OFrame column.</span>
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    np.ndarray (1d)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+    <span class="n">_1d</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_1d</span><span class="p">[</span><span class="n">_1d</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span></div>
+
+
+<span class="k">def</span> <span class="nf">_unq_vals_col</span><span class="p">(</span><span class="n">column</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the unique values and column name</span>
+<span class="sd">    from a column.</span>
+
+<span class="sd">    Return</span>
+
+<span class="sd">    str, np.ndarray : tuple</span>
+<span class="sd">        (c1_nm, unq)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">unq</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">c1_nm</span> <span class="o">=</span> <span class="n">unq</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">unq</span> <span class="o">=</span> <span class="n">unq</span><span class="p">[</span><span class="n">unq</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">c1_nm</span><span class="p">,</span> <span class="n">unq</span>
+
+
+<div class="viewcode-block" id="h2o_bincount"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_bincount">[docs]</a><span class="k">def</span> <span class="nf">h2o_bincount</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a 1d column of non-negative ints, ``bins``, return</span>
+<span class="sd">    a np.ndarray of positional counts of each int.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    bins : H2OFrame</span>
+<span class="sd">        The values</span>
+
+<span class="sd">    weights : list or H2OFrame, optional (default=None)</span>
+<span class="sd">        The weights with which to weight the output</span>
+
+<span class="sd">    minlength : int, optional (default=None)</span>
+<span class="sd">        The min length of the output array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">unq</span> <span class="o">=</span> <span class="n">_unq_vals_col</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+
+    <span class="c1"># ensure all positive</span>
+    <span class="n">unq_arr</span> <span class="o">=</span> <span class="n">unq</span><span class="p">[</span><span class="n">_</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">unq_arr</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;values must be positive&#39;</span><span class="p">)</span>
+
+    <span class="c1"># make sure they&#39;re all ints</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">unq_arr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">-</span> <span class="n">unq_arr</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;values must be ints&#39;</span><span class="p">)</span>
+
+    <span class="c1"># adjust minlength</span>
+    <span class="k">if</span> <span class="n">minlength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">minlength</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">elif</span> <span class="n">minlength</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;minlength must be positive&#39;</span><span class="p">)</span>
+
+
+    <span class="c1"># create our output array</span>
+    <span class="n">all_vals</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">bins</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">minlength</span><span class="p">,</span> <span class="n">unq_arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+
+    <span class="c1"># check weights</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">all_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;dim mismatch in weights and bins&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">all_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># update our bins</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">unq_arr</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">all_vals</span> <span class="o">==</span> <span class="n">val</span>
+        <span class="n">array_ones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="n">weight_vals</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">output</span><span class="p">[</span><span class="n">val</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">array_ones</span><span class="p">,</span> <span class="n">weight_vals</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="from_pandas"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.from_pandas">[docs]</a><span class="k">def</span> <span class="nf">from_pandas</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple wrapper for H2OFrame.from_python. This takes</span>
+<span class="sd">    a pandas dataframe and returns an H2OFrame with all the </span>
+<span class="sd">    default args (generally enough) plus named columns.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The dataframe to convert.</span>
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    H2OFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pd</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># older version of h2o are super funky with this</span>
+    <span class="k">if</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">h2o</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">parse_version</span><span class="p">(</span><span class="s1">&#39;3.10.0.7&#39;</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># if h2o hasn&#39;t started, we&#39;ll let this fail through</span>
+    <span class="k">return</span> <span class="n">H2OFrame</span><span class="o">.</span><span class="n">from_python</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="from_array"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.from_array">[docs]</a><span class="k">def</span> <span class="nf">from_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple wrapper for H2OFrame.from_python. This takes a</span>
+<span class="sd">    numpy array (or 2d array) and returns an H2OFrame with all </span>
+<span class="sd">    the default args.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : ndarray</span>
+<span class="sd">        The array to convert.</span>
+
+<span class="sd">    column_names : list, tuple (default=None)</span>
+<span class="sd">        the names to use for your columns</span>
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    H2OFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">column_names</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="h2o_corr_plot"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_corr_plot">[docs]</a><span class="k">def</span> <span class="nf">h2o_corr_plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;cor&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues_d&#39;</span><span class="p">,</span> <span class="n">n_levels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> 
+        <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">9</span><span class="p">),</span> <span class="n">cmap_a</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">cmap_b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+        <span class="n">xticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">yticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> 
+        <span class="n">cbar_kws</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shrink&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">},</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">,</span> 
+        <span class="n">na_warn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Create a simple correlation plot given a dataframe.</span>
+<span class="sd">    Note that this requires all datatypes to be numeric and finite!</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The pandas DataFrame</span>
+
+<span class="sd">    plot_type : str, optional (default=&#39;cor&#39;)</span>
+<span class="sd">        The type of plot, one of (&#39;cor&#39;, &#39;kde&#39;, &#39;pair&#39;)</span>
+
+<span class="sd">    cmap : str, optional (default=&#39;Blues_d&#39;)</span>
+<span class="sd">        The color to use for the kernel density estimate plot</span>
+<span class="sd">        if plot_type == &#39;kde&#39;</span>
+
+<span class="sd">    n_levels : int, optional (default=5)</span>
+<span class="sd">        The number of levels to use for the kde plot </span>
+<span class="sd">        if plot_type == &#39;kde&#39;</span>
+
+<span class="sd">    figsize : tuple (int), optional (default=(11,9))</span>
+<span class="sd">        The size of the image</span>
+
+<span class="sd">    cmap_a : int, optional (default=220)</span>
+<span class="sd">        The colormap start point</span>
+
+<span class="sd">    cmap_b : int, optional (default=10)</span>
+<span class="sd">        The colormap end point</span>
+
+<span class="sd">    vmax : float, optional (default=0.3)</span>
+<span class="sd">        Arg for seaborn heatmap</span>
+
+<span class="sd">    xticklabels : int, optional (default=5)</span>
+<span class="sd">        The spacing for X ticks</span>
+
+<span class="sd">    yticklabels : int, optional (default=5)</span>
+<span class="sd">        The spacing for Y ticks</span>
+
+<span class="sd">    linewidths : float, optional (default=0.5)</span>
+<span class="sd">        The width of the lines</span>
+
+<span class="sd">    cbar_kws : dict, optional</span>
+<span class="sd">        Any KWs to pass to seaborn&#39;s heatmap when plot_type = &#39;cor&#39;</span>
+
+<span class="sd">    use : str, optional (default=&#39;complete.obs&#39;)</span>
+<span class="sd">        The &quot;use&quot; to compute the correlation matrix</span>
+
+<span class="sd">    na_warn : bool, optional (default=True)</span>
+<span class="sd">        Whether to warn in the presence of NA values</span>
+
+<span class="sd">    na_rm : bool, optional (default=False)</span>
+<span class="sd">        Whether to remove NAs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;cor&#39;</span><span class="p">:</span>
+        <span class="n">use</span> <span class="o">=</span> <span class="n">_validate_use</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">use</span><span class="p">,</span> <span class="n">na_warn</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">cor</span><span class="p">(</span><span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="n">na_rm</span><span class="p">)</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">cols</span> <span class="c1"># set the cols to the same names</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="n">corr</span> <span class="o">=</span> <span class="s1">&#39;precomputed&#39;</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># WARNING! This pulls everything into memory...</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="n">corr_plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">plot_type</span><span class="o">=</span><span class="n">plot_type</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span> 
+        <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">cmap_a</span><span class="o">=</span><span class="n">cmap_a</span><span class="p">,</span> <span class="n">cmap_b</span><span class="o">=</span><span class="n">cmap_b</span><span class="p">,</span> 
+        <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">xticklabels</span><span class="o">=</span><span class="n">xticklabels</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="n">corr</span><span class="p">,</span>
+        <span class="n">yticklabels</span><span class="o">=</span><span class="n">yticklabels</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="n">linewidths</span><span class="p">,</span> 
+        <span class="n">cbar_kws</span><span class="o">=</span><span class="n">cbar_kws</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="h2o_frame_memory_estimate"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_frame_memory_estimate">[docs]</a><span class="k">def</span> <span class="nf">h2o_frame_memory_estimate</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">bit_est</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;We estimate the memory footprint of an H2OFrame</span>
+<span class="sd">    to determine, possibly, whether it&#39;s capable of being</span>
+<span class="sd">    held in memory or not.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : H2OFrame</span>
+<span class="sd">        The H2OFrame in question</span>
+
+<span class="sd">    bit_est : int, optional (default=32)</span>
+<span class="sd">        The estimated bit-size of each cell. The default</span>
+<span class="sd">        assumes each cell is a signed 32-bit float</span>
+
+<span class="sd">    unit : str, optional (default=&#39;MB&#39;)</span>
+<span class="sd">        The units to report. One of (&#39;MB&#39;, &#39;KB&#39;, &#39;GB&#39;, &#39;TB&#39;)</span>
+
+<span class="sd">    Returns</span>
+
+<span class="sd">    mb : str</span>
+<span class="sd">        The estimated number of UNIT held in the frame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">n_bits</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_samples</span> <span class="o">*</span> <span class="n">n_features</span><span class="p">)</span> <span class="o">*</span> <span class="n">bit_est</span>
+    <span class="n">n_bytes</span> <span class="o">=</span> <span class="n">n_bits</span> <span class="o">//</span> <span class="mi">8</span>
+
+    <span class="k">return</span> <span class="n">human_bytes</span><span class="p">(</span><span class="n">n_bytes</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

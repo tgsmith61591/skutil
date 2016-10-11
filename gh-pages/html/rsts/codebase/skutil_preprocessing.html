@@ -1,0 +1,875 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.preprocessing module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.utils module" href="skutil_utils.html"/>
+        <link rel="prev" title="skutil.odr module" href="skutil_odr.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.preprocessing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#statistical-transformations">Statistical transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.preprocessing module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_preprocessing.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.preprocessing">
+<span id="skutil-preprocessing-module"></span><h1>skutil.preprocessing module<a class="headerlink" href="#module-skutil.preprocessing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="statistical-transformations">
+<h2>Statistical transformations<a class="headerlink" href="#statistical-transformations" title="Permalink to this headline">¶</a></h2>
+<p>Provides sklearn-esque transformer classes including
+the Box-Cox transformation and the Yeo-Johnson transformation.
+Also includes selective scalers and other transformers.</p>
+<dl class="class">
+<dt id="skutil.preprocessing.BaggedCategoricalImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BaggedCategoricalImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>base_estimator=None</em>, <em>n_estimators=10</em>, <em>max_samples=1.0</em>, <em>max_features=1.0</em>, <em>bootstrap=True</em>, <em>bootstrap_features=True</em>, <em>oob_score=False</em>, <em>n_jobs=1</em>, <em>random_state=None</em>, <em>verbose=0</em>, <em>as_df=True</em>, <em>def_fill=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#BaggedCategoricalImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BaggedCategoricalImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseBaggedImputer</span></code></p>
+<p>Performs imputation on select columns by using BaggingRegressors
+on the provided columns.</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional (default=None)</span><dd>the features to impute</dd>
+<dt>base_estimator</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">object or None, optional (default=None)</span><dd>The base estimator to fit on random subsets of the dataset. 
+If None, then the base estimator is a decision tree.</dd>
+<dt>n_estimators</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd>The number of base estimators in the ensemble.</dd>
+<dt>max_samples</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of samples to draw from X to train each base estimator.
+If int, then draw max_samples samples.
+If float, then draw max_samples * X.shape[0] samples.</dd>
+<dt>max_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of features to draw from X to train each base estimator.
+If int, then draw max_features features.
+If float, then draw max_features * X.shape[1] features.</dd>
+<dt>bootstrap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=True)</span><dd>Whether samples are drawn with replacement.</dd>
+<dt>bootstrap_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=False)</span><dd>Whether features are drawn with replacement.</dd>
+<dt>oob_score</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to use out-of-bag samples to estimate the generalization error.</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>The number of jobs to run in parallel for both fit and predict. If -1, 
+then the number of jobs is set to the number of cores.</dd>
+<dt>random_state</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, RandomState instance or None, optional (default=None)</span><dd>If int, random_state is the seed used by the random number generator; If 
+RandomState instance, random_state is the random number generator; If None, 
+the random number generator is the RandomState instance used by np.random.</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd>Controls the verbosity of the building process.</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean , optional (default=True)</span><dd>whether to return a dataframe</dd>
+<dt>def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd>the fill to use for missing values in the training matrix 
+when fitting a BaggingClassifier. If None, will default to -999999</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BaggedImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BaggedImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>base_estimator=None</em>, <em>n_estimators=10</em>, <em>max_samples=1.0</em>, <em>max_features=1.0</em>, <em>bootstrap=True</em>, <em>bootstrap_features=True</em>, <em>oob_score=False</em>, <em>n_jobs=1</em>, <em>random_state=None</em>, <em>verbose=0</em>, <em>as_df=True</em>, <em>def_fill=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#BaggedImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BaggedImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseBaggedImputer</span></code></p>
+<p>Performs imputation on select columns by using BaggingRegressors
+on the provided columns.</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional (default=None)</span><dd>the features to impute</dd>
+<dt>base_estimator</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">object or None, optional (default=None)</span><dd>The base estimator to fit on random subsets of the dataset. 
+If None, then the base estimator is a decision tree.</dd>
+<dt>n_estimators</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd>The number of base estimators in the ensemble.</dd>
+<dt>max_samples</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of samples to draw from X to train each base estimator.
+If int, then draw max_samples samples.
+If float, then draw max_samples * X.shape[0] samples.</dd>
+<dt>max_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of features to draw from X to train each base estimator.
+If int, then draw max_features features.
+If float, then draw max_features * X.shape[1] features.</dd>
+<dt>bootstrap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=True)</span><dd>Whether samples are drawn with replacement.</dd>
+<dt>bootstrap_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=False)</span><dd>Whether features are drawn with replacement.</dd>
+<dt>oob_score</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to use out-of-bag samples to estimate the generalization error.</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>The number of jobs to run in parallel for both fit and predict. If -1, 
+then the number of jobs is set to the number of cores.</dd>
+<dt>random_state</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, RandomState instance or None, optional (default=None)</span><dd>If int, random_state is the seed used by the random number generator; If 
+RandomState instance, random_state is the random number generator; If None, 
+the random number generator is the RandomState instance used by np.random.</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd>Controls the verbosity of the building process.</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean , optional (default=True)</span><dd>whether to return a dataframe</dd>
+<dt>def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd>the fill to use for missing values in the training matrix 
+when fitting a BaggingRegressor. If None, will default to -999999</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BalancerMixin">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BalancerMixin</code><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#BalancerMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BalancerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class for balancers that provides interface for <cite>balance</cite>
+and the constant _max_classes (default=20). Used in h2o module as well.</p>
+<dl class="method">
+<dt id="skutil.preprocessing.BalancerMixin.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#BalancerMixin.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BalancerMixin.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method must be overridden by
+a subclass. This does nothing right now.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BoxCoxTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BoxCoxTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<dl class="docutils">
+<dt>Estimate a lambda parameter for each feature, and transform</dt>
+<dd>it to a distribution more-closely resembling a Gaussian bell
+using the Box-Cox transformation. By default, will ignore sparse
+features that are generated via the OneHotCategoricalTransformer.</dd>
+</dl>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, str</span><dd>The columns which to transform</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, 1 by default</span><dd><p class="first">The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p class="last">If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, def True</span><dd>Whether to return a dataframe</dd>
+</dl>
+<p>Attributes</p>
+<dl class="docutils">
+<dt><a href="#id1"><span class="problematic" id="id2">shift_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The shifts for each feature needed to shift the min value in 
+the feature up to at least 0.0, as every element must be positive</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">lambda_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The lambda values corresponding to each feature</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.BoxCoxTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the lambdas, provided X</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data used for estimating the lambdas</dd>
+</dl>
+<p>y : Passthrough for Pipeline compatibility</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.BoxCoxTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Box-Cox transformation</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">None</span><dd>Passthrough for pipeline</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.FunctionMapper">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">FunctionMapper</code><span class="sig-paren">(</span><em>cols=None</em>, <em>fun=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>Apply a function to a column or set of columns.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">string or array_like, default None</span><dd>The columns to apply a function to</dd>
+<dt>fun</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">function, default None</span><dd>The function to apply to the feature(s)</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.FunctionMapper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the args</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data used for estimating the lambdas</dd>
+</dl>
+<p>y : Passthrough for Pipeline compatibility</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.FunctionMapper.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the function to the new data.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data used for estimating the lambdas</dd>
+</dl>
+<p>y : Passthrough for Pipeline compatibility</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.ImputerMixin">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">ImputerMixin</code><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#ImputerMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.ImputerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mixin for all imputer classes. Contains the default fill value. 
+This mixin is used for the H2O imputer, as well.</p>
+<p>Attributes</p>
+<dl class="docutils">
+<dt>_def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int (default=-999999)</span><dd>The default fill value for NaN values</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.InteractionTermTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">InteractionTermTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em>, <em>interaction_function=None</em>, <em>name_suffix='I'</em>, <em>only_return_interactions=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>A class that will generate interaction terms between selected columns.
+An interaction captures some relationship between two independent variables
+in the form of In = (xi * xj).</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like (string)</span><dd>names of columns on which to apply transformation</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a dataframe</dd>
+<dt>interaction</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">callable, optional (default=None)</span><dd>A callable for interactions. Default None will
+result in multiplication of two Series objects</dd>
+<dt>name_suffix</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;I&#8217;)</span><dd>The suffix to add to the new feature name in the form of
+&lt;feature_x&gt;_&lt;feature_y&gt;_&lt;suffix&gt;</dd>
+<dt>only_return_interactions</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>If set to True, will only return features in feature_names
+and their respective generated interaction terms.</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.InteractionTermTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">None</span><dd>Passthrough for pipeline</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.InteractionTermTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the interaction term expansion</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">OneHotCategoricalEncoder</code><span class="sig-paren">(</span><em>fill='Missing'</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.BaseEstimator</span></code>, <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>This class achieves three things: first, it will fill in 
+any NaN values with a provided surrogate (if desired). Second,
+it will dummy out any categorical features using OneHotEncoding
+with a safety feature that can handle previously unseen values,
+and in the transform method will re-append the dummified features
+to the dataframe. Finally, it will return a numpy ndarray.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default = &#8216;Missing&#8217;)</span><dd>The value that will fill the missing values in the column</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, default = True</span><dd>Whether to return a pandas dataframe</dd>
+</dl>
+<p>Attributes</p>
+<p>fill : see above</p>
+<p>as_df : see above</p>
+<dl class="docutils">
+<dt><a href="#id5"><span class="problematic" id="id6">obj_cols_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span><dd>The list of object-type (categorical) features</dd>
+<dt><a href="#id7"><span class="problematic" id="id8">lab_encoders_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like</span><dd>The label encoders</dd>
+</dl>
+<p><a href="#id9"><span class="problematic" id="id10">one_hot_</span></a> : an instance of a OneHotEncoder</p>
+<p><a href="#id11"><span class="problematic" id="id12">trans_nms_</span></a> : the dummified names</p>
+<dl class="method">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the estimator.</p>
+<p>Parameters</p>
+<p>X : pandas dataframe
+y : passthrough for Pipeline</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform X, a DataFrame, by stripping
+out the object columns, dummifying them, and
+re-appending them to the end.</p>
+<p>Parameters</p>
+<p>X : pandas dataframe</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.OversamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">OversamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#OversamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OversamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Oversample the minority classes until they are represented
+at the target proportion to the majority class.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The name of the response column. The response column must be
+biclass, no more or less.</dd>
+<dt>ratio</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, def 0.2</span><dd>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a dataframe</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.OversamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#OversamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OversamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the oversampling balance operation. Oversamples
+the minority class to the provided ratio of minority
+class : majority class</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to balance</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SMOTEClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SMOTEClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>k=3</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#SMOTEClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SMOTEClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Balance a matrix with the SMOTE (Synthetic Minority Oversampling TEchnique)
+method. This will generate synthetic samples for the minority class(es) using
+K-nearest neighbors</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The name of the response column. The response column must be
+biclass, no more or less.</dd>
+<dt>k</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, def 3</span><dd>The number of neighbors to use in the nearest neighbors model</dd>
+<dt>ratio</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, def 0.2</span><dd>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix, otherwise SMOTE will impute records until the
+target ratio is reached.</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a dataframe</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.SMOTEClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#SMOTEClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SMOTEClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the SMOTE balancing operation. Oversamples
+the minority class to the provided ratio of minority
+class : majority class by interpolating points between
+each sampled point&#8217;s k-nearest neighbors.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to balance</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SafeLabelEncoder">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SafeLabelEncoder</code><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#SafeLabelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SafeLabelEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.preprocessing.label.LabelEncoder</span></code></p>
+<p>An extension of LabelEncoder that will
+not throw an exception for unseen data, but will
+instead return a default value of 99999</p>
+<p>Attributes</p>
+<p><a href="#id13"><span class="problematic" id="id14">classes_</span></a> : the classes that are encoded</p>
+<dl class="method">
+<dt id="skutil.preprocessing.SafeLabelEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#SafeLabelEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SafeLabelEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SelectiveImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SelectiveImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em>, <em>def_fill='mean'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseImputer</span></code></p>
+<p>A more customizable form on sklearn&#8217;s Imputer class. This class
+can handle more than mean, median or most common... it will also take
+numeric values. Moreover, it will take a vector of strategies or values
+with which to impute corresponding columns.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional (default=None)</span><dd>the features to impute</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean , optional (default=True)</span><dd>whether to return a dataframe</dd>
+<dt>def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd>the fill to use for missing values in the training matrix 
+when fitting a SelectiveClassifier. If None, will default to &#8216;mean&#8217;</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveImputer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the CategoricalImputer and return the 
+transformed matrix or frame.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span><dd>The frame to fit</dd>
+</dl>
+<p>y : None, passthrough for pipeline</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveImputer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a dataframe given the fit imputer.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DataFrame</span><dd>The frame to fit</dd>
+</dl>
+<p>y : None, passthrough for pipeline</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SelectiveScaler">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SelectiveScaler</code><span class="sig-paren">(</span><em>cols=None</em>, <em>scaler=StandardScaler(copy=True</em>, <em>with_mean=True</em>, <em>with_std=True)</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>A class that will apply scaling only to a select group
+of columns. Useful for data that contains categorical features
+that have not yet been dummied, for dummied features that we
+may not want to scale, or for any already-in-scale features.
+Perhaps, even, there are some features you&#8217;d like to impute in
+a different manner than others. This, then, allows two back-to-back
+SelectiveScalers with different columns &amp; strategies in a pipeline object.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like (string)</span><dd>names of columns on which to apply scaling</dd>
+</dl>
+<p>scaler : instance of a sklearn Scaler, default StandardScaler</p>
+<dl class="docutils">
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, default True</span><dd>Whether to return a dataframe</dd>
+</dl>
+<p>Attributes</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like (string)</span><dd>the columns</dd>
+<dt>scaler</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">instance of a sklearn Scaler</span><dd>the scaler</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveScaler.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the scaler</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">None</span><dd>Passthrough for pipeline</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveScaler.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform on new data, return a pd DataFrame</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SpatialSignTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SpatialSignTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>Project the feature space of a matrix into a multi-dimensional sphere
+by dividing each feature by its squared norm.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, str</span><dd>The columns which to transform</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, 1 by default</span><dd><p class="first">The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p class="last">If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, def True</span><dd>Whether to return a dataframe</dd>
+</dl>
+<p>Attributes</p>
+<dl class="docutils">
+<dt><a href="#id15"><span class="problematic" id="id16">sq_nms_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The squared norms for each feature</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.SpatialSignTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the squared norms for each feature, provided X</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pd DF, shape [n_samples, n_features]</span><dd>The data used for estimating the lambdas</dd>
+</dl>
+<p>y : Passthrough for Pipeline compatibility</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SpatialSignTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform spatial sign transformation</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pd DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.UndersamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">UndersamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#UndersamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.UndersamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Undersample the majority class until it is represented
+at the target proportion to the most-represented minority class.
+For example, given the follow pd.Series (index = class, and values = counts):</p>
+<p>0  150
+1  30
+2  10</p>
+<p>and the ratio 0.5, the majority class (0) will be undersampled until
+the second most-populous class (1) is represented at a ratio of 0.5:</p>
+<p>0  60
+1  30
+2  10</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>y</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The name of the response column. The response column must be
+biclass, no more or less.</dd>
+<dt>ratio</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float, def 0.2</span><dd>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a dataframe</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.UndersamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#UndersamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.UndersamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the undersampling balance operation. Undersamples
+the majority class to the provided ratio over the second-most-
+populous class label.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to balance</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">YeoJohnsonTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<dl class="docutils">
+<dt>Estimate a lambda parameter for each feature, and transform</dt>
+<dd>it to a distribution more-closely resembling a Gaussian bell
+using the Yeo-Johnson transformation.</dd>
+</dl>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, str</span><dd>The columns which to transform</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, 1 by default</span><dd><p class="first">The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p class="last">If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, def True</span><dd>Whether to return a dataframe</dd>
+</dl>
+<p>Attributes</p>
+<dl class="docutils">
+<dt><a href="#id17"><span class="problematic" id="id18">lambda_</span></a></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>The lambda values corresponding to each feature</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the lambdas, provided X</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data used for estimating the lambdas</dd>
+</dl>
+<p>y : Passthrough for Pipeline compatibility</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Yeo-Johnson transformation</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">pandas DF, shape [n_samples, n_features]</span><dd>The data to transform</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_utils.html" class="btn btn-neutral float-right" title="skutil.utils module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_odr.html" class="btn btn-neutral" title="skutil.odr module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

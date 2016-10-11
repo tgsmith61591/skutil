@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.odr module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.preprocessing module" href="skutil_preprocessing.html"/>
+        <link rel="prev" title="skutil.model_selection module" href="skutil_model_selection.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.odr module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_odr.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.odr">
+<span id="skutil-odr-module"></span><h1>skutil.odr module<a class="headerlink" href="#module-skutil.odr" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="skutil.odr.QRDecomposition">
+<em class="property">class </em><code class="descclassname">skutil.odr.</code><code class="descname">QRDecomposition</code><span class="sig-paren">(</span><em>X</em>, <em>pivot=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the QR decomposition using LINPACK, BLAS and LAPACK
+Fortran subroutines, and provides an interface for other useful
+QR utility methods.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, shape (n_samples, n_features)</span><dd>The matrix to decompose</dd>
+<dt>pivot</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>Whether to perform pivoting. 0 is False, any other value
+will be coerced to 1 (True).</dd>
+</dl>
+<p>Attributes</p>
+<dl class="docutils">
+<dt>qr</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, shape (n_samples, n_features)</span><dd>The decomposed matrix</dd>
+<dt>qraux</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, shape (n_features,)</span><dd>qraux contains further information required to recover
+the orthogonal part of the decomposition.</dd>
+<dt>pivot</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, shape (n_features,)</span><dd>The pivots, if pivot was set to 1, else None</dd>
+<dt>rank</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>The rank of the input matrix</dd>
+</dl>
+<dl class="method">
+<dt id="skutil.odr.QRDecomposition.get_R">
+<code class="descname">get_R</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_R"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_R" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the R matrix from the decomposition</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.odr.QRDecomposition.get_R_rank">
+<code class="descname">get_R_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_R_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_R_rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the rank of the R matrix</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.odr.QRDecomposition.get_coef">
+<code class="descname">get_coef</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_coef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_coef" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.odr.QRDecomposition.get_rank">
+<code class="descname">get_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_rank" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the rank of the decomposition</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.odr.qr_decomposition">
+<code class="descclassname">skutil.odr.</code><code class="descname">qr_decomposition</code><span class="sig-paren">(</span><em>X</em>, <em>job=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#qr_decomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.qr_decomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the QR decomposition using LINPACK, BLAS and LAPACK
+Fortran subroutines.</p>
+<p>Parameters</p>
+<dl class="docutils">
+<dt>X</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, shape (n_samples, n_features)</span><dd>The matrix to decompose</dd>
+<dt>job</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>Whether to perform pivoting. 0 is False, any other value
+will be coerced to 1 (True).</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_preprocessing.html" class="btn btn-neutral float-right" title="skutil.preprocessing module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_model_selection.html" class="btn btn-neutral" title="skutil.model_selection module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

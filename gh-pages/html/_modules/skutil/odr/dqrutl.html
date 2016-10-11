@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.odr.dqrutl &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.odr.dqrutl</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.odr.dqrutl</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">dqrsl</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_array</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">matrix_rank</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg.linalg</span> <span class="k">import</span> <span class="n">LinAlgError</span>
+
+<span class="c1"># WARNING: there is little-to-no validation of input in these functions,</span>
+<span class="c1"># and crashes may be caused by inappropriate usage. Use with care.</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;qr_decomposition&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;QRDecomposition&#39;</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_matrix_size</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">*</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">2147483647</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;too many elements for Fortran LINPACK routine&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_safecall</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A method to call a LAPACK or LINPACK subroutine internally&quot;&quot;&quot;</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># since we&#39;re operating on arrays in place, we don&#39;t need this</span>
+    <span class="c1">#if ret[-1] &lt; 0:</span>
+    <span class="c1">#   raise ValueError(&quot;illegal value in %d-th argument of internal %s&quot;</span>
+    <span class="c1">#       % (-ret[-1], name))</span>
+
+<div class="viewcode-block" id="qr_decomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.qr_decomposition">[docs]</a><span class="k">def</span> <span class="nf">qr_decomposition</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs the QR decomposition using LINPACK, BLAS and LAPACK</span>
+<span class="sd">    Fortran subroutines.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : array_like, shape (n_samples, n_features)</span>
+<span class="sd">        The matrix to decompose</span>
+
+<span class="sd">    job : int, optional (default=1)</span>
+<span class="sd">        Whether to perform pivoting. 0 is False, any other value</span>
+<span class="sd">        will be coerced to 1 (True).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># check on size</span>
+    <span class="n">_validate_matrix_size</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">matrix_rank</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="c1"># validate job:</span>
+    <span class="n">job_</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">job</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="n">qraux</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">work</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span>
+                        <span class="c1"># can&#39;t use arange, because need fortran order (&#39;order&#39; not kw in arange)</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>
+
+    <span class="c1"># sanity checks</span>
+    <span class="k">assert</span> <span class="n">qraux</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">,</span> <span class="s1">&#39;expected qraux to be of length </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span>
+    <span class="k">assert</span> <span class="n">pivot</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">,</span> <span class="s1">&#39;expected pivot to be of length </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span>
+    <span class="k">assert</span> <span class="n">work</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="o">==</span> <span class="n">p</span><span class="p">,</span> <span class="s1">&#39;expected work to be of length </span><span class="si">%i</span><span class="s1">&#39;</span>  <span class="o">%</span> <span class="n">p</span>
+
+    <span class="c1"># call the fortran module IN PLACE</span>
+    <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrdc</span><span class="p">,</span> <span class="s1">&#39;dqrdc&#39;</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="n">job_</span><span class="p">)</span>
+
+    <span class="c1"># do returns</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span>
+            <span class="n">rank</span><span class="p">,</span>
+            <span class="n">qraux</span><span class="p">,</span> 
+            <span class="p">(</span><span class="n">pivot</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">job_</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># subtract one because pivot started at 1 for the fortran</span></div>
+
+
+<span class="k">def</span> <span class="nf">_qr_R</span><span class="p">(</span><span class="n">qr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract the R matrix from a QR decomposition&quot;&quot;&quot;</span>
+    <span class="n">min_dim</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">qr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">qr</span><span class="p">[:</span><span class="n">min_dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,:]</span>
+
+
+<div class="viewcode-block" id="QRDecomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition">[docs]</a><span class="k">class</span> <span class="nc">QRDecomposition</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Performs the QR decomposition using LINPACK, BLAS and LAPACK</span>
+<span class="sd">    Fortran subroutines, and provides an interface for other useful</span>
+<span class="sd">    QR utility methods.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">    X : array_like, shape (n_samples, n_features)</span>
+<span class="sd">        The matrix to decompose</span>
+
+<span class="sd">    pivot : int, optional (default=1)</span>
+<span class="sd">        Whether to perform pivoting. 0 is False, any other value</span>
+<span class="sd">        will be coerced to 1 (True).</span>
+
+<span class="sd">    Attributes</span>
+
+<span class="sd">    qr : array_like, shape (n_samples, n_features)</span>
+<span class="sd">        The decomposed matrix</span>
+
+<span class="sd">    qraux : array_like, shape (n_features,)</span>
+<span class="sd">        qraux contains further information required to recover</span>
+<span class="sd">        the orthogonal part of the decomposition.</span>
+
+<span class="sd">    pivot : array_like, shape (n_features,)</span>
+<span class="sd">        The pivots, if pivot was set to 1, else None</span>
+
+<span class="sd">    rank : int</span>
+<span class="sd">        The rank of the input matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pivot</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decompose</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_decompose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decomposes the matrix&quot;&quot;&quot;</span>
+        <span class="c1"># perform the decomposition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qraux</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pivot</span> <span class="o">=</span> <span class="n">qr_decomposition</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">job_</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QRDecomposition.get_coef"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_coef">[docs]</a>    <span class="k">def</span> <span class="nf">get_coef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">qr</span><span class="p">,</span> <span class="n">qraux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">qraux</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">qr</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># sanity check</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s1">&#39;internal error: QR should be a np.ndarray but got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">qr</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">qraux</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="s1">&#39;internal error: qraux should be a np.ndarray but got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">qraux</span><span class="p">)</span>
+
+        <span class="c1"># validate input array</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">nx</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;qr and X must have same number of rows&#39;</span><span class="p">)</span>
+
+        <span class="c1"># check on size</span>
+        <span class="n">_validate_matrix_size</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+
+        <span class="c1"># get the rank of the decomposition</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span>
+
+        <span class="c1"># get ix vector</span>
+        <span class="c1">#if p &gt; n:</span>
+        <span class="c1">#   ix = np.ones(n + (p - n)) * np.nan</span>
+        <span class="c1">#   ix[:n] = np.arange(n) # i.e., array([0,1,2,nan,nan,nan])</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#   ix = np.arange(n)</span>
+
+        <span class="c1"># set up the structures to alter</span>
+        <span class="n">coef</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>
+
+        <span class="c1"># call the fortran module IN PLACE</span>
+        <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrcf</span><span class="p">,</span> <span class="s1">&#39;dqrcf&#39;</span><span class="p">,</span> <span class="n">qr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># post-processing</span>
+        <span class="c1">#if k &lt; p:</span>
+        <span class="c1">#   cf = np.ones((p,ny)) * np.nan</span>
+        <span class="c1">#   cf[self.pivot[np.arange(k)], :] = coef</span>
+        <span class="k">return</span> <span class="n">coef</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">p</span> <span class="k">else</span> <span class="n">coef</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pivot</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">k</span><span class="p">)],</span> <span class="p">:]</span></div>
+
+<div class="viewcode-block" id="QRDecomposition.get_rank"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the rank of the decomposition&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span></div>
+
+<div class="viewcode-block" id="QRDecomposition.get_R"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_R">[docs]</a>    <span class="k">def</span> <span class="nf">get_R</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the R matrix from the decomposition&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_qr_R</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QRDecomposition.get_R_rank"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_R_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_R_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the rank of the R matrix&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">matrix_rank</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_R</span><span class="p">())</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

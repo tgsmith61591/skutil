@@ -1,0 +1,949 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.grid_search &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.grid_search</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.grid_search</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">sklearn</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">MetaEstimatorMixin</span><span class="p">,</span> <span class="n">is_classifier</span><span class="p">,</span> <span class="n">clone</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals.joblib</span> <span class="k">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_random_state</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.random</span> <span class="k">import</span> <span class="n">sample_without_replacement</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">_num_samples</span><span class="p">,</span> <span class="n">indexable</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.metaestimators</span> <span class="k">import</span> <span class="n">if_delegate_has_method</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics.scorer</span> <span class="k">import</span> <span class="n">check_scoring</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">Sized</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;GridSearchCV&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;RandomizedSearchCV&#39;</span>
+<span class="p">]</span>
+
+
+
+<span class="k">def</span> <span class="nf">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns X if X isn&#39;t a pandas frame, otherwise </span>
+<span class="sd">    the underlying matrix in the frame. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">_validate_y</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns y if y isn&#39;t a series, otherwise the array&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># unsupervised</span>
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="c1"># if it&#39;s a series</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+    <span class="c1"># if it&#39;s a dataframe:</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="c1"># check it&#39;s X dims</span>
+        <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;matrix provided as y&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">y</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+    <span class="c1"># bail and let the sklearn function handle validation</span>
+    <span class="k">return</span> <span class="n">y</span>
+
+<span class="k">def</span> <span class="nf">_check_param_grid</span><span class="p">(</span><span class="n">param_grid</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="s1">&#39;items&#39;</span><span class="p">):</span>
+        <span class="n">param_grid</span> <span class="o">=</span> <span class="p">[</span><span class="n">param_grid</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">param_grid</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">v</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter array should be one-dimensional.&quot;</span><span class="p">)</span>
+
+            <span class="n">check</span> <span class="o">=</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="kc">True</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter values should be a list. &quot;</span>
+                                 <span class="s2">&quot;Got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">param_grid</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter values should be a non-empty &quot;</span>
+                                 <span class="s2">&quot;list.&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_CVScoreTuple</span> <span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;_CVScoreTuple&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;mean_validation_score&#39;</span><span class="p">,</span> <span class="s1">&#39;cv_validation_scores&#39;</span><span class="p">))):</span>
+    <span class="sd">&quot;&quot;&quot;This class is not accessible to the public via the sklearn API,</span>
+<span class="sd">    so having to define it explicitly here for use with the grid search methods.</span>
+
+<span class="sd">    A raw namedtuple is very memory efficient as it packs the attributes</span>
+<span class="sd">    in a struct to get rid of the __dict__ of attributes in particular it</span>
+<span class="sd">    does not copy the string for the keys on each instance.</span>
+<span class="sd">    By deriving a namedtuple class just to introduce the __repr__ method we</span>
+<span class="sd">    would also reintroduce the __dict__ on the instance. By telling the</span>
+<span class="sd">    Python interpreter that this subclass uses static __slots__ instead of</span>
+<span class="sd">    dynamic attributes. Furthermore we don&#39;t need any additional slot in the</span>
+<span class="sd">    subclass so we set __slots__ to the empty tuple. &quot;&quot;&quot;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simple custom repr to summarize the main info&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;mean: </span><span class="si">{0:.5f}</span><span class="s2">, std: </span><span class="si">{1:.5f}</span><span class="s2">, params: </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mean_validation_score</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_validation_scores</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;as_matrix&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">y</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">y</span><span class="p">])</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot convert type </span><span class="si">%s</span><span class="s1"> to numpy ndarray&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+
+
+<span class="c1"># deprecation in sklearn 0.18</span>
+<span class="k">if</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">&#39;0.18&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sklearn.model_selection</span> <span class="k">as</span> <span class="nn">ms</span>
+
+    <span class="k">class</span> <span class="nc">GridSearchCV</span><span class="p">(</span><span class="n">ms</span><span class="o">.</span><span class="n">GridSearchCV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Had to wrap GridSearchCV in order to allow</span>
+<span class="sd">        fitting a series as Y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">GridSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+
+    <span class="k">class</span> <span class="nc">RandomizedSearchCV</span><span class="p">(</span><span class="n">ms</span><span class="o">.</span><span class="n">RandomizedSearchCV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Had to wrap RandomizedSearchCV in order to allow</span>
+<span class="sd">        fitting a series as Y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">RandomizedSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sklearn deprecates the GridSearch and cross validation API we know and</span>
+<span class="sd">    love in 0.18, thus, we only define these methods if we&#39;re using &lt; 0.18.</span>
+<span class="sd">    Otherwise, we&#39;ll use their default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="k">import</span> <span class="n">check_cv</span>
+    <span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="k">import</span> <span class="n">_fit_and_score</span>
+    <span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="k">import</span> <span class="n">ParameterSampler</span><span class="p">,</span> <span class="n">ParameterGrid</span>
+
+
+    <span class="k">class</span> <span class="nc">BaseSearchCV</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">BaseEstimator</span><span class="p">,</span>
+                                          <span class="n">MetaEstimatorMixin</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;Base class for hyper parameter search with cross-validation.</span>
+<span class="sd">        scikit-utils must redefine this class, because sklearn&#39;s version</span>
+<span class="sd">        internally treats all Xs and ys as lists or np.ndarrays. We redefine</span>
+<span class="sd">        to handle pandas dataframes as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@abstractmethod</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">fit_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">refit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pre_dispatch</span><span class="o">=</span><span class="s1">&#39;2*n_jobs&#39;</span><span class="p">,</span>
+                     <span class="n">error_score</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span> <span class="o">=</span> <span class="n">scoring</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">estimator</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fit_params</span> <span class="o">=</span> <span class="n">fit_params</span> <span class="k">if</span> <span class="n">fit_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iid</span> <span class="o">=</span> <span class="n">iid</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refit</span> <span class="o">=</span> <span class="n">refit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cv</span> <span class="o">=</span> <span class="n">cv</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pre_dispatch</span> <span class="o">=</span> <span class="n">pre_dispatch</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error_score</span> <span class="o">=</span> <span class="n">error_score</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_estimator_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">_estimator_type</span>
+
+        <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Returns the score on the given data, if the estimator has been refit.</span>
+<span class="sd">            This uses the score defined by ``scoring`` where provided, and the</span>
+<span class="sd">            ``best_estimator_.score`` method otherwise.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : array-like or pandas DataFrame, shape = [n_samples, n_features]</span>
+<span class="sd">                Input data, where n_samples is the number of samples and</span>
+<span class="sd">                n_features is the number of features.</span>
+
+<span class="sd">            y : array-like, shape = [n_samples] or [n_samples, n_output], optional</span>
+<span class="sd">                Target relative to X for classification or regression;</span>
+<span class="sd">                None for unsupervised learning.</span>
+<span class="sd">            Returns</span>
+
+<span class="sd">            score : float</span>
+<span class="sd">            Notes</span>
+
+<span class="sd">             * The long-standing behavior of this method changed in version 0.16.</span>
+<span class="sd">             * It no longer uses the metric provided by ``estimator.score`` if the</span>
+<span class="sd">               ``scoring`` parameter was set when fitting.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">_validate_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;scorer_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No score function explicitly defined, &quot;</span>
+                                 <span class="s2">&quot;and the estimator doesn&#39;t provide one </span><span class="si">%s</span><span class="s2">&quot;</span>
+                                 <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">)</span>
+
+            <span class="c1"># we&#39;ve already fit, and we have a scorer</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">):</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The long-standing behavior to use the estimator&#39;s &quot;</span>
+                              <span class="s2">&quot;score function in </span><span class="si">{0}</span><span class="s2">.score has changed. The &quot;</span>
+                              <span class="s2">&quot;scoring parameter is now used.&quot;</span>
+                              <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">),</span>
+                              <span class="ne">UserWarning</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call predict on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if ``refit=True`` and the underlying estimator supports</span>
+<span class="sd">            ``predict``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call predict_proba on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if ``refit=True`` and the underlying estimator supports</span>
+<span class="sd">            ``predict_proba``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">predict_log_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call predict_log_proba on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if ``refit=True`` and the underlying estimator supports</span>
+<span class="sd">            ``predict_log_proba``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict_log_proba</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">decision_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call decision_function on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if ``refit=True`` and the underlying estimator supports</span>
+<span class="sd">            ``decision_function``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call transform on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if the underlying estimator supports ``transform`` and</span>
+<span class="sd">            ``refit=True``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;estimator&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">inverse_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Xt</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Call inverse_transform on the estimator with the best found parameters.</span>
+<span class="sd">            Only available if the underlying estimator implements ``inverse_transform`` and</span>
+<span class="sd">            ``refit=True``.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            Xt : indexable or pd.DataFrame, length n_samples</span>
+<span class="sd">                Must fulfill the input assumptions of the</span>
+<span class="sd">                underlying estimator.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">Xt</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">Xt</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Xt</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">parameter_iterable</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Actual fitting,  performing the search over parameters.&quot;&quot;&quot;</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_validate_X</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c1"># if it&#39;s a frame, will be turned into a matrix</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">_validate_y</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="c1"># if it&#39;s a series, make it into a list</span>
+
+            <span class="c1"># for debugging</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+
+            <span class="c1"># begin sklearn code</span>
+            <span class="n">estimator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scorer_</span> <span class="o">=</span> <span class="n">check_scoring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring</span><span class="p">)</span>
+
+            <span class="n">n_samples</span> <span class="o">=</span> <span class="n">_num_samples</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">indexable</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_samples</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Target variable (y) has a different number &#39;</span>
+                                     <span class="s1">&#39;of samples (</span><span class="si">%i</span><span class="s1">) than data (X: </span><span class="si">%i</span><span class="s1"> samples)&#39;</span>
+                                     <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">n_samples</span><span class="p">))</span>
+            <span class="n">cv</span> <span class="o">=</span> <span class="n">check_cv</span><span class="p">(</span><span class="n">cv</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">classifier</span><span class="o">=</span><span class="n">is_classifier</span><span class="p">(</span><span class="n">estimator</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameter_iterable</span><span class="p">,</span> <span class="n">Sized</span><span class="p">):</span>
+                    <span class="n">n_candidates</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_iterable</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fitting </span><span class="si">{0}</span><span class="s2"> folds for each of </span><span class="si">{1}</span><span class="s2"> candidates, totalling&quot;</span>
+                          <span class="s2">&quot; </span><span class="si">{2}</span><span class="s2"> fits&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="p">),</span> <span class="n">n_candidates</span><span class="p">,</span>
+                                             <span class="n">n_candidates</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="p">)))</span>
+
+            <span class="n">base_estimator</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">)</span>
+            <span class="n">pre_dispatch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_dispatch</span>
+
+            <span class="n">out</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span>
+                <span class="n">n_jobs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">pre_dispatch</span><span class="o">=</span><span class="n">pre_dispatch</span>
+            <span class="p">)(</span>
+                <span class="n">delayed</span><span class="p">(</span><span class="n">_fit_and_score</span><span class="p">)(</span><span class="n">clone</span><span class="p">(</span><span class="n">base_estimator</span><span class="p">),</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scorer_</span><span class="p">,</span>
+                                        <span class="n">train</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">fit_params</span><span class="p">,</span> <span class="n">return_parameters</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">error_score</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">error_score</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="n">parameter_iterable</span>
+                    <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">test</span> <span class="ow">in</span> <span class="n">cv</span><span class="p">)</span>
+
+            <span class="c1"># Out is a list of triplet: score, estimator, n_test_samples</span>
+            <span class="n">n_fits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+            <span class="n">n_folds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span>
+
+            <span class="n">scores</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="n">grid_scores</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">grid_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_fits</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">):</span>
+                <span class="n">n_test_samples</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">all_scores</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">this_score</span><span class="p">,</span> <span class="n">this_n_test_samples</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">parameters</span> <span class="ow">in</span> \
+                        <span class="n">out</span><span class="p">[</span><span class="n">grid_start</span><span class="p">:</span><span class="n">grid_start</span> <span class="o">+</span> <span class="n">n_folds</span><span class="p">]:</span>
+                    <span class="n">all_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_score</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iid</span><span class="p">:</span>
+                        <span class="n">this_score</span> <span class="o">*=</span> <span class="n">this_n_test_samples</span>
+                        <span class="n">n_test_samples</span> <span class="o">+=</span> <span class="n">this_n_test_samples</span>
+                    <span class="n">score</span> <span class="o">+=</span> <span class="n">this_score</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iid</span><span class="p">:</span>
+                    <span class="n">score</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_test_samples</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">score</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span>
+                <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">score</span><span class="p">,</span> <span class="n">parameters</span><span class="p">))</span>
+                <span class="c1"># TODO: shall we also store the test_fold_sizes?</span>
+                <span class="n">grid_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_CVScoreTuple</span><span class="p">(</span>
+                    <span class="n">parameters</span><span class="p">,</span>
+                    <span class="n">score</span><span class="p">,</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)))</span>
+            <span class="c1"># Store the computed scores</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">grid_scores_</span> <span class="o">=</span> <span class="n">grid_scores</span>
+
+            <span class="c1"># Find the best parameters by comparing on the mean validation score:</span>
+            <span class="c1"># note that `sorted` is deterministic in the way it breaks ties</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">grid_scores</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">mean_validation_score</span><span class="p">,</span>
+                          <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_params_</span> <span class="o">=</span> <span class="n">best</span><span class="o">.</span><span class="n">parameters</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best_score_</span> <span class="o">=</span> <span class="n">best</span><span class="o">.</span><span class="n">mean_validation_score</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">refit</span><span class="p">:</span>
+                <span class="c1"># fit the best estimator using the entire dataset</span>
+                <span class="c1"># clone first to work around broken estimators</span>
+                <span class="n">best_estimator</span> <span class="o">=</span> <span class="n">clone</span><span class="p">(</span><span class="n">base_estimator</span><span class="p">)</span><span class="o">.</span><span class="n">set_params</span><span class="p">(</span>
+                    <span class="o">**</span><span class="n">best</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">best_estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_params</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">best_estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fit_params</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span> <span class="o">=</span> <span class="n">best_estimator</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="GridSearchCV"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.model_selection.GridSearchCV">[docs]</a>    <span class="k">class</span> <span class="nc">GridSearchCV</span><span class="p">(</span><span class="n">BaseSearchCV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Exhaustive search over specified parameter values for an estimator.</span>
+<span class="sd">        This class is the same as sklearn&#39;s version, however it extends the skutils </span>
+<span class="sd">        version of BaseSearchCV which can handle indexing pandas dataframes, </span>
+<span class="sd">        where sklearn&#39;s does not.</span>
+
+<span class="sd">        Important members are fit, predict.</span>
+<span class="sd">        GridSearchCV implements a &quot;fit&quot; and a &quot;score&quot; method.</span>
+<span class="sd">        It also implements &quot;predict&quot;, &quot;predict_proba&quot;, &quot;decision_function&quot;,</span>
+<span class="sd">        &quot;transform&quot; and &quot;inverse_transform&quot; if they are implemented in the</span>
+<span class="sd">        estimator used.</span>
+
+<span class="sd">        The parameters of the estimator used to apply these methods are optimized</span>
+<span class="sd">        by cross-validated grid-search over a parameter grid.</span>
+<span class="sd">        Read more in the :ref:`User Guide &lt;grid_search&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+
+<span class="sd">        estimator : estimator object.</span>
+<span class="sd">            A object of that type is instantiated for each grid point.</span>
+<span class="sd">            This is assumed to implement the scikit-learn estimator interface.</span>
+<span class="sd">            Either estimator needs to provide a ``score`` function,</span>
+<span class="sd">            or ``scoring`` must be passed.</span>
+
+<span class="sd">        param_grid : dict or list of dictionaries</span>
+<span class="sd">            Dictionary with parameters names (string) as keys and lists of</span>
+<span class="sd">            parameter settings to try as values, or a list of such</span>
+<span class="sd">            dictionaries, in which case the grids spanned by each dictionary</span>
+<span class="sd">            in the list are explored. This enables searching over any sequence</span>
+<span class="sd">            of parameter settings.</span>
+
+<span class="sd">        scoring : string, callable or None, default=None</span>
+<span class="sd">            A string (see model evaluation documentation) or</span>
+<span class="sd">            a scorer callable object / function with signature</span>
+<span class="sd">            ``scorer(estimator, X, y)``.</span>
+<span class="sd">            If ``None``, the ``score`` method of the estimator is used.</span>
+
+<span class="sd">        fit_params : dict, optional</span>
+<span class="sd">            Parameters to pass to the fit method.</span>
+
+<span class="sd">        n_jobs : int, default=1</span>
+<span class="sd">            Number of jobs to run in parallel.</span>
+<span class="sd">            .. versionchanged:: 0.17</span>
+<span class="sd">               Upgraded to joblib 0.9.3.</span>
+
+<span class="sd">        pre_dispatch : int, or string, optional</span>
+<span class="sd">            Controls the number of jobs that get dispatched during parallel</span>
+<span class="sd">            execution. Reducing this number can be useful to avoid an</span>
+<span class="sd">            explosion of memory consumption when more jobs get dispatched</span>
+<span class="sd">            than CPUs can process. This parameter can be:</span>
+<span class="sd">                - None, in which case all the jobs are immediately</span>
+<span class="sd">                  created and spawned. Use this for lightweight and</span>
+<span class="sd">                  fast-running jobs, to avoid delays due to on-demand</span>
+<span class="sd">                  spawning of the jobs</span>
+<span class="sd">                - An int, giving the exact number of total jobs that are</span>
+<span class="sd">                  spawned</span>
+<span class="sd">                - A string, giving an expression as a function of n_jobs,</span>
+<span class="sd">                  as in &#39;2*n_jobs&#39;</span>
+
+<span class="sd">        iid : boolean, default=True</span>
+<span class="sd">            If True, the data is assumed to be identically distributed across</span>
+<span class="sd">            the folds, and the loss minimized is the total loss per sample,</span>
+<span class="sd">            and not the mean loss across the folds.</span>
+
+<span class="sd">        cv : int, cross-validation generator or an iterable, optional</span>
+<span class="sd">            Determines the cross-validation splitting strategy.</span>
+<span class="sd">            Possible inputs for cv are:</span>
+<span class="sd">            - None, to use the default 3-fold cross-validation,</span>
+<span class="sd">            - integer, to specify the number of folds.</span>
+<span class="sd">            - An object to be used as a cross-validation generator.</span>
+<span class="sd">            - An iterable yielding train/test splits.</span>
+<span class="sd">            For integer/None inputs, if the estimator is a classifier and ``y`` is</span>
+<span class="sd">            either binary or multiclass, :class:`StratifiedKFold` used. In all</span>
+<span class="sd">            other cases, :class:`KFold` is used.</span>
+<span class="sd">            Refer :ref:`User Guide &lt;cross_validation&gt;` for the various</span>
+<span class="sd">            cross-validation strategies that can be used here.</span>
+
+<span class="sd">        refit : boolean, default=True</span>
+<span class="sd">            Refit the best estimator with the entire dataset.</span>
+<span class="sd">            If &quot;False&quot;, it is impossible to make predictions using</span>
+<span class="sd">            this GridSearchCV instance after fitting.</span>
+
+<span class="sd">        verbose : integer</span>
+<span class="sd">            Controls the verbosity: the higher, the more messages.</span>
+
+<span class="sd">        error_score : &#39;raise&#39; (default) or numeric</span>
+<span class="sd">            Value to assign to the score if an error occurs in estimator fitting.</span>
+<span class="sd">            If set to &#39;raise&#39;, the error is raised. If a numeric value is given,</span>
+<span class="sd">            FitFailedWarning is raised. This parameter does not affect the refit</span>
+<span class="sd">            step, which will always raise the error.</span>
+
+<span class="sd">        Examples</span>
+
+<span class="sd">        &gt;&gt;&gt; from sklearn import svm, grid_search, datasets</span>
+<span class="sd">        &gt;&gt;&gt; iris = datasets.load_iris()</span>
+<span class="sd">        &gt;&gt;&gt; parameters = {&#39;kernel&#39;:(&#39;linear&#39;, &#39;rbf&#39;), &#39;C&#39;:[1, 10]}</span>
+<span class="sd">        &gt;&gt;&gt; svr = svm.SVC()</span>
+<span class="sd">        &gt;&gt;&gt; clf = grid_search.GridSearchCV(svr, parameters)</span>
+<span class="sd">        &gt;&gt;&gt; clf.fit(iris.data, iris.target)</span>
+<span class="sd">        ...        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS</span>
+<span class="sd">        GridSearchCV(cv=None, error_score=...,</span>
+<span class="sd">               estimator=SVC(C=1.0, cache_size=..., class_weight=..., coef0=...,</span>
+<span class="sd">                             decision_function_shape=None, degree=..., gamma=...,</span>
+<span class="sd">                             kernel=&#39;rbf&#39;, max_iter=-1, probability=False,</span>
+<span class="sd">                             random_state=None, shrinking=True, tol=...,</span>
+<span class="sd">                             verbose=False),</span>
+<span class="sd">               fit_params={}, iid=..., n_jobs=1,</span>
+<span class="sd">               param_grid=..., pre_dispatch=..., refit=...,</span>
+<span class="sd">               scoring=..., verbose=...)</span>
+
+<span class="sd">        Attributes</span>
+
+<span class="sd">        grid_scores_ : list of named tuples</span>
+<span class="sd">            Contains scores for all parameter combinations in param_grid.</span>
+<span class="sd">            Each entry corresponds to one parameter setting.</span>
+<span class="sd">            Each named tuple has the attributes:</span>
+<span class="sd">                * ``parameters``, a dict of parameter settings</span>
+<span class="sd">                * ``mean_validation_score``, the mean score over the</span>
+<span class="sd">                  cross-validation folds</span>
+<span class="sd">                * ``cv_validation_scores``, the list of scores for each fold</span>
+
+<span class="sd">        best_estimator_ : estimator</span>
+<span class="sd">            Estimator that was chosen by the search, i.e. estimator</span>
+<span class="sd">            which gave highest score (or smallest loss if specified)</span>
+<span class="sd">            on the left out data. Not available if refit=False.</span>
+
+<span class="sd">        best_score_ : float</span>
+<span class="sd">            Score of best_estimator on the left out data.</span>
+
+<span class="sd">        best_params_ : dict</span>
+<span class="sd">            Parameter setting that gave the best results on the hold out data.</span>
+
+<span class="sd">        scorer_ : function</span>
+<span class="sd">            Scorer function used on the held out data to choose the best</span>
+<span class="sd">            parameters for the model.</span>
+
+<span class="sd">        Notes</span>
+
+<span class="sd">        The parameters selected are those that maximize the score of the left out</span>
+<span class="sd">        data, unless an explicit score is passed in which case it is used instead.</span>
+<span class="sd">        If `n_jobs` was set to a value higher than one, the data is copied for each</span>
+<span class="sd">        point in the grid (and not `n_jobs` times). This is done for efficiency</span>
+<span class="sd">        reasons if individual jobs take very little time, but may raise errors if</span>
+<span class="sd">        the dataset is large and not enough memory is available.  A workaround in</span>
+<span class="sd">        this case is to set `pre_dispatch`. Then, the memory is copied only</span>
+<span class="sd">        `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *</span>
+<span class="sd">        n_jobs`.</span>
+
+<span class="sd">        See Also</span>
+
+<span class="sd">        :class:`ParameterGrid`:</span>
+<span class="sd">            generates all the combinations of a hyperparameter grid.</span>
+
+<span class="sd">        :func:`sklearn.cross_validation.train_test_split`:</span>
+<span class="sd">            utility function to split the data into a development set usable</span>
+<span class="sd">            for fitting a GridSearchCV instance and an evaluation set for</span>
+<span class="sd">            its final evaluation.</span>
+
+<span class="sd">        :func:`sklearn.metrics.make_scorer`:</span>
+<span class="sd">            Make a scorer from a performance metric or loss function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">param_grid</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fit_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">pre_dispatch</span><span class="o">=</span><span class="s1">&#39;2*n_jobs&#39;</span><span class="p">,</span> <span class="n">error_score</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+
+            <span class="nb">super</span><span class="p">(</span><span class="n">GridSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+                <span class="n">estimator</span><span class="p">,</span> <span class="n">scoring</span><span class="p">,</span> <span class="n">fit_params</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">iid</span><span class="p">,</span>
+                <span class="n">refit</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">pre_dispatch</span><span class="p">,</span> <span class="n">error_score</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span> <span class="o">=</span> <span class="n">param_grid</span>
+            <span class="n">_check_param_grid</span><span class="p">(</span><span class="n">param_grid</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GridSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.model_selection.GridSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Run fit with all sets of parameters.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : array-like, shape = [n_samples, n_features]</span>
+<span class="sd">                Training vector, where n_samples is the number of samples and</span>
+<span class="sd">                n_features is the number of features.</span>
+<span class="sd">            y : array-like, shape = [n_samples] or [n_samples, n_output], optional</span>
+<span class="sd">                Target relative to X for classification or regression;</span>
+<span class="sd">                None for unsupervised learning.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ParameterGrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span><span class="p">))</span></div></div>
+
+
+
+
+<div class="viewcode-block" id="RandomizedSearchCV"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.model_selection.RandomizedSearchCV">[docs]</a>    <span class="k">class</span> <span class="nc">RandomizedSearchCV</span><span class="p">(</span><span class="n">BaseSearchCV</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Randomized search on hyper parameters. This class is the same as sklearn&#39;s</span>
+<span class="sd">        version, however it extends the skutils version of BaseSearchCV which can handle</span>
+<span class="sd">        indexing pandas dataframes, where sklearn&#39;s does not.</span>
+
+<span class="sd">        RandomizedSearchCV implements a &quot;fit&quot; and a &quot;score&quot; method.</span>
+<span class="sd">        It also implements &quot;predict&quot;, &quot;predict_proba&quot;, &quot;decision_function&quot;,</span>
+<span class="sd">        &quot;transform&quot; and &quot;inverse_transform&quot; if they are implemented in the</span>
+<span class="sd">        estimator used.</span>
+
+<span class="sd">        The parameters of the estimator used to apply these methods are optimized</span>
+<span class="sd">        by cross-validated search over parameter settings.</span>
+
+<span class="sd">        In contrast to GridSearchCV, not all parameter values are tried out, but</span>
+<span class="sd">        rather a fixed number of parameter settings is sampled from the specified</span>
+<span class="sd">        distributions. The number of parameter settings that are tried is</span>
+<span class="sd">        given by n_iter.</span>
+
+<span class="sd">        If all parameters are presented as a list,</span>
+<span class="sd">        sampling without replacement is performed. If at least one parameter</span>
+<span class="sd">        is given as a distribution, sampling with replacement is used.</span>
+<span class="sd">        It is highly recommended to use continuous distributions for continuous</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        Read more in the :ref:`User Guide &lt;randomized_parameter_search&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+
+<span class="sd">        estimator : estimator object.</span>
+<span class="sd">            A object of that type is instantiated for each grid point.</span>
+<span class="sd">            This is assumed to implement the scikit-learn estimator interface.</span>
+<span class="sd">            Either estimator needs to provide a ``score`` function,</span>
+<span class="sd">            or ``scoring`` must be passed.</span>
+
+<span class="sd">        param_distributions : dict</span>
+<span class="sd">            Dictionary with parameters names (string) as keys and distributions</span>
+<span class="sd">            or lists of parameters to try. Distributions must provide a ``rvs``</span>
+<span class="sd">            method for sampling (such as those from scipy.stats.distributions).</span>
+<span class="sd">            If a list is given, it is sampled uniformly.</span>
+
+<span class="sd">        n_iter : int, default=10</span>
+<span class="sd">            Number of parameter settings that are sampled. n_iter trades</span>
+<span class="sd">            off runtime vs quality of the solution.</span>
+
+<span class="sd">        scoring : string, callable or None, default=None</span>
+<span class="sd">            A string (see model evaluation documentation) or</span>
+<span class="sd">            a scorer callable object / function with signature</span>
+<span class="sd">            ``scorer(estimator, X, y)``.</span>
+<span class="sd">            If ``None``, the ``score`` method of the estimator is used.</span>
+
+<span class="sd">        fit_params : dict, optional</span>
+<span class="sd">            Parameters to pass to the fit method.</span>
+
+<span class="sd">        n_jobs : int, default=1</span>
+<span class="sd">            Number of jobs to run in parallel.</span>
+
+<span class="sd">        pre_dispatch : int, or string, optional</span>
+<span class="sd">            Controls the number of jobs that get dispatched during parallel</span>
+<span class="sd">            execution. Reducing this number can be useful to avoid an</span>
+<span class="sd">            explosion of memory consumption when more jobs get dispatched</span>
+<span class="sd">            than CPUs can process. This parameter can be:</span>
+<span class="sd">                - None, in which case all the jobs are immediately</span>
+<span class="sd">                  created and spawned. Use this for lightweight and</span>
+<span class="sd">                  fast-running jobs, to avoid delays due to on-demand</span>
+<span class="sd">                  spawning of the jobs</span>
+<span class="sd">                - An int, giving the exact number of total jobs that are</span>
+<span class="sd">                  spawned</span>
+<span class="sd">                - A string, giving an expression as a function of n_jobs,</span>
+<span class="sd">                  as in &#39;2*n_jobs&#39;</span>
+
+<span class="sd">        iid : boolean, default=True</span>
+<span class="sd">            If True, the data is assumed to be identically distributed across</span>
+<span class="sd">            the folds, and the loss minimized is the total loss per sample,</span>
+<span class="sd">            and not the mean loss across the folds.</span>
+
+<span class="sd">        cv : int, cross-validation generator or an iterable, optional</span>
+<span class="sd">            Determines the cross-validation splitting strategy.</span>
+<span class="sd">            Possible inputs for cv are:</span>
+<span class="sd">            - None, to use the default 3-fold cross-validation,</span>
+<span class="sd">            - integer, to specify the number of folds.</span>
+<span class="sd">            - An object to be used as a cross-validation generator.</span>
+<span class="sd">            - An iterable yielding train/test splits.</span>
+<span class="sd">            For integer/None inputs, if the estimator is a classifier and ``y`` is</span>
+<span class="sd">            either binary or multiclass, :class:`StratifiedKFold` used. In all</span>
+<span class="sd">            other cases, :class:`KFold` is used.</span>
+<span class="sd">            Refer :ref:`User Guide &lt;cross_validation&gt;` for the various</span>
+<span class="sd">            cross-validation strategies that can be used here.</span>
+
+<span class="sd">        refit : boolean, default=True</span>
+<span class="sd">            Refit the best estimator with the entire dataset.</span>
+<span class="sd">            If &quot;False&quot;, it is impossible to make predictions using</span>
+<span class="sd">            this RandomizedSearchCV instance after fitting.</span>
+
+<span class="sd">        verbose : integer</span>
+<span class="sd">            Controls the verbosity: the higher, the more messages.</span>
+
+<span class="sd">        random_state : int or RandomState</span>
+<span class="sd">            Pseudo random number generator state used for random uniform sampling</span>
+<span class="sd">            from lists of possible values instead of scipy.stats distributions.</span>
+
+<span class="sd">        error_score : &#39;raise&#39; (default) or numeric</span>
+<span class="sd">            Value to assign to the score if an error occurs in estimator fitting.</span>
+<span class="sd">            If set to &#39;raise&#39;, the error is raised. If a numeric value is given,</span>
+<span class="sd">            FitFailedWarning is raised. This parameter does not affect the refit</span>
+<span class="sd">            step, which will always raise the error.</span>
+
+<span class="sd">        Attributes</span>
+
+<span class="sd">        grid_scores_ : list of named tuples</span>
+<span class="sd">            Contains scores for all parameter combinations in param_grid.</span>
+<span class="sd">            Each entry corresponds to one parameter setting.</span>
+<span class="sd">            Each named tuple has the attributes:</span>
+<span class="sd">                * ``parameters``, a dict of parameter settings</span>
+<span class="sd">                * ``mean_validation_score``, the mean score over the</span>
+<span class="sd">                  cross-validation folds</span>
+<span class="sd">                * ``cv_validation_scores``, the list of scores for each fold</span>
+
+<span class="sd">        best_estimator_ : estimator</span>
+<span class="sd">            Estimator that was chosen by the search, i.e. estimator</span>
+<span class="sd">            which gave highest score (or smallest loss if specified)</span>
+<span class="sd">            on the left out data. Not available if refit=False.</span>
+
+<span class="sd">        best_score_ : float</span>
+<span class="sd">            Score of best_estimator on the left out data.</span>
+
+<span class="sd">        best_params_ : dict</span>
+<span class="sd">            Parameter setting that gave the best results on the hold out data.</span>
+
+<span class="sd">        Notes</span>
+
+<span class="sd">        The parameters selected are those that maximize the score of the held-out</span>
+<span class="sd">        data, according to the scoring parameter.</span>
+<span class="sd">        If `n_jobs` was set to a value higher than one, the data is copied for each</span>
+<span class="sd">        parameter setting(and not `n_jobs` times). This is done for efficiency</span>
+<span class="sd">        reasons if individual jobs take very little time, but may raise errors if</span>
+<span class="sd">        the dataset is large and not enough memory is available.  A workaround in</span>
+<span class="sd">        this case is to set `pre_dispatch`. Then, the memory is copied only</span>
+<span class="sd">        `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *</span>
+<span class="sd">        n_jobs`.</span>
+
+<span class="sd">        See Also</span>
+
+<span class="sd">        :class:`GridSearchCV`:</span>
+<span class="sd">            Does exhaustive search over a grid of parameters.</span>
+
+<span class="sd">        :class:`ParameterSampler`:</span>
+<span class="sd">            A generator over parameter settings, constructed from</span>
+<span class="sd">            param_distributions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">param_distributions</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">fit_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pre_dispatch</span><span class="o">=</span><span class="s1">&#39;2*n_jobs&#39;</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">error_score</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">):</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">param_distributions</span> <span class="o">=</span> <span class="n">param_distributions</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">RandomizedSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+                <span class="n">estimator</span><span class="o">=</span><span class="n">estimator</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="n">scoring</span><span class="p">,</span> <span class="n">fit_params</span><span class="o">=</span><span class="n">fit_params</span><span class="p">,</span>
+                <span class="n">n_jobs</span><span class="o">=</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="n">iid</span><span class="p">,</span> <span class="n">refit</span><span class="o">=</span><span class="n">refit</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">pre_dispatch</span><span class="o">=</span><span class="n">pre_dispatch</span><span class="p">,</span> <span class="n">error_score</span><span class="o">=</span><span class="n">error_score</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RandomizedSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.model_selection.RandomizedSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Run fit on the estimator with randomly drawn parameters.</span>
+<span class="sd">            Parameters</span>
+
+<span class="sd">            X : array-like, shape = [n_samples, n_features]</span>
+<span class="sd">                Training vector, where n_samples in the number of samples and</span>
+<span class="sd">                n_features is the number of features.</span>
+<span class="sd">            y : array-like, shape = [n_samples] or [n_samples, n_output], optional</span>
+<span class="sd">                Target relative to X for classification or regression;</span>
+<span class="sd">                None for unsupervised learning.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">sampled_params</span> <span class="o">=</span> <span class="n">ParameterSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_distributions</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">,</span>
+                                              <span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
+
+            <span class="c1"># the super class will handle the X, y validation</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">sampled_params</span><span class="p">)</span></div></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

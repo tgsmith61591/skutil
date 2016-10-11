@@ -1,0 +1,1039 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.utils.util &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.utils.util</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.utils.util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">st</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">LinearRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">confusion_matrix</span> <span class="k">as</span> <span class="n">cm</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">load_iris</span><span class="p">,</span> <span class="n">load_breast_cancer</span><span class="p">,</span> <span class="n">load_boston</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">SelectiveWarning</span><span class="p">,</span> <span class="n">ModuleImportWarning</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># this causes a UserWarning to be thrown by matplotlib... should we squelch this?</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+        <span class="c1"># do actual import</span>
+        <span class="c1">#import matplotlib as mpl</span>
+        <span class="c1">#mpl.use(&#39;TkAgg&#39;) # set backend</span>
+        <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+        <span class="c1"># log it</span>
+        <span class="n">CAN_CHART_MPL</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+    <span class="n">CAN_CHART_MPL</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+        <span class="n">CAN_CHART_SNS</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+    <span class="n">CAN_CHART_SNS</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">__max_exp__</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e19</span>
+<span class="n">__min_log__</span> <span class="o">=</span> <span class="o">-</span><span class="mi">19</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;corr_plot&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;df_memory_estimate&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;flatten_all&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;flatten_all_generator&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;get_numeric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;human_bytes&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;is_entirely_numeric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;is_numeric&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_boston_df&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_breast_cancer_df&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;load_iris_df&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;log&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pd_stats&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;report_confusion_matrix&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;report_grid_score_detail&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;shuffle_dataframe&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;validate_is_pd&#39;</span>
+<span class="p">]</span>
+
+
+<span class="c1">######## MATHEMATICAL UTILITIES #############    </span>
+<span class="k">def</span> <span class="nf">_log_single</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sanitized log function for a single element.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        The number to log</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    val : float</span>
+<span class="sd">        the log of x</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">__min_log__</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="nb">max</span><span class="p">(</span><span class="n">__min_log__</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>  
+    <span class="k">return</span> <span class="n">val</span>
+
+
+<span class="k">def</span> <span class="nf">_exp_single</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sanitized exponential function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float</span>
+<span class="sd">        The number to exp</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    val : float</span>
+<span class="sd">        the exp of x</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">__max_exp__</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">val</span>
+
+
+<span class="k">def</span> <span class="nf">_vectorize</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fun</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Type </span><span class="si">%s</span><span class="s1"> does not have attr __iter__&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="exp"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.exp">[docs]</a><span class="k">def</span> <span class="nf">exp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing the exponential function&quot;&quot;&quot;</span>
+    <span class="c1"># check on single exp</span>
+    <span class="k">if</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_exp_single</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># try vectorized</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_vectorize</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">v</span><span class="p">:</span>
+        <span class="c1"># bail</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;don&#39;t know how to compute exp for type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="log"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.log">[docs]</a><span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing a log&quot;&quot;&quot;</span>
+    <span class="c1"># check on single log</span>
+    <span class="k">if</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_log_single</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># try vectorized</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_vectorize</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">v</span><span class="p">:</span>
+        <span class="c1"># bail</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;don&#39;t know how to compute log for type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">_val_cols</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+    <span class="c1"># if it&#39;s None, return immediately</span>
+    <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cols</span>
+
+    <span class="c1"># try to make cols a list</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cols must be an iterable sequence&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span> <span class="c1"># make it a list implicitly, make no guarantees about elements</span>
+
+
+<span class="k">def</span> <span class="nf">_def_headers</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;V</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span>  <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="corr_plot"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.corr_plot">[docs]</a><span class="k">def</span> <span class="nf">corr_plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;cor&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Blues_d&#39;</span><span class="p">,</span> <span class="n">n_levels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">corr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+        <span class="n">method</span><span class="o">=</span><span class="s1">&#39;pearson&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="mi">9</span><span class="p">),</span> <span class="n">cmap_a</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">cmap_b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+        <span class="n">xticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">yticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">cbar_kws</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shrink&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">}):</span>
+    <span class="sd">&quot;&quot;&quot;Create a simple correlation plot given a dataframe.</span>
+<span class="sd">    Note that this requires all datatypes to be numeric and finite!</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The pandas DataFrame</span>
+
+<span class="sd">    plot_type : str, optional (default=&#39;cor&#39;)</span>
+<span class="sd">        The type of plot, one of (&#39;cor&#39;, &#39;kde&#39;, &#39;pair&#39;)</span>
+
+<span class="sd">    cmap : str, optional (default=&#39;Blues_d&#39;)</span>
+<span class="sd">        The color to use for the kernel density estimate plot</span>
+<span class="sd">        if plot_type == &#39;kde&#39;</span>
+
+<span class="sd">    n_levels : int, optional (default=5)</span>
+<span class="sd">        The number of levels to use for the kde plot </span>
+<span class="sd">        if plot_type == &#39;kde&#39;</span>
+
+<span class="sd">    corr : &#39;precomputed&#39; or None, optional (default=None)</span>
+<span class="sd">        If None, the correlation matrix is computed, otherwise</span>
+<span class="sd">        if &#39;precomputed&#39;, X is treated as a correlation matrix.</span>
+
+<span class="sd">    method : str, optional (default=&#39;pearson&#39;)</span>
+<span class="sd">        The method to use for correlation</span>
+
+<span class="sd">    figsize : tuple (int), optional (default=(11,9))</span>
+<span class="sd">        The size of the image</span>
+
+<span class="sd">    cmap_a : int, optional (default=220)</span>
+<span class="sd">        The colormap start point</span>
+
+<span class="sd">    cmap_b : int, optional (default=10)</span>
+<span class="sd">        The colormap end point</span>
+
+<span class="sd">    vmax : float, optional (default=0.3)</span>
+<span class="sd">        Arg for seaborn heatmap</span>
+
+<span class="sd">    xticklabels : int, optional (default=5)</span>
+<span class="sd">        The spacing for X ticks</span>
+
+<span class="sd">    yticklabels : int, optional (default=5)</span>
+<span class="sd">        The spacing for Y ticks</span>
+
+<span class="sd">    linewidths : float, optional (default=0.5)</span>
+<span class="sd">        The width of the lines</span>
+
+<span class="sd">    cbar_kws : dict, optional</span>
+<span class="sd">        Any KWs to pass to seaborn&#39;s heatmap when plot_type = &#39;cor&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">valid_types</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cor&#39;</span><span class="p">,</span> <span class="s1">&#39;kde&#39;</span><span class="p">,</span> <span class="s1">&#39;pair&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_type</span> <span class="ow">in</span> <span class="n">valid_types</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;expected one of (</span><span class="si">%s</span><span class="s1">), but got </span><span class="si">%s</span><span class="s1">&#39;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_types</span><span class="p">),</span> <span class="n">plot_type</span><span class="p">))</span>
+
+    <span class="c1"># seaborn is needed for all of these, so we have to check outside</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">CAN_CHART_SNS</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Cannot plot (unable to import Seaborn)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+    <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;cor&#39;</span><span class="p">:</span>
+        <span class="c1"># MPL is only needed for COR</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">CAN_CHART_MPL</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Cannot plot (unable to import Matplotlib)&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">corr</span> <span class="o">==</span> <span class="s1">&#39;precomputed&#39;</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">cols</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">cols</span>
+
+        <span class="c1"># mask for upper triangle</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices_from</span><span class="p">(</span><span class="n">mask</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># set up mpl figure</span>
+        <span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">color_map</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">diverging_palette</span><span class="p">(</span><span class="n">cmap_a</span><span class="p">,</span> <span class="n">cmap_b</span><span class="p">,</span> <span class="n">as_cmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">color_map</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+            <span class="n">square</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xticklabels</span><span class="o">=</span><span class="n">xticklabels</span><span class="p">,</span> <span class="n">yticklabels</span><span class="o">=</span><span class="n">yticklabels</span><span class="p">,</span>
+            <span class="n">linewidths</span><span class="o">=</span><span class="n">linewidths</span><span class="p">,</span> <span class="n">cbar_kws</span><span class="o">=</span><span class="n">cbar_kws</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;pair&#39;</span><span class="p">:</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">pairplot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">PairGrid</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">map_diag</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">map_offdiag</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">kdeplot</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">)</span>
+        <span class="n">sns</span><span class="o">.</span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="flatten_all"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.flatten_all">[docs]</a><span class="k">def</span> <span class="nf">flatten_all</span><span class="p">(</span><span class="n">container</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Recursively flattens an arbitrarily nested iterable.</span>
+<span class="sd">    WARNING: this function may produce a list of mixed types.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
+<span class="sd">    &gt;&gt;&gt; flatten_all(a)</span>
+<span class="sd">    [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">container</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="flatten_all_generator"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.flatten_all_generator">[docs]</a><span class="k">def</span> <span class="nf">flatten_all_generator</span><span class="p">(</span><span class="n">container</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Recursively flattens an arbitrarily nested iterable.</span>
+<span class="sd">    WARNING: this function may produce a list of mixed types.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
+<span class="sd">    &gt;&gt;&gt; flatten_all_generator(a)</span>
+<span class="sd">    [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # returns a generator for this iterable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">container</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">container</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">j</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">i</span></div>
+
+<div class="viewcode-block" id="shuffle_dataframe"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.shuffle_dataframe">[docs]</a><span class="k">def</span> <span class="nf">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span></div>
+
+
+<div class="viewcode-block" id="validate_is_pd"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.validate_is_pd">[docs]</a><span class="k">def</span> <span class="nf">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Used within each SelectiveMixin fit method to determine whether</span>
+<span class="sd">    the passed X is a dataframe, and whether the cols is appropriate.</span>
+<span class="sd">    There are four scenarios (in the order in which they&#39;re checked):</span>
+
+<span class="sd">    1) Names is not None, but X is not a dataframe.</span>
+<span class="sd">        Resolution: the method will attempt to return a DataFrame from the</span>
+<span class="sd">        args provided (with default names), but catches any</span>
+<span class="sd">        exception and raises a ValueError. A common case where this would work</span>
+<span class="sd">        may be a numpy.ndarray as X, and a list as cols (where the list is either</span>
+<span class="sd">        int indices or default names that the dataframe will take on).</span>
+
+<span class="sd">    2) X is a DataFrame, but cols is None.</span>
+<span class="sd">        Resolution: return a copy of the dataframe, and use all column names.</span>
+
+<span class="sd">    3) X is a DataFrame and cols is not None.</span>
+<span class="sd">        Return a copy of the dataframe, and use only the names provided. This is</span>
+<span class="sd">        the typical use case.</span>
+
+<span class="sd">    4) X is not a DataFrame, and cols is None.</span>
+<span class="sd">        Resolution: this case will only work if the X can be built into a DataFrame.</span>
+<span class="sd">        Otherwise, there will be a ValueError thrown.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    X, cols : tuple</span>
+<span class="sd">        the pd.DataFrame and the list of columns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_check</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">cols</span><span class="p">):</span>
+        <span class="c1"># first check hard-to-detect case:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;expected DataFrame but got Series&#39;</span><span class="p">)</span>
+
+        <span class="c1"># validate the cols arg</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_val_cols</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="c1"># if someone devious gave us an empty set of cols</span>
+        <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># avoid multiple isinstance checks</span>
+        <span class="n">is_df</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span>
+
+        <span class="c1"># we do want to make sure the X at least is &quot;array-like&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;X (type=</span><span class="si">%s</span><span class="s1">) cannot be cast to DataFrame&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+
+        <span class="c1"># case 1, we have names but the X is not a frame</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_df</span> <span class="ow">and</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># this is tough, because they only pass cols if it&#39;s a subset</span>
+            <span class="c1"># and this frame is likely too large for the passed columns.</span>
+            <span class="c1"># so, we hope they either passed what the col names WILL be</span>
+            <span class="c1"># or that they passed numeric cols... they should handle that</span>
+            <span class="c1"># validation on their end, though. If this fails, we&#39;ll just let</span>
+            <span class="c1"># it fall through.</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">_def_headers</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="n">cols</span>
+
+        <span class="c1"># case 2, we have a DF but no cols, def behavior: use all</span>
+        <span class="k">elif</span> <span class="n">is_df</span> <span class="ow">and</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">None</span>
+
+        <span class="c1"># case 3, we have a DF AND cols</span>
+        <span class="k">elif</span> <span class="n">is_df</span> <span class="ow">and</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">cols</span>
+
+        <span class="c1"># case 4, we have neither a frame nor cols (maybe JUST a np.array?)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># we&#39;ll do two tests here... either that it&#39;s a np ndarray or a list of lists</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">X</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">_def_headers</span><span class="p">(</span><span class="n">X</span><span class="p">)),</span> <span class="kc">None</span>
+
+            <span class="c1"># bail out:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot handle data of type </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+
+    <span class="c1"># do initial check</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">_check</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+
+    <span class="c1"># we need to ensure all are finite</span>
+    <span class="k">if</span> <span class="n">assert_all_finite</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expected all entries to be finite&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">cols</span></div>
+
+
+<div class="viewcode-block" id="df_memory_estimate"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.df_memory_estimate">[docs]</a><span class="k">def</span> <span class="nf">df_memory_estimate</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">bit_est</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;We estimate the memory footprint of an H2OFrame</span>
+<span class="sd">    to determine, possibly, whether it&#39;s capable of being</span>
+<span class="sd">    held in memory or not.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pandas DataFrame</span>
+<span class="sd">        The DataFrame in question</span>
+
+<span class="sd">    bit_est : int, optional (default=32)</span>
+<span class="sd">        The estimated bit-size of each cell. The default</span>
+<span class="sd">        assumes each cell is a signed 32-bit float</span>
+
+<span class="sd">    unit : str, optional (default=&#39;MB&#39;)</span>
+<span class="sd">        The units to report. One of (&#39;MB&#39;, &#39;KB&#39;, &#39;GB&#39;, &#39;TB&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mb : str</span>
+<span class="sd">        The estimated number of UNIT held in the frame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">human_bytes</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">unit</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_is_int</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether a column can be cast to int</span>
+<span class="sd">    without loss of data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">tp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">)]):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="c1"># if there&#39;s no difference between the two, then it&#39;s an int.</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="pd_stats"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.pd_stats">[docs]</a><span class="k">def</span> <span class="nf">pd_stats</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">col_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">na_str</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get a descriptive report of the elements in the data frame.</span>
+<span class="sd">    Builds on existing pandas `describe` method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The DataFrame</span>
+
+<span class="sd">    col_type : str, optional (default=&#39;all&#39;)</span>
+<span class="sd">        The types of columns to analyze. One of (&#39;all&#39;,</span>
+<span class="sd">        &#39;numeric&#39;, &#39;object&#39;). If not all, will only return</span>
+<span class="sd">        corresponding typed columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">raw_stats</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">raw_stats</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">dtypes</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dtypes</span>
+
+    <span class="c1"># validate col_type</span>
+    <span class="n">valid_types</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;all&#39;</span><span class="p">,</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span><span class="s1">&#39;object&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">col_type</span> <span class="ow">in</span> <span class="n">valid_types</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;expected col_type in (</span><span class="si">%s</span><span class="s1">), but got </span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_types</span><span class="p">),</span> <span class="n">col_type</span><span class="p">))</span>
+
+    <span class="c1"># if user only wants part back, we can use this...</span>
+    <span class="n">type_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># the string to use when we don&#39;t want to populate a cell</span>
+    <span class="n">_nastr</span> <span class="o">=</span> <span class="n">na_str</span>
+
+    <span class="c1"># objects are going to get dropped in the describe() call,</span>
+    <span class="c1"># so we need to add them back in with dicts of nastr for all...</span>
+    <span class="n">object_dtypes</span> <span class="o">=</span> <span class="n">dtypes</span><span class="p">[</span><span class="n">dtypes</span><span class="o">==</span><span class="s1">&#39;object&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">object_dtypes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">obj_nms</span> <span class="o">=</span> <span class="n">object_dtypes</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">obj_nms</span><span class="p">:</span>
+            <span class="n">obj_dct</span> <span class="o">=</span> <span class="p">{</span><span class="n">stat</span><span class="p">:</span><span class="n">_nastr</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">raw_stats</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">}</span>
+            <span class="n">stats</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj_dct</span>
+
+
+    <span class="c1"># we&#39;ll add rows to the stats...</span>
+    <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">stats</span><span class="p">):</span>
+        <span class="c1"># add the dtype</span>
+        <span class="n">_dtype</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dtypes</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="n">is_numer</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">_dtype</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span><span class="s1">&#39;float&#39;</span><span class="p">)])</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_dtype</span>
+
+        <span class="c1"># populate type_dict</span>
+        <span class="n">type_dict</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;numeric&#39;</span> <span class="k">if</span> <span class="n">is_numer</span> <span class="k">else</span> <span class="s1">&#39;object&#39;</span>
+
+        <span class="c1"># if the dtype is not a float, we can</span>
+        <span class="c1"># get the count of uniques, then do a</span>
+        <span class="c1"># ratio of majority : minority</span>
+        <span class="n">_isint</span> <span class="o">=</span> <span class="n">_is_int</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">_dtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_isint</span> <span class="ow">or</span> <span class="n">_dtype</span> <span class="o">==</span> <span class="s1">&#39;object&#39;</span><span class="p">:</span>
+            <span class="n">_unique</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+            <span class="n">_val_cts</span><span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">_min_cls</span><span class="p">,</span> <span class="n">_max_cls</span> <span class="o">=</span> <span class="n">_val_cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">_val_cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># if there&#39;s only one class...</span>
+            <span class="k">if</span> <span class="n">_min_cls</span> <span class="o">==</span> <span class="n">_max_cls</span><span class="p">:</span>
+                <span class="n">_min_cls</span> <span class="o">=</span> <span class="n">_nastr</span>
+                <span class="n">_min_max_ratio</span> <span class="o">=</span> <span class="n">_nastr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_min_max_ratio</span> <span class="o">=</span> <span class="n">_val_cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">_val_cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># chance we didn&#39;t recognize it as an int before...</span>
+            <span class="k">if</span> <span class="s1">&#39;float&#39;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]:</span>
+                <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">,</span> <span class="s1">&#39;int&#39;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_unique</span> <span class="o">=</span> <span class="n">_min_max_ratio</span> <span class="o">=</span> <span class="n">_nastr</span>
+
+        <span class="c1"># populate the unique count and more</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;unique_ct&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_unique</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;min_max_class_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_min_max_ratio</span>
+
+        <span class="c1"># get the skewness...</span>
+        <span class="k">if</span> <span class="n">is_numer</span><span class="p">:</span>
+            <span class="n">_skew</span><span class="p">,</span> <span class="n">_kurt</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">skew</span><span class="p">(),</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">()</span>
+            <span class="n">abs_skew</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">_skew</span><span class="p">)</span>
+            <span class="n">_skew_risk</span> <span class="o">=</span> <span class="s1">&#39;high skew&#39;</span> <span class="k">if</span> <span class="n">abs_skew</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;mod. skew&#39;</span> <span class="k">if</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">&lt;</span> <span class="n">abs_skew</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;symmetric&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_skew</span> <span class="o">=</span> <span class="n">_kurt</span> <span class="o">=</span> <span class="n">_skew_risk</span> <span class="o">=</span> <span class="n">_nastr</span>
+
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;skewness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_skew</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;skewness rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_skew_risk</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;kurtosis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_kurt</span>
+
+    <span class="c1"># go through and pop the keys that might be filtered on</span>
+    <span class="k">if</span> <span class="n">col_type</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="n">stat_out</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">type_dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col_type</span> <span class="o">==</span> <span class="n">dtype</span><span class="p">:</span>
+                <span class="n">stat_out</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stat_out</span> <span class="o">=</span> <span class="n">stats</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">stat_out</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_numeric"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.get_numeric">[docs]</a><span class="k">def</span> <span class="nf">get_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return list of indices of numeric dtypes variables</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pandas DF</span>
+<span class="sd">        The dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># don&#39;t want warning</span>
+    <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">)))]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="human_bytes"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.human_bytes">[docs]</a><span class="k">def</span> <span class="nf">human_bytes</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;MB&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get bytes in a human readable form</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    b : int</span>
+<span class="sd">        The number of bytes</span>
+
+<span class="sd">    unit : str, optional (default=&#39;MB&#39;)</span>
+<span class="sd">        The units to report. One of (&#39;MB&#39;, &#39;KB&#39;, &#39;GB&#39;, &#39;TB&#39;)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mb : str</span>
+<span class="sd">        The estimated number of UNIT held in the frame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kb</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;KB&#39;</span><span class="p">:</span><span class="n">kb</span><span class="p">,</span> 
+        <span class="s1">&#39;MB&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">(</span><span class="n">kb</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> 
+        <span class="s1">&#39;GB&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">(</span><span class="n">kb</span> <span class="o">**</span> <span class="mi">3</span><span class="p">),</span> 
+        <span class="s1">&#39;TB&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">(</span><span class="n">kb</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;got </span><span class="si">%s</span><span class="s1">, expected one of (</span><span class="si">%s</span><span class="s1">)&#39;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+    <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%.3f</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">b</span><span class="o">/</span><span class="n">units</span><span class="p">[</span><span class="n">unit</span><span class="p">],</span> <span class="n">unit</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="is_entirely_numeric"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_entirely_numeric">[docs]</a><span class="k">def</span> <span class="nf">is_entirely_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determines whether an entire pandas frame</span>
+<span class="sd">    is numeric in dtypes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : pd DataFrame</span>
+<span class="sd">        The dataframe to test</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">is_integer</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">is_float</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span>
+
+<div class="viewcode-block" id="is_numeric"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_numeric">[docs]</a><span class="k">def</span> <span class="nf">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determines whether the arg is numeric</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : anytype</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">is_float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_integer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_iris_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_iris_df">[docs]</a><span class="k">def</span> <span class="nf">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;Species&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads the iris dataset into a dataframe with the</span>
+<span class="sd">    target set as the &quot;Species&quot; feature or whatever name</span>
+<span class="sd">    is specified.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    include_tgt : bool, optional (default=True)</span>
+<span class="sd">        Whether to include the target</span>
+
+<span class="sd">    tgt_name : str, optional (default=&quot;Species&quot;)</span>
+<span class="sd">        The name of the target feature</span>
+
+<span class="sd">    shuffle : bool, optional (default=False)</span>
+<span class="sd">        Whether to shuffle the rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
+        <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">target</span>
+        
+    <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">shuffle</span> <span class="k">else</span> <span class="n">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_breast_cancer_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_breast_cancer_df">[docs]</a><span class="k">def</span> <span class="nf">load_breast_cancer_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads the breast cancer dataset into a dataframe with the</span>
+<span class="sd">    target set as the &quot;target&quot; feature or whatever name</span>
+<span class="sd">    is specified.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    include_tgt : bool, optional (default=True)</span>
+<span class="sd">        Whether to include the target</span>
+
+<span class="sd">    tgt_name : str, optional (default=&quot;target&quot;)</span>
+<span class="sd">        The name of the target feature</span>
+
+<span class="sd">    shuffle : bool, optional (default=False)</span>
+<span class="sd">        Whether to shuffle the rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bc</span> <span class="o">=</span> <span class="n">load_breast_cancer</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">bc</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bc</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
+        <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">bc</span><span class="o">.</span><span class="n">target</span>
+        
+    <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">shuffle</span> <span class="k">else</span> <span class="n">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_boston_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_boston_df">[docs]</a><span class="k">def</span> <span class="nf">load_boston_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads the boston housing dataset into a dataframe with the</span>
+<span class="sd">    target set as the &quot;target&quot; feature or whatever name</span>
+<span class="sd">    is specified.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    include_tgt : bool, optional (default=True)</span>
+<span class="sd">        Whether to include the target</span>
+
+<span class="sd">    tgt_name : str, optional (default=&quot;target&quot;)</span>
+<span class="sd">        The name of the target feature</span>
+
+<span class="sd">    shuffle : bool, optional (default=False)</span>
+<span class="sd">        Whether to shuffle the rows</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bo</span> <span class="o">=</span> <span class="n">load_boston</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">bo</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bo</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
+        <span class="n">X</span><span class="p">[</span><span class="n">tgt_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">bo</span><span class="o">.</span><span class="n">target</span>
+        
+    <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">shuffle</span> <span class="k">else</span> <span class="n">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="report_grid_score_detail"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.report_grid_score_detail">[docs]</a><span class="k">def</span> <span class="nf">report_grid_score_detail</span><span class="p">(</span><span class="n">random_search</span><span class="p">,</span> <span class="n">charts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_results</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+        <span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mf">0.975</span><span class="p">,</span> <span class="n">y_axis</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="n">sort_by</span><span class="o">=</span><span class="s1">&#39;score&#39;</span><span class="p">,</span>
+        <span class="n">highlight_best</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return plots and dataframe of results, given a fitted grid search.</span>
+<span class="sd">    Note that if Matplotlib is not installed, a warning will be thrown</span>
+<span class="sd">    and no plots will be generated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    random_search : BaseGridSearch</span>
+<span class="sd">        The fitted grid search</span>
+
+<span class="sd">    charts : bool, optional (default=True)</span>
+<span class="sd">        Whether to plot the charts</span>
+
+<span class="sd">    sort_results : bool, optional (default=True)</span>
+<span class="sd">        Whether to sort the results based on score</span>
+
+<span class="sd">    ascending : bool, optional (default=True)</span>
+<span class="sd">        If sorted, whether to use asc or desc</span>
+
+<span class="sd">    percentile : float, optional (default=0.975)</span>
+<span class="sd">        The percentile point (0 &lt; percentile &lt; 1.0). The</span>
+<span class="sd">        corresponding z-score will be multiplied</span>
+<span class="sd">        by the cross validation score standard deviations.</span>
+
+<span class="sd">    y_axis : str, optional (default=&#39;score&#39;)</span>
+<span class="sd">        The y-axis of the charts. One of (&#39;score&#39;,&#39;std&#39;)</span>
+
+<span class="sd">    sort_by : str, optional (default=&#39;score&#39;)</span>
+<span class="sd">        The col to sort by. This is not validated, in case</span>
+<span class="sd">        the user wants to sort by a parameter column.</span>
+
+<span class="sd">    highlight_best : bool, optional (default=True)</span>
+<span class="sd">        If set to True, charts is True, and sort_results is </span>
+<span class="sd">        also True, then highlights the point in the top</span>
+<span class="sd">        position of the model DF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_axes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">)</span>
+
+    <span class="c1"># validate y-axis</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">y_axis</span> <span class="ow">in</span> <span class="n">valid_axes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y-axis=</span><span class="si">%s</span><span class="s1"> must be one of (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y_axis</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_axes</span><span class="p">)))</span>
+
+    <span class="c1"># validate percentile</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">percentile</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;percentile must be &gt; 0 and &lt; 1, but got </span><span class="si">%.5f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">percentile</span><span class="p">)</span>
+    <span class="n">z_score</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">percentile</span><span class="p">)</span>
+
+
+    <span class="c1"># list of dicts</span>
+    <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># convert each score tuple into dicts -- this will eventually be deprecated...</span>
+    <span class="k">for</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">random_search</span><span class="o">.</span><span class="n">grid_scores_</span><span class="p">:</span>
+        <span class="n">results_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="c1"># the parameter tuple or sampler</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span><span class="o">.</span><span class="n">mean_validation_score</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">score</span><span class="o">.</span><span class="n">cv_validation_scores</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">*</span> <span class="n">z_score</span>
+        <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_dict</span><span class="p">)</span>
+
+    <span class="c1"># make into a data frame</span>
+    <span class="n">result_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sort_results</span><span class="p">:</span>
+        <span class="n">result_df</span> <span class="o">=</span> <span class="n">result_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">sort_by</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="n">ascending</span><span class="p">)</span>
+    
+    <span class="c1"># if the import failed, we won&#39;t be able to chart here</span>
+    <span class="k">if</span> <span class="n">CAN_CHART_MPL</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">get_numeric</span><span class="p">(</span><span class="n">result_df</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_axes</span><span class="p">:</span> <span class="c1"># skip score / std</span>
+                <span class="n">ser</span> <span class="o">=</span> <span class="n">result_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;blue&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ser</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+                <span class="c1"># highlight if needed</span>
+                <span class="k">if</span> <span class="n">sort_results</span> <span class="ow">and</span> <span class="n">highlight_best</span><span class="p">:</span>
+                    <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;red&#39;</span>
+
+                <span class="c1"># build scatter plot</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">ser</span><span class="p">,</span> <span class="n">result_df</span><span class="p">[</span><span class="n">y_axis</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_axis</span><span class="p">)</span>
+
+                <span class="c1"># if there&#39;s a &#39;__&#39; in the col, split it</span>
+                <span class="n">x_lab</span> <span class="o">=</span> <span class="n">col</span> <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;__&#39;</span> <span class="ow">in</span> <span class="n">col</span> <span class="k">else</span> <span class="n">col</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x_lab</span><span class="p">)</span>
+
+                <span class="c1"># render but only if the user wants it (this way we can test the above code)</span>
+                <span class="k">if</span> <span class="n">charts</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">result_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">result_df</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">]):</span>
+            <span class="n">cat_plot</span> <span class="o">=</span> <span class="n">result_df</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">result_df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">cat_plot</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span>
+            <span class="n">cat_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;barh&quot;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">cat_plot</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">charts</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="n">charts</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">CAN_CHART</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;no module matplotlib, will not be able to display charts&#39;</span><span class="p">,</span> <span class="n">ModuleImportWarning</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result_df</span></div>
+
+<div class="viewcode-block" id="report_confusion_matrix"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.report_confusion_matrix">[docs]</a><span class="k">def</span> <span class="nf">report_confusion_matrix</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">return_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a dataframe with the confusion matrix, and a series</span>
+<span class="sd">    with the classification performance metrics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># ensure only two classes in each</span>
+    <span class="n">lens</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">actual</span><span class="p">)),</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">pred</span><span class="p">))]</span>
+    <span class="n">max_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_len</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;max classes is 2, but got </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_len</span><span class="p">)</span>
+
+    <span class="n">cf</span> <span class="o">=</span> <span class="n">cm</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+    <span class="c1"># format: (col = pred, index = act)</span>
+    <span class="c1"># array([[TN, FP],</span>
+    <span class="c1">#        [FN, TP]])</span>
+
+    <span class="n">ser</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">return_metrics</span><span class="p">:</span>
+        <span class="n">total_pop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cf</span><span class="p">)</span>
+        <span class="n">condition_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cf</span><span class="p">[</span><span class="mi">1</span><span class="p">,:])</span>
+        <span class="n">condition_neg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cf</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+
+        <span class="c1"># alias the elements in the matrix</span>
+        <span class="n">tp</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tn</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">cf</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># sums of the prediction cols</span>
+        <span class="n">pred_pos</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span>
+        <span class="n">pred_neg</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">+</span> <span class="n">fn</span>
+
+        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">tp</span><span class="o">+</span><span class="n">tn</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_pop</span>       <span class="c1"># accuracy</span>
+        <span class="n">tpr</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="n">condition_pos</span>        <span class="c1"># sensitivity, recall</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="n">condition_neg</span>        <span class="c1"># fall-out</span>
+        <span class="n">fnr</span> <span class="o">=</span> <span class="n">fn</span> <span class="o">/</span> <span class="n">condition_pos</span>        <span class="c1"># miss rate</span>
+        <span class="n">tnr</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">/</span> <span class="n">condition_neg</span>        <span class="c1"># specificity</span>
+        <span class="n">prev</span><span class="o">=</span> <span class="n">condition_pos</span> <span class="o">/</span> <span class="n">total_pop</span> <span class="c1"># prevalence</span>
+        <span class="n">plr</span> <span class="o">=</span> <span class="n">tpr</span> <span class="o">/</span> <span class="n">fpr</span>                 <span class="c1"># positive likelihood ratio, LR+</span>
+        <span class="n">nlr</span> <span class="o">=</span> <span class="n">fnr</span> <span class="o">/</span> <span class="n">tnr</span>                 <span class="c1"># negative likelihood ratio, LR-</span>
+        <span class="n">dor</span> <span class="o">=</span> <span class="n">plr</span> <span class="o">/</span> <span class="n">nlr</span>                 <span class="c1"># diagnostic odds ratio</span>
+        <span class="n">prc</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="n">pred_pos</span>             <span class="c1"># precision, positive predictive value</span>
+        <span class="n">fdr</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="n">pred_pos</span>             <span class="c1"># false discovery rate</span>
+        <span class="n">fomr</span><span class="o">=</span> <span class="n">fn</span> <span class="o">/</span> <span class="n">pred_neg</span>             <span class="c1"># false omission rate</span>
+        <span class="n">npv</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">/</span> <span class="n">pred_neg</span>             <span class="c1"># negative predictive value</span>
+
+        <span class="c1"># define the series</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Accuracy&#39;</span>              <span class="p">:</span> <span class="n">acc</span><span class="p">,</span>
+            <span class="s1">&#39;Diagnostic odds ratio&#39;</span> <span class="p">:</span> <span class="n">dor</span><span class="p">,</span>
+            <span class="s1">&#39;Fall-out&#39;</span>              <span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
+            <span class="s1">&#39;False discovery rate&#39;</span>  <span class="p">:</span> <span class="n">fdr</span><span class="p">,</span>
+            <span class="s1">&#39;False Neg. Rate&#39;</span>       <span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
+            <span class="s1">&#39;False omission rate&#39;</span>   <span class="p">:</span> <span class="n">fomr</span><span class="p">,</span>
+            <span class="s1">&#39;False Pos. Rate&#39;</span>       <span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
+            <span class="s1">&#39;Miss rate&#39;</span>             <span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
+            <span class="s1">&#39;Neg. likelihood ratio&#39;</span> <span class="p">:</span> <span class="n">nlr</span><span class="p">,</span>
+            <span class="s1">&#39;Neg. predictive value&#39;</span> <span class="p">:</span> <span class="n">npv</span><span class="p">,</span>
+            <span class="s1">&#39;Pos. likelihood ratio&#39;</span> <span class="p">:</span> <span class="n">plr</span><span class="p">,</span>
+            <span class="s1">&#39;Pos. predictive value&#39;</span> <span class="p">:</span> <span class="n">prc</span><span class="p">,</span>
+            <span class="s1">&#39;Precision&#39;</span>             <span class="p">:</span> <span class="n">prc</span><span class="p">,</span>
+            <span class="s1">&#39;Prevalence&#39;</span>            <span class="p">:</span> <span class="n">prev</span><span class="p">,</span>
+            <span class="s1">&#39;Recall&#39;</span>                <span class="p">:</span> <span class="n">tpr</span><span class="p">,</span>
+            <span class="s1">&#39;Sensitivity&#39;</span>           <span class="p">:</span> <span class="n">tpr</span><span class="p">,</span>
+            <span class="s1">&#39;Specificity&#39;</span>           <span class="p">:</span> <span class="n">tnr</span><span class="p">,</span>
+            <span class="s1">&#39;True Pos. Rate&#39;</span>        <span class="p">:</span> <span class="n">tpr</span><span class="p">,</span>
+            <span class="s1">&#39;True Neg. Rate&#39;</span>        <span class="p">:</span> <span class="n">tnr</span>
+        <span class="p">}</span>
+
+        <span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+        <span class="n">ser</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Metrics&#39;</span>
+
+
+    <span class="c1"># create the DF</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">cf</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Neg&#39;</span><span class="p">,</span><span class="s1">&#39;Pos&#39;</span><span class="p">])</span>
+    <span class="n">conf</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Neg&#39;</span><span class="p">,</span><span class="s1">&#39;Pos&#39;</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">conf</span><span class="p">,</span> <span class="n">ser</span></div>
+
+
+
+
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
