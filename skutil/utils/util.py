@@ -19,8 +19,8 @@ try:
         warnings.simplefilter("ignore")
 
         # do actual import
-        import matplotlib as mpl
-        mpl.use('TkAgg') # set backend for travis
+        #import matplotlib as mpl
+        #mpl.use('TkAgg') # set backend
         from matplotlib import pyplot as plt
 
         # log it
@@ -721,7 +721,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         result_df = result_df.sort_values(sort_by, ascending=ascending)
     
     # if the import failed, we won't be able to chart here
-    if CAN_CHART_MPL:
+    if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
             if col not in valid_axes: # skip score / std
                 ser = result_df[col]
@@ -740,17 +740,15 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
                 x_lab = col if not '__' in col else col.split('__')[-1]
                 plt.xlabel(x_lab)
 
-                # render but only if the user wants it (this way we can test the above code)
-                if charts:
-                    plt.show()
+                # render
+                plt.show()
 
         for col in list(result_df.columns[result_df.dtypes == "object"]):
             cat_plot = result_df[y_axis].groupby(result_df[col]).mean()
             cat_plot.sort_values()
             cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
 
-            if charts:
-                plt.show()
+            plt.show()
 
     elif charts and not CAN_CHART:
         warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
