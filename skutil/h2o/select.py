@@ -19,7 +19,6 @@ from .base import (NAWarning,
                    _retain_features,
                    _frame_from_x_y)
 
-
 __all__ = [
     'BaseH2OFeatureSelector',
     'H2OFeatureDropper',
@@ -53,7 +52,6 @@ def _validate_use(X, use, na_warn):
 
     use
     """
-
     # validate use
     _valid_use = ['complete.obs','all.obs','everything']
     if not use in _valid_use:
@@ -71,15 +69,20 @@ def _validate_use(X, use, na_warn):
     return use
 
 
-
-
 class BaseH2OFeatureSelector(BaseH2OTransformer):
     """Base class for all H2O selectors.
 
     Parameters
+    ----------
+    feature_names : array_like (str)
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
 
     min_version : str, float (default 'any')
         The minimum version of h2o that is compatible with the transformer
@@ -87,11 +90,13 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
     """
-    def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+                 min_version='any', max_version=None):
         super(BaseH2OFeatureSelector, self).__init__(feature_names=feature_names,
-                                                 target_feature=target_feature,
-                                                 min_version=min_version,
-                                                 max_version=max_version)
+                                                     target_feature=target_feature,
+                                                     exclude_features=exclude_features,
+                                                     min_version=min_version,
+                                                     max_version=max_version)
 
     def transform(self, X):
         # validate state, frame
@@ -100,8 +105,6 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         return X[_retain_features(X, self.drop_)]
 
 
-
-###############################################################################
 class H2OFeatureDropper(BaseH2OFeatureSelector):
     """A very simple class to be used at the beginning or any stage of an
     H2OPipeline that will drop the given features from the remainder of the pipe.
@@ -112,17 +115,22 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     feature_names as None in future steps.
 
     Parameters
-
+    ----------
     feature_names : array_like (str)
-        The list of names to drop
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
     """
 
-    def __init__(self, feature_names=None, target_feature=None):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None):
         super(H2OFeatureDropper, self).__init__(feature_names=feature_names,
-                                                target_feature=target_feature)
+                                                target_feature=target_feature,
+                                                exclude_features=exclude_features)
 
     def fit(self, X, y=None):
         fn = self.feature_names
@@ -138,18 +146,21 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
-
 class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     """Retains features that are less sparse (NA) than
     the provided threshold.
 
     Parameters
-
-    feature_names : array_like (string)
-        The features from which to drop
+    ----------
+    feature_names : array_like (str)
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
 
     threshold : float (default=0.5)
         The threshold of sparsity above which to drop
@@ -158,7 +169,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         Whether to return a dataframe
 
     Attributes
-
+    ----------
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
 
@@ -169,12 +180,12 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, threshold=0.5):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, threshold=0.5):
         super(H2OSparseFeatureDropper, self).__init__(feature_names=feature_names,
                                                       target_feature=target_feature,
+                                                      exclude_features=exclude_features,
                                                       min_version=self._min_version,
                                                       max_version=self._max_version)
-
         self.threshold = threshold
 
     def fit(self, X):
@@ -186,7 +197,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
             The frame to fit
         """
         frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate the threshold
         if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
@@ -203,16 +214,22 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
-
 class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
     of each feature is considered, and the feature with the highsest MAC is discarded.
 
     Parameters
+    ----------
+    feature_names : array_like (str)
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
 
     threshold : float, default 0.85
         The threshold above which to filter correlated features
@@ -227,7 +244,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         A string indicating how to handle missing values.
 
     Attributes
-
+    ----------
     drop_ : list, string
         The columns to drop
 
@@ -238,11 +255,12 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, threshold=0.85,
-                 na_warn=True, na_rm=False, use='complete.obs'):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
+                 threshold=0.85, na_warn=True, na_rm=False, use='complete.obs'):
 
         super(H2OMulticollinearityFilterer, self).__init__(feature_names=feature_names,
                                                            target_feature=target_feature,
+                                                           exclude_features=exclude_features,
                                                            min_version=self._min_version,
                                                            max_version=self._max_version)
         self.threshold = threshold
@@ -274,7 +292,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
             The frame to fit
         """
         frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
@@ -289,15 +307,21 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         return self.transform(X)
 
 
-
 class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     """Identify and remove any features that have a variance below
     a certain threshold.
 
     Parameters
+    ----------
+    feature_names : array_like (str)
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
 
     threshold : float, default 1e-6
         The threshold below which to declare "zero variance"
@@ -312,19 +336,20 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         A string indicating how to handle missing values.
 
     Attributes
-
-    drop : list, string
+    ----------
+    drop_ : list, string
         The columns to drop
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, threshold=1e-6,
-                 na_warn=True, na_rm=False, use='complete.obs'):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
+                 threshold=1e-6, na_warn=True, na_rm=False, use='complete.obs'):
 
         super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
                                                           target_feature=target_feature,
+                                                          exclude_features=exclude_features,
                                                           min_version=self._min_version,
                                                           max_version=self._max_version)
         self.threshold = threshold
@@ -353,7 +378,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
             The frame to fit
         """
         frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
