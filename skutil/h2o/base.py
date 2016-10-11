@@ -38,6 +38,7 @@ __all__ = [
     'NAWarning',
     'BaseH2OFunctionWrapper',
     'BaseH2OTransformer',
+    'validate_x',
     'validate_x_y',
     'VizMixin'
 ]
@@ -110,6 +111,28 @@ def _retain_features(X, exclude):
     return [x for x in X.columns if not x in exclude]
 
 
+def validate_x(x):
+    """Given an iterable or None, ``x``, validate that if
+    it is an iterable, it only contains string types.
+
+    Parameters
+    ----------
+    x : None, iterable
+        The feature names
+
+    Returns
+    -------
+    x : iterable or None
+        The feature names
+    """
+    if x is not None:
+        # validate feature_names
+        if not (hasattr(x, '__iter__') and all([isinstance(i, six.string_types) for i in x])):
+            raise TypeError('x must be an iterable of strings. '
+                            'Got %s' % str(x))
+
+    return x
+
 
 def validate_x_y(X, feature_names, target_feature):
     """Validate the feature_names and target_feature arguments
@@ -134,9 +157,7 @@ def validate_x_y(X, feature_names, target_feature):
     if feature_names is not None:
 
         # validate feature_names
-        if not (hasattr(feature_names, '__iter__') and all([isinstance(i, six.string_types) for i in feature_names])):
-            raise TypeError('feature_names must be an iterable of strings. '
-                            'Got %s' % str(feature_names))
+        feature_names = validate_x(feature_names)
     else:
         X = _check_is_frame(X)
         feature_names = X.columns

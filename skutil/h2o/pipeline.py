@@ -12,7 +12,7 @@ import numpy as np
 
 from sklearn.externals import six
 from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper, 
-                   validate_x_y, VizMixin, _frame_from_x_y)
+                   validate_x_y, validate_x, VizMixin, _frame_from_x_y)
 from ..base import overrides
 
 from sklearn.utils import tosequence
@@ -40,23 +40,29 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         A list of named tuples wherein element 1 of each tuple is
         an instance of a BaseH2OTransformer or an H2OEstimator.
 
-    feature_names : iterable (default None)
+    feature_names : iterable (default=None)
         The names of features on which to fit the pipeline
 
-    target_feature : str (default None)
+    target_feature : str (default=None)
         The name of the target feature
+
+    exclude_from_fit : iterable, optional (default=None)
+        Any names to be excluded from the fit
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
     
-    def __init__(self, steps, feature_names=None, target_feature=None):
+    def __init__(self, steps, feature_names=None, target_feature=None, exclude_from_fit=None):
         super(H2OPipeline, self).__init__(target_feature=target_feature,
                                           min_version=self._min_version,
                                           max_version=self._max_version)
 
         # assign to attribute
         self.feature_names = feature_names
+
+        # if we have any to exclude...
+        self.exclude_from_fit = validate_x(exclude_from_fit)
         
         names, estimators = zip(*steps)
         if len(dict(steps)) != len(steps):
@@ -137,18 +143,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         # reset to the cleaned ones, if necessary...
         self.feature_names, self.target_feature = validate_x_y(frame, self.feature_names, self.target_feature)
         
-        # ===== This shouldn't be in Pipeline's control, should be in the Estimators'
-        # First, if there are any columns in the frame that are not in x, y drop them
-        # we need to reappend y to make sure it doesn't get dropped out by the
-        # frame_from_x_y method
-        #xy = [p for p in x]
-        #if y is not None:
-        #    xy.append(y)
-        # retain only XY
-        #frame = frame[xy]
-        
         # get the fit
-        Xt, self.training_cols_ = self._pre_transform(frame)
+        Xt, training_cols_ = self._pre_transform(frame)
+
+        # if there are any exclude names, remove them from training_cols_, then assign to self
+        if self.exclude_from_fit:
+            training_cols_ = [i for i in training_cols_ if not i in self.exclude_from_fit]
+        self.training_cols_ = training_cols_
         
         # if the last step is not an h2o estimator, we need to do things differently...
         if isinstance(self.steps[-1][1], H2OEstimator):
