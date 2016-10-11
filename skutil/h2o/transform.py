@@ -59,6 +59,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
     def __init__(self):
         super(H2OLabelEncoder, self).__init__(feature_names=None,
                                               target_feature=None,
+                                              exclude_features=None,
                                               min_version=self._min_version,
                                               max_version=self._max_version)
 
@@ -98,9 +99,11 @@ class H2OLabelEncoder(BaseH2OTransformer):
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
     """A base class for all H2O imputers"""
 
-    def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None, def_fill=None):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+                 min_version='any', max_version=None, def_fill=None):
         super(_H2OBaseImputer, self).__init__(feature_names=feature_names,
                                               target_feature=target_feature, 
+                                              exclude_features=exclude_features,
                                               min_version=min_version,
                                               max_version=max_version)
         self.fill_ = self._def_fill if def_fill is None else def_fill
@@ -111,16 +114,17 @@ class H2OSelectiveImputer(_H2OBaseImputer):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, def_fill='mean'):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, def_fill='mean'):
         super(H2OSelectiveImputer, self).__init__(feature_names=feature_names,
                                                   target_feature=target_feature,
+                                                  exclude_features=exclude_features,
                                                   min_version=self._min_version,
                                                   max_version=self._max_version,
                                                   def_fill=def_fill)
 
     def fit(self, X):
         frame = _check_is_frame(X)
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # at this point, the entirety of frame can be operated on...
         cols = [str(u) for u in frame.columns] # convert to string...
@@ -258,7 +262,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     """A class that will scale selected features in the H2OFrame.
 
     Parameters
-
+    ----------
     feature_names : array_like (string)
         names of features on which to apply trans
 
@@ -275,10 +279,11 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, 
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  with_mean=True, with_std=True):
         super(H2OSelectiveScaler, self).__init__(feature_names=feature_names,
                                                  target_feature=target_feature,
+                                                 exclude_features=exclude_features,
                                                  min_version=self._min_version,
                                                  max_version=self._max_version)
 
@@ -355,7 +360,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     and at the transform point will return ALL features plus the newly generated ones.
 
     Parameters
-
+    ----------
     feature_names : array_like (string)
         names of features on which to apply trans
 
@@ -378,12 +383,12 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, 
-                 interaction_function=None, name_suffix='I', 
-                 only_return_interactions=False):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
+                 interaction_function=None, name_suffix='I', only_return_interactions=False):
 
         super(H2OInteractionTermTransformer, self).__init__(feature_names=feature_names,
                                                             target_feature=target_feature,
+                                                            exclude_features=exclude_features,
                                                             min_version=self._min_version,
                                                             max_version=self._max_version)
 
@@ -395,11 +400,11 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         """Fit the transformer.
 
         Parameters
-
+        ----------
         frame : H2OFrame, shape [n_samples, n_features]
             The data to transform
         """
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
         self.cols  = [str(u) for u in frame.columns] # the cols we'll ultimately operate on
         self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
 
