@@ -50,13 +50,13 @@ class NAWarning(UserWarning):
     within an h2o frame (h2o can handle NA values)
     """
 
-def _frame_from_x_y(X, x, y, return_x_y=False):
+def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     """Subset the H2OFrame if necessary. This is used in
     transformers where a target feature and feature names are
     provided.
 
     Parameters
-
+    ----------
     X : H2OFrame
         The frame from which to drop
 
@@ -65,9 +65,22 @@ def _frame_from_x_y(X, x, y, return_x_y=False):
 
     y : str
         The target feature. This will be dropped from the frame
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``x``
+
+    return_x_y : bool, optional (default=False)
+        Whether to return the sanitized ``x``, ``y`` variables.
+        If False, will only return ``X``.
+
+
+    Returns
+    -------
+    X : pd.DataFrame
+        The sanitized dataframe
     """
-    x, y = validate_x_y(X, x, y)
-    X =_check_is_frame(X)[x]
+    x, y = validate_x_y(X, x, y, exclude_features)
+    X =_check_is_frame(X)[x] # make a copy
 
     return X if not return_x_y else (X, x, y)
 
@@ -76,12 +89,12 @@ def _check_is_frame(X):
     """Returns X if X is a frame else throws a TypeError
 
     Parameters
-
+    ----------
     X : H2OFrame
         The frame to evaluate
 
     Returns
-
+    -------
     X
     """
 
@@ -96,7 +109,7 @@ def _retain_features(X, exclude):
     identify features that should be dropped.
 
     Parameters
-
+    ----------
     X : H2OFrame
         The frame from which to drop
 
@@ -104,11 +117,30 @@ def _retain_features(X, exclude):
         The columns to exclude
 
     Returns
-
+    -------
     The names of the features to keep
     """
+    return _retain_from_list(X.columns, exclude)
 
-    return [x for x in X.columns if not x in exclude]
+
+def _retain_from_list(x, exclude):
+    """Returns the features to retain. Used in
+    conjunction with H2OTransformer classes that
+    identify features that should be dropped.
+
+    Parameters
+    ----------
+    x : iterable of lists
+        The list from which to exclude
+
+    exclude : array_like
+        The columns to exclude
+
+    Returns
+    -------
+    The names of the features to keep
+    """
+    return [i for i in x if not i in exclude]
 
 
 def validate_x(x):
@@ -134,12 +166,12 @@ def validate_x(x):
     return x
 
 
-def validate_x_y(X, feature_names, target_feature):
+def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     """Validate the feature_names and target_feature arguments
     passed to an H2OTransformer.
 
     Parameters
-
+    ----------
     feature_names : iterable or None
         The feature names to be used in a transformer. If feature_names
         is None, the transformer will use all of the frame's column names.
@@ -150,18 +182,24 @@ def validate_x_y(X, feature_names, target_feature):
         The target name to exclude from the transformer analysis. If None,
         unsupervised is assumed, otherwise must be string or unicode.
 
-    Returns
+    exclude_features : iterable or None
+        Any names that should be excluded from ``x``
 
+    Returns
+    -------
     (feature_names, target_feature)
     """
     if feature_names is not None:
-
         # validate feature_names
         feature_names = validate_x(feature_names)
     else:
         X = _check_is_frame(X)
         feature_names = X.columns
 
+    # validate exclude_features
+    exclude_features = validate_x(exclude_features)
+    if not exclude_features:
+        exclude_features = []
 
     # we can allow it to be None...
     if target_feature is None:
@@ -176,7 +214,13 @@ def validate_x_y(X, feature_names, target_feature):
     # make list of strings, return target_feature too
     # we know feature_names are not none, here so remove
     # the target_feature from the feature_names
-    return [str(i) for i in feature_names if not str(i) == target_feature], target_feature
+    return (
+        _retain_from_list([
+            str(i) for i in feature_names 
+            if not str(i)==target_feature
+        ], exclude_features), 
+        target_feature
+    )
 
 
 
@@ -350,9 +394,16 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     """Base class for all H2OTransformers.
 
     Parameters
+    ----------
+    feature_names : array_like (str)
+        The list of names on which to fit the feature selector.
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None
+        Any names that should be excluded from ``feature_names``
 
     min_version : str, float (default 'any')
         The minimum version of h2o that is compatible with the transformer
@@ -360,12 +411,14 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
     """
-    def __init__(self, feature_names=None, target_feature=None, min_version='any', max_version=None):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+                 min_version='any', max_version=None):
         super(BaseH2OTransformer, self).__init__(target_feature=target_feature,
                                                  min_version=min_version,
                                                  max_version=max_version)
         # the column names
         self.feature_names = feature_names
+        self.exclude_features = exclude_features
 
     def fit_transform(self, frame):
         return self.fit(frame).transform(frame)

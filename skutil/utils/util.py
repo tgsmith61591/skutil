@@ -78,8 +78,8 @@ def _log_single(x):
     val : float
         the log of x
     """
-    x = max(0, x)
-    val = __min_log__ if x == 0 else max(__min_log__, np.log(x))  
+    x = np.maximum(0, x)
+    val = __min_log__ if x == 0 else np.maximum(__min_log__, np.log(x))  
     return val
 
 
@@ -96,7 +96,7 @@ def _exp_single(x):
     val : float
         the exp of x
     """
-    val = min(__max_exp__, np.exp(x))
+    val = np.minimum(__max_exp__, np.exp(x))
     return val
 
 

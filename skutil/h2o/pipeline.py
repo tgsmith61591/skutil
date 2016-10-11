@@ -19,6 +19,7 @@ from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
 from ..utils.metaestimators import if_delegate_has_method
+from ..utils import flatten_all
 
 try:
     import cPickle as pickle
@@ -30,30 +31,55 @@ __all__ = [
     'H2OPipeline'
 ]
 
+def _union_exclusions(a, b):
+    """Take the exlusion features from two preprocessors
+    and create a union set or None.
+    """
+    if (not a) and (not b):
+        return None
+    if not a:
+        return b
+    if not b:
+        return a
+
+    return flatten_all(a, b)
+
+
 
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     """Create a sklearn-esque pipeline of H2O steps finished with an H2OEstimator.
 
     Parameters
-
+    ----------
     steps : list
         A list of named tuples wherein element 1 of each tuple is
         an instance of a BaseH2OTransformer or an H2OEstimator.
 
     feature_names : iterable (default=None)
-        The names of features on which to fit the pipeline
+        The names of features on which to fit the first transformer 
+        in the pipeline. The next transformer will be fit with
+        ``feature_names`` as the result-set columns from the previous
+        transformer, minus any exclusions or target features.
 
     target_feature : str (default=None)
         The name of the target feature
 
+    exclude_from_ppc : iterable, optional (default=None)
+        Any names to be excluded from any preprocessor fits.
+        Since the ``exclude_features`` can be set in respective
+        steps in each preprocessor, these features will be considered
+        as global exclusions and will be appended to any individually
+        set exclusion features.
+
     exclude_from_fit : iterable, optional (default=None)
-        Any names to be excluded from the fit
+        Any names to be excluded from the final model fit
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
     
-    def __init__(self, steps, feature_names=None, target_feature=None, exclude_from_fit=None):
+    def __init__(self, steps, feature_names=None, target_feature=None, 
+                 exclude_from_ppc=None, exclude_from_fit=None):
         super(H2OPipeline, self).__init__(target_feature=target_feature,
                                           min_version=self._min_version,
                                           max_version=self._max_version)
@@ -62,6 +88,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         self.feature_names = feature_names
 
         # if we have any to exclude...
+        self.exclude_from_ppc = validate_x(exclude_from_ppc)
         self.exclude_from_fit = validate_x(exclude_from_fit)
         
         names, estimators = zip(*steps)
@@ -106,6 +133,10 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             # target_feature is ever changed, this will be updated...
             transform.target_feature = self.target_feature
             transform.feature_names = next_feature_names
+
+            # now set the exclude_features if they exist
+            transform.exclude_features = _union_exclusions(self.exclude_from_ppc, 
+                                                           transform.exclude_features)
             
             if hasattr(transform, "fit_transform"):
                 frameT = transform.fit_transform(frameT)
