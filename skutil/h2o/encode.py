@@ -37,7 +37,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     def __init__(self):
         super(_H2OVecSafeOneHotEncoder, self).__init__(feature_names=None,
                                                        target_feature=None,
-                                                       exclude_feature=None,
+                                                       exclude_features=None,
                                                        min_version=self._min_version,
                                                        max_version=self._max_version)
 
