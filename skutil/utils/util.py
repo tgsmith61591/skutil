@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 import pandas as pd
 import numpy as np
@@ -26,7 +28,6 @@ try:
 except ImportError as ie:
     CAN_CHART_MPL = False
 
-
 try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -34,9 +35,6 @@ try:
         CAN_CHART_SNS = True
 except ImportError as ie:
     CAN_CHART_SNS = False
-
-
-
 
 __max_exp__ = 1e19
 __min_log__ = -19
@@ -66,22 +64,15 @@ __all__ = [
 ]
 
 
-## Classes
-class QCutWarning(UserWarning):
-    """Denotes that a UserWarning has
-    been raised from the safe_qcut function
-    """
-    pass
-
-
-
 ######## MATHEMATICAL UTILITIES #############    
 def _log_single(x):
-    """Sanitized log function for a single element
+    """Sanitized log function for a single element.
+
     Parameters
     ----------
     x : float
         The number to log
+
     Returns
     -------
     val : float
@@ -91,23 +82,29 @@ def _log_single(x):
     val = __min_log__ if x == 0 else max(__min_log__, np.log(x))  
     return val
 
+
 def _exp_single(x):
-    """Sanitized exponential function
+    """Sanitized exponential function.
+
     Parameters
     ----------
     x : float
         The number to exp
+
     Returns
     -------
-    float
+    val : float
         the exp of x
     """
-    return min(__max_exp__, np.exp(x))
+    val = min(__max_exp__, np.exp(x))
+    return val
+
 
 def _vectorize(fun, x):
     if hasattr(x, '__iter__'):
         return np.array([fun(p) for p in x])
     raise ValueError('Type %s does not have attr __iter__' % type(x))
+
 
 def exp(x):
     """A safe mechanism for computing the exponential function"""
@@ -120,6 +117,7 @@ def exp(x):
     except ValueError as v:
         # bail
         raise ValueError("don't know how to compute exp for type %s" % type(x))
+
 
 def log(x):
     """A safe mechanism for computing a log"""
@@ -134,10 +132,6 @@ def log(x):
         raise ValueError("don't know how to compute log for type %s" % type(x))
 
 
-
-
-
-######### GENERAL UTILITIES #################
 def _val_cols(cols):
     # if it's None, return immediately
     if cols is None:
@@ -151,10 +145,10 @@ def _val_cols(cols):
             raise ValueError('cols must be an iterable sequence')
     return [c for c in cols] # make it a list implicitly, make no guarantees about elements
 
+
 def _def_headers(X):
     m = X.shape[1] if hasattr(X, 'shape') else len(X)
     return ['V%i' %  (i+1) for i in range(m)]
-
 
 
 def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None, 
@@ -257,13 +251,13 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
         sns.plt.show()
 
 
-
 def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
-    Usage:
-    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    Examples
+    --------
+    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all(a)
     [3,4,'1','a',1,1,2]
     """
@@ -273,8 +267,9 @@ def flatten_all_generator(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
-    Usage:
-    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    Examples
+    --------
+    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all_generator(a)
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
     """
@@ -318,7 +313,8 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     Returns
     -------
-    tuple, (DataFrame: X, list: cols)
+    X, cols : tuple
+        the pd.DataFrame and the list of columns
     """
     def _check(X, cols):
         # first check hard-to-detect case:
@@ -755,6 +751,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
             cat_plot = result_df[y_axis].groupby(result_df[col]).mean()
             cat_plot.sort_values()
             cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
+
             plt.show()
 
     elif charts and not CAN_CHART:

@@ -35,7 +35,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     """Create a sklearn-esque pipeline of H2O steps finished with an H2OEstimator.
 
     Parameters
-    ----------
+
     steps : list
         A list of named tuples wherein element 1 of each tuple is
         an instance of a BaseH2OTransformer or an H2OEstimator.
@@ -133,7 +133,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         data, then fit the transformed data using the final estimator.
         
         Parameters
-        ----------
+
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
@@ -179,7 +179,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         steps in the estimator prior to setting the parameters.
 
         Returns
-        -------
+
         self
         """
         if not params:
@@ -298,7 +298,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         predict.
         
         Parameters
-        ----------
+
         frame : an h2o Frame
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
@@ -317,7 +317,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         either predict on the final step.
         
         Parameters
-        ----------
+
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
@@ -331,7 +331,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         final estimator implements predict.
         
         Parameters
-        ----------
+
         frame : an h2o Frame
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
@@ -350,7 +350,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         either transform on the final step.
         
         Parameters
-        ----------
+
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
@@ -364,7 +364,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         estimator implements such a function.
 
         Parameters
-        ----------
+
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
         """

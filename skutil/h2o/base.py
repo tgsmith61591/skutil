@@ -56,7 +56,7 @@ def _frame_from_x_y(X, x, y, return_x_y=False):
     provided.
 
     Parameters
-    ----------
+
     X : H2OFrame
         The frame from which to drop
 
@@ -76,12 +76,12 @@ def _check_is_frame(X):
     """Returns X if X is a frame else throws a TypeError
 
     Parameters
-    ----------
+
     X : H2OFrame
         The frame to evaluate
 
     Returns
-    -------
+
     X
     """
 
@@ -96,7 +96,7 @@ def _retain_features(X, exclude):
     identify features that should be dropped.
 
     Parameters
-    ----------
+
     X : H2OFrame
         The frame from which to drop
 
@@ -104,7 +104,7 @@ def _retain_features(X, exclude):
         The columns to exclude
 
     Returns
-    -------
+
     The names of the features to keep
     """
 
@@ -139,7 +139,7 @@ def validate_x_y(X, feature_names, target_feature):
     passed to an H2OTransformer.
 
     Parameters
-    ----------
+
     feature_names : iterable or None
         The feature names to be used in a transformer. If feature_names
         is None, the transformer will use all of the frame's column names.
@@ -151,7 +151,7 @@ def validate_x_y(X, feature_names, target_feature):
         unsupervised is assumed, otherwise must be string or unicode.
 
     Returns
-    -------
+
     (feature_names, target_feature)
     """
     if feature_names is not None:
@@ -192,7 +192,7 @@ class VizMixin:
         given timestep.
 
         Parameters
-        ----------
+
         timestep : str
             A timestep as defined in the H2O API. Examples
             include number_of_trees, epochs
@@ -215,7 +215,7 @@ def check_version(min_version, max_version):
     the function in question calls for.
 
     Parameters
-    ----------
+
     min_version : str, float
         The minimum version of h2o that is compatible with the transformer
 
@@ -271,7 +271,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     """Base class for all H2O estimators or functions.
 
     Parameters
-    ----------
+
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
 
@@ -350,7 +350,7 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     """Base class for all H2OTransformers.
 
     Parameters
-    ----------
+
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
 

@@ -53,6 +53,7 @@ def _err_for_continuous(typ):
     if typ == 'continuous':
         raise ValueError('continuous response unsupported for classification metric')
 
+
 def _err_for_discrete(typ):
     """Throw ValueError if typ is
     not continuous. Used as a utility
@@ -61,6 +62,7 @@ def _err_for_discrete(typ):
     if typ != 'continuous':
         raise ValueError('discrete response unsupported for regression metric')
 
+
 def _get_mean(x):
     """Internal method. Gets the mean from
     an H2O frame (single col). Since the mean
@@ -68,6 +70,7 @@ def _get_mean(x):
     this extracts the value.
     """
     return flatten_all(x.mean())[0]
+
 
 def _type_of_target(y):
     """Determine the type of data indicated by target `y`.
@@ -123,7 +126,6 @@ def _check_targets(y_true, y_pred, y_type=None):
     return y_type, y_true, y_pred
     
 
-
 def _average(score, weights=None):
     if weights is not None:
         x = score * weights
@@ -177,7 +179,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
         The type of the column. If None, will be determined.
 
     Returns
-    -------
+
     score : float
     """
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
@@ -188,10 +190,10 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
 
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
                  sample_weight=None, y_type=None):
-    """Compute the F1 score, the weighted average of the precision and the
-    recall:
+    """Compute the F1 score, the weighted average of the precision 
+    and the recall:
 
-        F1 = 2 * (precision * recall) / (precision + recall)
+        ``F1 = 2 * (precision * recall) / (precision + recall)``
 
     Parameters
     ----------
@@ -249,9 +251,8 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
 
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
                     average='binary', sample_weight=None, y_type=None):
-    """Compute the F-beta score
-
-    The F-beta score is the weighted harmonic mean of precision and recall.
+    """Compute the F-beta score.  The F-beta score is the weighted harmonic 
+    mean of precision and recall.
 
     Parameters
     ----------
@@ -318,10 +319,8 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
 
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                         average='binary', sample_weight=None, y_type=None):
-    """Compute the precision
-
-    Precision is the ratio ``tp / (tp + fp)`` where ``tp`` is the number of
-    true positives and ``fp`` the number of false positives.
+    """Compute the precision.  Precision is the ratio ``tp / (tp + fp)`` where ``tp`` 
+    is the number of true positives and ``fp`` the number of false positives.
 
     Parameters
     ----------

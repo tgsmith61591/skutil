@@ -64,13 +64,11 @@ except ImportError as i:
     from sklearn.grid_search import ParameterSampler, ParameterGrid
     SK18 = False
 
-
 __all__ = [
     'H2OGridSearchCV',
     'H2ORandomizedSearchCV',
     'H2OGainsRandomizedSearchCV'
 ]
-
 
 SCORERS = {
     'accuracy_score'        : h2o_accuracy_score,
@@ -83,9 +81,6 @@ SCORERS = {
     'r2_score'              : h2o_r2_score,
     'recall_score'          : h2o_recall_score
 }
-
-
-
 
 """These parameters are ones h2o stores
 that we don't necessarily want to clone.
@@ -206,7 +201,7 @@ def _get_estimator_string(estimator):
     estimator.
 
     Parameters
-    ----------
+
     estimator : H2OEstimator
         The estimator
     """
@@ -274,54 +269,51 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
                    cv_fold, iteration):
     """Fits the current fold on the current parameters.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit
+    Parameters:
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit
 
-    frame : H2OFrame
-        The training frame
+        frame : H2OFrame
+            The training frame
 
-    feature_names : iterable (str)
-        The feature names on which to train
+        feature_names : iterable (str)
+            The feature names on which to train
 
-    target_feature : str
-        The name of the target feature
+        target_feature : str
+            The name of the target feature
 
-    scorer : H2OScorer
-        The scoring function
+        scorer : H2OScorer
+            The scoring function
 
-    parameters : dict
-        The parameters to set in the estimator clone
+        parameters : dict
+            The parameters to set in the estimator clone
 
-    verbose : int
-        The level of verbosity
+        verbose : int
+            The level of verbosity
 
-    scoring_params : dict
-        The parameters to pass as kwargs to the scoring function
+        scoring_params : dict
+            The parameters to pass as kwargs to the scoring function
 
-    train : iterable
-        The train fold indices
+        train : iterable
+            The train fold indices
 
-    test : iterable
-        The test fold indices
+        test : iterable
+            The test fold indices
 
-    is_regression : bool
-        Whether we are fitting a continuous target
+        is_regression : bool
+            Whether we are fitting a continuous target
 
-    act_args : dict
-        GainsReport args if called from a Gains search
+        act_args : dict
+            GainsReport args if called from a Gains search
 
-    cv_fold : int
-        The fold number for reporting
+        cv_fold : int
+            The fold number for reporting
 
-    iteration : int
-        The iteration number for reporting
+        iteration : int
+            The iteration number for reporting
 
-
-    Returns
-    -------
-    list : [test_score, len(test), estimator, parameters]
+    Returns:
+        list : [test_score, len(test), estimator, parameters]
     """
     if parameters is None:
         parameters = {}
@@ -647,7 +639,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         and then generate predictions.
 
         Parameters
-        ----------
+
         frame : H2OFrame
             The frame to fit
         """
@@ -775,7 +767,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         estimator implements such a function.
 
         Parameters
-        ----------
+
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
         """
@@ -787,51 +779,50 @@ class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+    Parameters:
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit.
 
-    param_grid : dict
-        The hyper parameter grid over which to search.
+        param_grid : dict
+            The hyper parameter grid over which to search.
 
-    feature_names : iterable (str)
-        The list of feature names on which to fit
+        feature_names : iterable (str)
+            The list of feature names on which to fit
 
-    target_feature : str
-        The name of the target
+        target_feature : str
+            The name of the target
 
-    scoring : str, optional (default='lift')
-        A valid scoring metric, i.e., "accuracy_score". See
-        ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
+        scoring : str, optional (default='lift')
+            A valid scoring metric, i.e., "accuracy_score". See
+            ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
 
-    scoring_params : dict, optional (default=None)
-        Any kwargs to be passed to the scoring function for
-        scoring at each iteration.
+        scoring_params : dict, optional (default=None)
+            Any kwargs to be passed to the scoring function for
+            scoring at each iteration.
 
-    cv : int or H2OCrossValidator, optional (default=5)
-        The number of folds to be fit for cross validation.
+        cv : int or H2OCrossValidator, optional (default=5)
+            The number of folds to be fit for cross validation.
 
-    verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        verbose : int, optional (default=0)
+            The level of verbosity. 1,2 or greater.
 
-    iid : bool, optional (default=True)
-        Whether to consider each fold as IID. The fold scores
-        are normalized at the end by the number of observations
-        in each fold.
+        iid : bool, optional (default=True)
+            Whether to consider each fold as IID. The fold scores
+            are normalized at the end by the number of observations
+            in each fold.
 
-    validation_frame : H2OFrame, optional (default=None)
-        Whether to score on the full validation frame at the
-        end of all of the model fits. Note that this will NOT be
-        used in the actual model selection process.
+        validation_frame : H2OFrame, optional (default=None)
+            Whether to score on the full validation frame at the
+            end of all of the model fits. Note that this will NOT be
+            used in the actual model selection process.
 
-    minimize : str, optional (default='bias')
-        How the search selects the best model to fit on the entire dataset.
-        One of {'bias','variance'}. The default behavior is 'bias', which is
-        also the default behavior of sklearn. This will select the set of
-        hyper parameters which maximizes the cross validation score mean.
-        Alternatively, 'variance' will select the model which minimizes
-        the standard deviations between cross validation scores.
+        minimize : str, optional (default='bias')
+            How the search selects the best model to fit on the entire dataset.
+            One of {'bias','variance'}. The default behavior is 'bias', which is
+            also the default behavior of sklearn. This will select the set of
+            hyper parameters which maximizes the cross validation score mean.
+            Alternatively, 'variance' will select the model which minimizes
+            the standard deviations between cross validation scores.
     """
     def __init__(self, estimator, param_grid, 
                  feature_names, target_feature, 
@@ -862,63 +853,62 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+    Parameters:
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit.
 
-    param_grid : dict
-        The hyper parameter grid over which to search.
+        param_grid : dict
+            The hyper parameter grid over which to search.
 
-    feature_names : iterable (str)
-        The list of feature names on which to fit
+        feature_names : iterable (str)
+            The list of feature names on which to fit
 
-    target_feature : str
-        The name of the target
+        target_feature : str
+            The name of the target
 
-    n_iter : int, optional (default=10)
-        The number of iterations to fit. Note that 
-        n_iter * cv.get_n_splits will be fit. If there
-        are 10 folds and 10 iterations, 100 models (plus
-        one) will be fit.
+        n_iter : int, optional (default=10)
+            The number of iterations to fit. Note that 
+            n_iter * cv.get_n_splits will be fit. If there
+            are 10 folds and 10 iterations, 100 models (plus
+            one) will be fit.
 
-    random_state : int, optional (default=None)
-        The random state for the search
+        random_state : int, optional (default=None)
+            The random state for the search
 
-    scoring : str, optional (default='lift')
-        A valid scoring metric, i.e., "accuracy_score". See
-        ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
+        scoring : str, optional (default='lift')
+            A valid scoring metric, i.e., "accuracy_score". See
+            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
 
-    scoring_params : dict, optional (default=None)
-        Any kwargs to be passed to the scoring function for
-        scoring at each iteration.
+        scoring_params : dict, optional (default=None)
+            Any kwargs to be passed to the scoring function for
+            scoring at each iteration.
 
-    cv : int or H2OCrossValidator, optional (default=5)
-        The number of folds to be fit for cross validation.
-        Note that n_iter * cv.get_n_splits will be fit. If there
-        are 10 folds and 10 iterations, 100 models (plus
-        one) will be fit.
+        cv : int or H2OCrossValidator, optional (default=5)
+            The number of folds to be fit for cross validation.
+            Note that n_iter * cv.get_n_splits will be fit. If there
+            are 10 folds and 10 iterations, 100 models (plus
+            one) will be fit.
 
-    verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        verbose : int, optional (default=0)
+            The level of verbosity. 1,2 or greater.
 
-    iid : bool, optional (default=True)
-        Whether to consider each fold as IID. The fold scores
-        are normalized at the end by the number of observations
-        in each fold.
+        iid : bool, optional (default=True)
+            Whether to consider each fold as IID. The fold scores
+            are normalized at the end by the number of observations
+            in each fold.
 
-    validation_frame : H2OFrame, optional (default=None)
-        Whether to score on the full validation frame at the
-        end of all of the model fits. Note that this will NOT be
-        used in the actual model selection process.
+        validation_frame : H2OFrame, optional (default=None)
+            Whether to score on the full validation frame at the
+            end of all of the model fits. Note that this will NOT be
+            used in the actual model selection process.
 
-    minimize : str, optional (default='bias')
-        How the search selects the best model to fit on the entire dataset.
-        One of {'bias','variance'}. The default behavior is 'bias', which is
-        also the default behavior of sklearn. This will select the set of
-        hyper parameters which maximizes the cross validation score mean.
-        Alternatively, 'variance' will select the model which minimizes
-        the standard deviations between cross validation scores.
+        minimize : str, optional (default='bias')
+            How the search selects the best model to fit on the entire dataset.
+            One of {'bias','variance'}. The default behavior is 'bias', which is
+            also the default behavior of sklearn. This will select the set of
+            hyper parameters which maximizes the cross validation score mean.
+            Alternatively, 'variance' will select the model which minimizes
+            the standard deviations between cross validation scores.
     """
     def __init__(self, estimator, param_grid,
                  feature_names, target_feature, 
@@ -955,7 +945,7 @@ def _val_exp_loss_prem(x,y,z):
     for indexing an H2OFrame.
 
     Parameters
-    ----------
+
     x : str
         exp name
 
@@ -966,7 +956,7 @@ def _val_exp_loss_prem(x,y,z):
         premium name
 
     Returns
-    -------
+
     tuple :
         str, str, (str or None)
     """
@@ -987,7 +977,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     provided by the GainsStatisticalReport.
 
     Parameters
-    ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
 
@@ -1143,7 +1133,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         If a validation set was included, will also report validation scores.
 
         Returns
-        -------
+
         rdf : pd.DataFrame
             The grid search report
         """

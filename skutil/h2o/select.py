@@ -35,7 +35,7 @@ def _validate_use(X, use, na_warn):
     values in the H2OFrame.
 
     Parameters
-    ----------
+
     X : H2OFrame
         The frame to evaluate. Since this is an internal method,
         no validation is done to ensure it is, in fact, an H2OFrame
@@ -50,7 +50,7 @@ def _validate_use(X, use, na_warn):
         raise a warning and use 'complete.obs'
 
     Returns
-    -------
+
     use
     """
 
@@ -77,7 +77,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
     """Base class for all H2O selectors.
 
     Parameters
-    ----------
+
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
 
@@ -112,7 +112,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     feature_names as None in future steps.
 
     Parameters
-    ----------
+
     feature_names : array_like (str)
         The list of names to drop
 
@@ -144,7 +144,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     the provided threshold.
 
     Parameters
-    ----------
+
     feature_names : array_like (string)
         The features from which to drop
 
@@ -158,7 +158,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         Whether to return a dataframe
 
     Attributes
-    ----------
+
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
 
@@ -181,7 +181,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         """Fit the sparsity filterer.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
         """
@@ -210,7 +210,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     of each feature is considered, and the feature with the highsest MAC is discarded.
 
     Parameters
-    ----------
+
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
 
@@ -227,7 +227,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         A string indicating how to handle missing values.
 
     Attributes
-    ----------
+
     drop_ : list, string
         The columns to drop
 
@@ -255,7 +255,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         """Fit the multicollinearity filterer.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
         """
@@ -269,7 +269,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         return the transformed H2OFrame, X.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
         """
@@ -295,7 +295,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     a certain threshold.
 
     Parameters
-    ----------
+
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
 
@@ -312,7 +312,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         A string indicating how to handle missing values.
 
     Attributes
-    ----------
+
     drop : list, string
         The columns to drop
     """
@@ -337,7 +337,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         return the transformed X frame.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
         """
@@ -348,7 +348,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         """Fit the near zero variance filterer.
 
         Parameters
-        ----------
+
         X : H2OFrame
             The frame to fit
         """

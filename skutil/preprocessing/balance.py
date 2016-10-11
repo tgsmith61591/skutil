@@ -55,7 +55,7 @@ def _validate_x_y_ratio(X, y, ratio):
 	   1.0 (inclusive)
 
 	Return
-	------
+
 	(cts, n_classes), a tuple with the sorted class value_counts and the number of classes
 	"""
 	ratio = _validate_ratio(ratio)
@@ -103,7 +103,7 @@ class _BaseBalancePartitioner:
 	these should be sorted).
 
 	Parameters
-	----------
+
 	X : pd.DataFrame or H2OFrame
 		The frame from which to sample
 
@@ -259,7 +259,7 @@ class _BaseBalancer(object, BalancerMixin):
 	are ONLY applied to training data.
 
 	Parameters
-	----------
+
 	y : str
 		The name of the response column. The response column must be
 		biclass, no more or less.
@@ -305,7 +305,7 @@ class OversamplingClassBalancer(_BaseBalancer):
 	at the target proportion to the majority class.
 
 	Parameters
-	----------
+
 	y : str
 		The name of the response column. The response column must be
 		biclass, no more or less.
@@ -329,7 +329,7 @@ class OversamplingClassBalancer(_BaseBalancer):
 		class : majority class
 		
 		Parameters
-		----------
+
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance
 		"""
@@ -344,7 +344,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 	K-nearest neighbors
 
 	Parameters
-	----------
+
 	y : str
 		The name of the response column. The response column must be
 		biclass, no more or less.
@@ -374,7 +374,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 		each sampled point's k-nearest neighbors.
 		
 		Parameters
-		----------
+
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance
 		"""
@@ -459,7 +459,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
 	2  10
 
 	Parameters
-	----------
+
 	y : str
 		The name of the response column. The response column must be
 		biclass, no more or less.
@@ -482,7 +482,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
 		populous class label.
 		
 		Parameters
-		----------
+
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance
 		"""
