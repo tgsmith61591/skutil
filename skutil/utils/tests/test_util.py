@@ -11,7 +11,7 @@ from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
 from skutil.utils.fixes import *
-from sklearn.decomposition import PCA
+from skutil.decomposition import SelectivePCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
@@ -66,7 +66,7 @@ def test_grid_search_fix():
     y = df.pop("targ")
 
     pipe = Pipeline([('rf', RandomForestClassifier())])
-    pipe2 = Pipeline([('pca', PCA())])
+    pipe2 = Pipeline([('pca', SelectivePCA())])
 
     hyp  = {'rf__n_estimators'  : [10, 15]}
     hyp2 = {'pca__n_components' : [ 1,  2]}

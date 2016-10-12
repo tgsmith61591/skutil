@@ -139,6 +139,36 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     def get_decomposition(self):
         return self.pca_ if hasattr(self, 'pca_') else None
 
+    def score(self, X, y=None):
+        """Return the average log-likelihood of all samples.
+        This calls sklearn.decomposition.PCA's score method
+        on the specified columns.
+
+        See. "Pattern Recognition and Machine Learning"
+        by C. Bishop, 12.2.1 p. 574
+        or http://www.miketipping.com/papers/met-mppca.pdf
+
+        Parameters
+        ----------
+
+        X: array, shape(n_samples, n_features)
+            The data.
+
+        y: None
+            Passthrough for pipeline/gridsearch
+
+        Returns
+        -------
+
+        ll: float
+            Average log-likelihood of the samples under the current model
+        """
+        check_is_fitted(self, 'pca_')
+        X, _ = validate_is_pd(X, self.cols)
+        cols = X.columns if not self.cols else self.cols
+
+        return self.pca_.score(X[cols], y)
+
 
 ###############################################################################
 class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
