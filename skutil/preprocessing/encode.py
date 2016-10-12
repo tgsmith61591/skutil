@@ -26,8 +26,8 @@ class SafeLabelEncoder(LabelEncoder):
     not throw an exception for unseen data, but will
     instead return a default value of 99999
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     classes_ : the classes that are encoded
     """
@@ -39,7 +39,7 @@ class SafeLabelEncoder(LabelEncoder):
         classes = np.unique(y)
         _check_numpy_unicode_bug(classes)
 
-        ## Check not too many:
+        # Check not too many:
         unseen = _get_unseen()
         if len(classes) >= unseen:
             raise ValueError('Too many factor levels in feature. Max is %i' % unseen)
@@ -130,7 +130,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
             encoded_array = np.append(encoder.fit_transform(X[nm]), unseen)
 
             # Add the transformed row
-            trans_array.append(encoded_array)  ## Updates in array
+            trans_array.append(encoded_array)  # Updates in array
 
             # Update the names
             n_classes = len(encoder.classes_)

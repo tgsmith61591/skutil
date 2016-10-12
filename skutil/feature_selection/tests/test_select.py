@@ -9,7 +9,7 @@ from sklearn.datasets import load_iris
 from skutil.feature_selection import *
 from skutil.utils.tests.utils import assert_fails
 
-## Def data for testing
+# Def data for testing
 iris = load_iris()
 X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
 y = np.array(

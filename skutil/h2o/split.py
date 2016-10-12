@@ -230,13 +230,11 @@ def _validate_shuffle_split_init(test_size, train_size):
 
 
 def _validate_shuffle_split(n_samples, test_size, train_size):
-    if (test_size is not None and np.asarray(test_size).dtype.kind == 'i'
-        and test_size >= n_samples):
+    if test_size is not None and np.asarray(test_size).dtype.kind == 'i'and test_size >= n_samples:
         raise ValueError('test_size=%d should be smaller '
                          'than the number of samples %d' % (test_size, n_samples))
 
-    if (train_size is not None and np.asarray(train_size).dtype.kind == 'i'
-        and train_size >= n_samples):
+    if train_size is not None and np.asarray(train_size).dtype.kind == 'i'and train_size >= n_samples:
         raise ValueError('train_size=%d should be smaller '
                          'than the number of samples %d' % (train_size, n_samples))
 

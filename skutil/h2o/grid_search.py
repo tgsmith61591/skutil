@@ -209,9 +209,9 @@ def _get_estimator_string(estimator):
         return 'gbm'
     elif isinstance(estimator, H2OGeneralizedLinearEstimator):
         return 'glm'
-    #elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
+    # elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
     #    return 'glrm'
-    #elif isinstance(estimator, H2OKMeansEstimator):
+    # elif isinstance(estimator, H2OKMeansEstimator):
     #    return 'km'
     elif isinstance(estimator, H2ONaiveBayesEstimator):
         return 'nb'
@@ -327,7 +327,6 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
                                      for k, v in parameters.items()))
         print("[CV (iter %i, fold %i)] %s %s" % (iteration, cv_fold, msg, (64 - len(msg)) * '.'))
 
-
     # h2o doesn't currently re-order rows... and sometimes will
     # complain for some reason. We need to sort our train/test idcs
     train = sorted(train)
@@ -337,9 +336,9 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     # our existing numpy arrays
     if act_args is not None:
         kwargs = {
-            'expo' : act_args['expo'][test],
-            'loss' : act_args['loss'][test],
-            'prem' : act_args['prem'][test] if act_args['prem'] is not None else None
+            'expo': act_args['expo'][test],
+            'loss': act_args['loss'][test],
+            'prem': act_args['prem'][test] if act_args['prem'] is not None else None
         }
     else:
         kwargs = scoring_params
@@ -451,11 +450,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # the addition of the gains search necessitates some hackiness.
         # if we have the attr 'extra_args_' then we know it's an gains search
         xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None       # np arrays themselves
-        xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None # the names of the prem,exp,loss features
+        xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None  # the names of the prem,exp,loss features
 
         # we need to require scoring...
         scoring = self.scoring
-        if hasattr(self, 'scoring_class_') or xtra is not None: # this is a gains search, and we don't need to h2o-ize it
+        if hasattr(self, 'scoring_class_') or xtra is not None:  # this is a gains search, and we don't need to h2o-ize it
             pass
         else:
             if scoring is None:
@@ -483,7 +482,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # clone estimator
         nms = {
-            'feature_names' : self.feature_names,
+            'feature_names':  self.feature_names,
             'target_feature': self.target_feature
         }
 
@@ -554,8 +553,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 # score validation set if necessary
                 if score_validation:
                     val_score = _score(this_estimator, self.validation_frame, 
-                        self.target_feature, val_scorer, self.is_regression_, 
-                        **kwargs)
+                                       self.target_feature, val_scorer,
+                                       self.is_regression_, **kwargs)
 
                     # if it's gains scorer, handles the iid condition internally...
                     self.validation_scores.append(val_score)
@@ -577,7 +576,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # Find the best parameters by comparing on the mean validation score:
         # note that `sorted` is deterministic in the way it breaks ties
         is_bias = minimize == 'bias'
-        the_key = (lambda x: x.mean_validation_score) if is_bias else (lambda x: x.cv_validation_scores.std()) # else == variance
+        # else == variance
+        the_key = (lambda x: x.mean_validation_score) if is_bias else (lambda x: x.cv_validation_scores.std())
         best = sorted(grid_scores, key=the_key, reverse=is_bias)[0]
 
         self.best_params_ = best.parameters
@@ -699,7 +699,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             self.est_name_ = best_estimator.steps[-1][0]  # don't need to duplicate--can use for base
 
             the_h2o_est = best_estimator._final_estimator
-            the_base_est= estimator._final_estimator
+            the_base_est = estimator._final_estimator
 
             is_pipe = True
         else:
@@ -923,7 +923,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         return self._fit(frame, sampled_params)
 
 
-def _val_exp_loss_prem(x,y,z):
+def _val_exp_loss_prem(x, y, z):
     """Takes three strings (or unicode) and cleans them
     for indexing an H2OFrame.
 
@@ -1043,7 +1043,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  premium_feature=None, n_iter=10, 
                  random_state=None, scoring='lift', 
                  scoring_params=None, cv=5,
-                 verbose=0, iid=True, #n_groups=10,
+                 verbose=0, iid=True,  # n_groups=10,
                  validation_frame=None, minimize='bias', 
                  error_score=np.nan, error_behavior='warn'):
 
@@ -1067,11 +1067,11 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         # for re-fitting, we need these kwargs saved
         self.grsttngs_ = {
-            'score_by'      : scoring,
-            'n_folds'       : check_cv(cv).get_n_splits(),
-            'n_iter'        : n_iter,
-            'iid'           : iid,
-            'error_score'   : error_score,
+            'score_by':       scoring,
+            'n_folds':        check_cv(cv).get_n_splits(),
+            'n_iter':         n_iter,
+            'iid':            iid,
+            'error_score':    error_score,
             'error_behavior': error_behavior
         }
 
@@ -1089,16 +1089,16 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         # we can do this once to avoid many as_data_frame operations
         exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
         self.extra_args_ = {
-            'expo' : _as_numpy(frame[exp]),
-            'loss' : _as_numpy(frame[loss]),
-            'prem' : _as_numpy(frame[prem]) if prem is not None else None
+            'expo': _as_numpy(frame[exp]),
+            'loss': _as_numpy(frame[loss]),
+            'prem': _as_numpy(frame[prem]) if prem is not None else None
         }
 
         # for validation set
         self.extra_names_ = {
-            'expo' : exp,
-            'loss' : loss,
-            'prem' : prem
+            'expo': exp,
+            'loss': loss,
+            'prem': prem
         }
 
         # do fit
@@ -1165,9 +1165,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
 
         kwargs = {
-            'expo' : frame[e],
-            'loss' : frame[l],
-            'prem' : frame[p] if p is not None else None
+            'expo': frame[e],
+            'loss': frame[l],
+            'prem': frame[p] if p is not None else None
         }
 
         y_truth = frame[self.target_feature]

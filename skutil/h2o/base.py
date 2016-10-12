@@ -142,7 +142,7 @@ def _retain_from_list(x, exclude):
 
     The names of the features to keep
     """
-    return [i for i in x if not i in exclude]
+    return [i for i in x if i not in exclude]
 
 
 def validate_x(x):
@@ -378,10 +378,10 @@ class BaseH2OFunctionWrapper(BaseEstimator):
             kwargs['location'] = location
             kwargs['warn_if_exists'] = warn_if_exists
 
-            if not 'force' in kwargs:
+            if 'force' not in kwargs:
                 kwargs['force'] = True
 
-            if not 'model_location' in kwargs:
+            if 'model_location' not in kwargs:
                 ops = os.path.sep
                 loc_pts = location.split(ops)
                 model_loc = '%s.mdl' % loc_pts[-1]

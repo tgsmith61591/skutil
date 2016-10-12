@@ -165,8 +165,8 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     as_df : boolean, optional (True default)
         Whether to return a dataframe
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values

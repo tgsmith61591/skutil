@@ -330,10 +330,10 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
         _validate_cols(self.cols)
 
-        ## Generate correlation matrix
+        # Generate correlation matrix
         c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
 
-        ## get drops list
+        # get drops list
         d, mac, crz = filter_collinearity(c, self.threshold)
         self.drop = d if d else None
         self.mean_abs_correlations_ = mac if mac else None

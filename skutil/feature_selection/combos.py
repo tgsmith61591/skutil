@@ -70,7 +70,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         # Generate sub matrix for qr decomposition
         cols = [n for n in (self.cols if not self.cols is None else X.columns)]  # get a copy of the cols
         x = X[cols].as_matrix()
-        cols = np.array(cols) # so we can do boolean indexing
+        cols = np.array(cols)  # so we can do boolean indexing
 
         # do subroutines
         lc_list = _enumLC(QRDecomposition(x))

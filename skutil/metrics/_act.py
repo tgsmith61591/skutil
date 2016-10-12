@@ -212,7 +212,7 @@ class GainsStatisticalReport(object):
             this will store the results. If called from the grid search
             ```score``` method after fit, it will not.
         """
-        ## For scoring from gridsearch...
+        # For scoring from gridsearch...
         expo, loss, prem = kwargs.get('expo'), kwargs.get('loss'), kwargs.get('prem', None)
         self.fit_fold(pred, expo, loss, prem, store)
 

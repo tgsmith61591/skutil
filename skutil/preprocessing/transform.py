@@ -42,7 +42,6 @@ def _validate_rows(X):
         raise ValueError('n_samples should be at least two, but got %i' % m)
 
 
-###############################################################################
 class _BaseSelectiveTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
     """Base class for skutil transformers"""
 
@@ -232,7 +231,6 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         return X if self.as_df else X.as_matrix()
 
 
-###############################################################################
 class SelectiveScaler(_BaseSelectiveTransformer):
     """A class that will apply scaling only to a select group
     of columns. Useful for data that contains categorical features
@@ -299,7 +297,6 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         return X if self.as_df else X.as_matrix()
 
 
-###############################################################################
 class BoxCoxTransformer(_BaseSelectiveTransformer):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
@@ -454,7 +451,6 @@ def _estimate_lambda_single_y(y):
     return b[1]
 
 
-###############################################################################
 class YeoJohnsonTransformer(_BaseSelectiveTransformer):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
@@ -508,7 +504,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
         # ensure enough rows
         _validate_rows(X)
 
-        ## Now estimate the lambdas in parallel
+        # Now estimate the lambdas in parallel
         self.lambda_ = dict(zip(cols,
                                 Parallel(n_jobs=self.n_jobs)(
                                     delayed(_yj_estimate_lambda_single_y)
@@ -554,7 +550,7 @@ def _yj_trans_single_x(x, lam):
             numer = np.power((-x + 1), (2.0 - lam)) - 1.0
             return -numer / denom
 
-        ## Case 4: x < 0 and lambda is two
+        # Case 4: x < 0 and lambda is two
         return -log(-x + 1)
 
 
@@ -589,7 +585,7 @@ def _yj_estimate_lambda_single_y(y):
        The vector of lambdas to estimate with
     """
     y = np.array(y)
-    ## Use customlog-likelihood estimator
+    # Use customlog-likelihood estimator
     return _yj_normmax(y)
 
 
@@ -608,7 +604,7 @@ def _yj_normmax(x, brack=(-2, 2)):
     # Use MLE to compute the optimal YJ parameter
     def _mle_opt(x, brack):
         def _eval_mle(lmb, data):
-            ## Function to minimize
+            # Function to minimize
             return -_yj_llf(data, lmb)
 
         return optimize.brent(_eval_mle, brack=brack, args=(x,))
@@ -715,7 +711,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         X, self.cols = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        ## Now get sqnms in parallel
+        # Now get sqnms in parallel
         self.sq_nms_ = dict(zip(cols,
                                 Parallel(n_jobs=self.n_jobs)(
                                     delayed(_sq_norm_single)
