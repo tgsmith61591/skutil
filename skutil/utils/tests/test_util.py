@@ -11,9 +11,11 @@ from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
 from skutil.utils.fixes import *
+from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
+from skutil.utils.fixes import _validate_y, _check_param_grid
 
 ## Def data for testing
 iris = load_iris()
@@ -59,13 +61,11 @@ def test_grid_search_fix():
     df = load_iris_df(shuffle=True, tgt_name='targ')
     y = df.pop("targ")
 
-    pipe = Pipeline([
-            ('rf', RandomForestClassifier())
-        ])
+    pipe = Pipeline([('rf', RandomForestClassifier())])
+    pipe2 = Pipeline([('pca', PCA())])
 
-    hyp = {
-        'rf__n_estimators' : [10, 15]
-    }
+    hyp  = {'rf__n_estimators'  : [10, 15]}
+    hyp2 = {'pca__n_components' : [ 1,  2]}
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -80,6 +80,45 @@ def test_grid_search_fix():
             # coverage
             grid1._estimator_type
             grid1.score(df, y)
+
+        # try with just a transformer
+        grid3 = _SK17GridSearchCV(estimator=pipe2, param_grid=hyp2, cv=2)
+        grid3.fit_transform(df, None)
+
+        # __repr__ coverage
+        grid3.grid_scores_[0]
+
+        # test fail with mismatched dims
+        assert_fails(grid3.fit, ValueError, X, np.array([1,2,3]))
+
+
+def test_fixes():
+    assert _validate_y(None) is None
+    assert_fails(_validate_y, ValueError, X) # dim 1 is greater than 1
+
+    # try with one column
+    X_copy = X.copy().pop(X.columns[0]) # copy and get first column
+    assert isinstance(_validate_y(X_copy), np.ndarray)
+    assert isinstance(_validate_y(np.array([1,2,3])), np.ndarray) # return the np.ndarray
+
+    # Testing param grid
+    param_grid = {
+        'a' : np.ones((3,3))
+    }
+
+    # fails because value has more than 1 dim
+    assert_fails(_check_param_grid, ValueError, param_grid)
+
+    # test param grid with a dictionary as the value
+    param_grid2 = {
+        'a' : {'a':1}
+    }
+
+    # fails because v must be a tuple, list or np.ndarray
+    assert_fails(_check_param_grid, ValueError, param_grid2)
+
+    # fails because v is len 0
+    assert_fails(_check_param_grid, ValueError, {'a':[]})
 
 
 def test_pd_stats():

@@ -244,6 +244,11 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
         """Fit the estimator and then predict on the X matrix"""
         return self.fit(X, y).predict(X)
 
+    @if_delegate_has_method(delegate='estimator', method='transform')
+    def fit_transform(self, X, y):
+        """Fit the estimator and then transform the X matrix"""
+        return self.fit(X, y).transform(X)
+
     @if_delegate_has_method(delegate='estimator')
     def predict(self, X):
         """Call predict on the estimator with the best found parameters.
