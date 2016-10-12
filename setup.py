@@ -3,7 +3,6 @@ import os, sys, shutil, glob
 import warnings
 import subprocess
 from pkg_resources import parse_version
-import skutil
 
 # For cleaning build artifacts
 from distutils.command.clean import clean as Clean
@@ -20,18 +19,19 @@ try:
 except ImportError as e:
     warnings.warn('Cython needs to be installed')
     raise e
-    # ext = 'c'
 
 # Hacky, adopted from sklearn
 builtins.__SKUTIL_SETUP__ = True
 
-## Metadata
+# Metadata
 DISTNAME = 'skutil'
 DESCRIPTION = 'A set of sklearn-esque extension modules'
 MAINTAINER = 'Taylor G. Smith'
 MAINTAINER_EMAIL = 'tgsmith61591@gmail.com'
 
 # Import the restricted version that doesn't need compiled code
+import skutil
+
 VERSION = skutil.__version__
 
 # Version requirements
@@ -53,6 +53,7 @@ SETUPTOOLS_COMMANDS = set([
 ])
 
 if SETUPTOOLS_COMMANDS.intersection(sys.argv):
+    import setuptools
 
     extra_setuptools_args = dict(zip_safe=False, include_package_data=True)
 else:
@@ -312,6 +313,7 @@ def setup_package():
         check_statuses('h2o', h2o_status, h2rs)
 
         # We know numpy is installed at this point
+        import numpy
         from numpy.distutils.core import setup
 
         metadata['configuration'] = configuration
@@ -320,6 +322,7 @@ def setup_package():
         if len(sys.argv) >= 2 and sys.argv[1] not in 'config':  # and sys.argv[1] in ('build_ext'):
             # clean up the .so files
             # _clean_all()
+
 
             # Clean existing .so files
             cwd = os.path.abspath(os.path.dirname(__file__))
