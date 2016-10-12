@@ -8,11 +8,13 @@ from skutil.utils import *
 from skutil.utils.util import __min_log__, __max_exp__
 from skutil.base import suppress_warnings
 from skutil.utils.tests.utils import assert_fails
-
+from skutil.utils.fixes import *
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
 
 ## Def data for testing
 iris = load_iris()
-X = load_iris_df(False)
+X = load_iris_df(include_tgt=False)
 X_no_targ = X.copy()
 
 # ensure things work with a categorical feature
@@ -49,6 +51,32 @@ def test_safe_log_exp():
     # try something with no __iter__ attr
     assert_fails(log, ValueError, 'A')
     assert_fails(exp, ValueError, 'A')
+
+def test_grid_search_fix():
+    df = load_iris_df(shuffle=True, tgt_name='targ')
+    y = df.pop("targ")
+
+    pipe = Pipeline([
+            ('rf', RandomForestClassifier())
+        ])
+
+    hyp = {
+        'rf__n_estimators' : [10, 15]
+    }
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        for iid in [True, False]:
+            grid1 = _SK17GridSearchCV(estimator=pipe, param_grid=hyp, cv=2, iid=iid)
+            grid1.fit_predict(df, y)
+
+            grid2 = _SK17RandomizedSearchCV(estimator=pipe, param_distributions=hyp, cv=2, n_iter=2, iid=iid)
+            grid2.fit_predict(df, y)
+
+            # coverage
+            grid1._estimator_type
+            grid1.score(df, y)
 
 
 def test_pd_stats():
