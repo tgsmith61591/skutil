@@ -128,7 +128,14 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             # now validated the y/target_feature. Also this way if
             # target_feature is ever changed, this will be updated...
             transform.target_feature = self.target_feature
-            transform.feature_names = next_feature_names
+
+            # if the feature names are explicitly set in this estimator,
+            # we won't set them to the `next_feature_names`, however,
+            # if the names are *not* explicitly set, we will set the 
+            # estimator's `feature_names` to the `next_feature_names`
+            # variable set...
+            if transform.feature_names is None:
+                transform.feature_names = next_feature_names
 
             # now set the exclude_features if they exist
             transform.exclude_features = _union_exclusions(self.exclude_from_ppc,

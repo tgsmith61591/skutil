@@ -21,3 +21,6 @@ skutil/scratch
 
 # sphinx
 gh-pages/
+
+# pycharm
+.idea/

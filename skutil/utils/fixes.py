@@ -13,6 +13,16 @@ import warnings
 
 from .metaestimators import if_delegate_has_method
 
+__all__ = [
+    '_as_numpy',
+    '_validate_X',
+    '_validate_y',
+    '_check_param_grid',
+    '_CVScoreTuple',
+    '_SK17GridSearchCV',
+    '_SK17RandomizedSearchCV'
+]
+
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     SK18 = True
@@ -21,7 +31,7 @@ if sklearn.__version__ >= '0.18':
     from sklearn.model_selection import ParameterSampler, ParameterGrid
     from sklearn.utils.validation import indexable
 
-    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
+    def _do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
                X, y, scorer, parameter_iterable, fit_params, 
                error_score, cv, **kwargs):
         groups = kwargs.pop('groups')
@@ -53,7 +63,7 @@ else:
         from sklearn.cross_validation import _fit_and_score
         from sklearn.grid_search import ParameterSampler, ParameterGrid
 
-    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
+    def _do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
                X, y, scorer, parameter_iterable, fit_params, 
                error_score, cv, **kwargs):
         # test_score, n_samples, score_time, parameters
@@ -67,29 +77,99 @@ else:
                 for train, test in cv)
 
 
-def cv_len(cv, X, y):
+def _cv_len(cv, X, y):
+    """This method computes the length of a cross validation
+    object, agnostic of whether sklearn-0.17 or sklearn-0.18
+    is being used.
+
+    Parameters
+    ----------
+
+    cv : `sklearn.cross_validation._PartitionIterator` or `sklearn.model_selection.BaseCrossValidator`
+        The cv object from which to extract length. If using
+        sklearn-0.17, this can be computed by calling `len` on
+        ``cv``, else it's computed with `cv.get_n_splits(X, y)`.
+
+    X : pd.DataFrame or np.ndarray, shape(n_samples, n_features)
+        The dataframe or np.ndarray being fit in the grid search.
+
+    y : np.ndarray, shape(n_samples,)
+        The target being fit in the grid search.
+
+    Returns
+    -------
+
+    int
+    """
     return len(cv) if not SK18 else cv.get_n_splits(X, y)
 
 
-def set_cv(cv, X, y, classifier):
+def _set_cv(cv, X, y, classifier):
+    """This method returns either a `sklearn.cross_validation._PartitionIterator` or 
+    `sklearn.model_selection.BaseCrossValidator` depending on whether sklearn-0.17
+    or sklearn-0.18 is being used.
+
+    Parameters
+    ----------
+
+    cv : int, `_PartitionIterator` or `BaseCrossValidator`
+        The CV object or int to check. If an int, will be converted
+        into the appropriate class of crossvalidator.
+
+    X : pd.DataFrame or np.ndarray, shape(n_samples, n_features)
+        The dataframe or np.ndarray being fit in the grid search.
+
+    y : np.ndarray, shape(n_samples,)
+        The target being fit in the grid search.
+
+    classifier : bool
+        Whether the estimator being fit is a classifier
+
+    Returns
+    -------
+
+    `_PartitionIterator` or `BaseCrossValidator`
+    """
     return check_cv(cv, X, y, classifier) if not SK18 else check_cv(cv, y, classifier)
 
 
-def get_groups(X, y):
-    return (X, y, None) if not SK18 else indexable(X, y, None)
+def _get_groups(X, y):
+    """Depending on whether using sklearn-0.17 or sklearn-0.18,
+    groups must be computed differently. This method computes groups
+    agnostic to the version of sklearn.
 
-__all__ = [
-    '_as_numpy',
-    '_validate_X',
-    '_validate_y',
-    '_check_param_grid',
-    '_CVScoreTuple',
-    '_SK17GridSearchCV',
-    '_SK17RandomizedSearchCV'
-]
+    Parameters
+    ----------
+
+    X : pd.DataFrame or np.ndarray, shape(n_samples, n_features)
+        The dataframe or np.ndarray being fit in the grid search.
+
+    y : np.ndarray, shape(n_samples,)
+        The target being fit in the grid search.
+
+    Returns
+    -------
+
+    groups
+    """
+    return (X, y, None) if not SK18 else indexable(X, y, None)
 
 
 def _as_numpy(y):
+    """Given a 1d array or iterable, create
+    and return a np.ndarray of one-dimension.
+
+    Parameters
+    ----------
+
+    y : np.ndarray, shape(n_samples,)
+        The target being fit in the grid search.
+
+    Returns
+    -------
+
+    np.ndarray, shape(n_samples,)
+    """
     if y is None:
         return None
     elif isinstance(y, np.ndarray):
@@ -359,7 +439,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
                 raise ValueError('Target variable (y) has a different number '
                                  'of samples (%i) than data (X: %i samples)'
                                  % (len(y), n_samples))
-        cv = set_cv(cv, X, y, classifier=is_classifier(estimator))
+        cv = _set_cv(cv, X, y, classifier=is_classifier(estimator))
 
         if self.verbose > 0:
             if isinstance(parameter_iterable, Sized):
@@ -372,17 +452,17 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
         pre_dispatch = self.pre_dispatch
 
         # get groups, add it to kwargs
-        X, y, groups = get_groups(X, y)
+        X, y, groups = _get_groups(X, y)
         kwargs = {'groups':groups}
 
         # test_score, n_samples, _, parameters
-        out = do_fit(self.n_jobs, self.verbose, pre_dispatch, 
+        out = _do_fit(self.n_jobs, self.verbose, pre_dispatch, 
             base_estimator, X, y, self.scorer_, parameter_iterable, 
             self.fit_params, self.error_score, cv, **kwargs)
 
         # Out is a list of triplet: score, estimator, n_test_samples
         n_fits = len(out)
-        n_folds = cv_len(cv, X, y)
+        n_folds = _cv_len(cv, X, y)
 
         scores = list()
         grid_scores = list()
