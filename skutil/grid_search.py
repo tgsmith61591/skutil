@@ -166,7 +166,9 @@ else:
             """Returns the score on the given data, if the estimator has been refit.
             This uses the score defined by ``scoring`` where provided, and the
             ``best_estimator_.score`` method otherwise.
+
             Parameters
+            ----------
 
             X : array-like or pandas DataFrame, shape = [n_samples, n_features]
                 Input data, where n_samples is the number of samples and
@@ -175,10 +177,13 @@ else:
             y : array-like, shape = [n_samples] or [n_samples, n_output], optional
                 Target relative to X for classification or regression;
                 None for unsupervised learning.
+
             Returns
+            -------
 
             score : float
-            Notes
+
+            **Notes**
 
              * The long-standing behavior of this method changed in version 0.16.
              * It no longer uses the metric provided by ``estimator.score`` if the
@@ -206,7 +211,9 @@ else:
             """Call predict on the estimator with the best found parameters.
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict``.
+
             Parameters
+            ----------
 
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -220,7 +227,9 @@ else:
             """Call predict_proba on the estimator with the best found parameters.
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict_proba``.
+
             Parameters
+            ----------
 
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -234,7 +243,9 @@ else:
             """Call predict_log_proba on the estimator with the best found parameters.
             Only available if ``refit=True`` and the underlying estimator supports
             ``predict_log_proba``.
+
             Parameters
+            ----------
 
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -248,7 +259,9 @@ else:
             """Call decision_function on the estimator with the best found parameters.
             Only available if ``refit=True`` and the underlying estimator supports
             ``decision_function``.
+
             Parameters
+            ----------
 
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -262,7 +275,9 @@ else:
             """Call transform on the estimator with the best found parameters.
             Only available if the underlying estimator supports ``transform`` and
             ``refit=True``.
+
             Parameters
+            ----------
 
             X : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -276,7 +291,9 @@ else:
             """Call inverse_transform on the estimator with the best found parameters.
             Only available if the underlying estimator implements ``inverse_transform`` and
             ``refit=True``.
+
             Parameters
+            ----------
 
             Xt : indexable or pd.DataFrame, length n_samples
                 Must fulfill the input assumptions of the
@@ -394,9 +411,9 @@ else:
 
         The parameters of the estimator used to apply these methods are optimized
         by cross-validated grid-search over a parameter grid.
-        Read more in the :ref:`User Guide <grid_search>`.
 
         Parameters
+        ----------
 
         estimator : estimator object.
             A object of that type is instantiated for each grid point.
@@ -423,21 +440,22 @@ else:
         n_jobs : int, default=1
             Number of jobs to run in parallel.
             .. versionchanged:: 0.17
-               Upgraded to joblib 0.9.3.
+            .. Upgraded to joblib 0.9.3.
 
         pre_dispatch : int, or string, optional
             Controls the number of jobs that get dispatched during parallel
             execution. Reducing this number can be useful to avoid an
             explosion of memory consumption when more jobs get dispatched
             than CPUs can process. This parameter can be:
-                - None, in which case all the jobs are immediately
-                  created and spawned. Use this for lightweight and
-                  fast-running jobs, to avoid delays due to on-demand
-                  spawning of the jobs
-                - An int, giving the exact number of total jobs that are
-                  spawned
-                - A string, giving an expression as a function of n_jobs,
-                  as in '2*n_jobs'
+
+            - None, in which case all the jobs are immediately
+              created and spawned. Use this for lightweight and
+              fast-running jobs, to avoid delays due to on-demand
+              spawning of the jobs
+            - An int, giving the exact number of total jobs that are
+              spawned
+            - A string, giving an expression as a function of n_jobs,
+              as in '2*n_jobs'
 
         iid : boolean, default=True
             If True, the data is assumed to be identically distributed across
@@ -447,15 +465,15 @@ else:
         cv : int, cross-validation generator or an iterable, optional
             Determines the cross-validation splitting strategy.
             Possible inputs for cv are:
+
             - None, to use the default 3-fold cross-validation,
             - integer, to specify the number of folds.
             - An object to be used as a cross-validation generator.
             - An iterable yielding train/test splits.
+
             For integer/None inputs, if the estimator is a classifier and ``y`` is
             either binary or multiclass, :class:`StratifiedKFold` used. In all
             other cases, :class:`KFold` is used.
-            Refer :ref:`User Guide <cross_validation>` for the various
-            cross-validation strategies that can be used here.
 
         refit : boolean, default=True
             Refit the best estimator with the entire dataset.
@@ -472,6 +490,7 @@ else:
             step, which will always raise the error.
 
         Examples
+        --------
 
         >>> from sklearn import svm, grid_search, datasets
         >>> iris = datasets.load_iris()
@@ -491,15 +510,17 @@ else:
                scoring=..., verbose=...)
 
         Attributes
+        ----------
 
         grid_scores_ : list of named tuples
             Contains scores for all parameter combinations in param_grid.
             Each entry corresponds to one parameter setting.
             Each named tuple has the attributes:
-                * ``parameters``, a dict of parameter settings
-                * ``mean_validation_score``, the mean score over the
-                  cross-validation folds
-                * ``cv_validation_scores``, the list of scores for each fold
+
+            * ``parameters``, a dict of parameter settings
+            * ``mean_validation_score``, the mean score over the
+              cross-validation folds
+            * ``cv_validation_scores``, the list of scores for each fold
 
         best_estimator_ : estimator
             Estimator that was chosen by the search, i.e. estimator
@@ -516,7 +537,7 @@ else:
             Scorer function used on the held out data to choose the best
             parameters for the model.
 
-        Notes
+        **Notes**
 
         The parameters selected are those that maximize the score of the left out
         data, unless an explicit score is passed in which case it is used instead.
@@ -528,7 +549,7 @@ else:
         `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *
         n_jobs`.
 
-        See Also
+        **See Also**
 
         :class:`ParameterGrid`:
             generates all the combinations of a hyperparameter grid.
@@ -554,7 +575,9 @@ else:
 
         def fit(self, X, y=None):
             """Run fit with all sets of parameters.
+
             Parameters
+            ----------
 
             X : array-like, shape = [n_samples, n_features]
                 Training vector, where n_samples is the number of samples and
@@ -592,9 +615,8 @@ else:
         It is highly recommended to use continuous distributions for continuous
         parameters.
 
-        Read more in the :ref:`User Guide <randomized_parameter_search>`.
-
         Parameters
+        ----------
 
         estimator : estimator object.
             A object of that type is instantiated for each grid point.
@@ -629,14 +651,15 @@ else:
             execution. Reducing this number can be useful to avoid an
             explosion of memory consumption when more jobs get dispatched
             than CPUs can process. This parameter can be:
-                - None, in which case all the jobs are immediately
-                  created and spawned. Use this for lightweight and
-                  fast-running jobs, to avoid delays due to on-demand
-                  spawning of the jobs
-                - An int, giving the exact number of total jobs that are
-                  spawned
-                - A string, giving an expression as a function of n_jobs,
-                  as in '2*n_jobs'
+
+            - None, in which case all the jobs are immediately
+              created and spawned. Use this for lightweight and
+              fast-running jobs, to avoid delays due to on-demand
+              spawning of the jobs
+            - An int, giving the exact number of total jobs that are
+              spawned
+            - A string, giving an expression as a function of n_jobs,
+              as in '2*n_jobs'
 
         iid : boolean, default=True
             If True, the data is assumed to be identically distributed across
@@ -653,8 +676,6 @@ else:
             For integer/None inputs, if the estimator is a classifier and ``y`` is
             either binary or multiclass, :class:`StratifiedKFold` used. In all
             other cases, :class:`KFold` is used.
-            Refer :ref:`User Guide <cross_validation>` for the various
-            cross-validation strategies that can be used here.
 
         refit : boolean, default=True
             Refit the best estimator with the entire dataset.
@@ -675,15 +696,17 @@ else:
             step, which will always raise the error.
 
         Attributes
+        ----------
 
         grid_scores_ : list of named tuples
             Contains scores for all parameter combinations in param_grid.
             Each entry corresponds to one parameter setting.
             Each named tuple has the attributes:
-                * ``parameters``, a dict of parameter settings
-                * ``mean_validation_score``, the mean score over the
-                  cross-validation folds
-                * ``cv_validation_scores``, the list of scores for each fold
+
+            * ``parameters``, a dict of parameter settings
+            * ``mean_validation_score``, the mean score over the
+              cross-validation folds
+            * ``cv_validation_scores``, the list of scores for each fold
 
         best_estimator_ : estimator
             Estimator that was chosen by the search, i.e. estimator
@@ -696,7 +719,7 @@ else:
         best_params_ : dict
             Parameter setting that gave the best results on the hold out data.
 
-        Notes
+        **Notes**
 
         The parameters selected are those that maximize the score of the held-out
         data, according to the scoring parameter.
@@ -708,7 +731,7 @@ else:
         `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *
         n_jobs`.
 
-        See Also
+        **See Also**
 
         :class:`GridSearchCV`:
             Does exhaustive search over a grid of parameters.
@@ -733,7 +756,9 @@ else:
 
         def fit(self, X, y=None):
             """Run fit on the estimator with randomly drawn parameters.
+
             Parameters
+            ----------
 
             X : array-like, shape = [n_samples, n_features]
                 Training vector, where n_samples in the number of samples and

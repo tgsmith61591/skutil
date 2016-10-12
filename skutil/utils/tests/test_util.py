@@ -1,14 +1,16 @@
 from __future__ import print_function, absolute_import, division
+
+import warnings
+
 import numpy as np
 import pandas as pd
-import warnings
-from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+from numpy.testing import (assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-from skutil.utils import *
-from skutil.utils.util import __min_log__, __max_exp__
-from skutil.base import suppress_warnings
-from skutil.utils.tests.utils import assert_fails
 
+from skutil.base import suppress_warnings
+from skutil.utils import *
+from skutil.utils.tests.utils import assert_fails
+from skutil.utils.util import __min_log__, __max_exp__
 
 ## Def data for testing
 iris = load_iris()

@@ -1,18 +1,13 @@
 from __future__ import absolute_import, division, print_function
-import abc
-import numpy as np
+
 import pandas as pd
 
-from sklearn.externals import six
-from h2o.frame import H2OFrame
-
-from .base import _check_is_frame, BaseH2OFunctionWrapper, _frame_from_x_y
+from skutil.base import overrides
+from .base import _check_is_frame, BaseH2OFunctionWrapper
 from ..preprocessing import BalancerMixin
-from ..preprocessing.balance import (_validate_ratio, _validate_target, 
+from ..preprocessing.balance import (_validate_ratio, _validate_target,
     _validate_num_classes, _OversamplingBalancePartitioner,
     _UndersamplingBalancePartitioner)
-from ..base import overrides
-
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -67,6 +62,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     at the target proportion to the majority class.
 
     Parameters
+    ----------
 
     target_feature : str
         The name of the response column. The response column must be
@@ -89,6 +85,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         class(es) : majority class.
         
         Parameters
+        ----------
 
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance
@@ -134,6 +131,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     2  10
 
     Parameters
+    ----------
 
     target_feature : str
         The name of the response column. The response column must be
@@ -159,6 +157,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         class(es) : majority class
         
         Parameters
+        ----------
 
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance

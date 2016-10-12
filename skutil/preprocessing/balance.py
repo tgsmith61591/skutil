@@ -1,20 +1,18 @@
 from __future__ import division, print_function
-import warnings
-import pandas as pd
-import numpy as np
+
 import abc
+import warnings
 
-from numpy.random import choice
-from sklearn.base import TransformerMixin, BaseEstimator
-from sklearn.utils.validation import check_is_fitted
-from sklearn.neighbors import NearestNeighbors
-from sklearn.externals import six
+import numpy as np
+import pandas as pd
 from h2o.frame import H2OFrame
+from numpy.random import choice
+from sklearn.externals import six
+from sklearn.neighbors import NearestNeighbors
 
-from ..base import *
-from ..base import overrides
+from skutil.base import *
+from skutil.base import overrides
 from ..utils import *
-
 
 __all__ = [
 	'BalancerMixin',
@@ -102,7 +100,8 @@ class _BaseBalancePartitioner:
 	method will return the indices that should be sampled (if using with H2O,
 	these should be sorted).
 
-	Parameters
+    Parameters
+    ----------
 
 	X : pd.DataFrame or H2OFrame
 		The frame from which to sample
@@ -258,7 +257,8 @@ class _BaseBalancer(object, BalancerMixin):
 	or BaseEstimators, and do not implement fit or predict. This is because Balancers
 	are ONLY applied to training data.
 
-	Parameters
+    Parameters
+    ----------
 
 	y : str
 		The name of the response column. The response column must be
@@ -304,7 +304,8 @@ class OversamplingClassBalancer(_BaseBalancer):
 	"""Oversample the minority classes until they are represented
 	at the target proportion to the majority class.
 
-	Parameters
+    Parameters
+    ----------
 
 	y : str
 		The name of the response column. The response column must be
@@ -329,6 +330,7 @@ class OversamplingClassBalancer(_BaseBalancer):
 		class : majority class
 		
 		Parameters
+		----------
 
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance
@@ -343,7 +345,8 @@ class SMOTEClassBalancer(_BaseBalancer):
 	method. This will generate synthetic samples for the minority class(es) using
 	K-nearest neighbors
 
-	Parameters
+    Parameters
+    ----------
 
 	y : str
 		The name of the response column. The response column must be
@@ -374,6 +377,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 		each sampled point's k-nearest neighbors.
 		
 		Parameters
+		----------
 
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance
@@ -458,7 +462,8 @@ class UndersamplingClassBalancer(_BaseBalancer):
 	1  30
 	2  10
 
-	Parameters
+    Parameters
+    ----------
 
 	y : str
 		The name of the response column. The response column must be
@@ -482,6 +487,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
 		populous class label.
 		
 		Parameters
+		----------
 
 		X : pandas DF, shape [n_samples, n_features]
 			The data to balance

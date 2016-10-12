@@ -57,6 +57,7 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
 
     Parameters
     ----------
+
     X : H2OFrame
         The frame from which to drop
 
@@ -76,6 +77,7 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
 
     Returns
     -------
+
     X : pd.DataFrame
         The sanitized dataframe
     """
@@ -90,11 +92,13 @@ def _check_is_frame(X):
 
     Parameters
     ----------
+
     X : H2OFrame
         The frame to evaluate
 
     Returns
     -------
+
     X
     """
 
@@ -110,6 +114,7 @@ def _retain_features(X, exclude):
 
     Parameters
     ----------
+
     X : H2OFrame
         The frame from which to drop
 
@@ -118,6 +123,7 @@ def _retain_features(X, exclude):
 
     Returns
     -------
+
     The names of the features to keep
     """
     return _retain_from_list(X.columns, exclude)
@@ -130,6 +136,7 @@ def _retain_from_list(x, exclude):
 
     Parameters
     ----------
+
     x : iterable of lists
         The list from which to exclude
 
@@ -138,6 +145,7 @@ def _retain_from_list(x, exclude):
 
     Returns
     -------
+
     The names of the features to keep
     """
     return [i for i in x if not i in exclude]
@@ -149,11 +157,13 @@ def validate_x(x):
 
     Parameters
     ----------
+
     x : None, iterable
         The feature names
 
     Returns
     -------
+
     x : iterable or None
         The feature names
     """
@@ -172,6 +182,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
 
     Parameters
     ----------
+
     feature_names : iterable or None
         The feature names to be used in a transformer. If feature_names
         is None, the transformer will use all of the frame's column names.
@@ -187,6 +198,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
 
     Returns
     -------
+
     (feature_names, target_feature)
     """
     if feature_names is not None:
@@ -236,6 +248,7 @@ class VizMixin:
         given timestep.
 
         Parameters
+        ----------
 
         timestep : str
             A timestep as defined in the H2O API. Examples
@@ -259,6 +272,7 @@ def check_version(min_version, max_version):
     the function in question calls for.
 
     Parameters
+    ----------
 
     min_version : str, float
         The minimum version of h2o that is compatible with the transformer
@@ -315,6 +329,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     """Base class for all H2O estimators or functions.
 
     Parameters
+    ----------
 
     target_feature : str (default None)
         The name of the target feature (is excluded from the fit)
@@ -395,6 +410,7 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 

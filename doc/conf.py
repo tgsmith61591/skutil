@@ -20,6 +20,8 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath(".." + os.path.sep))
+sys.path.insert(0, os.path.abspath('sphinxext'))
+print "\n\n" + str(sys.path) + "\n\n"
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -30,6 +32,7 @@ sys.path.insert(0, os.path.abspath(".." + os.path.sep))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
@@ -37,6 +40,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'numpy_ext.numpydoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -148,7 +152,7 @@ html_logo = 'images/h2o-sklearn.png'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

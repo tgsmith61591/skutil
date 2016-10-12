@@ -1,20 +1,18 @@
 from __future__ import division, print_function, absolute_import
-from abc import ABCMeta, abstractmethod
-import warnings
-import time
-import numbers
-import numpy as np
-import pandas as pd
 
-import h2o
-from h2o.frame import H2OFrame
+import numbers
+import warnings
+from abc import ABCMeta, abstractmethod
+
+import numpy as np
+
 try:
 	from h2o import H2OEstimator
 except ImportError as e:
 	from h2o.estimators.estimator_base import H2OEstimator
 
 from .base import _check_is_frame
-from ..base import overrides
+from skutil.base import overrides
 
 from sklearn.externals import six
 from sklearn.base import _pprint
@@ -89,7 +87,8 @@ def check_cv(cv=3):
 def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=None, stratify=None):
 	"""Splits an H2OFrame into random train and test subsets
 
-	Parameters
+    Parameters
+    ----------
 
 	frame : H2OFrame
 		The h2o frame to split
@@ -164,11 +163,13 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 		"""Generate indices to split data into training and test.
 
 		Parameters
+		----------
 
 		frame : H2OFrame
 			The h2o frame to split
 
-		Returns
+        Returns
+        -------
 
 		train : ndarray
 			The training set indices for the split

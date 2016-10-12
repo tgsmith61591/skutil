@@ -1,21 +1,17 @@
 from __future__ import print_function, absolute_import, division
-from sklearn.externals import six
+
 import numpy as np
 import pandas as pd
-
-from abc import abstractmethod, ABCMeta
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_array
-from sklearn.utils.validation import check_is_fitted
-from sklearn.externals.joblib import Parallel, delayed
-from sklearn.externals import six
-from scipy.stats import boxcox
 from scipy import optimize
-from .encode import _get_unseen
-from ..utils import *
-from ..base import *
+from scipy.stats import boxcox
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.externals import six
+from sklearn.externals.joblib import Parallel, delayed
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_is_fitted
 
+from skutil.base import *
+from ..utils import *
 
 __all__ = [
     'BoxCoxTransformer',
@@ -59,6 +55,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
     """Apply a function to a column or set of columns.
 
     Parameters
+    ----------
 
     cols : string or array_like, default None
         The columns to apply a function to
@@ -77,6 +74,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
         """Validate the args
         
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
@@ -103,6 +101,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
         """Apply the function to the new data.
         
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
@@ -122,11 +121,13 @@ def _mul(a, b):
     (no validation since internally used).
 
     Parameters
+    ----------
 
     a : pd.Series
     b : pd.Series
 
     Returns
+    -------
 
     product np.ndarray
     """
@@ -138,6 +139,7 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
     in the form of In = (xi * xj).
 
     Parameters
+    ----------
 
     cols : array_like (string)
         names of columns on which to apply transformation
@@ -169,6 +171,7 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         """Fit the transformer.
 
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
@@ -194,6 +197,7 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         """Perform the interaction term expansion
         
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
@@ -240,6 +244,7 @@ class SelectiveScaler(_BaseSelectiveTransformer):
     SelectiveScalers with different columns & strategies in a pipeline object.
 
     Parameters
+    ----------
 
     cols : array_like (string)
         names of columns on which to apply scaling
@@ -250,7 +255,8 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         Whether to return a dataframe
 
 
-    Attributes
+	Attributes
+	----------
 
     cols : array_like (string)
         the columns
@@ -267,6 +273,7 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         """Fit the scaler
 
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
@@ -302,6 +309,7 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
        features that are generated via the OneHotCategoricalTransformer.
        
     Parameters
+    ----------
 
     cols : array_like, str
        The columns which to transform
@@ -319,7 +327,8 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
        Whether to return a dataframe
 
 
-    Attributes
+	Attributes
+	----------
 
     shift_ : dict
        The shifts for each feature needed to shift the min value in 
@@ -335,8 +344,9 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
         
     def fit(self, X, y=None):
         """Estimate the lambdas, provided X
-        
+
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
@@ -371,6 +381,7 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
         """Perform Box-Cox transformation
         
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
@@ -405,6 +416,7 @@ def _transform_y(y, lam):
     No validation performed.
     
     Parameters
+    ----------
 
     y : ndarray, shape (n_samples,)
        The vector being transformed
@@ -424,6 +436,7 @@ def _estimate_lambda_single_y(y):
     through which to search. No validation performed.
     
     Parameters
+    ----------
 
     y : ndarray, shape (n_samples,)
        The vector being estimated against
@@ -453,6 +466,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
        using the Yeo-Johnson transformation.
 
     Parameters
+    ----------
 
     cols : array_like, str
        The columns which to transform
@@ -470,7 +484,8 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
        Whether to return a dataframe
 
 
-    Attributes
+	Attributes
+	----------
 
     lambda_ : dict
        The lambda values corresponding to each feature
@@ -484,6 +499,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
         """Estimate the lambdas, provided X
 
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
@@ -510,6 +526,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
         """Perform Yeo-Johnson transformation
 
         Parameters
+        ----------
 
         X : pandas DF, shape [n_samples, n_features]
             The data to transform
@@ -551,6 +568,7 @@ def _yj_transform_y(y, lam):
     No validation performed.
 
     Parameters
+    ----------
 
     y : ndarray, shape (n_samples,)
        The vector being transformed
@@ -566,6 +584,7 @@ def _yj_estimate_lambda_single_y(y):
     through which to search. No validation performed.
 
     Parameters
+    ----------
 
     y : ndarray, shape (n_samples,)
        The vector being estimated against
@@ -581,6 +600,7 @@ def _yj_normmax(x, brack = (-2, 2)):
     """Compute optimal YJ transform parameter for input data.
 
     Parameters
+    ----------
 
     x : array_like
        Input array.
@@ -604,6 +624,7 @@ def _yj_llf(data, lmb):
     is applied to the input.
 
     Parameters
+    ----------
 
     data : array_like
        The vector to transform
@@ -655,6 +676,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
     by dividing each feature by its squared norm.
        
     Parameters
+    ----------
 
     cols : array_like, str
        The columns which to transform
@@ -672,7 +694,8 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
        Whether to return a dataframe
 
 
-    Attributes
+	Attributes
+	----------
 
     sq_nms_ : dict
        The squared norms for each feature
@@ -686,6 +709,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         """Estimate the squared norms for each feature, provided X
         
         Parameters
+        ----------
 
         X : pd DF, shape [n_samples, n_features]
             The data used for estimating the lambdas
@@ -709,6 +733,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         """Perform spatial sign transformation
         
         Parameters
+        ----------
 
         X : pd DF, shape [n_samples, n_features]
             The data to transform

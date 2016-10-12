@@ -60,6 +60,7 @@ def h2o_col_to_numpy(column):
     single H2OFrame column.
 
     Returns
+    -------
 
     np.ndarray (1d)
     """
@@ -72,7 +73,8 @@ def _unq_vals_col(column):
     """Get the unique values and column name
     from a column.
 
-    Return
+    Returns
+    -------
 
     str, np.ndarray : tuple
         (c1_nm, unq)
@@ -89,6 +91,7 @@ def h2o_bincount(bins, weights=None, minlength=None):
     a np.ndarray of positional counts of each int.
 
     Parameters
+    ----------
 
     bins : H2OFrame
         The values
@@ -151,11 +154,13 @@ def from_pandas(X):
     default args (generally enough) plus named columns.
 
     Parameters
+    ----------
 
     X : pd.DataFrame
         The dataframe to convert.
 
     Returns
+    -------
 
     H2OFrame
     """
@@ -177,6 +182,7 @@ def from_array(X, column_names=None):
     the default args.
 
     Parameters
+    ----------
 
     X : ndarray
         The array to convert.
@@ -185,6 +191,7 @@ def from_array(X, column_names=None):
         the names to use for your columns
 
     Returns
+    -------
 
     H2OFrame
     """
@@ -202,6 +209,7 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
     Note that this requires all datatypes to be numeric and finite!
 
     Parameters
+    ----------
 
     X : pd.DataFrame
         The pandas DataFrame
@@ -280,6 +288,7 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     held in memory or not.
 
     Parameters
+    ----------
 
     X : H2OFrame
         The H2OFrame in question
@@ -292,6 +301,7 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
 
     Returns
+    -------
 
     mb : str
         The estimated number of UNIT held in the frame

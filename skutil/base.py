@@ -54,6 +54,7 @@ class SelectiveMixin:
 	should implement. Returns the columns used to transform on.
 
 	Attributes
+	----------
 
 	cols : array_like
 		The columns transformed

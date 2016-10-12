@@ -1,16 +1,14 @@
 from __future__ import division, print_function, absolute_import
-from abc import ABCMeta, abstractmethod
-import warnings
-import pandas as pd
-import numpy as np
-from sklearn.externals import six
-from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
-from sklearn.utils.validation import check_is_fitted
-from sklearn.preprocessing import Imputer
-from sklearn.ensemble import BaggingRegressor, BaggingClassifier
-from ..base import SelectiveMixin
-from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
+from sklearn.ensemble import BaggingRegressor, BaggingClassifier
+from sklearn.externals import six
+from sklearn.utils.validation import check_is_fitted
+
+from skutil.base import SelectiveMixin
+from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 
 __all__ = [
 	'BaggedImputer',
@@ -25,7 +23,7 @@ def _validate_all_numeric(X):
 	are numeric types. If not, raises a
 	ValueError
 
-	Raises
+	**Raises**
 
 	ValueError if not all columns are numeric
 	"""
@@ -36,7 +34,8 @@ def _validate_all_numeric(X):
 def _col_mode(col):
 	"""Get the mode from a series.
 
-	Returns
+    Returns
+    -------
 
 	The column's most common value.
 	"""
@@ -49,7 +48,8 @@ def _val_values(vals):
 	are either numeric, or in ('mode', 'median', 'mean').
 	If not, will raise a TypeError
 
-	Raises
+    Raises
+    ------
 
 	TypeError if not all values are numeric or 
 	in valid values.
@@ -71,6 +71,7 @@ class ImputerMixin:
 	This mixin is used for the H2O imputer, as well.
 
 	Attributes
+	----------
 
 	_def_fill : int (default=-999999)
 		The default fill value for NaN values
@@ -81,7 +82,8 @@ class ImputerMixin:
 class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin):
 	"""A base class for all imputers. Handles assignment of the fill value.
 	
-	Parameters
+    Parameters
+    ----------
 
 	cols : array_like, optional (default=None)
 		The columns to impute
@@ -105,7 +107,8 @@ class SelectiveImputer(_BaseImputer):
 	numeric values. Moreover, it will take a vector of strategies or values
 	with which to impute corresponding columns.
 	
-	Parameters
+    Parameters
+    ----------
 
 	cols : array_like, optional (default=None)
 		the features to impute
@@ -126,6 +129,7 @@ class SelectiveImputer(_BaseImputer):
 		transformed matrix or frame.
 
 		Parameters
+		----------
 
 		X : pandas DataFrame
 			The frame to fit
@@ -208,6 +212,7 @@ class SelectiveImputer(_BaseImputer):
 		"""Transform a dataframe given the fit imputer.
 
 		Parameters
+		----------
 
 		X : pandas DataFrame
 			The frame to fit
@@ -259,6 +264,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		"""Fit the BaggedImputer.
 
 		Parameters
+		----------
 
 		X : pandas DataFrame
 			The frame to fit
@@ -274,6 +280,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		transformed matrix or frame.
 
 		Parameters
+		----------
 
 		X : pandas DataFrame
 			The frame to fit
@@ -377,6 +384,7 @@ class _BaseBaggedImputer(_BaseImputer):
 		"""Transform a dataframe given the fit imputer.
 
 		Parameters
+		----------
 
 		X : pandas DataFrame
 			The frame to fit

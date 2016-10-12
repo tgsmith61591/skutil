@@ -205,6 +205,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         """Transform an H2OFrame given the fit imputer.
 
         Parameters
+        ----------
 
         X : pandas DataFrame
             The frame to fit
@@ -258,6 +259,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     """A class that will scale selected features in the H2OFrame.
 
     Parameters
+    ----------
 
     feature_names : array_like (string)
         names of features on which to apply trans
@@ -289,6 +291,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         """Fit the transformer.
 
         Parameters
+        ----------
 
         frame : H2OFrame, shape [n_samples, n_features]
             The data to transform
@@ -311,6 +314,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         """Do the transformation
 
         Parameters
+        ----------
 
         frame : H2OFrame, shape [n_samples, n_features]
             The data to transform
@@ -336,11 +340,13 @@ def _mul(a, b):
     (no validation since internally used).
 
     Parameters
+    ----------
 
     a : H2OFrame
     b : H2OFrame
 
     Returns
+    -------
 
     product H2OFrame
     """
@@ -355,6 +361,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     and at the transform point will return ALL features plus the newly generated ones.
 
     Parameters
+    ----------
 
     feature_names : array_like (string)
         names of features on which to apply trans
@@ -395,6 +402,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         """Fit the transformer.
 
         Parameters
+        ----------
 
         frame : H2OFrame, shape [n_samples, n_features]
             The data to transform
@@ -417,6 +425,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         """Perform the interaction term expansion
         
         Parameters
+        ----------
 
         frame : H2OFrame, shape [n_samples, n_features]
             The data to transform

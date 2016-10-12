@@ -21,7 +21,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
     of columns that are involved in the dependencies. This class is adapted from
     the implementation in the R package, caret.
 
-    Parameters:
+        Parameters
+        ----------
+
         cols : array_like (string)
             The features to select
 
@@ -35,7 +37,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
     def fit(self, X, y=None):
         """Fit the linear combination filterer.
 
-        Parameters:
+            Parameters
+            ----------
+
             X : pandas DataFrame
                 The frame to fit
 
@@ -48,7 +52,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         """Fit the multicollinearity filterer and
         return the filtered frame.
 
-        Parameters:
+            Parameters
+            ----------
+
             X : pandas DataFrame
                 The frame to fit
 
@@ -98,7 +104,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         """Drops the linear combination features from the new
         input frame.
 
-        Parameters:
+            Parameters
+            ----------
+
             X : pandas DataFrame
                 The frame to transform
 
@@ -115,7 +123,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 def _enumLC(decomp):
     """Perform a single iteration of linear combo scoping.
 
-    Parameters:
+        Parameters
+        ----------
+
         qr_decomp : a QRDecomposition object
             The QR decomposition of the matrix
     """

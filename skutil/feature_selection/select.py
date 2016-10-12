@@ -1,12 +1,13 @@
 from __future__ import print_function, division, absolute_import
-import pandas as pd
-import numpy as np
-import warnings
-from sklearn.utils.validation import check_is_fitted
-from .base import _BaseFeatureSelector
-from ..base import SelectiveMixin
-from ..utils import validate_is_pd, is_numeric
+
 from collections import namedtuple
+
+import numpy as np
+import pandas as pd
+from sklearn.utils.validation import check_is_fitted
+
+from .base import _BaseFeatureSelector
+from ..utils import validate_is_pd, is_numeric
 
 __all__ = [
     'FeatureDropper',
@@ -24,6 +25,7 @@ def _validate_cols(cols):
 
     Parameters
     ----------
+
     cols : array_like or None
         The columns to evaluate
     """
@@ -37,6 +39,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
     the provided threshold.
 
     Parameters
+    ----------
 
     cols : array_like (string)
         The features from which to drop
@@ -47,7 +50,8 @@ class SparseFeatureDropper(_BaseFeatureSelector):
     as_df : boolean, optional (True default)
         Whether to return a dataframe
 
-    Attributes
+	Attributes
+	----------
 
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
@@ -86,6 +90,7 @@ class FeatureDropper(_BaseFeatureSelector):
     Pipeline that will drop the given features from the remainder of the pipe
 
     Parameters
+    ----------
 
     cols : array_like (string)
         The features to drop
@@ -109,6 +114,7 @@ class FeatureRetainer(_BaseFeatureSelector):
     only propagate the given features throughout the remainder of the pipe
 
     Parameters
+    ----------
     
     cols : array_like (string)
         The features to select
@@ -163,6 +169,7 @@ def filter_collinearity(c, threshold):
     MulticollinearityFilterer as well as the H2OMulticollinearityFilterer
 
     Parameters
+    ----------
 
     c : pandas DataFrame
         The correlation matrix
@@ -171,6 +178,7 @@ def filter_collinearity(c, threshold):
         The threshold above which to filter
 
     Returns
+    -------
 
     drops, macor, crrz
         (The drop list, the mean absolute correlations, and the correlation tuples)
@@ -253,6 +261,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     of each feature is considered, and the feature with the highsest MAC is discarded.
 
     Parameters
+    ----------
 
     cols : array_like, string
         The columns used to generate the correlation matrix
@@ -266,8 +275,9 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     as_df : boolean, default True
         Whether to return a pandas DataFrame
 
-    Attributes
-    ----------
+	Attributes
+	----------
+
     cols : the cols used to compute the correlation matrix
 
     drop : list, string
@@ -289,6 +299,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         """Fit the multicollinearity filterer.
 
         Parameters
+        ----------
 
         X : pandas DataFrame
             The frame to fit
@@ -305,6 +316,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         return the filtered frame.
 
         Parameters
+        ----------
 
         X : pandas DataFrame
             The frame to fit
@@ -338,6 +350,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         input frame.
 
         Parameters
+        ----------
 
         X : pandas DataFrame
             The frame to transform
@@ -362,6 +375,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
     a certain threshold.
 
     Parameters
+    ----------
 
     cols : array_like, string
         The columns to evaluate for potential drops

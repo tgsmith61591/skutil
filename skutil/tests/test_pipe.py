@@ -1,19 +1,17 @@
-import numpy as np
 import warnings
-from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+
+import pandas as pd
+from scipy.stats import randint, uniform
 from sklearn.datasets import load_iris
-from sklearn.preprocessing import StandardScaler, RobustScaler
-from sklearn.decomposition import PCA
-from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
-from skutil.grid_search import RandomizedSearchCV, GridSearchCV
-from skutil.preprocessing import *
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler, RobustScaler
+
 from skutil.decomposition import *
 from skutil.feature_selection import *
+from skutil.grid_search import RandomizedSearchCV, GridSearchCV
+from skutil.preprocessing import *
 from skutil.utils import report_grid_score_detail
-from scipy.stats import randint, uniform
-import pandas as pd
-
 
 ## Def data for testing
 iris = load_iris()
