@@ -182,8 +182,7 @@ else:
 
             score : float
 
-            Notes
-            -----
+            **Notes**
 
              * The long-standing behavior of this method changed in version 0.16.
              * It no longer uses the metric provided by ``estimator.score`` if the
@@ -537,8 +536,7 @@ else:
             Scorer function used on the held out data to choose the best
             parameters for the model.
 
-        Notes
-        -----
+        **Notes**
 
         The parameters selected are those that maximize the score of the left out
         data, unless an explicit score is passed in which case it is used instead.
@@ -550,8 +548,7 @@ else:
         `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *
         n_jobs`.
 
-        See Also
-        --------
+        **See Also**
 
         :class:`ParameterGrid`:
             generates all the combinations of a hyperparameter grid.
@@ -718,8 +715,7 @@ else:
         best_params_ : dict
             Parameter setting that gave the best results on the hold out data.
 
-        Notes
-        -----
+        **Notes**
 
         The parameters selected are those that maximize the score of the held-out
         data, according to the scoring parameter.
@@ -731,8 +727,7 @@ else:
         `pre_dispatch` many times. A reasonable value for `pre_dispatch` is `2 *
         n_jobs`.
 
-        See Also
-        --------
+        **See Also**
 
         :class:`GridSearchCV`:
             Does exhaustive search over a grid of parameters.
