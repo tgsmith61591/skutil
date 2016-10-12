@@ -1,13 +1,10 @@
 from __future__ import print_function
 import numpy as np
 import warnings
-from skutil import exp, log
-from sklearn.utils.extmath import safe_sparse_dot
+from skutil import exp
 from sklearn.metrics.pairwise import (check_pairwise_arrays,
                                       linear_kernel as lk)
-from ._kernel_fast import (_hilbert_dot_fast, 
-                           _hilbert_matrix_fast,
-                           _spline_kernel_fast)
+from ._kernel_fast import (_hilbert_dot_fast, _hilbert_matrix_fast, _spline_kernel_fast)
 
 
 __all__ = [
@@ -25,13 +22,14 @@ __all__ = [
 ]
 
 
-### Utils
+# Utils
 def _div(num, div):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
         # do division operation -- might throw runtimewarning
         return num / div
+
 
 def _prep_X_Y_for_cython(X, Y):
     X, Y = check_pairwise_arrays(X, Y)
@@ -40,9 +38,9 @@ def _prep_X_Y_for_cython(X, Y):
     return X, Y, res
 
 
-### Cython proxies
+# Cython proxies
 def _hilbert_dot(x, y, scalar=1.0):
-    #return 2 * safe_sparse_dot(x, y) - safe_sparse_dot(x, x.T) - safe_sparse_dot(y, y.T)
+    # return 2 * safe_sparse_dot(x, y) - safe_sparse_dot(x, x.T) - safe_sparse_dot(y, y.T)
     x, y = x.astype(np.double, order='C'), y.astype(np.double, order='C')
     return _hilbert_dot_fast(x, y, scalar)
 
@@ -53,9 +51,9 @@ def _hilbert_matrix(X, Y=None, scalar=1.0):
     return res
 
 
-## Kernel functions
+# Kernel functions
 def exponential_kernel(X, Y=None, sigma=1.0):
-    return exp(_hilbert_matrix(X, Y, scalar = -1.0) / 2*np.power(sigma, 2) )
+    return exp(_hilbert_matrix(X, Y, scalar=-1.0) / 2*np.power(sigma, 2) )
 
 
 def gaussian_kernel(X, Y=None, sigma=1.0):
@@ -67,7 +65,7 @@ def inverse_multiquadric_kernel(X, Y=None, constant=1.0):
 
 
 def laplace_kernel(X, Y=None, sigma=1.0):
-    return exp(_hilbert_matrix(X, Y, scalar = -1.0) / sigma)
+    return exp(_hilbert_matrix(X, Y, scalar=-1.0) / sigma)
 
 
 def linear_kernel(X, Y=None, constant=0.0):
@@ -87,6 +85,7 @@ def polynomial_kernel(X, Y=None, alpha=1.0, degree=1.0, constant=1.0):
     lc = linear_kernel(X=X, Y=Y, constant=0.0)
     return np.power(lc * alpha + constant, degree)
 
+
 def power_kernel(X, Y=None, degree=1.0):
     return -np.power(_hilbert_matrix(X, Y), degree)
 
@@ -102,5 +101,5 @@ def spline_kernel(X, Y=None):
 
 
 def tanh_kernel(X, Y=None, constant=0.0, alpha=1.0):
-    lc = linear_kernel(X=X, Y=Y, constant=0.0) # don't add it here
+    lc = linear_kernel(X=X, Y=Y, constant=0.0)  # don't add it here
     return np.tanh(alpha * lc + constant)     # add it here

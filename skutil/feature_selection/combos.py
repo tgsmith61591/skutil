@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import numpy as np
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
-from numpy.linalg.linalg import LinAlgError
 from skutil.odr import QRDecomposition
 from .base import _BaseFeatureSelector
 from .select import _validate_cols
@@ -69,9 +68,9 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         drops = []
 
         # Generate sub matrix for qr decomposition
-        cols = [n for n in (self.cols if not self.cols is None else X.columns)] # get a copy of the cols
+        cols = [n for n in (self.cols if not self.cols is None else X.columns)]  # get a copy of the cols
         x = X[cols].as_matrix()
-        cols = np.array(cols) # so we can do boolean indexing
+        cols = np.array(cols)  # so we can do boolean indexing
 
         # do subroutines
         lc_list = _enumLC(QRDecomposition(x))
@@ -126,10 +125,10 @@ def _enumLC(decomp):
         Parameters
         ----------
 
-        qr_decomp : a QRDecomposition object
+        decomp : a QRDecomposition object
             The QR decomposition of the matrix
     """
-    qr = decomp.qr # the decomposition matrix
+    qr = decomp.qr  # the decomposition matrix
 
     # extract the R matrix
     R = decomp.get_R()         # the R matrix
@@ -140,19 +139,19 @@ def _enumLC(decomp):
     if not (rank == n_features):
         pivot = decomp.pivot        # the pivot vector
         X = R[:rank, :rank]         # extract the independent cols
-        Y = R[:rank, rank:]#+1?     # extract the dependent columns
+        Y = R[:rank, rank:]  # +1?     # extract the dependent columns
 
-        new_qr = QRDecomposition(X) # factor the independent columns
+        new_qr = QRDecomposition(X)  # factor the independent columns
         b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
 
         # if b is None, then there were no dependent columns
         if b is not None:
-            b[np.abs(b) < 1e-6] = 0 # zap small values
+            b[np.abs(b) < 1e-6] = 0  # zap small values
             
             # will return a dict of {dim : list of bad idcs}
             d = {}
             row_idcs = np.arange(b.shape[0])
-            for i in range(Y.shape[1]): # should only ever be 1, right?
+            for i in range(Y.shape[1]):  # should only ever be 1, right?
                 nested = [ 
                             pivot[rank+i],
                             pivot[row_idcs[b[:,i] != 0]]

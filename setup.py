@@ -1,67 +1,60 @@
 from __future__ import print_function
 import os, sys, shutil, glob
-from os.path import join
 import warnings
 import subprocess
 from pkg_resources import parse_version
-from distutils.extension import Extension
 
-## For cleaning build artifacts
+# For cleaning build artifacts
 from distutils.command.clean import clean as Clean
-
 
 if sys.version_info[0] < 3:
     import __builtin__ as builtins
 else:
     import builtins
 
-
 try:
     from Cython.Build import cythonize
+
     ext = 'pyx'
 except ImportError as e:
     warnings.warn('Cython needs to be installed')
     raise e
-    #ext = 'c'
 
-
-
-## Hacky, adopted from sklearn
+# Hacky, adopted from sklearn
 builtins.__SKUTIL_SETUP__ = True
 
-## Metadata
+# Metadata
 DISTNAME = 'skutil'
 DESCRIPTION = 'A set of sklearn-esque extension modules'
 MAINTAINER = 'Taylor G. Smith'
 MAINTAINER_EMAIL = 'tgsmith61591@gmail.com'
 
-
-## Import the restricted version that doesn't need compiled code
+# Import the restricted version that doesn't need compiled code
 import skutil
+
 VERSION = skutil.__version__
 
-
-## Version requirements
+# Version requirements
 pandas_min_version = '0.18'
-sklearn_min_version= '0.16'
-numpy_min_version  = '1.6'
-scipy_min_version  = '0.17'
-h2o_min_version    = '3.8.2.9'
+sklearn_min_version = '0.16'
+numpy_min_version = '1.6'
+scipy_min_version = '0.17'
+h2o_min_version = '3.8.2.9'
 
 # optional, but if installed and lower version, warn
 matplotlib_version = '1.5'
 
-
-## Define setup tools early
+# Define setup tools early
 SETUPTOOLS_COMMANDS = set([
-    'develop','release','bdist_egg','bdist_rpm',
-    'bdist_wininst','install_egg_info','build_sphinx',
-    'egg_info','easy_install','upload','bdist_wheel',
+    'develop', 'release', 'bdist_egg', 'bdist_rpm',
+    'bdist_wininst', 'install_egg_info', 'build_sphinx',
+    'egg_info', 'easy_install', 'upload', 'bdist_wheel',
     '--single-version-externally-managed'
 ])
 
 if SETUPTOOLS_COMMANDS.intersection(sys.argv):
     import setuptools
+
     extra_setuptools_args = dict(zip_safe=False, include_package_data=True)
 else:
     extra_setuptools_args = dict()
@@ -90,7 +83,7 @@ def _clean_fortran():
     # check on fortran dirs
     fortran_dirs = ['odr']
     for dr in fortran_dirs:
-        fortrans = glob.glob(os.path.join('skutil',dr,'*.so.*'))
+        fortrans = glob.glob(os.path.join('skutil', dr, '*.so.*'))
         for fortran in fortrans:
             print('Removing %s' % fortran)
             shutil.rmtree(fortran)
@@ -125,29 +118,28 @@ def _clean_all():
     if os.path.exists('%s.egg-info' % DISTNAME):
         shutil.rmtree('%s.egg-info' % DISTNAME)
 
-
     # check on fortran dirs
-    _clean_fortran() # takes care of .so files
+    _clean_fortran()  # takes care of .so files
 
     # check on other compiled files
-    _clean_compiled(('.pyd','.dll','.pyc','.DS_Store'))
+    _clean_compiled(('.pyd', '.dll', '.pyc', '.DS_Store'))
 
 
-## Custom class to clean build artifacts
+# Custom class to clean build artifacts
 class CleanCommand(Clean):
     description = 'Remove build artifacts from the source tree'
-    
+
     def run(self):
         Clean.run(self)
         _clean_all()
 
 
-cmdclass = {'clean' : CleanCommand}
+cmdclass = {'clean': CleanCommand}
 
-
-WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts','upload_all'])
+WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts', 'upload_all'])
 if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
     import wheelhouse_uploader.cmd
+
     cmdclass.update(vars(wheelhouse_uploader.cmd))
 
 
@@ -155,7 +147,7 @@ def get_pandas_status():
     pd_status = {}
     try:
         import pandas as pd
-        pd_version = str(pd.__version__) ## pandas uses a unicode string...
+        pd_version = str(pd.__version__)  # pandas uses a unicode string...
         pd_status['up_to_date'] = parse_version(pd_version) >= parse_version(pandas_min_version)
         pd_status['version'] = pd_version
     except ImportError:
@@ -216,13 +208,14 @@ def get_h2o_status():
     return h2_status
 
 
-## DEFINE CONFIG
-def configuration(parent_package = '', top_path = None):
+# DEFINE CONFIG
+def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
     config = Configuration(None, parent_package, top_path)
 
-    ## Avoid non-useful msg
-    config.set_options(ignore_setup_xxx_py=True, assume_default_configuration=True, delegate_options_to_subpackages=True, quiet=True)
+    # Avoid non-useful msg
+    config.set_options(ignore_setup_xxx_py=True, assume_default_configuration=True,
+                       delegate_options_to_subpackages=True, quiet=True)
 
     config.add_subpackage(DISTNAME)
     return config
@@ -247,37 +240,36 @@ def check_statuses(pkg_nm, status, rs):
 
 
 def setup_package():
-    metadata = dict(name=DISTNAME, 
-            maintainer=MAINTAINER, 
-            maintainer_email=MAINTAINER_EMAIL, 
-            description=DESCRIPTION, 
-            version=VERSION,
-            classifiers=['Intended Audience :: Science/Research',
-                         'Intended Audience :: Developers',
-                         'Intended Audience :: Scikit-learn users',
-                         'Programming Language :: C',
-                         'Programming Language :: Fortran',
-                         'Programming Language :: Python',
-                         'Topic :: Machine Learning',
-                         'Topic :: Software Development',
-                         'Topic :: Scientific/Engineering',
-                         'Operating System :: Microsoft :: Windows',
-                         'Operating System :: POSIX',
-                         'Operating System :: Unix',
-                         'Operating System :: MacOS',
-                         'Programming Language :: Python :: 2.7'
-                         ],
-            keywords='sklearn smote caret h2o',
-            cmdclass=cmdclass,
-            **extra_setuptools_args)
-
+    metadata = dict(name=DISTNAME,
+                    maintainer=MAINTAINER,
+                    maintainer_email=MAINTAINER_EMAIL,
+                    description=DESCRIPTION,
+                    version=VERSION,
+                    classifiers=['Intended Audience :: Science/Research',
+                                 'Intended Audience :: Developers',
+                                 'Intended Audience :: Scikit-learn users',
+                                 'Programming Language :: C',
+                                 'Programming Language :: Fortran',
+                                 'Programming Language :: Python',
+                                 'Topic :: Machine Learning',
+                                 'Topic :: Software Development',
+                                 'Topic :: Scientific/Engineering',
+                                 'Operating System :: Microsoft :: Windows',
+                                 'Operating System :: POSIX',
+                                 'Operating System :: Unix',
+                                 'Operating System :: MacOS',
+                                 'Programming Language :: Python :: 2.7'
+                                 ],
+                    keywords='sklearn smote caret h2o',
+                    cmdclass=cmdclass,
+                    **extra_setuptools_args)
 
     if len(sys.argv) == 1 or (
-        len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
-                                sys.argv[1] in ('--help-commands',
-                                                'egg-info',
-                                                '--version',
-                                                'clean'))):
+                    len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+                                                    sys.argv[1] in ('--help-commands',
+                                                                    'egg-info',
+                                                                    '--version',
+                                                                    'clean'))):
         # For these actions, NumPy is not required, nor Cythonization
         #
         # They are required to succeed without Numpy for example when
@@ -296,40 +288,38 @@ def setup_package():
             import matplotlib
             mplv = matplotlib.__version__
             mpl_uptodate = parse_version(mplv) >= parse_version(matplotlib_version)
-            
+
             if not mpl_uptodate:
                 warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
         except ImportError as i:
-            pass # not required, doesn't matter
-
+            pass  # not required, doesn't matter
 
         pandas_status = get_pandas_status()
-        sklearn_status= get_sklearn_status()
-        numpy_status  = get_numpy_status()
-        scipy_status  = get_scipy_status()
-        h2o_status    = get_h2o_status()
+        sklearn_status = get_sklearn_status()
+        numpy_status = get_numpy_status()
+        scipy_status = get_scipy_status()
+        h2o_status = get_h2o_status()
 
         pdrs = 'skutil requires Pandas >= {0}.\n'.format(pandas_min_version)
         skrs = 'skutil requires sklearn >= {0}.\n'.format(sklearn_min_version)
         nprs = 'skutil requires NumPy >= {0}.\n'.format(numpy_min_version)
         scrs = 'skutil requires SciPy >= {0}.\n'.format(scipy_min_version)
         h2rs = 'skutil requires h2o >= {0}.\n'.format(h2o_min_version)
-        
-        check_statuses('numpy', numpy_status, nprs) ## Needs to happen before anything
-        check_statuses('scipy', scipy_status, scrs) ## Needs to happen before sklearn
+
+        check_statuses('numpy', numpy_status, nprs)  # Needs to happen before anything
+        check_statuses('scipy', scipy_status, scrs)  # Needs to happen before sklearn
         check_statuses('pandas', pandas_status, pdrs)
-        check_statuses('scikit-learn',sklearn_status, skrs)
+        check_statuses('scikit-learn', sklearn_status, skrs)
         check_statuses('h2o', h2o_status, h2rs)
 
-        ## We know numpy is installed at this point
+        # We know numpy is installed at this point
         import numpy
         from numpy.distutils.core import setup
 
         metadata['configuration'] = configuration
 
-
         # we need to build our fortran and cython
-        if len(sys.argv) >= 2 and sys.argv[1] not in 'config': #and sys.argv[1] in ('build_ext'): 
+        if len(sys.argv) >= 2 and sys.argv[1] not in 'config':  # and sys.argv[1] in ('build_ext'):
             # clean up the .so files
             # _clean_all()
 
@@ -353,9 +343,8 @@ def setup_package():
                                 elif os.path.isdir(delpath):
                                     shutil.rmtree(delpath)
 
-
             # gen fortran modules
-            #generate_fortran()
+            # generate_fortran()
 
             # gen cython sources (compile the .pyx files if needed)
             print('Generating cython files')
@@ -364,8 +353,6 @@ def setup_package():
             if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
                 # Generate Cython sources, unless building from source release
                 generate_cython()
-        
-
 
     setup(**metadata)
 

@@ -1,21 +1,18 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 import h2o
-import warnings
 import pandas as pd
 
 from pkg_resources import parse_version
-from ..utils import (validate_is_pd, human_bytes, corr_plot, 
+from ..utils import (validate_is_pd, human_bytes, corr_plot,
                      load_breast_cancer_df, load_iris_df,
-                     load_boston_df, flatten_all)
+                     load_boston_df)
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import _check_is_frame
 
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_array
-
-
 
 __all__ = [
     'from_array',
@@ -28,7 +25,6 @@ __all__ = [
     'load_boston_h2o',
     'load_breast_cancer_h2o'
 ]
-
 
 
 def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
@@ -120,11 +116,9 @@ def h2o_bincount(bins, weights=None, minlength=None):
     elif minlength < 0:
         raise ValueError('minlength must be positive')
 
-
     # create our output array
     all_vals = h2o_col_to_numpy(bins)
-    output = np.zeros(np.maximum(minlength, unq_arr.max()+1))
-
+    output = np.zeros(np.maximum(minlength, unq_arr.max() + 1))
 
     # check weights
     if weights is not None:
@@ -199,12 +193,11 @@ def from_array(X, column_names=None):
     return from_pandas(pd.DataFrame.from_records(data=X, columns=column_names))
 
 
-def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, 
-        figsize=(11,9), cmap_a=220, cmap_b=10, vmax=0.3,
-        xticklabels=5, yticklabels=5, linewidths=0.5, 
-        cbar_kws={'shrink':0.5}, use='complete.obs', 
-        na_warn=True, na_rm=False):
-
+def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
+                  figsize=(11, 9), cmap_a=220, cmap_b=10, vmax=0.3,
+                  xticklabels=5, yticklabels=5, linewidths=0.5,
+                  cbar_kws={'shrink': 0.5}, use='complete.obs',
+                  na_warn=True, na_rm=False):
     """Create a simple correlation plot given a dataframe.
     Note that this requires all datatypes to be numeric and finite!
 
@@ -266,20 +259,19 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
         cols = [str(u) for u in X.columns]
 
         X = X.cor(use=use, na_rm=na_rm).as_data_frame(use_pandas=True)
-        X.columns = cols # set the cols to the same names
+        X.columns = cols  # set the cols to the same names
         X.index = cols
         corr = 'precomputed'
 
     else:
         # WARNING! This pulls everything into memory...
         X = X.as_data_frame(use_pandas=True)
-    
-    corr_plot(X, plot_type=plot_type, cmap=cmap, n_levels=n_levels, 
-        figsize=figsize, cmap_a=cmap_a, cmap_b=cmap_b, 
-        vmax=vmax, xticklabels=xticklabels, corr=corr,
-        yticklabels=yticklabels, linewidths=linewidths, 
-        cbar_kws=cbar_kws)
 
+    corr_plot(X, plot_type=plot_type, cmap=cmap, n_levels=n_levels,
+              figsize=figsize, cmap_a=cmap_a, cmap_b=cmap_b,
+              vmax=vmax, xticklabels=xticklabels, corr=corr,
+              yticklabels=yticklabels, linewidths=linewidths,
+              cbar_kws=cbar_kws)
 
 
 def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
@@ -313,5 +305,3 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     n_bytes = n_bits // 8
 
     return human_bytes(n_bytes, unit)
-
-

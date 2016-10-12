@@ -1,8 +1,8 @@
-'''
+"""
 sklearn-esque transformers for python
-'''
-import sys, warnings
-from .utils import log, exp # want these visible at module level
+"""
+import sys
+from .utils import log, exp  # want these visible at module level
 
 __version__ = '0.1.0'
 
@@ -13,8 +13,6 @@ try:
     __SKUTIL_SETUP__
 except NameError:
     __SKUTIL_SETUP__ = False
-
-
 
 if __SKUTIL_SETUP__:
     sys.stderr.write('Partial import of skutil during the build process.\n')
@@ -33,7 +31,7 @@ else:
 
 
 def setup_module(module):
-    import os, numpy as np, random
+    import numpy as np, random
 
     _random_seed = int(np.random.uniform() * (2 ** 31 - 1))
     np.random.seed(_random_seed)

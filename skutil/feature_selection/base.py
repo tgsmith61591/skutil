@@ -10,8 +10,9 @@ from skutil.base import SelectiveMixin
 from ..utils import validate_is_pd
 
 __all__ = [
-    '_BaseFeatureSelector'  
+    '_BaseFeatureSelector'
 ]
+
 
 ###############################################################################
 class _BaseFeatureSelector(BaseEstimator, TransformerMixin, SelectiveMixin):

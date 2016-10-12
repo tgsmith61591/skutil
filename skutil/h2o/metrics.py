@@ -97,9 +97,9 @@ def _type_of_target(y):
     _check_is_1d_frame(y)
     if _get_bool(y.isfactor()) or is_integer(y):
         unq = y.unique()
-        return 'unknown' if unq.shape[0] < 2 else\
-            'binary' if unq.shape[0] == 2 else\
-            'multiclass'
+        return 'unknown' if unq.shape[0] < 2 else \
+            'binary' if unq.shape[0] == 2 else \
+                'multiclass'
     return 'continuous'
 
 
@@ -117,7 +117,7 @@ def _check_targets(y_true, y_pred, y_type=None):
     shape = frms[0].shape
 
     # assert all the same length
-    assert all([frame.shape==shape for frame in frms])
+    assert all([frame.shape == shape for frame in frms])
 
     if y_type is None:
         # get type of truth
@@ -125,10 +125,9 @@ def _check_targets(y_true, y_pred, y_type=None):
         if y_type == 'unknown':
             raise ValueError('cannot determine datatype of y_true: is it all the same value?')
 
-
     # TODO: more?
     return y_type, y_true, y_pred
-    
+
 
 def _average(score, weights=None):
     if weights is not None:
@@ -161,7 +160,7 @@ def _weighted_sum(sample_score, sample_weight, normalize):
         return sample_score.sum()
 
 
-def h2o_accuracy_score(y_actual, y_predict, normalize=True, 
+def h2o_accuracy_score(y_actual, y_predict, normalize=True,
                        sample_weight=None, y_type=None):
     """Accuracy classification score for H2O
 
@@ -191,8 +190,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     """
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
     _err_for_continuous(y_type)
-    return _weighted_sum(y_actual==y_predict, sample_weight, normalize)
-
+    return _weighted_sum(y_actual == y_predict, sample_weight, normalize)
 
 
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
@@ -255,7 +253,6 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
                            pos_label=pos_label, average=average,
                            sample_weight=sample_weight, y_type=y_type)
-
 
 
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
@@ -327,7 +324,6 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     return f
 
 
-
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                         average='binary', sample_weight=None, y_type=None):
     """Compute the precision.  Precision is the ratio ``tp / (tp + fp)`` where ``tp`` 
@@ -389,11 +385,10 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                                                      pos_label=pos_label,
                                                      average=average,
                                                      warn_for=('precision',),
-                                                     sample_weight=sample_weight, 
+                                                     sample_weight=sample_weight,
                                                      y_type=y_type)
 
     return p
-
 
 
 def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
@@ -459,18 +454,16 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
                                                      pos_label=pos_label,
                                                      average=average,
                                                      warn_for=('precision',),
-                                                     sample_weight=sample_weight, 
+                                                     sample_weight=sample_weight,
                                                      y_type=y_type)
 
     return r
 
 
-
-def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label=1, 
+def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label=1,
                                         sample_weight=None, y_type=None, average=None,
-                                        labels=None, warn_for=('precision','recall',
-                                            'f-score')):
-
+                                        labels=None, warn_for=('precision', 'recall',
+                                                               'f-score')):
     average_options = (None, 'micro', 'macro', 'weighted')
     if average not in average_options and average != 'binary':
         raise ValueError('average should be one of %s'
@@ -509,7 +502,7 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
         n_labels = None
     else:
         n_labels = len(labels)
-        labels = np.hstack([labels, np.setdiff1d(present_labels, labels, 
+        labels = np.hstack([labels, np.setdiff1d(present_labels, labels,
                                                  assume_unique=True)])
 
     # calculate tp_sum, pred_sum, true_sum
@@ -527,27 +520,24 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
     else:
         tp_bins_weights = None
 
-
     if tp_bins.shape[0]:
         tp_sum = h2o_bincount(tp_bins, weights=tp_bins_weights,
-                           minlength=len(labels))
+                              minlength=len(labels))
     else:
         true_sum = pred_sum = tp_sum = np.zeros(len(labels))
 
-
     if y_predict.shape[0]:
         pred_sum = h2o_bincount(y_predict, weights=sample_weight,
-                             minlength=len(labels))
+                                minlength=len(labels))
     if y_actual.shape[0]:
         true_sum = h2o_bincount(y_actual, weights=sample_weight,
-                             minlength=len(labels))
+                                minlength=len(labels))
 
     # Retain only selected labels
     indices = np.searchsorted(sorted_labels, labels[:n_labels])
     tp_sum = tp_sum[indices]
     true_sum = true_sum[indices]
     pred_sum = pred_sum[indices]
-
 
     if average == 'micro':
         tp_sum = np.array([tp_sum.sum()])
@@ -586,10 +576,9 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
         precision = np.average(precision, weights=weights)
         recall = np.average(recall, weights=weights)
         f_score = np.average(f_score, weights=weights)
-        true_sum = None # return no support
+        true_sum = None  # return no support
 
     return precision, recall, f_score, true_sum
-
 
 
 def _prf_divide(numerator, denominator, metric, modifier, average, warn_for):
@@ -630,7 +619,6 @@ def _prf_divide(numerator, denominator, metric, modifier, average, warn_for):
     return result
 
 
-
 def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
     """Compute absolute difference between actual and predict"""
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
@@ -644,7 +632,6 @@ def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
         abs_diff *= sample_weight
 
     return abs_diff
-
 
 
 def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
@@ -674,7 +661,6 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     return _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
 
 
-
 def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Median abs error score for H2O frames
 
@@ -700,7 +686,6 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     score : float
     """
     return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
-
 
 
 def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
@@ -745,14 +730,12 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
         numerator = sq_diff.sum()
         denominator = sq_mean_centered.sum()
 
-
     nonzero_denom = denominator != 0
     nonzero_numer = numerator != 0
     valid_score = nonzero_numer & nonzero_denom
 
     # generate output
     return 1 - (numerator / denominator)
-
 
 
 def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None):
@@ -785,14 +768,13 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
 
     # compute abs diff
     diff = (y_actual - y_predict)
-    diff *= diff # square it...
+    diff *= diff  # square it...
 
     # apply sample weight if necessary
     if sample_weight is not None:
         diff *= sample_weight
 
     return flatten_all(diff.mean())[0]
-
 
 
 def make_h2o_scorer(score_function, y_true):
@@ -850,5 +832,5 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
         for fr in (y_true, y_pred):
             _check_is_1d_frame(fr)
 
-        return self.fun_(y_actual=y_true, y_predict=y_pred, 
+        return self.fun_(y_actual=y_true, y_predict=y_pred,
                          y_type=self.y_type, **kwargs)

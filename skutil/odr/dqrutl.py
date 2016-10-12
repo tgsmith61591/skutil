@@ -3,7 +3,6 @@ import numpy as np
 import dqrsl
 from sklearn.utils import check_array
 from numpy.linalg import matrix_rank
-from numpy.linalg.linalg import LinAlgError
 
 # WARNING: there is little-to-no validation of input in these functions,
 # and crashes may be caused by inappropriate usage. Use with care.
@@ -24,9 +23,10 @@ def _safecall(fun, name, *args, **kwargs):
     ret = fun(*args, **kwargs)
 
     # since we're operating on arrays in place, we don't need this
-    #if ret[-1] < 0:
+    # if ret[-1] < 0:
     #   raise ValueError("illegal value in %d-th argument of internal %s"
     #       % (-ret[-1], name))
+
 
 def qr_decomposition(X, job=1):
     """Performs the QR decomposition using LINPACK, BLAS and LAPACK
@@ -54,14 +54,14 @@ def qr_decomposition(X, job=1):
     job_ = 0 if not job else 1
 
     qraux, pivot, work = (np.zeros(p, dtype=np.double, order='F'),
-                        # can't use arange, because need fortran order ('order' not kw in arange)
-                        np.array([i for i in range(1,p+1)], dtype=np.int, order='F'),
-                        np.zeros(p, dtype=np.double, order='F'))
+                          # can't use arange, because need fortran order ('order' not kw in arange)
+                          np.array([i for i in range(1, p + 1)], dtype=np.int, order='F'),
+                          np.zeros(p, dtype=np.double, order='F'))
 
     # sanity checks
     assert qraux.shape[0] == p, 'expected qraux to be of length %i' % p
     assert pivot.shape[0] == p, 'expected pivot to be of length %i' % p
-    assert work.shape[0]  == p, 'expected work to be of length %i'  % p
+    assert work.shape[0] == p, 'expected work to be of length %i' % p
 
     # call the fortran module IN PLACE
     _safecall(dqrsl.dqrdc, 'dqrdc', X, n, n, p, qraux, pivot, work, job_)
@@ -69,14 +69,14 @@ def qr_decomposition(X, job=1):
     # do returns
     return (X,
             rank,
-            qraux, 
-            (pivot-1) if job_ else None) # subtract one because pivot started at 1 for the fortran
+            qraux,
+            (pivot - 1) if job_ else None)  # subtract one because pivot started at 1 for the fortran
 
 
 def _qr_R(qr):
     """Extract the R matrix from a QR decomposition"""
     min_dim = min(qr.shape)
-    return qr[:min_dim+1,:]
+    return qr[:min_dim + 1, :]
 
 
 class QRDecomposition():
@@ -94,8 +94,8 @@ class QRDecomposition():
         Whether to perform pivoting. 0 is False, any other value
         will be coerced to 1 (True).
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     qr : array_like, shape (n_samples, n_features)
         The decomposed matrix
@@ -141,21 +141,21 @@ class QRDecomposition():
         k = self.rank
 
         # get ix vector
-        #if p > n:
+        # if p > n:
         #   ix = np.ones(n + (p - n)) * np.nan
         #   ix[:n] = np.arange(n) # i.e., array([0,1,2,nan,nan,nan])
-        #else:
+        # else:
         #   ix = np.arange(n)
 
         # set up the structures to alter
         coef, info = (np.zeros((k, ny), dtype=np.double, order='F'),
-                        np.zeros(1, dtype=np.int, order='F'))
+                      np.zeros(1, dtype=np.int, order='F'))
 
         # call the fortran module IN PLACE
         _safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, 0)
-        
+
         # post-processing
-        #if k < p:
+        # if k < p:
         #   cf = np.ones((p,ny)) * np.nan
         #   cf[self.pivot[np.arange(k)], :] = coef
         return coef if not k < p else coef[self.pivot[np.arange(k)], :]
@@ -171,4 +171,3 @@ class QRDecomposition():
     def get_R_rank(self):
         """Get the rank of the R matrix"""
         return matrix_rank(self.get_R())
-

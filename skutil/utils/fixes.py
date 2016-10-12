@@ -6,14 +6,9 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils import check_random_state
-from sklearn.utils.random import sample_without_replacement
-from sklearn.utils.validation import _num_samples, indexable
+from sklearn.utils.validation import _num_samples
 from sklearn.metrics.scorer import check_scoring
-from collections import Mapping, namedtuple, Sized
-from functools import partial, reduce
-from itertools import product
-import operator
+from collections import namedtuple, Sized
 import warnings
 
 from .metaestimators import if_delegate_has_method
@@ -75,8 +70,10 @@ else:
 def cv_len(cv, X, y):
     return len(cv) if not SK18 else cv.get_n_splits(X, y)
 
+
 def set_cv(cv, X, y, classifier):
     return check_cv(cv, X, y, classifier) if not SK18 else check_cv(cv, y, classifier)
+
 
 def get_groups(X, y):
     return (X, y, None) if not SK18 else indexable(X, y, None)
@@ -108,6 +105,7 @@ def _validate_X(X):
     """Returns X if X isn't a pandas frame, otherwise 
     the underlying matrix in the frame. """
     return X if not isinstance(X, pd.DataFrame) else X.as_matrix()
+
 
 def _validate_y(y):
     """Returns y if y isn't a series, otherwise the array"""
@@ -615,8 +613,6 @@ class _SK17GridSearchCV(_SK17BaseSearchCV):
             None for unsupervised learning.
         """
         return self._fit(X, y, ParameterGrid(self.param_grid))
-
-
 
 
 class _SK17RandomizedSearchCV(_SK17BaseSearchCV):

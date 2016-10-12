@@ -1,23 +1,14 @@
 from __future__ import print_function, division, absolute_import
 import warnings
 import numpy as np
-import pandas as pd
-import abc
 
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
-from sklearn.externals import six
 
-import h2o
 from h2o.frame import H2OFrame
 
 from ..feature_selection import filter_collinearity
 from ..utils import is_numeric
-from .base import (NAWarning,
-                   BaseH2OTransformer,
-                   _check_is_frame,
-                   _retain_features,
-                   _frame_from_x_y)
+from .base import (BaseH2OTransformer, _check_is_frame, _retain_features, _frame_from_x_y)
 
 __all__ = [
     'BaseH2OFeatureSelector',
@@ -55,14 +46,14 @@ def _validate_use(X, use, na_warn):
     use
     """
     # validate use
-    _valid_use = ['complete.obs','all.obs','everything']
+    _valid_use = ['complete.obs', 'all.obs', 'everything']
     if not use in _valid_use:
         raise ValueError('expected one of (%s) but got %s' % (', '.join(_valid_use), use))
 
     # check on NAs
     if use == 'complete.obs':
         pass
-    elif na_warn: # only warn if not using complete.obs
+    elif na_warn:  # only warn if not using complete.obs
         nasum = X.isna().sum()
         if nasum > 0:
             warnings.warn('%i NA value(s) in frame; using "complete.obs"' % nasum)
@@ -93,7 +84,8 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
     """
-    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  min_version='any', max_version=None):
         super(BaseH2OFeatureSelector, self).__init__(feature_names=feature_names,
                                                      target_feature=target_feature,
@@ -173,8 +165,8 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     as_df : boolean, optional (True default)
         Whether to return a dataframe
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
@@ -216,7 +208,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         ser = df.T[0]
 
         self.drop_ = [str(x) for x in ser.index[ser > thresh]]
-        self.sparsity_ = ser.values # numpy array of sparsities
+        self.sparsity_ = ser.values  # numpy array of sparsities
 
         return self
 
@@ -251,8 +243,8 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     drop_ : list, string
         The columns to drop
@@ -266,7 +258,6 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  threshold=0.85, na_warn=True, na_rm=False, use='complete.obs'):
-
         super(H2OMulticollinearityFilterer, self).__init__(feature_names=feature_names,
                                                            target_feature=target_feature,
                                                            exclude_features=exclude_features,
@@ -276,7 +267,6 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         self.na_warn = na_warn
         self.na_rm = na_rm
         self.use = use
-
 
     def fit(self, X):
         """Fit the multicollinearity filterer.
@@ -290,7 +280,6 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
         self.fit_transform(X)
         return self
-
 
     def fit_transform(self, X):
         """Fit the multicollinearity filterer and
@@ -308,12 +297,12 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
 
-        ## Generate absolute correlation matrix
+        # Generate absolute correlation matrix
         c = frame.cor(use=use, na_rm=self.na_rm).abs().as_data_frame(use_pandas=True)
-        c.columns = frame.columns # set the cols to the same names
+        c.columns = frame.columns  # set the cols to the same names
         c.index = frame.columns
 
-        ## get drops list
+        # get drops list
         self.drop_, self.mean_abs_correlations_, self.correlations_ = filter_collinearity(c, self.threshold)
         return self.transform(X)
 
@@ -347,8 +336,8 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     drop_ : list, string
         The columns to drop
@@ -359,7 +348,6 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  threshold=1e-6, na_warn=True, na_rm=False, use='complete.obs'):
-
         super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
                                                           target_feature=target_feature,
                                                           exclude_features=exclude_features,
@@ -405,7 +393,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         # create mask
         var_mask = diag < thresh
 
-        self.drop_ = cols[var_mask].tolist() # make list
+        self.drop_ = cols[var_mask].tolist()  # make list
         self.var_ = dict(zip(self.drop_, diag[var_mask]))
 
         return self.transform(X)

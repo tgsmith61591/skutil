@@ -22,10 +22,10 @@ try:
 except ImportError as ie:
     import pickle
 
-
 __all__ = [
     'H2OPipeline'
 ]
+
 
 def _union_exclusions(a, b):
     """Take the exlusion features from two preprocessors
@@ -39,7 +39,6 @@ def _union_exclusions(a, b):
         return a
 
     return flatten_all(a, b)
-
 
 
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
@@ -74,8 +73,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     _min_version = '3.8.2.9'
     _max_version = None
-    
-    def __init__(self, steps, feature_names=None, target_feature=None, 
+
+    def __init__(self, steps, feature_names=None, target_feature=None,
                  exclude_from_ppc=None, exclude_from_fit=None):
         super(H2OPipeline, self).__init__(target_feature=target_feature,
                                           min_version=self._min_version,
@@ -87,7 +86,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         # if we have any to exclude...
         self.exclude_from_ppc = validate_x(exclude_from_ppc)
         self.exclude_from_fit = validate_x(exclude_from_fit)
-        
+
         names, estimators = zip(*steps)
         if len(dict(steps)) != len(steps):
             raise ValueError("Provided step names are not unique: %s"
@@ -107,7 +106,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if not isinstance(estimator, (H2OEstimator, BaseH2OTransformer)):
             raise TypeError("Last step of chain should be an H2OEstimator or BaseH2OTransformer, "
                             "not of type %s" % type(estimator))
-        
+
     @property
     def named_steps(self):
         return dict(self.steps)
@@ -115,9 +114,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     @property
     def _final_estimator(self):
         return self.steps[-1][1]
-    
+
     def _pre_transform(self, frame=None):
-        frameT = frame
+        frame_t = frame
 
         # we have to set the feature names at each stage to be
         # the remaining feature names (not the target though)
@@ -132,22 +131,22 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             transform.feature_names = next_feature_names
 
             # now set the exclude_features if they exist
-            transform.exclude_features = _union_exclusions(self.exclude_from_ppc, 
+            transform.exclude_features = _union_exclusions(self.exclude_from_ppc,
                                                            transform.exclude_features)
-            
+
             if hasattr(transform, "fit_transform"):
-                frameT = transform.fit_transform(frameT)
+                frame_t = transform.fit_transform(frame_t)
             else:
-                frameT = transform.fit(frameT).transform(frameT)
+                frame_t = transform.fit(frame_t).transform(frame_t)
 
             # now reset the next_feature_names to be the remaining names...
-            next_feature_names = [str(nm) for nm in frameT.columns if not (nm==self.target_feature)]
+            next_feature_names = [str(nm) for nm in frame_t.columns if not (nm == self.target_feature)]
             if not next_feature_names or len(next_feature_names) < 1:
                 raise ValueError('no columns retained after fit!')
-                    
+
         # this will have y re-combined in the matrix
-        return frameT, next_feature_names
-        
+        return frame_t, next_feature_names
+
     def _reset(self):
         """Each individual step should handle its own
         state resets, but this method will reset any Pipeline
@@ -155,7 +154,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         if hasattr(self, 'training_cols_'):
             del self.training_cols_
-        
+
     def fit(self, frame):
         """Fit all the transforms one after the other and transform the
         data, then fit the transformed data using the final estimator.
@@ -167,11 +166,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Training data. Must fulfill input requirements of first step of the
             pipeline.
         """
-        self._reset() # reset if needed
+        self._reset()  # reset if needed
 
         # reset to the cleaned ones, if necessary...
         self.feature_names, self.target_feature = validate_x_y(frame, self.feature_names, self.target_feature)
-        
+
         # get the fit
         Xt, training_cols_ = self._pre_transform(frame)
 
@@ -179,7 +178,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if self.exclude_from_fit:
             training_cols_ = [i for i in training_cols_ if not i in self.exclude_from_fit]
         self.training_cols_ = training_cols_
-        
+
         # if the last step is not an h2o estimator, we need to do things differently...
         if isinstance(self.steps[-1][1], H2OEstimator):
             self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=self.target_feature)
@@ -195,12 +194,10 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
-
     @overrides(VizMixin)
     def plot(self, timestep, metric):
         # should be confident final step is an H2OEstimator
         self._final_estimator._plot(timestep=timestep, metric=metric)
-
 
     @overrides(BaseEstimator)
     def set_params(self, **params):
@@ -234,7 +231,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             for parm, value in six.iteritems(step_params):
                 setattr(transform, parm, value)
 
-
         # finally, set the h2o estimator params (if needed). 
         est_name, last_step = self.steps[-1]
         if est_name in parm_dict:
@@ -254,9 +250,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                 for parm, value in six.iteritems(step_params):
                     setattr(last_step, parm, value)
 
-
         return self
-
 
     @staticmethod
     def load(location):
@@ -272,7 +266,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if ends_in_h2o:
             # read the model portion, delete the model path
             ex = None
-            for pth in [model.model_loc_, 'hdfs://%s'%model.model_loc_]:
+            for pth in [model.model_loc_, 'hdfs://%s' % model.model_loc_]:
                 try:
                     the_h2o_model = h2o.load_model(pth)
                 except Exception as e:
@@ -280,7 +274,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                         ex = e
                     else:
                         # only throws if fails twice
-                        raise ex        
+                        raise ex
 
             model.steps[-1] = (model.est_name_, the_h2o_model)
 
@@ -290,7 +284,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             # del model.est_name_
 
         return model
-
 
     def _save_internal(self, **kwargs):
         loc = kwargs.pop('location')
@@ -319,8 +312,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if ends_in_h2o:
             self.steps[-1] = last_step_
 
-
-        
     @if_delegate_has_method(delegate='_final_estimator')
     def predict(self, frame):
         """Applies transforms to the data, and the predict method of the
@@ -337,9 +328,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Xt = frame
         for name, transform in self.steps[:-1]:
             Xt = transform.transform(Xt)
-            
-        return self.steps[-1][-1].predict(Xt)
 
+        return self.steps[-1][-1].predict(Xt)
 
     @if_delegate_has_method(delegate='_final_estimator', method='predict')
     def fit_predict(self, frame):
@@ -356,7 +346,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         return self.fit(frame).predict(frame)
 
-
     @if_delegate_has_method(delegate='_final_estimator')
     def transform(self, frame):
         """Applies transforms to the data. Valid only if the 
@@ -372,9 +361,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Xt = frame
         for name, transform in self.steps:
             Xt = transform.transform(Xt)
-            
-        return Xt
 
+        return Xt
 
     @if_delegate_has_method(delegate='_final_estimator', method='transform')
     def fit_transform(self, frame):
@@ -391,7 +379,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         return self.fit(frame).transform(frame)
 
-
     @if_delegate_has_method(delegate='_final_estimator')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -404,4 +391,3 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Whether to return a pandas dataframe
         """
         return self._final_estimator.varimp(use_pandas=use_pandas)
-

@@ -1,6 +1,4 @@
 from __future__ import print_function, division, absolute_import
-import numpy as np
-import numbers
 from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
@@ -8,7 +6,6 @@ from .util import h2o_col_to_numpy, _unq_vals_col
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
-
 
 __all__ = [
     'H2OInteractionTermTransformer',
@@ -73,7 +70,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
         return self
 
-
     def transform(self, column):
         check_is_fitted(self, 'classes_')
         column = _check_is_1d_frame(column)
@@ -89,20 +85,19 @@ class H2OLabelEncoder(BaseH2OTransformer):
                              % (str(self.classes_), str(unq)))
 
         # encode
-        for k,v in six.iteritems(self.map_):
-            column[column==k] = v
+        for k, v in six.iteritems(self.map_):
+            column[column == k] = v
 
         return column
-
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
     """A base class for all H2O imputers"""
 
-    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  min_version='any', max_version=None, def_fill=None):
         super(_H2OBaseImputer, self).__init__(feature_names=feature_names,
-                                              target_feature=target_feature, 
+                                              target_feature=target_feature,
                                               exclude_features=exclude_features,
                                               min_version=min_version,
                                               max_version=max_version)
@@ -110,7 +105,6 @@ class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
 
 
 class H2OSelectiveImputer(_H2OBaseImputer):
-
     _min_version = '3.8.2.9'
     _max_version = None
 
@@ -127,7 +121,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # at this point, the entirety of frame can be operated on...
-        cols = [str(u) for u in frame.columns] # convert to string...
+        cols = [str(u) for u in frame.columns]  # convert to string...
 
         # validate the fill, do fit
         fill = self.fill_
@@ -148,7 +142,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             else:
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].mean(na_rm=True) for c in cols])))
 
-
         elif hasattr(fill, '__iter__'):
 
             # if fill is a dictionary
@@ -156,20 +149,15 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                 # if it's a dict, we can assume that these are the cols...
                 cols, fill = zip(*fill.items())
 
-
             # we need to get the length of the iterable,
             # make sure it matches the len of cols
             if not len(fill) == len(cols):
                 raise ValueError('len of fill does not match that of cols')
 
             # make sure they're all ints
-            if not all([
-                    (is_numeric(i) or \
-                        (isinstance(i, six.string_types)) and \
-                        i in ('mode', 'mean', 'median')) \
-                    for i in fill
-                ]):
-
+            if not all(
+                    [(is_numeric(i) or (isinstance(i, six.string_types)) and i in ('mode', 'mean', 'median')) for i in
+                     fill]):
                 raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
                                 'Got: %s' % ', '.join(fill))
 
@@ -177,7 +165,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for ind, c in enumerate(cols):
                 f = fill[ind]
 
-                if is_numeric(f): # if we fill with a single value...
+                if is_numeric(f):  # if we fill with a single value...
                     d[c] = f
                 else:
                     the_col = X[c]
@@ -188,7 +176,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                         d[c] = _flatten_one(the_col.median(na_rm=True))
                     else:
                         d[c] = _flatten_one(the_col.mean(na_rm=True))
-
 
             self.fill_val_ = d
 
@@ -203,7 +190,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             self.fill_val_ = fill
 
         return self
-
 
     def transform(self, X):
         """Transform an H2OFrame given the fit imputer.
@@ -226,17 +212,17 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         # we get the subset frame just to retrieve the column names. We affect
         # X in place anyways, so no use using the slice...
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature)
-        cols  = [str(u) for u in frame.columns] # the cols we'll ultimately impute
-        X_columns = [str(u) for u in X.columns] # used for index lookup
+        cols = [str(u) for u in frame.columns]  # the cols we'll ultimately impute
+        X_columns = [str(u) for u in X.columns]  # used for index lookup
 
         # get the frame of NAs
         na_frame = frame.isna()
         na_frame.columns = cols
 
-        #iter over cols
-        is_int = isinstance(fill_val, int) # is it an int?
+        # iter over cols
+        is_int = isinstance(fill_val, int)  # is it an int?
         for _, col in enumerate(cols):
-            if not is_int and not col in fill_val: # then it's a dict and this col doesn't exist in it...
+            if not is_int and not col in fill_val:  # then it's a dict and this col doesn't exist in it...
                 continue
 
             # get the column index
@@ -253,10 +239,8 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-
         # this is going to impact it in place...
         return X
-
 
 
 class H2OSelectiveScaler(BaseH2OTransformer):
@@ -314,7 +298,6 @@ class H2OSelectiveScaler(BaseH2OTransformer):
 
         return self
 
-
     def transform(self, X):
         """Do the transformation
 
@@ -325,10 +308,10 @@ class H2OSelectiveScaler(BaseH2OTransformer):
             The data to transform
         """
         check_is_fitted(self, 'cols_')
-        frame = _check_is_frame(X)[X.columns] # get a copy...
+        frame = _check_is_frame(X)[X.columns]  # get a copy...
 
         if (not self.with_mean) and (not self.with_std):
-            return frame # nothing to change...
+            return frame  # nothing to change...
 
         for nm in self.cols_:
             if self.with_mean:
@@ -337,7 +320,6 @@ class H2OSelectiveScaler(BaseH2OTransformer):
                 frame[nm] /= self.stds[nm]
 
         return frame
-
 
 
 def _mul(a, b):
@@ -356,6 +338,7 @@ def _mul(a, b):
     product H2OFrame
     """
     return a * b
+
 
 class H2OInteractionTermTransformer(BaseH2OTransformer):
     """A class that will generate interaction terms between selected columns.
@@ -401,7 +384,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
         self.interaction_function = interaction_function
         self.name_suffix = name_suffix
-        self.only_return_interactions =only_return_interactions
+        self.only_return_interactions = only_return_interactions
 
     def fit(self, frame):
         """Fit the transformer.
@@ -413,7 +396,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
             The data to transform
         """
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
-        self.cols  = [str(u) for u in frame.columns] # the cols we'll ultimately operate on
+        self.cols = [str(u) for u in frame.columns]  # the cols we'll ultimately operate on
         self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
 
         # validate function
@@ -447,8 +430,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         interaction_names = [x for x in cols]
 
         # we can do this in N^2 or we can do it in an uglier N choose 2...
-        for i in range(n_features-1):
-            for j in range(i+1, n_features):
+        for i in range(n_features - 1):
+            for j in range(i + 1, n_features):
                 col_i, col_j = cols[i], cols[j]
 
                 new_col_nm = '%s_%s_%s' % (col_i, col_j, suff)
