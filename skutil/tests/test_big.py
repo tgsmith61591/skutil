@@ -1,19 +1,22 @@
 from __future__ import print_function
+
 import warnings
+
 import numpy as np
 import pandas as pd
-from sklearn.pipeline import Pipeline
+from numpy.testing import (assert_array_equal)
+from scipy.stats import uniform, randint
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
-from scipy.stats import uniform, randint
-from skutil.grid_search import RandomizedSearchCV
+
 from skutil.decomposition import *
-from skutil.preprocessing import *
-from skutil.utils.tests.utils import assert_fails
-from skutil.utils import report_grid_score_detail
+from skutil.grid_search import RandomizedSearchCV
 from skutil.grid_search import _as_numpy
-from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+from skutil.preprocessing import *
+from skutil.utils import report_grid_score_detail
+from skutil.utils.tests.utils import assert_fails
 
 try:
 	from sklearn.model_selection import KFold, train_test_split, RandomizedSearchCV

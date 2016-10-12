@@ -3,18 +3,18 @@
 # adapted from sklearn for use with skutil & H2OFrames
 
 from __future__ import absolute_import, division, print_function
-import numpy as np
+
 import abc
 import warnings
+
+import numpy as np
 from h2o.frame import H2OFrame
 from sklearn.externals import six
-from .transform import H2OLabelEncoder
-from .frame import _check_is_1d_frame, is_integer
-from .util import h2o_bincount, h2o_col_to_numpy
-from ..metrics import GainsStatisticalReport
-from ..base import overrides
-from ..utils import flatten_all
 
+from .frame import _check_is_1d_frame, is_integer
+from .transform import H2OLabelEncoder
+from .util import h2o_bincount, h2o_col_to_numpy
+from ..utils import flatten_all
 
 __all__ = [
     'h2o_accuracy_score',
@@ -35,8 +35,9 @@ def _get_bool(x):
     a list of booleans (even when one column),
     so we need to extract the True/False value
 
-    Parameter
-    ---------
+    Parameters
+    ----------
+
     x : bool or iterable
         The boolean to extract
     """
@@ -79,11 +80,13 @@ def _type_of_target(y):
 
     Parameters
     ----------
+
     y : H2OFrame
         the y variable
 
-    Returns
-    -------
+        Returns
+        -------
+
     target_type : string
         One of:
         * 'continuous'
@@ -107,6 +110,7 @@ def _check_targets(y_true, y_pred, y_type=None):
 
     Parameters
     ----------
+
     y_true, y_pred : both H2OFrames
     """
     frms = [_check_is_1d_frame(arg) for arg in (y_true, y_pred)]
@@ -141,6 +145,7 @@ def _weighted_sum(sample_score, sample_weight, normalize):
 
     Parameters
     ----------
+
     sample_score : H2OFrame
         The binary vector
 
@@ -162,6 +167,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
 
     Parameters
     ----------
+
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -179,6 +185,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
         The type of the column. If None, will be determined.
 
     Returns
+    -------
 
     score : float
     """
@@ -197,6 +204,7 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
 
     Parameters
     ----------
+
     y_actual : H2OFrame
         The actual labels
 
@@ -241,6 +249,7 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
 
     Returns
     -------
+
     float
     """
     return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
@@ -256,6 +265,7 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
 
     Parameters
     ----------
+
     y_actual : H2OFrame
         The actual labels
 
@@ -303,6 +313,7 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
 
     Returns
     -------
+
     float
     """
     _, _, f, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
@@ -324,6 +335,7 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
 
     Parameters
     ----------
+
     y_actual : H2OFrame
         The actual labels
 
@@ -368,6 +380,7 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
 
     Returns
     -------
+
     float
     """
 
@@ -392,6 +405,7 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
 
     Parameters
     ----------
+
     y_actual : H2OFrame
         The actual labels
 
@@ -434,8 +448,9 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
     sample_weight : H2OFrame, optional (default=None)
         The sample weights
 
-    Returns
-    -------
+        Returns
+        -------
+
     float
     """
 
@@ -637,6 +652,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
 
     Parameters
     ----------
+
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -652,6 +668,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
 
     Returns
     -------
+
     score : float
     """
     return _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
@@ -663,6 +680,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
 
     Parameters
     ----------
+
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -678,6 +696,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
 
     Returns
     -------
+
     score : float
     """
     return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
@@ -689,6 +708,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
 
     Parameters
     ----------
+
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -704,6 +724,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
 
     Returns
     -------
+
     score : float
     """
 
@@ -739,6 +760,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
 
     Parameters
     ----------
+
     y_actual : 1d H2OFrame
         The ground truth
 
@@ -754,6 +776,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
 
     Returns
     -------
+
     score : float
     """
 
@@ -780,6 +803,7 @@ def make_h2o_scorer(score_function, y_true):
 
     Parameters
     ----------
+
     score_function : callable
         The function
 
@@ -804,6 +828,7 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
 
     Parameters
     ----------
+
     score_function : callable
         The function
 

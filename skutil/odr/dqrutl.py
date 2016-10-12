@@ -33,6 +33,7 @@ def qr_decomposition(X, job=1):
     Fortran subroutines.
 
     Parameters
+    ----------
 
     X : array_like, shape (n_samples, n_features)
         The matrix to decompose
@@ -84,6 +85,7 @@ class QRDecomposition():
     QR utility methods.
 
     Parameters
+    ----------
 
     X : array_like, shape (n_samples, n_features)
         The matrix to decompose
@@ -92,7 +94,8 @@ class QRDecomposition():
         Whether to perform pivoting. 0 is False, any other value
         will be coerced to 1 (True).
 
-    Attributes
+	Attributes
+	----------
 
     qr : array_like, shape (n_samples, n_features)
         The decomposed matrix

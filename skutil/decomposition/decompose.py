@@ -1,16 +1,16 @@
 from __future__ import print_function, division, absolute_import
+
+from abc import ABCMeta, abstractmethod
+
 import numpy as np
 import pandas as pd
-from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.utils.validation import check_is_fitted
 
+from skutil.base import *
+from skutil.base import overrides
 from ..utils import *
-from ..base import *
-from ..base import overrides
-
-
 
 __all__ = [
     'SelectivePCA',
@@ -45,6 +45,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     decomposed.
 
     Parameters
+    ----------
 
     cols : array_like (string)
         names of columns on which to apply scaling
@@ -84,7 +85,8 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         transformed features.
 
 
-    Attributes
+	Attributes
+	----------
 
     cols : array_like (string)
         the columns
@@ -148,6 +150,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     and returns the "concept space" of the decomposed features.
 
     Parameters
+    ----------
 
     cols : array_like (string)
         names of columns on which to apply scaling
@@ -172,7 +175,8 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         Whether to return a pandas DataFrame
 
 
-    Attributes
+	Attributes
+	----------
 
     cols : array_like (string)
         the columns

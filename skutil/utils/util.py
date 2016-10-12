@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division, absolute_import
-import pandas as pd
-import numpy as np
-import warnings
-import numbers
-import scipy.stats as st
 
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import confusion_matrix as cm
+import numbers
+import warnings
+
+import numpy as np
+import pandas as pd
+import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
-from ..base import SelectiveWarning, ModuleImportWarning
+from sklearn.metrics import confusion_matrix as cm
+
+from skutil.base import ModuleImportWarning
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -70,11 +71,13 @@ def _log_single(x):
 
     Parameters
     ----------
+
     x : float
         The number to log
 
     Returns
     -------
+
     val : float
         the log of x
     """
@@ -88,11 +91,13 @@ def _exp_single(x):
 
     Parameters
     ----------
+
     x : float
         The number to exp
 
     Returns
     -------
+
     val : float
         the exp of x
     """
@@ -159,6 +164,7 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The pandas DataFrame
 
@@ -257,6 +263,7 @@ def flatten_all(container):
 
     Examples
     --------
+
     >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all(a)
     [3,4,'1','a',1,1,2]
@@ -269,6 +276,7 @@ def flatten_all_generator(container):
 
     Examples
     --------
+
     >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all_generator(a)
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
@@ -313,6 +321,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     Returns
     -------
+
     X, cols : tuple
         the pd.DataFrame and the list of columns
     """
@@ -380,6 +389,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
 
     Parameters
     ----------
+
     X : pandas DataFrame
         The DataFrame in question
 
@@ -392,6 +402,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
 
     Returns
     -------
+
     mb : str
         The estimated number of UNIT held in the frame
     """
@@ -415,6 +426,7 @@ def pd_stats(X, col_type='all', na_str='--'):
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The DataFrame
 
@@ -519,6 +531,7 @@ def get_numeric(X):
 
     Parameters
     ----------
+
     X : pandas DF
         The dataframe
     """
@@ -530,6 +543,7 @@ def human_bytes(b, unit='MB'):
 
     Parameters
     ----------
+
     b : int
         The number of bytes
 
@@ -538,6 +552,7 @@ def human_bytes(b, unit='MB'):
 
     Returns
     -------
+
     mb : str
         The estimated number of UNIT held in the frame
     """
@@ -562,6 +577,7 @@ def is_entirely_numeric(X):
 
     Parameters
     ----------
+
     X : pd DataFrame
         The dataframe to test
     """
@@ -579,6 +595,7 @@ def is_numeric(x):
 
     Parameters
     ----------
+
     x : anytype
     """
     return is_float(x) or is_integer(x)
@@ -591,6 +608,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -616,6 +634,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -641,6 +660,7 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -668,6 +688,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
 
     Parameters
     ----------
+
     random_search : BaseGridSearch
         The fitted grid search
 

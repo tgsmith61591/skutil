@@ -34,6 +34,7 @@ def _validate_use(X, use, na_warn):
     values in the H2OFrame.
 
     Parameters
+    ----------
 
     X : H2OFrame
         The frame to evaluate. Since this is an internal method,
@@ -49,6 +50,7 @@ def _validate_use(X, use, na_warn):
         raise a warning and use 'complete.obs'
 
     Returns
+    -------
 
     use
     """
@@ -74,6 +76,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
@@ -116,6 +119,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
@@ -152,6 +156,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
@@ -168,8 +173,9 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     as_df : boolean, optional (True default)
         Whether to return a dataframe
 
-    Attributes
-    ----------
+	Attributes
+	----------
+
     sparsity_ : array_like, (n_cols,)
         The array of sparsity values
 
@@ -192,6 +198,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         """Fit the sparsity filterer.
 
         Parameters
+        ----------
 
         X : H2OFrame
             The frame to fit
@@ -221,6 +228,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
@@ -243,8 +251,9 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
-    Attributes
-    ----------
+	Attributes
+	----------
+
     drop_ : list, string
         The columns to drop
 
@@ -273,6 +282,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         """Fit the multicollinearity filterer.
 
         Parameters
+        ----------
 
         X : H2OFrame
             The frame to fit
@@ -287,6 +297,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         return the transformed H2OFrame, X.
 
         Parameters
+        ----------
 
         X : H2OFrame
             The frame to fit
@@ -313,6 +324,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
@@ -335,8 +347,9 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
-    Attributes
-    ----------
+	Attributes
+	----------
+
     drop_ : list, string
         The columns to drop
     """
@@ -362,6 +375,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         return the transformed X frame.
 
         Parameters
+        ----------
 
         X : H2OFrame
             The frame to fit
@@ -373,6 +387,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         """Fit the near zero variance filterer.
 
         Parameters
+        ----------
 
         X : H2OFrame
             The frame to fit

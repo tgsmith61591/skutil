@@ -1,11 +1,12 @@
 from __future__ import print_function
-import pandas as pd
-import numpy as np
+
 import warnings
 from abc import ABCMeta, abstractmethod
+
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
-from ..base import SelectiveMixin
+
+from skutil.base import SelectiveMixin
 from ..utils import validate_is_pd
 
 __all__ = [

@@ -100,6 +100,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
     Parameters
     ----------
+
     feature_names : array_like (str)
         The list of names on which to fit the encoder.
 
@@ -132,11 +133,13 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         Parameters
         ----------
+
         X : H2OFrame
             The frame to fit
 
         Returns
         -------
+
         self
         """
 
@@ -159,11 +162,13 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         Parameters
         ----------
+
         X : H2OFrame
             The frame to transform
 
         Returns
         -------
+
         X_transform : H2OFrame
             The transformed H2OFrame
         """

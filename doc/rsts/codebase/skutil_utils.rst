@@ -5,7 +5,3 @@ skutil.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
-    skutil.odr
-    skutil.preprocessing
-    skutil.utils

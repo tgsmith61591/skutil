@@ -21,11 +21,13 @@ def _check_is_1d_frame(X):
     and that it's a 1d column.
 
     Parameters
+    ----------
 
     X : H2OFrame
         The H2OFrame
 
     Returns
+    -------
 
     X : H2OFrame
     """
@@ -39,11 +41,13 @@ def is_numeric(x):
     """Determine whether a 1d H2OFrame is numeric.
 
     Parameters
+    ----------
 
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
+    -------
 
     bool : True if numeric, else False
     """
@@ -56,11 +60,13 @@ def is_integer(x):
     made up of integers.
 
     Parameters
+    ----------
 
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
+    -------
 
     bool : True if integers, else False
     """
@@ -75,11 +81,13 @@ def is_float(x):
     made up of floats.
 
     Parameters
+    ----------
 
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
+    -------
 
     bool : True if float, else False
     """

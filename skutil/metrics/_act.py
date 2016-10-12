@@ -38,6 +38,7 @@ class GainsStatisticalReport(object):
     skutil.h2o.H2OGainsRandomizedSearchCV
 
     Parameters
+    ----------
 
     n_groups : int, optional (default=10)
         The number of groups to use for computations.
@@ -171,6 +172,7 @@ class GainsStatisticalReport(object):
         and stores the results in the internal stats array.
 
         Parameters
+        ----------
 
         _ : H2OFrame, np.ndarray
             The truth set
@@ -187,6 +189,7 @@ class GainsStatisticalReport(object):
         stats array.
 
         Parameters
+        ----------
 
         _ : H2OFrame, np.ndarray
             The truth set
@@ -201,6 +204,7 @@ class GainsStatisticalReport(object):
         """Scores the new predictions on the truth set.
 
         Parameters
+        ----------
 
         _ : H2OFrame, np.ndarray
             The truth set

@@ -3,15 +3,15 @@
 # License: BSD
 
 from __future__ import division, print_function, absolute_import
-from abc import ABCMeta, abstractmethod
-import warnings
+
 import time
-import os
-import numpy as np
-import pandas as pd
+from abc import abstractmethod
 
 import h2o
+import numpy as np
+import pandas as pd
 from h2o.frame import H2OFrame
+
 try:
     from h2o import H2OEstimator
 except ImportError as e:
@@ -20,16 +20,14 @@ except ImportError as e:
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
-from ..base import overrides
-from ..utils import is_numeric, report_grid_score_detail
+from skutil.base import overrides
+from ..utils import report_grid_score_detail
 from ..utils.metaestimators import if_delegate_has_method
-from ..grid_search import _CVScoreTuple, _check_param_grid
+from skutil.grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
-from .split import check_cv
 from .split import *
 from .metrics import (h2o_accuracy_score,
                       h2o_f1_score,
-                      h2o_fbeta_score,
                       h2o_mean_absolute_error,
                       h2o_mean_squared_error,
                       h2o_median_absolute_error,
@@ -38,16 +36,13 @@ from .metrics import (h2o_accuracy_score,
                       h2o_r2_score,
                       make_h2o_scorer)
 
-from sklearn.preprocessing import LabelEncoder
 from sklearn.externals.joblib import logger
-from sklearn.base import clone, MetaEstimatorMixin
+from sklearn.base import clone
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
 from h2o.estimators import (H2ODeepLearningEstimator, 
                             H2OGradientBoostingEstimator, 
                             H2OGeneralizedLinearEstimator,
-                            H2OGeneralizedLowRankEstimator,
-                            H2OKMeansEstimator,
                             H2ONaiveBayesEstimator,
                             H2ORandomForestEstimator)
 
@@ -169,11 +164,13 @@ def _new_base_estimator(est, clonable_kwargs):
 
     Parameters
     ----------
+
     est : str
         The type of model to build
 
     Returns
     -------
+
     estimator : H2OEstimator
         The cloned base estimator
     """
@@ -201,6 +198,7 @@ def _get_estimator_string(estimator):
     estimator.
 
     Parameters
+    ----------
 
     estimator : H2OEstimator
         The estimator
@@ -269,7 +267,9 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
                    cv_fold, iteration):
     """Fits the current fold on the current parameters.
 
-    Parameters:
+        Parameters
+        ----------
+
         estimator : H2OPipeline or H2OEstimator
             The estimator to fit
 
@@ -312,7 +312,9 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         iteration : int
             The iteration number for reporting
 
-    Returns:
+        Returns
+        -------
+
         list : [test_score, len(test), estimator, parameters]
     """
     if parameters is None:
@@ -639,6 +641,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         and then generate predictions.
 
         Parameters
+        ----------
 
         frame : H2OFrame
             The frame to fit
@@ -767,6 +770,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         estimator implements such a function.
 
         Parameters
+        ----------
 
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
@@ -779,7 +783,9 @@ class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
 
-    Parameters:
+        Parameters
+        ----------
+
         estimator : H2OPipeline or H2OEstimator
             The estimator to fit.
 
@@ -853,7 +859,9 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
 
-    Parameters:
+        Parameters
+        ----------
+
         estimator : H2OPipeline or H2OEstimator
             The estimator to fit.
 
@@ -945,6 +953,7 @@ def _val_exp_loss_prem(x,y,z):
     for indexing an H2OFrame.
 
     Parameters
+    ----------
 
     x : str
         exp name
@@ -956,6 +965,7 @@ def _val_exp_loss_prem(x,y,z):
         premium name
 
     Returns
+    -------
 
     tuple :
         str, str, (str or None)
@@ -977,6 +987,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     provided by the GainsStatisticalReport.
 
     Parameters
+    ----------
 
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
@@ -1133,6 +1144,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         If a validation set was included, will also report validation scores.
 
         Returns
+        -------
 
         rdf : pd.DataFrame
             The grid search report
@@ -1171,6 +1183,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         Parameters
         ----------
+
         frame : H2OFrame
             The frame on which to predict and score performance.
         """

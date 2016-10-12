@@ -1,19 +1,15 @@
 from __future__ import print_function, division, absolute_import
+
 import h2o
-from h2o.frame import H2OFrame
+
 try:
     from h2o import H2OEstimator
 except ImportError as e:
     from h2o.estimators.estimator_base import H2OEstimator
 
-import os
-import warnings
-import numpy as np
-
-from sklearn.externals import six
-from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper, 
-                   validate_x_y, validate_x, VizMixin, _frame_from_x_y)
-from ..base import overrides
+from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper,
+                   validate_x_y, validate_x, VizMixin)
+from skutil.base import overrides
 
 from sklearn.utils import tosequence
 from sklearn.externals import six
@@ -51,6 +47,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     Parameters
     ----------
+
     steps : list
         A list of named tuples wherein element 1 of each tuple is
         an instance of a BaseH2OTransformer or an H2OEstimator.
@@ -162,8 +159,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     def fit(self, frame):
         """Fit all the transforms one after the other and transform the
         data, then fit the transformed data using the final estimator.
-        
+
         Parameters
+        ----------
 
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
@@ -210,6 +208,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         steps in the estimator prior to setting the parameters.
 
         Returns
+        -------
 
         self
         """
@@ -329,6 +328,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         predict.
         
         Parameters
+        ----------
 
         frame : an h2o Frame
             Data to predict on. Must fulfill input requirements of first step
@@ -348,6 +348,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         either predict on the final step.
         
         Parameters
+        ----------
 
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
@@ -362,6 +363,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         final estimator implements predict.
         
         Parameters
+        ----------
 
         frame : an h2o Frame
             Data to predict on. Must fulfill input requirements of first step
@@ -381,6 +383,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         either transform on the final step.
         
         Parameters
+        ----------
 
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
@@ -395,6 +398,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         estimator implements such a function.
 
         Parameters
+        ----------
 
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
