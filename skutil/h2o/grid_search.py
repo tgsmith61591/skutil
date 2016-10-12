@@ -148,10 +148,7 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
                 #   e._parms[k] = v
                 last_step._parms[k] = v
 
-        else:
-            # otherwise it's an BaseH2OFunctionWrapper
-            pass
-
+        # otherwise it's an BaseH2OFunctionWrapper
     return est
 
 

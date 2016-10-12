@@ -34,7 +34,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('h2o/tests')
 
     # Modules with cython
-    config.add_subpackage('metrics')
+    config.add_subpackage('metrics') # must happen last - h2o depends on it
     # config.add_subpackage('metrics/tests') # added in the setup...
 
     # misc repo tests
