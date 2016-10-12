@@ -36,7 +36,6 @@ class _BaseSelectiveDecomposer(BaseEstimator, TransformerMixin, SelectiveMixin):
         raise NotImplementedError('this should be implemented by a subclass')
 
 
-
 ###############################################################################
 class SelectivePCA(_BaseSelectiveDecomposer):
     """A class that will apply PCA only to a select group
@@ -84,9 +83,8 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         (so as not to down sample or upsample everything), then multiply the weights across the
         transformed features.
 
-
-	Attributes
-	----------
+    Attributes
+    ----------
 
     cols : array_like (string)
         the columns
@@ -99,19 +97,19 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         self.whiten = whiten
         self.weight = weight
 
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        ## fails thru if names don't exist:
+        # fails thru if names don't exist:
         self.pca_ = PCA(
             n_components=self.n_components,
             whiten=self.whiten).fit(X[cols])
 
         return self
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         check_is_fitted(self, 'pca_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
@@ -130,7 +128,8 @@ class SelectivePCA(_BaseSelectiveDecomposer):
             # now add to the transformed features
             transform *= weights
 
-        left = pd.DataFrame.from_records(data=transform, columns=[('PC%i'%(i+1)) for i in range(transform.shape[1])])
+        left = pd.DataFrame.from_records(data=transform,
+                                         columns=[('PC%i' % (i + 1)) for i in range(transform.shape[1])])
 
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
@@ -175,8 +174,8 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         Whether to return a pandas DataFrame
 
 
-	Attributes
-	----------
+    Attributes
+    ----------
 
     cols : array_like (string)
         the columns
@@ -189,11 +188,11 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         self.algorithm = algorithm
         self.n_iter = n_iter
 
-    def fit(self, X, y = None):
+    def fit(self, X, y=None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
 
-        ## fails thru if names don't exist:
+        # fails thru if names don't exist:
         self.svd_ = TruncatedSVD(
             n_components=self.n_components,
             algorithm=self.algorithm,
@@ -201,7 +200,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
         return self
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         check_is_fitted(self, 'svd_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
@@ -209,7 +208,8 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
         other_nms = [nm for nm in X.columns if not nm in cols]
         transform = self.svd_.transform(X[cols])
-        left = pd.DataFrame.from_records(data=transform, columns=[('Concept%i'%(i+1)) for i in range(transform.shape[1])])
+        left = pd.DataFrame.from_records(data=transform,
+                                         columns=[('Concept%i' % (i + 1)) for i in range(transform.shape[1])])
 
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left

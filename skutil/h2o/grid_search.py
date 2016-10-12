@@ -66,21 +66,21 @@ __all__ = [
 ]
 
 SCORERS = {
-    'accuracy_score'        : h2o_accuracy_score,
-    'f1_score'              : h2o_f1_score,
-    #'log_loss'             :,
-    'mean_absolute_error'   : h2o_mean_absolute_error,
-    'mean_squared_error'    : h2o_mean_squared_error,
-    'median_absolute_error' : h2o_median_absolute_error,
-    'precision_score'       : h2o_precision_score,
-    'r2_score'              : h2o_r2_score,
-    'recall_score'          : h2o_recall_score
+    'accuracy_score':        h2o_accuracy_score,
+    'f1_score':              h2o_f1_score,
+    # 'log_loss'             :,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
+    'median_absolute_error': h2o_median_absolute_error,
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
 }
 
 """These parameters are ones h2o stores
 that we don't necessarily want to clone.
 """
-PARM_IGNORE = set([
+PARM_IGNORE = {
     'model_id',
     'fold_column',
     'fold_assignment',
@@ -104,7 +104,7 @@ PARM_IGNORE = set([
     'class_sampling_factors',
     'ignore_const_cols',
     'keep_cross_validation_fold_assignment'
-])
+}
 
 
 def _as_numpy(_1d_h2o_frame):
@@ -144,7 +144,7 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
             for k,v in six.iteritems(e._parms):
                 k,v = _kv_str(k,v)
 
-                #if (not k in PARM_IGNORE) and (not v is None):
+                # if (not k in PARM_IGNORE) and (not v is None):
                 #   e._parms[k] = v
                 last_step._parms[k] = v
 
@@ -175,13 +175,13 @@ def _new_base_estimator(est, clonable_kwargs):
         The cloned base estimator
     """
     est_map = {
-        'dl'  : H2ODeepLearningEstimator,
-        'gbm' : H2OGradientBoostingEstimator,
-        'glm' : H2OGeneralizedLinearEstimator,
-        #'glrm': H2OGeneralizedLowRankEstimator,
-        #'km'  : H2OKMeansEstimator,
-        'nb'  : H2ONaiveBayesEstimator,
-        'rf'  : H2ORandomForestEstimator
+        'dl':     H2ODeepLearningEstimator,
+        'gbm':    H2OGradientBoostingEstimator,
+        'glm':    H2OGeneralizedLinearEstimator,
+        # 'glrm': H2OGeneralizedLowRankEstimator,
+        # 'km'  : H2OKMeansEstimator,
+        'nb':     H2ONaiveBayesEstimator,
+        'rf':     H2ORandomForestEstimator
     }
 
     estimator = est_map[est]() # initialize the new ones
@@ -251,14 +251,13 @@ def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
     # This shouldn't matter: ** args are copies
     # pop all of the kwargs into the parms
     # for k,v in six.iteritems(kwargs):
-        # we could warn, but parms is affected in place, so we won't...
-        #if k in parms:
-        #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
+    # we could warn, but parms is affected in place, so we won't...
+    # if k in parms:
+    #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
     #   parms[k] = v
 
     # it's calling and h2o scorer at this point
     return scorer.score(y_truth, pred, **kwargs)
-
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
@@ -345,15 +344,13 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     else:
         kwargs = scoring_params
 
-
     # generate split
     train_frame = frame[train, :]
     test_frame = frame[test, :]
 
     start_time = time.time()
 
-
-    #it's probably a pipeline
+    # it's probably a pipeline
     is_h2o_est = isinstance(estimator, H2OEstimator)
     if not is_h2o_est: 
         estimator.set_params(**parameters)
@@ -364,7 +361,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
         # do fit
         estimator.fit(train_frame)
-    else: # it's just an H2OEstimator
+    else:  # it's just an H2OEstimator
         # parm_dict = {}
         for k, v in six.iteritems(parameters):
             if '__' in k:
@@ -376,7 +373,6 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
         # do train
         estimator.train(training_frame=train_frame, x=feature_names, y=target_feature)
-
 
     # score model
     test_score = _score(estimator, test_frame, target_feature, scorer, is_regression, **kwargs)
@@ -392,8 +388,8 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     if verbose > 1:
         end_msg = '%s -%s' % (msg, logger.short_format_time(scoring_time))
         print('[CV (iter %i, fold %i)] %s %s' % (iteration, cv_fold, (64 - len(end_msg)) * '.', end_msg))
-        print() # new line
-        print() # new line
+        print()  # new line
+        print()  # new line
 
     return [test_score, len(test), estimator, parameters]
 
@@ -452,12 +448,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         elif not isinstance(estimator, H2OEstimator):
             raise TypeError('estimator must be an H2OPipeline or an H2OEstimator. Got %s' % type(estimator))
 
-
         # the addition of the gains search necessitates some hackiness.
         # if we have the attr 'extra_args_' then we know it's an gains search
         xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None       # np arrays themselves
         xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None # the names of the prem,exp,loss features
-
 
         # we need to require scoring...
         scoring = self.scoring
@@ -481,14 +475,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             # make it a scorer
             if hasattr(scoring, '__call__'):
                 self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
-            else: # should be impossible to get here
+            else:  # should be impossible to get here
                 raise TypeError('expected string or callable for scorer, but got %s' %type(self.scoring))
-
-
 
         # validate CV
         cv = check_cv(self.cv)
-
 
         # clone estimator
         nms = {
@@ -498,7 +489,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         # do first clone, remember to set the names...
         base_estimator = _clone_h2o_obj(self.estimator, **nms)
-
 
         # do fits, scores
         out = [
@@ -542,7 +532,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 val_scorer = self.scoring_class_
         else:
             score_validation = False
-
 
         # do scoring
         scores = list()
@@ -598,14 +587,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # clone first to work around broken estimators
         best_estimator = _clone_h2o_obj(base_estimator, **nms)
 
-
         # if verbose alert user we're at the end...
         if self.verbose > 1:
             msg = 'Target: %s; %s' % (self.target_feature, ', '.join('%s=%s' % (k,v)
                                      for k, v in six.iteritems(best.parameters) ))
             print("\nFitting best hyperparameters across all folds")
             print("[BEST] %s %s" % (msg, (64 - len(msg)) * '.'))
-
 
         # set params -- remember h2o gets funky with this...
         if isinstance(best_estimator, H2OEstimator):
@@ -616,12 +603,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             best_estimator.set_params(**best.parameters)
             best_estimator.fit(X)
 
-
         # Set the best estimator
         self.best_estimator_ = best_estimator
 
         return self
-
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
@@ -629,12 +614,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                       self.scoring_class_, self.is_regression_, 
                       **self.scoring_params)
 
-
     def predict(self, frame):
         check_is_fitted(self, 'best_estimator_')
         frame = _check_is_frame(frame)
         return self.best_estimator_.predict(frame)
-
 
     def fit_predict(self, frame):
         """Fit the grid search on the given frame,
@@ -648,7 +631,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         """
         return self.fit(frame).predict(frame)
 
-
     @overrides(VizMixin)
     def plot(self, timestep, metric):
         check_is_fitted(self, 'best_estimator_')
@@ -659,7 +641,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             # should be an H2OEstimator
             self.best_estimator_._plot(timestep=timestep, metric=metric)
-
 
     @staticmethod
     def load(location):
@@ -701,7 +682,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         return model
 
-
     def _save_internal(self, **kwargs):
         check_is_fitted(self, 'best_estimator_')
         best_estimator = self.best_estimator_
@@ -734,7 +714,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         force = kwargs.pop('force', False)
         self.model_loc_ = h2o.save_model(model=the_h2o_est, path=model_loc, force=force)
 
-
         # set to none for pickling, and then restore state for scoring
         if is_pipe:
             last_step_ = best_estimator.steps[-1]
@@ -754,7 +733,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
-
         # restore state for re-use
         if is_pipe:
             best_estimator.steps[-1] = last_step_
@@ -763,7 +741,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             self.best_estimator_ = last_step_
             self.estimator = base_last_step_
 
-            
     @if_delegate_has_method(delegate='best_estimator_')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -776,7 +753,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             Whether to return a pandas dataframe
         """
         return self.best_estimator_.varimp(use_pandas=use_pandas)
-    
 
 
 class H2OGridSearchCV(BaseH2OSearchCV):
@@ -852,7 +828,6 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 
     def fit(self, frame):
         return self._fit(frame, ParameterGrid(self.param_grid))
-
 
 
 class H2ORandomizedSearchCV(BaseH2OSearchCV):
@@ -1103,7 +1078,6 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         # the scoring_class_ (set in ``fit``) will do the scoring
         self.scoring = None 
 
-
     def fit(self, frame):
         sampled_params = ParameterSampler(self.param_grid,
                                           self.n_iter,
@@ -1199,4 +1173,3 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         y_truth = frame[self.target_feature]
         pred = self.best_estimator_.predict(frame)['predict']
         return self.scoring_class_.score_no_store(y_truth, pred, **kwargs)
-

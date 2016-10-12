@@ -5,9 +5,8 @@ import pandas as pd
 from skutil.base import overrides
 from .base import _check_is_frame, BaseH2OFunctionWrapper
 from ..preprocessing import BalancerMixin
-from ..preprocessing.balance import (_validate_ratio, _validate_target,
-    _validate_num_classes, _OversamplingBalancePartitioner,
-    _UndersamplingBalancePartitioner)
+from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
+                                     _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner)
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -31,12 +30,12 @@ def _validate_x_y_ratio(X, y, ratio):
     """
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
     ratio = _validate_ratio(ratio)
-    y = _validate_target(y) # cast to string type
+    y = _validate_target(y)  # cast to string type
 
     # generate cts. Have to get kludgier in h2o...
     unq_vals = X[y].unique()
-    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values # numpy array of unique vals
-    unq_cts = dict([(val, X[y][X[y]==val].shape[0]) for val in unq_vals])
+    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values  # numpy array of unique vals
+    unq_cts = dict([(val, X[y][X[y] == val].shape[0]) for val in unq_vals])
 
     # validate is < max classes
     cts = pd.Series(unq_cts).sort_values()
@@ -51,7 +50,7 @@ class _BaseH2OBalancer(BaseH2OFunctionWrapper, BalancerMixin):
     """
 
     def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, min_version='any', max_version=None):
-        super(_BaseH2OBalancer, self).__init__(target_feature=target_feature, 
+        super(_BaseH2OBalancer, self).__init__(target_feature=target_feature,
                                                min_version=min_version,
                                                max_version=max_version)
         self.ratio = ratio
@@ -95,8 +94,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         frame = _check_is_frame(X)
 
         # get the partitioner
-        partitioner = _OversamplingBalancePartitioner(frame, 
-            self.target_feature, self.ratio, _validate_x_y_ratio)
+        partitioner = _OversamplingBalancePartitioner(frame, self.target_feature, self.ratio, _validate_x_y_ratio)
         sample_idcs = partitioner.get_indices()
 
         # since H2O won't allow us to resample (it's considered rearranging)
@@ -167,10 +165,8 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         frame = _check_is_frame(X)
 
         # get the partitioner
-        partitioner = _UndersamplingBalancePartitioner(frame, 
-            self.target_feature, self.ratio, _validate_x_y_ratio)
+        partitioner = _UndersamplingBalancePartitioner(frame, self.target_feature, self.ratio, _validate_x_y_ratio)
 
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
         return frame[partitioner.get_indices(), :]
-

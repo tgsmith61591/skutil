@@ -1,11 +1,8 @@
 from __future__ import print_function, division, absolute_import
-import abc
-import numpy as np
 import warnings
 import os
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
 
 import h2o
@@ -17,12 +14,10 @@ try:
 except ImportError as e:
     H2OServerError = EnvironmentError
 
-
 try:
     from h2o.exceptions import H2OConnectionError
 except ImportError as e:
     H2OConnectionError = EnvironmentError
-
 
 from pkg_resources import parse_version
 from ..utils import is_numeric
@@ -31,7 +26,6 @@ try:
     import cPickle as pickle
 except ImportError as e:
     import pickle
-
 
 __all__ = [
     'check_version',
@@ -44,11 +38,11 @@ __all__ = [
 ]
 
 
-
 class NAWarning(UserWarning):
     """Custom warning used to notify user that an NA exists
     within an h2o frame (h2o can handle NA values)
     """
+
 
 def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     """Subset the H2OFrame if necessary. This is used in
@@ -82,7 +76,7 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         The sanitized dataframe
     """
     x, y = validate_x_y(X, x, y, exclude_features)
-    X =_check_is_frame(X)[x] # make a copy
+    X = _check_is_frame(X)[x]  # make a copy
 
     return X if not return_x_y else (X, x, y)
 
@@ -228,12 +222,11 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     # the target_feature from the feature_names
     return (
         _retain_from_list([
-            str(i) for i in feature_names 
-            if not str(i)==target_feature
-        ], exclude_features), 
+                              str(i) for i in feature_names
+                              if not str(i) == target_feature
+                              ], exclude_features),
         target_feature
     )
-
 
 
 class VizMixin:
@@ -265,7 +258,6 @@ class VizMixin:
         return NotImplemented
 
 
-
 def check_version(min_version, max_version):
     """Ensures the currently installed/running version
     of h2o is compatible with the min_version and max_version
@@ -283,21 +275,21 @@ def check_version(min_version, max_version):
     h2ov = h2o.__version__
 
     # won't enter this block if passed at 'any'
-    if is_numeric(min_version): # then int or float
+    if is_numeric(min_version):  # then int or float
         min_version = str(min_version)
-    
+
     if isinstance(min_version, six.string_types):
-        min_version = str(min_version) # in case is raw or unicode
+        min_version = str(min_version)  # in case is raw or unicode
 
         if min_version == 'any':
-            pass # anything goes
+            pass  # anything goes
         else:
             if parse_version(h2ov) < parse_version(min_version):
                 raise EnvironmentError('your h2o version (%s) '
-                                       'does not meet the minimum ' 
+                                       'does not meet the minimum '
                                        'requirement for this transformer (%s)'
                                        % (h2ov, str(min_version)))
-    
+
     else:
         raise ValueError('min_version must be a float, '
                          'a string in the form of "X.x" '
@@ -310,19 +302,17 @@ def check_version(min_version, max_version):
         max_version = str(max_version)
 
     if isinstance(max_version, six.string_types):
-        max_version = str(max_version) # in case is raw or unicode
+        max_version = str(max_version)  # in case is raw or unicode
 
         if parse_version(h2ov) > parse_version(max_version):
             raise EnvironmentError('your h2o version (%s) '
-                                   'exceeds the maximum permitted ' 
+                                   'exceeds the maximum permitted '
                                    'version for this transformer (%s)'
                                    % (h2ov, str(max_version)))
-    elif not max_version is None: # remember we allow None
+    elif not max_version is None:  # remember we allow None
         raise ValueError('max_version must be a float, '
                          'a string in the form of "X.x" '
                          'or None, but got %s: %s' % (type(max_version), str(max_version)))
-
-
 
 
 class BaseH2OFunctionWrapper(BaseEstimator):
@@ -340,6 +330,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
     """
+
     def __init__(self, target_feature=None, min_version='any', max_version=None):
         self.target_feature = target_feature
 
@@ -348,14 +339,13 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         # test connection, warn where needed
         try:
-            g = h2o.frames() # returns a dict of frames
+            g = h2o.frames()  # returns a dict of frames
         except (EnvironmentError, ValueError, H2OServerError, H2OConnectionError) as v:
             warnings.warn('h2o has not been started; '
                           'initializing an H2O transformer without '
                           'a connection will not cause any issues, '
                           'but it will throw a ValueError if the '
                           'H2O cloud is not started prior to fitting')
-
 
     @property
     def max_version(self):
@@ -364,7 +354,6 @@ class BaseH2OFunctionWrapper(BaseEstimator):
             return mv if not mv else str(mv)
         except AttributeError as n:
             return None
-    
 
     @property
     def min_version(self):
@@ -381,7 +370,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     def save(self, location, warn_if_exists=True, **kwargs):
         """Save the transformer"""
         if warn_if_exists and os.path.exists(location):
-            warnings.warn('Overwriting existing path: %s' %location, UserWarning)
+            warnings.warn('Overwriting existing path: %s' % location, UserWarning)
 
         # models that have H2OEstimators
         if hasattr(self, '_save_internal'):
@@ -403,7 +392,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         else:
             with open(location, 'wb') as output:
                 pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
-    
+
 
 class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     """Base class for all H2OTransformers.
@@ -427,7 +416,8 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
     """
-    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, 
+
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
                  min_version='any', max_version=None):
         super(BaseH2OTransformer, self).__init__(target_feature=target_feature,
                                                  min_version=min_version,

@@ -5,10 +5,9 @@ Utilities useful during the build -- adapted from sklearn.
 # license: BSD
 
 from __future__ import division, print_function, absolute_import
+from numpy.distutils.system_info import get_info
 
 DEFAULT_ROOT = 'skutil'
-
-from numpy.distutils.system_info import get_info
 
 
 def get_blas_info():

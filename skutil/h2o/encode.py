@@ -1,23 +1,15 @@
 from __future__ import print_function, absolute_import, division
-import numpy as np
 import pandas as pd
 import h2o
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_is_fitted
-from sklearn.externals import six
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
-from .base import (NAWarning, 
-                   BaseH2OTransformer, 
-                   _check_is_frame, 
-                   _retain_features,
-                   _frame_from_x_y)
-
+from .base import (BaseH2OTransformer, _check_is_frame, _frame_from_x_y)
 
 __all__ = [
     'H2OSafeOneHotEncoder'
 ]
-
 
 
 def _val_vec(y):
@@ -51,14 +43,13 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         # max class check:
         max_classes = _get_unseen()
         if len(clz) > max_classes:
-            raise ValueError('max_classes=%i, but got %i' 
-                % (max_classes, len(clz)))
+            raise ValueError('max_classes=%i, but got %i'
+                             % (max_classes, len(clz)))
 
         # set internal
         self.classes_ = clz
 
         return self
-
 
     def transform(self, y):
         # make sure is fitted, validate y
@@ -74,7 +65,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         # iterate over the classes
         for clz in self.classes_:
             isnan = False
-            rep = clz # we copy for sake of NaN preservation
+            rep = clz  # we copy for sake of NaN preservation
 
             # if the clz is np.nan, then the actual rep is 'NA'
             if pd.isnull(clz):
@@ -89,7 +80,6 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
             output = dummies if output is None else output.cbind(dummies)
 
         return output
-
 
 
 class H2OSafeOneHotEncoder(BaseH2OTransformer):
@@ -127,7 +117,6 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         self.drop_after_encoded = drop_after_encoded
 
-
     def fit(self, X):
         """Fit the one hot encoder.
 
@@ -150,12 +139,11 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         # do fit
         self.encoders_ = {
-            str(k):_H2OVecSafeOneHotEncoder().fit(cat[str(k)]) 
+            str(k): _H2OVecSafeOneHotEncoder().fit(cat[str(k)])
             for k in cat.columns
-        }
+            }
 
         return self
-
 
     def transform(self, X):
         """Transform a new frame after fit.

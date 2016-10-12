@@ -6,14 +6,9 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils import check_random_state
-from sklearn.utils.random import sample_without_replacement
-from sklearn.utils.validation import _num_samples, indexable
+from sklearn.utils.validation import _num_samples
 from sklearn.metrics.scorer import check_scoring
-from collections import Mapping, namedtuple, Sized
-from functools import partial, reduce
-from itertools import product
-import operator
+from collections import namedtuple, Sized
 import warnings
 
 from .metaestimators import if_delegate_has_method
@@ -26,8 +21,9 @@ if sklearn.__version__ >= '0.18':
     from sklearn.model_selection import ParameterSampler, ParameterGrid
     from sklearn.utils.validation import indexable
 
-    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
-               X, y, scorer, parameter_iterable, fit_params, 
+
+    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator,
+               X, y, scorer, parameter_iterable, fit_params,
                error_score, cv, **kwargs):
         groups = kwargs.pop('groups')
 
@@ -35,15 +31,15 @@ if sklearn.__version__ >= '0.18':
         out = Parallel(n_jobs=n_jobs, verbose=verbose, pre_dispatch=pre_dispatch)(
             delayed(_fit_and_score)(
                 clone(base_estimator), X, y, scorer,
-                    train, test, verbose, parameters,
-                    fit_params=fit_params,
-                    return_train_score=False,
-                    return_n_test_samples=True,
-                    return_times=False, 
-                    return_parameters=True,
-                    error_score=error_score)
-                for parameters in parameter_iterable
-                for train, test in cv.split(X, y, groups))
+                train, test, verbose, parameters,
+                fit_params=fit_params,
+                return_train_score=False,
+                return_n_test_samples=True,
+                return_times=False,
+                return_parameters=True,
+                error_score=error_score)
+            for parameters in parameter_iterable
+            for train, test in cv.split(X, y, groups))
 
         # test_score, n_samples, _, parameters
         return [(mod[0], mod[1], None, mod[2]) for mod in out]
@@ -58,28 +54,32 @@ else:
         from sklearn.cross_validation import _fit_and_score
         from sklearn.grid_search import ParameterSampler, ParameterGrid
 
-    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
-               X, y, scorer, parameter_iterable, fit_params, 
+
+    def do_fit(n_jobs, verbose, pre_dispatch, base_estimator,
+               X, y, scorer, parameter_iterable, fit_params,
                error_score, cv, **kwargs):
         # test_score, n_samples, score_time, parameters
         return Parallel(n_jobs=n_jobs, verbose=verbose, pre_dispatch=pre_dispatch)(
             delayed(_fit_and_score)(
                 clone(base_estimator), X, y, scorer,
-                    train, test, verbose, parameters,
-                    fit_params, return_parameters=True,
-                    error_score=error_score)
-                for parameters in parameter_iterable
-                for train, test in cv)
+                train, test, verbose, parameters,
+                fit_params, return_parameters=True,
+                error_score=error_score)
+            for parameters in parameter_iterable
+            for train, test in cv)
 
 
 def cv_len(cv, X, y):
     return len(cv) if not SK18 else cv.get_n_splits(X, y)
 
+
 def set_cv(cv, X, y, classifier):
     return check_cv(cv, X, y, classifier) if not SK18 else check_cv(cv, y, classifier)
 
+
 def get_groups(X, y):
     return (X, y, None) if not SK18 else indexable(X, y, None)
+
 
 __all__ = [
     '_as_numpy',
@@ -109,9 +109,10 @@ def _validate_X(X):
     the underlying matrix in the frame. """
     return X if not isinstance(X, pd.DataFrame) else X.as_matrix()
 
+
 def _validate_y(y):
     """Returns y if y isn't a series, otherwise the array"""
-    if y is None: # unsupervised
+    if y is None:  # unsupervised
         return y
 
     # if it's a series
@@ -127,6 +128,7 @@ def _validate_y(y):
 
     # bail and let the sklearn function handle validation
     return y
+
 
 def _check_param_grid(param_grid):
     if hasattr(param_grid, 'items'):
@@ -160,6 +162,7 @@ class _CVScoreTuple(namedtuple('_CVScoreTuple', ('parameters', 'mean_validation_
     dynamic attributes. Furthermore we don't need any additional slot in the
     subclass so we set __slots__ to the empty tuple. """
     __slots__ = tuple()
+
     def __repr__(self):
         """Simple custom repr to summarize the main info"""
         return "mean: {0:.5f}, std: {1:.5f}, params: {2}".format(
@@ -169,7 +172,7 @@ class _CVScoreTuple(namedtuple('_CVScoreTuple', ('parameters', 'mean_validation_
 
 
 class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
-                                      MetaEstimatorMixin)):
+                                           MetaEstimatorMixin)):
     """Base class for hyper parameter search with cross-validation.
     scikit-utils must redefine this class, because sklearn's version
     internally treats all Xs and ys as lists or np.ndarrays. We redefine
@@ -336,8 +339,8 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
     def _fit(self, X, y, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
-        X = _validate_X(X) # if it's a frame, will be turned into a matrix
-        y = _validate_y(y) # if it's a series, make it into a list
+        X = _validate_X(X)  # if it's a frame, will be turned into a matrix
+        y = _validate_y(y)  # if it's a series, make it into a list
 
         # for debugging
         assert not isinstance(X, pd.DataFrame)
@@ -370,12 +373,12 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
         # get groups, add it to kwargs
         X, y, groups = get_groups(X, y)
-        kwargs = {'groups':groups}
+        kwargs = {'groups': groups}
 
         # test_score, n_samples, _, parameters
-        out = do_fit(self.n_jobs, self.verbose, pre_dispatch, 
-            base_estimator, X, y, self.scorer_, parameter_iterable, 
-            self.fit_params, self.error_score, cv, **kwargs)
+        out = do_fit(self.n_jobs, self.verbose, pre_dispatch,
+                     base_estimator, X, y, self.scorer_, parameter_iterable,
+                     self.fit_params, self.error_score, cv, **kwargs)
 
         # Out is a list of triplet: score, estimator, n_test_samples
         n_fits = len(out)
@@ -589,7 +592,6 @@ class _SK17GridSearchCV(_SK17BaseSearchCV):
     def __init__(self, estimator, param_grid, scoring=None, fit_params=None,
                  n_jobs=1, iid=True, refit=True, cv=None, verbose=0,
                  pre_dispatch='2*n_jobs', error_score='raise'):
-
         super(_SK17GridSearchCV, self).__init__(
             estimator, scoring, fit_params, n_jobs, iid,
             refit, cv, verbose, pre_dispatch, error_score)
@@ -610,8 +612,6 @@ class _SK17GridSearchCV(_SK17BaseSearchCV):
             None for unsupervised learning.
         """
         return self._fit(X, y, ParameterGrid(self.param_grid))
-
-
 
 
 class _SK17RandomizedSearchCV(_SK17BaseSearchCV):
@@ -764,7 +764,6 @@ class _SK17RandomizedSearchCV(_SK17BaseSearchCV):
                  fit_params=None, n_jobs=1, iid=True, refit=True, cv=None,
                  verbose=0, pre_dispatch='2*n_jobs', random_state=None,
                  error_score='raise'):
-
         self.param_distributions = param_distributions
         self.n_iter = n_iter
         self.random_state = random_state

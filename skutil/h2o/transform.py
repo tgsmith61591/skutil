@@ -73,7 +73,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
         return self
 
-
     def transform(self, column):
         check_is_fitted(self, 'classes_')
         column = _check_is_1d_frame(column)
@@ -93,7 +92,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
             column[column==k] = v
 
         return column
-
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
@@ -147,7 +145,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
             else:
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].mean(na_rm=True) for c in cols])))
-
 
         elif hasattr(fill, '__iter__'):
 
@@ -204,7 +201,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
         return self
 
-
     def transform(self, X):
         """Transform an H2OFrame given the fit imputer.
 
@@ -233,7 +229,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         na_frame = frame.isna()
         na_frame.columns = cols
 
-        #iter over cols
+        # iter over cols
         is_int = isinstance(fill_val, int) # is it an int?
         for _, col in enumerate(cols):
             if not is_int and not col in fill_val: # then it's a dict and this col doesn't exist in it...
@@ -253,10 +249,8 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-
         # this is going to impact it in place...
         return X
-
 
 
 class H2OSelectiveScaler(BaseH2OTransformer):
@@ -314,7 +308,6 @@ class H2OSelectiveScaler(BaseH2OTransformer):
 
         return self
 
-
     def transform(self, X):
         """Do the transformation
 
@@ -325,10 +318,10 @@ class H2OSelectiveScaler(BaseH2OTransformer):
             The data to transform
         """
         check_is_fitted(self, 'cols_')
-        frame = _check_is_frame(X)[X.columns] # get a copy...
+        frame = _check_is_frame(X)[X.columns]  # get a copy...
 
         if (not self.with_mean) and (not self.with_std):
-            return frame # nothing to change...
+            return frame  # nothing to change...
 
         for nm in self.cols_:
             if self.with_mean:
@@ -337,7 +330,6 @@ class H2OSelectiveScaler(BaseH2OTransformer):
                 frame[nm] /= self.stds[nm]
 
         return frame
-
 
 
 def _mul(a, b):
@@ -356,6 +348,7 @@ def _mul(a, b):
     product H2OFrame
     """
     return a * b
+
 
 class H2OInteractionTermTransformer(BaseH2OTransformer):
     """A class that will generate interaction terms between selected columns.
@@ -401,7 +394,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
         self.interaction_function = interaction_function
         self.name_suffix = name_suffix
-        self.only_return_interactions =only_return_interactions
+        self.only_return_interactions = only_return_interactions
 
     def fit(self, frame):
         """Fit the transformer.
