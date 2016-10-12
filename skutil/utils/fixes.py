@@ -20,15 +20,11 @@ from .metaestimators import if_delegate_has_method
 
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
+    SK18 = True
     from sklearn.model_selection import check_cv
     from sklearn.model_selection._validation import _fit_and_score
     from sklearn.model_selection import ParameterSampler, ParameterGrid
     from sklearn.utils.validation import indexable
-
-    SK18 = True
-
-    def set_cv(cv, _, y, classifier):
-        return check_cv(cv, y, classifier)
 
     def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
                X, y, scorer, parameter_iterable, fit_params, 
@@ -52,12 +48,6 @@ if sklearn.__version__ >= '0.18':
         # test_score, n_samples, _, parameters
         return [(mod[0], mod[1], None, mod[2]) for mod in out]
 
-    def cv_len(cv, X, y):
-        return cv.get_n_splits(X, y)
-
-    def get_groups(X, y):
-        return indexable(X, y, None)
-
 else:
     SK18 = False
     # catch deprecation warnings
@@ -67,9 +57,6 @@ else:
         from sklearn.cross_validation import check_cv
         from sklearn.cross_validation import _fit_and_score
         from sklearn.grid_search import ParameterSampler, ParameterGrid
-
-    def set_cv(cv, X, y, classifier):
-        return check_cv(cv, X, y, classifier)
 
     def do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
                X, y, scorer, parameter_iterable, fit_params, 
@@ -84,12 +71,15 @@ else:
                 for parameters in parameter_iterable
                 for train, test in cv)
 
-    def cv_len(cv, X, y):
-        return len(cv)
 
-    def get_groups(X, y):
-        return X, y, None
+def cv_len(cv, X, y):
+    return len(cv) if not SK18 else cv.get_n_splits(X, y)
 
+def set_cv(cv, X, y, classifier):
+    return check_cv(cv, X, y, classifier) if not SK18 else check_cv(cv, y, classifier)
+
+def get_groups(X, y):
+    return (X, y, None) if not SK18 else indexable(X, y, None)
 
 __all__ = [
     '_as_numpy',
