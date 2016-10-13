@@ -95,7 +95,7 @@ class CleanCommand(Clean):
             for filename in filenames:
                 if any(filename.endswith(suffix) for suffix in
                        (".so", ".pyd", ".dll", ".pyc")):
-                    print(filename)
+                    print('Removing file: %s'%filename)
                     os.unlink(os.path.join(dirpath, filename))
                     continue
                 extension = os.path.splitext(filename)[1]
@@ -105,7 +105,7 @@ class CleanCommand(Clean):
                         os.unlink(os.path.join(dirpath, filename))
             for dirname in dirnames:
                 if dirname == '__pycache__' or dirname.endswith('.so.dSYM'):
-                    print(dirname)
+                    print('Removing directory: %s'%dirname)
                     shutil.rmtree(os.path.join(dirpath, dirname))
 
 cmdclass = {'clean': CleanCommand}
@@ -199,7 +199,8 @@ def generate_cython():
 def check_statuses(pkg_nm, status, rs):
     if status['up_to_date'] is False:
         if status['version']:
-            warning_msg = 'Your installation of {0} {1} is out-of-date.\n{2}'.format(pkg_nm, status['version'], rs)
+            warning_msg = 'Your installation of {0} {1} is out-of-date.\n{2}'.format(
+                pkg_nm, status['version'], rs)
         else:
             warning_msg = '{0} is not installed.\n{1}'.format(pkg_nm, rs)
         raise ImportError(warning_msg)
@@ -295,6 +296,8 @@ def setup_package():
             if not os.path.exists(os.path.join(cwd, 'PKG-INFO')):
                 # Generate Cython sources, unless building from source release
                 generate_cython()
+
+            # sklearn cleans up .so files here... but we won't for now...
 
     setup(**metadata)
 
