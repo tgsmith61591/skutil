@@ -1,6 +1,5 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
-from ..h2o.util import h2o_col_to_numpy
 import pandas as pd
 import numpy as np
 import warnings
@@ -15,7 +14,12 @@ def _as_numpy(*args):
         if not isinstance(x, np.ndarray):
             # if an H2OFrame, just return the first col
             if isinstance(x, H2OFrame):
-                return h2o_col_to_numpy(x)
+                # same as ..h2o.util.h2o_col_to_numpy, but
+                # that causes circular dependency in imports.
+                if not x.shape[1] == 1:
+                    raise ValueError('must be 1d column')
+                _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
+                return _1d[_1d.columns[0]].values
             elif hasattr(x, '__iter__'):
                 return np.asarray(x)
             else:
