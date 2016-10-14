@@ -1,15 +1,18 @@
-from __future__ import print_function, division, absolute_import
-import pandas as pd
-import numpy as np
-import warnings
-import numbers
-import scipy.stats as st
+# -*- coding: utf-8 -*-
 
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import confusion_matrix as cm
+from __future__ import print_function, division, absolute_import
+
+import numbers
+import warnings
+
+import numpy as np
+import pandas as pd
+import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
-from ..base import SelectiveWarning, ModuleImportWarning
+from sklearn.metrics import confusion_matrix as cm
+
+from skutil.base import ModuleImportWarning
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -17,8 +20,8 @@ try:
         warnings.simplefilter("ignore")
 
         # do actual import
-        #import matplotlib as mpl
-        #mpl.use('TkAgg') # set backend
+        # import matplotlib as mpl
+        # mpl.use('TkAgg') # set backend
         from matplotlib import pyplot as plt
 
         # log it
@@ -26,17 +29,14 @@ try:
 except ImportError as ie:
     CAN_CHART_MPL = False
 
-
 try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         import seaborn as sns
+
         CAN_CHART_SNS = True
 except ImportError as ie:
     CAN_CHART_SNS = False
-
-
-
 
 __max_exp__ = 1e19
 __min_log__ = -19
@@ -66,48 +66,51 @@ __all__ = [
 ]
 
 
-## Classes
-class QCutWarning(UserWarning):
-    """Denotes that a UserWarning has
-    been raised from the safe_qcut function
-    """
-    pass
-
-
-
-######## MATHEMATICAL UTILITIES #############    
+# MATHEMATICAL UTILITIES #
 def _log_single(x):
-    """Sanitized log function for a single element
+    """Sanitized log function for a single element.
+
     Parameters
     ----------
+
     x : float
         The number to log
+
     Returns
     -------
+
     val : float
         the log of x
     """
-    x = max(0, x)
-    val = __min_log__ if x == 0 else max(__min_log__, np.log(x))  
+    x = np.maximum(0, x)
+    val = __min_log__ if x == 0 else np.maximum(__min_log__, np.log(x))
     return val
 
+
 def _exp_single(x):
-    """Sanitized exponential function
+    """Sanitized exponential function.
+
     Parameters
     ----------
+
     x : float
         The number to exp
+
     Returns
     -------
-    float
+
+    val : float
         the exp of x
     """
-    return min(__max_exp__, np.exp(x))
+    val = np.minimum(__max_exp__, np.exp(x))
+    return val
+
 
 def _vectorize(fun, x):
     if hasattr(x, '__iter__'):
         return np.array([fun(p) for p in x])
     raise ValueError('Type %s does not have attr __iter__' % type(x))
+
 
 def exp(x):
     """A safe mechanism for computing the exponential function"""
@@ -120,6 +123,7 @@ def exp(x):
     except ValueError as v:
         # bail
         raise ValueError("don't know how to compute exp for type %s" % type(x))
+
 
 def log(x):
     """A safe mechanism for computing a log"""
@@ -134,10 +138,6 @@ def log(x):
         raise ValueError("don't know how to compute log for type %s" % type(x))
 
 
-
-
-
-######### GENERAL UTILITIES #################
 def _val_cols(cols):
     # if it's None, return immediately
     if cols is None:
@@ -149,22 +149,23 @@ def _val_cols(cols):
             return [cols]
         else:
             raise ValueError('cols must be an iterable sequence')
-    return [c for c in cols] # make it a list implicitly, make no guarantees about elements
+    return [c for c in cols]  # make it a list implicitly, make no guarantees about elements
+
 
 def _def_headers(X):
     m = X.shape[1] if hasattr(X, 'shape') else len(X)
-    return ['V%i' %  (i+1) for i in range(m)]
+    return ['V%i' % (i + 1) for i in range(m)]
 
 
-
-def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None, 
-        method='pearson', figsize=(11,9), cmap_a=220, cmap_b=10, vmax=0.3,
-        xticklabels=5, yticklabels=5, linewidths=0.5, cbar_kws={'shrink':0.5}):
+def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
+              method='pearson', figsize=(11, 9), cmap_a=220, cmap_b=10, vmax=0.3,
+              xticklabels=5, yticklabels=5, linewidths=0.5, cbar_kws={'shrink': 0.5}):
     """Create a simple correlation plot given a dataframe.
     Note that this requires all datatypes to be numeric and finite!
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The pandas DataFrame
 
@@ -222,7 +223,6 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
         warnings.warn('Cannot plot (unable to import Seaborn)')
         return None
 
-
     if plot_type == 'cor':
         # MPL is only needed for COR
         if not CAN_CHART_MPL:
@@ -243,8 +243,8 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
         f, ax = plt.subplots(figsize=figsize)
         color_map = sns.diverging_palette(cmap_a, cmap_b, as_cmap=True)
         sns.heatmap(X, mask=mask, cmap=color_map, vmax=vmax,
-            square=True, xticklabels=xticklabels, yticklabels=yticklabels,
-            linewidths=linewidths, cbar_kws=cbar_kws, ax=ax)
+                    square=True, xticklabels=xticklabels, yticklabels=yticklabels,
+                    linewidths=linewidths, cbar_kws=cbar_kws, ax=ax)
 
     elif plot_type == 'pair':
         sns.pairplot(X)
@@ -257,24 +257,28 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
         sns.plt.show()
 
 
-
 def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
-    Usage:
-    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    Examples
+    --------
+
+    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all(a)
     [3,4,'1','a',1,1,2]
     """
     return [x for x in flatten_all_generator(container)]
 
+
 def flatten_all_generator(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
-    Usage:
-    a = [[[],3,4],['1','a'],[[[1]]],1,2]
+    Examples
+    --------
+
+    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
     >>> flatten_all_generator(a)
     [3,4,'1','a',1,1,2] # returns a generator for this iterable
     """
@@ -287,6 +291,7 @@ def flatten_all_generator(container):
                     yield j
             else:
                 yield i
+
 
 def shuffle_dataframe(X):
     X, _ = validate_is_pd(X, None, False)
@@ -318,8 +323,11 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     Returns
     -------
-    tuple, (DataFrame: X, list: cols)
+
+    X, cols : tuple
+        the pd.DataFrame and the list of columns
     """
+
     def _check(X, cols):
         # first check hard-to-detect case:
         if isinstance(X, pd.Series):
@@ -384,6 +392,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
 
     Parameters
     ----------
+
     X : pandas DataFrame
         The DataFrame in question
 
@@ -396,6 +405,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
 
     Returns
     -------
+
     mb : str
         The estimated number of UNIT held in the frame
     """
@@ -413,12 +423,14 @@ def _is_int(x, tp):
     # if there's no difference between the two, then it's an int.
     return (x - x.astype('int')).abs().sum() == 0
 
+
 def pd_stats(X, col_type='all', na_str='--'):
     """Get a descriptive report of the elements in the data frame.
     Builds on existing pandas `describe` method.
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The DataFrame
 
@@ -433,10 +445,10 @@ def pd_stats(X, col_type='all', na_str='--'):
     dtypes = X.dtypes
 
     # validate col_type
-    valid_types = ('all','numeric','object')
+    valid_types = ('all', 'numeric', 'object')
     if not col_type in valid_types:
         raise ValueError('expected col_type in (%s), but got %s'
-            % (','.join(valid_types), col_type))
+                         % (','.join(valid_types), col_type))
 
     # if user only wants part back, we can use this...
     type_dict = {}
@@ -446,20 +458,19 @@ def pd_stats(X, col_type='all', na_str='--'):
 
     # objects are going to get dropped in the describe() call,
     # so we need to add them back in with dicts of nastr for all...
-    object_dtypes = dtypes[dtypes=='object']
+    object_dtypes = dtypes[dtypes == 'object']
     if object_dtypes.shape[0] > 0:
         obj_nms = object_dtypes.index.values
 
         for nm in obj_nms:
-            obj_dct = {stat:_nastr for stat in raw_stats.index.values}
+            obj_dct = {stat: _nastr for stat in raw_stats.index.values}
             stats[nm] = obj_dct
-
 
     # we'll add rows to the stats...
     for col, dct in six.iteritems(stats):
         # add the dtype
         _dtype = str(dtypes[col])
-        is_numer = any([_dtype.startswith(x) for x in ('int','float')])
+        is_numer = any([_dtype.startswith(x) for x in ('int', 'float')])
         dct['dtype'] = _dtype
 
         # populate type_dict
@@ -471,7 +482,7 @@ def pd_stats(X, col_type='all', na_str='--'):
         _isint = _is_int(X[col], _dtype)
         if _isint or _dtype == 'object':
             _unique = len(X[col].unique())
-            _val_cts= X[col].value_counts().sort_values(ascending=True)
+            _val_cts = X[col].value_counts().sort_values(ascending=True)
             _min_cls, _max_cls = _val_cts.index[0], _val_cts.index[-1]
 
             # if there's only one class...
@@ -517,23 +528,25 @@ def pd_stats(X, col_type='all', na_str='--'):
     return pd.DataFrame.from_dict(stat_out)
 
 
-
 def get_numeric(X):
     """Return list of indices of numeric dtypes variables
 
     Parameters
     ----------
+
     X : pandas DF
         The dataframe
     """
-    validate_is_pd(X, None) # don't want warning
+    validate_is_pd(X, None)  # don't want warning
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
+
 
 def human_bytes(b, unit='MB'):
     """Get bytes in a human readable form
 
     Parameters
     ----------
+
     b : int
         The number of bytes
 
@@ -542,22 +555,23 @@ def human_bytes(b, unit='MB'):
 
     Returns
     -------
+
     mb : str
         The estimated number of UNIT held in the frame
     """
     kb = float(1024)
     units = {
-        'KB':kb, 
-        'MB':float(kb ** 2), 
-        'GB':float(kb ** 3), 
-        'TB':float(kb ** 4)
+        'KB': kb,
+        'MB': float(kb ** 2),
+        'GB': float(kb ** 3),
+        'TB': float(kb ** 4)
     }
 
     if not unit in units:
         raise ValueError('got %s, expected one of (%s)'
                          % (unit, ', '.join(units.keys())))
 
-    return '%.3f %s' % (b/units[unit], unit)
+    return '%.3f %s' % (b / units[unit], unit)
 
 
 def is_entirely_numeric(X):
@@ -566,6 +580,7 @@ def is_entirely_numeric(X):
 
     Parameters
     ----------
+
     X : pd DataFrame
         The dataframe to test
     """
@@ -575,14 +590,17 @@ def is_entirely_numeric(X):
 def is_integer(x):
     return isinstance(x, (numbers.Integral, int, long, np.int, np.long))
 
+
 def is_float(x):
     return isinstance(x, (float, np.float))
+
 
 def is_numeric(x):
     """Determines whether the arg is numeric
 
     Parameters
     ----------
+
     x : anytype
     """
     return is_float(x) or is_integer(x)
@@ -595,6 +613,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -609,7 +628,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 
     if include_tgt:
         X[tgt_name] = iris.target
-        
+
     return X if not shuffle else shuffle_dataframe(X)
 
 
@@ -620,6 +639,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -634,7 +654,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     if include_tgt:
         X[tgt_name] = bc.target
-        
+
     return X if not shuffle else shuffle_dataframe(X)
 
 
@@ -645,6 +665,7 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     Parameters
     ----------
+
     include_tgt : bool, optional (default=True)
         Whether to include the target
 
@@ -659,19 +680,20 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     if include_tgt:
         X[tgt_name] = bo.target
-        
+
     return X if not shuffle else shuffle_dataframe(X)
 
 
-def report_grid_score_detail(random_search, charts=True, sort_results=True, 
-        ascending=True, percentile=0.975, y_axis='score', sort_by='score',
-        highlight_best=True):
+def report_grid_score_detail(random_search, charts=True, sort_results=True,
+                             ascending=True, percentile=0.975, y_axis='score', sort_by='score',
+                             highlight_best=True):
     """Return plots and dataframe of results, given a fitted grid search.
     Note that if Matplotlib is not installed, a warning will be thrown
     and no plots will be generated.
 
     Parameters
     ----------
+
     random_search : BaseGridSearch
         The fitted grid search
 
@@ -712,13 +734,12 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         raise ValueError('percentile must be > 0 and < 1, but got %.5f' % percentile)
     z_score = st.norm.ppf(percentile)
 
-
     # list of dicts
     df_list = []
 
     # convert each score tuple into dicts -- this will eventually be deprecated...
     for score in random_search.grid_scores_:
-        results_dict = dict(score.parameters) # the parameter tuple or sampler
+        results_dict = dict(score.parameters)  # the parameter tuple or sampler
         results_dict["score"] = score.mean_validation_score
         results_dict["std"] = score.cv_validation_scores.std() * z_score
         df_list.append(results_dict)
@@ -727,11 +748,11 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     result_df = pd.DataFrame(df_list)
     if sort_results:
         result_df = result_df.sort_values(sort_by, ascending=ascending)
-    
+
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
-            if col not in valid_axes: # skip score / std
+            if col not in valid_axes:  # skip score / std
                 ser = result_df[col]
                 color = ['blue' for i in range(ser.shape[0])]
 
@@ -754,13 +775,15 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         for col in list(result_df.columns[result_df.dtypes == "object"]):
             cat_plot = result_df[y_axis].groupby(result_df[col]).mean()
             cat_plot.sort_values()
-            cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0]/2))
+            cat_plot.plot(kind="barh", xlim=(.5, None), figsize=(7, cat_plot.shape[0] / 2))
+
             plt.show()
 
     elif charts and not CAN_CHART:
         warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 
     return result_df
+
 
 def report_confusion_matrix(actual, pred, return_metrics=True):
     """Return a dataframe with the confusion matrix, and a series
@@ -781,67 +804,61 @@ def report_confusion_matrix(actual, pred, return_metrics=True):
     ser = None
     if return_metrics:
         total_pop = np.sum(cf)
-        condition_pos = np.sum(cf[1,:])
-        condition_neg = np.sum(cf[0,:])
+        condition_pos = np.sum(cf[1, :])
+        condition_neg = np.sum(cf[0, :])
 
         # alias the elements in the matrix
-        tp = cf[1,1]
-        fp = cf[0,1]
-        tn = cf[0,0]
-        fn = cf[1,0]
+        tp = cf[1, 1]
+        fp = cf[0, 1]
+        tn = cf[0, 0]
+        fn = cf[1, 0]
 
         # sums of the prediction cols
         pred_pos = tp + fp
         pred_neg = tn + fn
 
-        acc = (tp+tn) / total_pop       # accuracy
-        tpr = tp / condition_pos        # sensitivity, recall
-        fpr = fp / condition_neg        # fall-out
-        fnr = fn / condition_pos        # miss rate
-        tnr = tn / condition_neg        # specificity
-        prev= condition_pos / total_pop # prevalence
-        plr = tpr / fpr                 # positive likelihood ratio, LR+
-        nlr = fnr / tnr                 # negative likelihood ratio, LR-
-        dor = plr / nlr                 # diagnostic odds ratio
-        prc = tp / pred_pos             # precision, positive predictive value
-        fdr = fp / pred_pos             # false discovery rate
-        fomr= fn / pred_neg             # false omission rate
-        npv = tn / pred_neg             # negative predictive value
+        acc = (tp + tn) / total_pop  # accuracy
+        tpr = tp / condition_pos  # sensitivity, recall
+        fpr = fp / condition_neg  # fall-out
+        fnr = fn / condition_pos  # miss rate
+        tnr = tn / condition_neg  # specificity
+        prev = condition_pos / total_pop  # prevalence
+        plr = tpr / fpr  # positive likelihood ratio, LR+
+        nlr = fnr / tnr  # negative likelihood ratio, LR-
+        dor = plr / nlr  # diagnostic odds ratio
+        prc = tp / pred_pos  # precision, positive predictive value
+        fdr = fp / pred_pos  # false discovery rate
+        fomr = fn / pred_neg  # false omission rate
+        npv = tn / pred_neg  # negative predictive value
 
         # define the series
         d = {
-            'Accuracy'              : acc,
-            'Diagnostic odds ratio' : dor,
-            'Fall-out'              : fpr,
-            'False discovery rate'  : fdr,
-            'False Neg. Rate'       : fnr,
-            'False omission rate'   : fomr,
-            'False Pos. Rate'       : fpr,
-            'Miss rate'             : fnr,
-            'Neg. likelihood ratio' : nlr,
-            'Neg. predictive value' : npv,
-            'Pos. likelihood ratio' : plr,
-            'Pos. predictive value' : prc,
-            'Precision'             : prc,
-            'Prevalence'            : prev,
-            'Recall'                : tpr,
-            'Sensitivity'           : tpr,
-            'Specificity'           : tnr,
-            'True Pos. Rate'        : tpr,
-            'True Neg. Rate'        : tnr
+            'Accuracy': acc,
+            'Diagnostic odds ratio': dor,
+            'Fall-out': fpr,
+            'False discovery rate': fdr,
+            'False Neg. Rate': fnr,
+            'False omission rate': fomr,
+            'False Pos. Rate': fpr,
+            'Miss rate': fnr,
+            'Neg. likelihood ratio': nlr,
+            'Neg. predictive value': npv,
+            'Pos. likelihood ratio': plr,
+            'Pos. predictive value': prc,
+            'Precision': prc,
+            'Prevalence': prev,
+            'Recall': tpr,
+            'Sensitivity': tpr,
+            'Specificity': tnr,
+            'True Pos. Rate': tpr,
+            'True Neg. Rate': tnr
         }
 
         ser = pd.Series(data=d)
         ser.name = 'Metrics'
 
-
     # create the DF
-    conf = pd.DataFrame.from_records(data=cf, columns=['Neg','Pos'])
-    conf.index = ['Neg','Pos']
+    conf = pd.DataFrame.from_records(data=cf, columns=['Neg', 'Pos'])
+    conf.index = ['Neg', 'Pos']
 
     return conf, ser
-
-
-
-
-    

@@ -8,7 +8,6 @@ from __future__ import print_function, absolute_import, division
 from functools import update_wrapper
 from operator import attrgetter
 
-
 __all__ = [
     'if_delegate_has_method'
 ]
@@ -29,6 +28,7 @@ class _IffHasAttrDescriptor(object):
     See https://docs.python.org/3/howto/descriptor.html for an explanation of
     descriptors.
     """
+
     def __init__(self, fn, delegate_names, attribute_name):
         self.fn = fn
         self.delegate_names = delegate_names
@@ -59,6 +59,7 @@ class _IffHasAttrDescriptor(object):
         update_wrapper(out, self.fn)
         return out
 
+
 def if_delegate_has_method(delegate, method=None):
     """Create a decorator for methods that are delegated to a sub-estimator
     This enables ducktyping by hasattr returning True according to the
@@ -67,6 +68,7 @@ def if_delegate_has_method(delegate, method=None):
 
     Parameters
     ----------
+
     delegate : string, list of strings or tuple of strings
         Name of the sub-estimator that can be accessed as an attribute of the
         base object. If a list or a tuple of names are provided, the first
@@ -81,5 +83,5 @@ def if_delegate_has_method(delegate, method=None):
     if not isinstance(delegate, tuple):
         delegate = (delegate,)
 
-    return lambda fn: _IffHasAttrDescriptor(fn, delegate, 
-        attribute_name=(method if method is not None else fn.__name__))
+    return lambda fn: _IffHasAttrDescriptor(fn, delegate,
+                                            attribute_name=(method if method is not None else fn.__name__))

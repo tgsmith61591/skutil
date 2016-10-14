@@ -1,11 +1,7 @@
 from __future__ import absolute_import, division, print_function
-import numpy as np
 from h2o.frame import H2OFrame
-from sklearn.externals import six
-from .base import _check_is_frame, check_version
+from .base import _check_is_frame
 from ..utils import flatten_all
-
-
 
 __all__ = [
     '_check_is_1d_frame',
@@ -15,18 +11,19 @@ __all__ = [
 ]
 
 
-
 def _check_is_1d_frame(X):
     """Check whether X is an H2OFrame
     and that it's a 1d column.
 
     Parameters
     ----------
+
     X : H2OFrame
         The H2OFrame
 
     Returns
     -------
+
     X : H2OFrame
     """
     X = _check_is_frame(X)
@@ -40,11 +37,13 @@ def is_numeric(x):
 
     Parameters
     ----------
+
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
     -------
+
     bool : True if numeric, else False
     """
     _check_is_1d_frame(x)
@@ -57,11 +56,13 @@ def is_integer(x):
 
     Parameters
     ----------
+
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
     -------
+
     bool : True if integers, else False
     """
     _check_is_1d_frame(x)
@@ -76,13 +77,14 @@ def is_float(x):
 
     Parameters
     ----------
+
     x : H2OFrame, 1d
         The H2OFrame
 
     Returns
     -------
+
     bool : True if float, else False
     """
     _check_is_1d_frame(x)
     return is_numeric(x) and not is_integer(x)
-    

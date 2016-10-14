@@ -1,18 +1,13 @@
 from __future__ import absolute_import, division, print_function
-import abc
-import numpy as np
 import pandas as pd
-
+from abc import ABCMeta
 from sklearn.externals import six
-from h2o.frame import H2OFrame
-
-from .base import _check_is_frame, BaseH2OFunctionWrapper, _frame_from_x_y
+from skutil.base import overrides
+from .util import reorder_h2o_frame
+from .base import _check_is_frame, BaseH2OFunctionWrapper
 from ..preprocessing import BalancerMixin
-from ..preprocessing.balance import (_validate_ratio, _validate_target, 
-    _validate_num_classes, _OversamplingBalancePartitioner,
-    _UndersamplingBalancePartitioner)
-from ..base import overrides
-
+from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
+                                     _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner)
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -32,17 +27,16 @@ def _validate_x_y_ratio(X, y, ratio):
        1.0 (inclusive)
 
     Return
-    ------
     (cts, n_classes), a tuple with the sorted class value_counts and the number of classes
     """
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
     ratio = _validate_ratio(ratio)
-    y = _validate_target(y) # cast to string type
+    y = _validate_target(y)  # cast to string type
 
     # generate cts. Have to get kludgier in h2o...
     unq_vals = X[y].unique()
-    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values # numpy array of unique vals
-    unq_cts = dict([(val, X[y][X[y]==val].shape[0]) for val in unq_vals])
+    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values  # numpy array of unique vals
+    unq_cts = dict([(val, X[y][X[y] == val].shape[0]) for val in unq_vals])
 
     # validate is < max classes
     cts = pd.Series(unq_cts).sort_values()
@@ -51,16 +45,20 @@ def _validate_x_y_ratio(X, y, ratio):
     return cts, n_classes
 
 
-class _BaseH2OBalancer(BaseH2OFunctionWrapper, BalancerMixin):
+class _BaseH2OBalancer(six.with_metaclass(ABCMeta, 
+                                          BaseH2OFunctionWrapper, 
+                                          BalancerMixin)):
     """Base class for all H2O balancers. Provides _min_version
     and _max_version for BaseH2OFunctionWrapper constructor.
     """
 
-    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, min_version='any', max_version=None):
-        super(_BaseH2OBalancer, self).__init__(target_feature=target_feature, 
+    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, 
+                 min_version='any', max_version=None, shuffle=True):
+        super(_BaseH2OBalancer, self).__init__(target_feature=target_feature,
                                                min_version=min_version,
                                                max_version=max_version)
         self.ratio = ratio
+        self.shuffle = shuffle
 
 
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
@@ -69,19 +67,24 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 
     Parameters
     ----------
+
     target_feature : str
         The name of the response column. The response column must be
-        biclass, no more or less.
+        bi-class, no more or less.
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input frame
+
+    shuffle : bool, optional (default=True)
+        Whether or not to shuffle rows on return
     """
 
-    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio):
-        # as of now, no min/max version; it's simply uncompatible...
-        super(H2OOversamplingClassBalancer, self).__init__(target_feature, ratio)
+    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, shuffle=True):
+        # as of now, no min/max version; it's simply compatible with all...
+        super(H2OOversamplingClassBalancer, self).__init__(
+            target_feature=target_feature, ratio=ratio, shuffle=shuffle)
 
     @overrides(BalancerMixin)
     def balance(self, X):
@@ -91,31 +94,23 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         
         Parameters
         ----------
+
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance
         """
-
         # check on state of X
         frame = _check_is_frame(X)
 
         # get the partitioner
-        partitioner = _OversamplingBalancePartitioner(frame, 
-            self.target_feature, self.ratio, _validate_x_y_ratio)
-        sample_idcs = partitioner.get_indices()
+        partitioner = _OversamplingBalancePartitioner(
+            frame, self.target_feature, 
+            self.ratio, _validate_x_y_ratio)
+        sample_idcs = partitioner.get_indices(self.shuffle)
 
         # since H2O won't allow us to resample (it's considered rearranging)
         # we need to rbind at each point of duplication... this can be pretty
         # inefficient, so we might need to get clever about this...
-        new_frame = None
-
-        for i in sample_idcs:
-            row = frame[i, :]
-            if new_frame is None:
-                new_frame = row
-            else:
-                new_frame = new_frame.rbind(row)
-
-        return new_frame
+        return reorder_h2o_frame(frame, sample_idcs)
 
 
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
@@ -136,22 +131,27 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 
     Parameters
     ----------
+
     target_feature : str
         The name of the response column. The response column must be
         biclass, no more or less.
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input frame
+
+    shuffle : bool, optional (default=True)
+        Whether or not to shuffle rows on return
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio):
+    def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, shuffle=True):
         super(H2OUndersamplingClassBalancer, self).__init__(
-            target_feature, ratio, self._min_version, self._max_version)
+            target_feature=target_feature, ratio=ratio, min_version=self._min_version, 
+            max_version=self._max_version, shuffle=shuffle)
 
     @overrides(BalancerMixin)
     def balance(self, X):
@@ -161,6 +161,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         
         Parameters
         ----------
+
         X : H2OFrame, shape [n_samples, n_features]
             The data to balance
         """
@@ -169,10 +170,10 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         frame = _check_is_frame(X)
 
         # get the partitioner
-        partitioner = _UndersamplingBalancePartitioner(frame, 
-            self.target_feature, self.ratio, _validate_x_y_ratio)
+        partitioner = _UndersamplingBalancePartitioner(
+            frame, self.target_feature, self.ratio, _validate_x_y_ratio)
 
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
-        return frame[partitioner.get_indices(), :]
-
+        idcs = partitioner.get_indices(self.shuffle)
+        return frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, idcs)

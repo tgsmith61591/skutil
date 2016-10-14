@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-scikit-util : Bringing the Best of Both worlds From Sklearn and H2O
+scikit-util : Sklearn meets H2O
 ===================================================================
 
 .. image:: ./images/h2o-sklearn.png
@@ -29,7 +29,7 @@ Travis CI Build Status
      <a href="https://travis-ci.org/tgsmith61591/skutil" >
        <img src="https://travis-ci.org/tgsmith61591/skutil.svg?branch=master"/>
      </a>
-     <a href="https://coveralls.io/repos/github/tgsmith61591/skutil/badge" >
+     <a href="https://coveralls.io/github/tgsmith61591/skutil?branch=master" >
        <img src="https://coveralls.io/repos/github/tgsmith61591/skutil/badge.svg?branch=master"/>
      </a>
      <a href="https://img.shields.io/badge/python-2.7-blue" >

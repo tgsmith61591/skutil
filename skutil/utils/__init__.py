@@ -1,3 +1,4 @@
+from .fixes import *
 from .util import *
 from .tests.utils import assert_fails
 

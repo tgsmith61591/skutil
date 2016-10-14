@@ -3,15 +3,15 @@
 # License: BSD
 
 from __future__ import division, print_function, absolute_import
-from abc import ABCMeta, abstractmethod
-import warnings
+
 import time
-import os
-import numpy as np
-import pandas as pd
+from abc import abstractmethod
 
 import h2o
+import numpy as np
+import pandas as pd
 from h2o.frame import H2OFrame
+
 try:
     from h2o import H2OEstimator
 except ImportError as e:
@@ -20,16 +20,14 @@ except ImportError as e:
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
-from ..base import overrides
-from ..utils import is_numeric, report_grid_score_detail
+from skutil.base import overrides
+from ..utils import report_grid_score_detail
 from ..utils.metaestimators import if_delegate_has_method
-from ..grid_search import _CVScoreTuple, _check_param_grid
+from skutil.grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
-from .split import check_cv
 from .split import *
 from .metrics import (h2o_accuracy_score,
                       h2o_f1_score,
-                      h2o_fbeta_score,
                       h2o_mean_absolute_error,
                       h2o_mean_squared_error,
                       h2o_median_absolute_error,
@@ -38,16 +36,13 @@ from .metrics import (h2o_accuracy_score,
                       h2o_r2_score,
                       make_h2o_scorer)
 
-from sklearn.preprocessing import LabelEncoder
 from sklearn.externals.joblib import logger
-from sklearn.base import clone, MetaEstimatorMixin
+from sklearn.base import clone
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
 from h2o.estimators import (H2ODeepLearningEstimator, 
                             H2OGradientBoostingEstimator, 
                             H2OGeneralizedLinearEstimator,
-                            H2OGeneralizedLowRankEstimator,
-                            H2OKMeansEstimator,
                             H2ONaiveBayesEstimator,
                             H2ORandomForestEstimator)
 
@@ -64,33 +59,28 @@ except ImportError as i:
     from sklearn.grid_search import ParameterSampler, ParameterGrid
     SK18 = False
 
-
 __all__ = [
     'H2OGridSearchCV',
     'H2ORandomizedSearchCV',
     'H2OGainsRandomizedSearchCV'
 ]
 
-
 SCORERS = {
-    'accuracy_score'        : h2o_accuracy_score,
-    'f1_score'              : h2o_f1_score,
-    #'log_loss'             :,
-    'mean_absolute_error'   : h2o_mean_absolute_error,
-    'mean_squared_error'    : h2o_mean_squared_error,
-    'median_absolute_error' : h2o_median_absolute_error,
-    'precision_score'       : h2o_precision_score,
-    'r2_score'              : h2o_r2_score,
-    'recall_score'          : h2o_recall_score
+    'accuracy_score':        h2o_accuracy_score,
+    'f1_score':              h2o_f1_score,
+    # 'log_loss'             :,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
+    'median_absolute_error': h2o_median_absolute_error,
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
 }
-
-
-
 
 """These parameters are ones h2o stores
 that we don't necessarily want to clone.
 """
-PARM_IGNORE = set([
+PARM_IGNORE = {
     'model_id',
     'fold_column',
     'fold_assignment',
@@ -114,7 +104,7 @@ PARM_IGNORE = set([
     'class_sampling_factors',
     'ignore_const_cols',
     'keep_cross_validation_fold_assignment'
-])
+}
 
 
 def _as_numpy(_1d_h2o_frame):
@@ -154,14 +144,11 @@ def _clone_h2o_obj(estimator, ignore=False, **kwargs):
             for k,v in six.iteritems(e._parms):
                 k,v = _kv_str(k,v)
 
-                #if (not k in PARM_IGNORE) and (not v is None):
+                # if (not k in PARM_IGNORE) and (not v is None):
                 #   e._parms[k] = v
                 last_step._parms[k] = v
 
-        else:
-            # otherwise it's an BaseH2OFunctionWrapper
-            pass
-
+        # otherwise it's an BaseH2OFunctionWrapper
     return est
 
 
@@ -174,22 +161,24 @@ def _new_base_estimator(est, clonable_kwargs):
 
     Parameters
     ----------
+
     est : str
         The type of model to build
 
     Returns
     -------
+
     estimator : H2OEstimator
         The cloned base estimator
     """
     est_map = {
-        'dl'  : H2ODeepLearningEstimator,
-        'gbm' : H2OGradientBoostingEstimator,
-        'glm' : H2OGeneralizedLinearEstimator,
-        #'glrm': H2OGeneralizedLowRankEstimator,
-        #'km'  : H2OKMeansEstimator,
-        'nb'  : H2ONaiveBayesEstimator,
-        'rf'  : H2ORandomForestEstimator
+        'dl':     H2ODeepLearningEstimator,
+        'gbm':    H2OGradientBoostingEstimator,
+        'glm':    H2OGeneralizedLinearEstimator,
+        # 'glrm': H2OGeneralizedLowRankEstimator,
+        # 'km'  : H2OKMeansEstimator,
+        'nb':     H2ONaiveBayesEstimator,
+        'rf':     H2ORandomForestEstimator
     }
 
     estimator = est_map[est]() # initialize the new ones
@@ -207,6 +196,7 @@ def _get_estimator_string(estimator):
 
     Parameters
     ----------
+
     estimator : H2OEstimator
         The estimator
     """
@@ -216,9 +206,9 @@ def _get_estimator_string(estimator):
         return 'gbm'
     elif isinstance(estimator, H2OGeneralizedLinearEstimator):
         return 'glm'
-    #elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
+    # elif isinstance(estimator, H2OGeneralizedLowRankEstimator):
     #    return 'glrm'
-    #elif isinstance(estimator, H2OKMeansEstimator):
+    # elif isinstance(estimator, H2OKMeansEstimator):
     #    return 'km'
     elif isinstance(estimator, H2ONaiveBayesEstimator):
         return 'nb'
@@ -258,14 +248,13 @@ def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
     # This shouldn't matter: ** args are copies
     # pop all of the kwargs into the parms
     # for k,v in six.iteritems(kwargs):
-        # we could warn, but parms is affected in place, so we won't...
-        #if k in parms:
-        #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
+    # we could warn, but parms is affected in place, so we won't...
+    # if k in parms:
+    #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
     #   parms[k] = v
 
     # it's calling and h2o scorer at this point
     return scorer.score(y_truth, pred, **kwargs)
-
 
 
 def _fit_and_score(estimator, frame, feature_names, target_feature,
@@ -274,54 +263,55 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
                    cv_fold, iteration):
     """Fits the current fold on the current parameters.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit
+        Parameters
+        ----------
 
-    frame : H2OFrame
-        The training frame
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit
 
-    feature_names : iterable (str)
-        The feature names on which to train
+        frame : H2OFrame
+            The training frame
 
-    target_feature : str
-        The name of the target feature
+        feature_names : iterable (str)
+            The feature names on which to train
 
-    scorer : H2OScorer
-        The scoring function
+        target_feature : str
+            The name of the target feature
 
-    parameters : dict
-        The parameters to set in the estimator clone
+        scorer : H2OScorer
+            The scoring function
 
-    verbose : int
-        The level of verbosity
+        parameters : dict
+            The parameters to set in the estimator clone
 
-    scoring_params : dict
-        The parameters to pass as kwargs to the scoring function
+        verbose : int
+            The level of verbosity
 
-    train : iterable
-        The train fold indices
+        scoring_params : dict
+            The parameters to pass as kwargs to the scoring function
 
-    test : iterable
-        The test fold indices
+        train : iterable
+            The train fold indices
 
-    is_regression : bool
-        Whether we are fitting a continuous target
+        test : iterable
+            The test fold indices
 
-    act_args : dict
-        GainsReport args if called from a Gains search
+        is_regression : bool
+            Whether we are fitting a continuous target
 
-    cv_fold : int
-        The fold number for reporting
+        act_args : dict
+            GainsReport args if called from a Gains search
 
-    iteration : int
-        The iteration number for reporting
+        cv_fold : int
+            The fold number for reporting
 
+        iteration : int
+            The iteration number for reporting
 
-    Returns
-    -------
-    list : [test_score, len(test), estimator, parameters]
+        Returns
+        -------
+
+        list : [test_score, len(test), estimator, parameters]
     """
     if parameters is None:
         parameters = {}
@@ -334,7 +324,6 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
                                      for k, v in parameters.items()))
         print("[CV (iter %i, fold %i)] %s %s" % (iteration, cv_fold, msg, (64 - len(msg)) * '.'))
 
-
     # h2o doesn't currently re-order rows... and sometimes will
     # complain for some reason. We need to sort our train/test idcs
     train = sorted(train)
@@ -344,13 +333,12 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     # our existing numpy arrays
     if act_args is not None:
         kwargs = {
-            'expo' : act_args['expo'][test],
-            'loss' : act_args['loss'][test],
-            'prem' : act_args['prem'][test] if act_args['prem'] is not None else None
+            'expo': act_args['expo'][test],
+            'loss': act_args['loss'][test],
+            'prem': act_args['prem'][test] if act_args['prem'] is not None else None
         }
     else:
         kwargs = scoring_params
-
 
     # generate split
     train_frame = frame[train, :]
@@ -358,8 +346,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
     start_time = time.time()
 
-
-    #it's probably a pipeline
+    # it's probably a pipeline
     is_h2o_est = isinstance(estimator, H2OEstimator)
     if not is_h2o_est: 
         estimator.set_params(**parameters)
@@ -370,7 +357,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
         # do fit
         estimator.fit(train_frame)
-    else: # it's just an H2OEstimator
+    else:  # it's just an H2OEstimator
         # parm_dict = {}
         for k, v in six.iteritems(parameters):
             if '__' in k:
@@ -382,7 +369,6 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
 
         # do train
         estimator.train(training_frame=train_frame, x=feature_names, y=target_feature)
-
 
     # score model
     test_score = _score(estimator, test_frame, target_feature, scorer, is_regression, **kwargs)
@@ -398,8 +384,8 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
     if verbose > 1:
         end_msg = '%s -%s' % (msg, logger.short_format_time(scoring_time))
         print('[CV (iter %i, fold %i)] %s %s' % (iteration, cv_fold, (64 - len(end_msg)) * '.', end_msg))
-        print() # new line
-        print() # new line
+        print()  # new line
+        print()  # new line
 
     return [test_score, len(test), estimator, parameters]
 
@@ -458,16 +444,14 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         elif not isinstance(estimator, H2OEstimator):
             raise TypeError('estimator must be an H2OPipeline or an H2OEstimator. Got %s' % type(estimator))
 
-
         # the addition of the gains search necessitates some hackiness.
         # if we have the attr 'extra_args_' then we know it's an gains search
         xtra = self.extra_args_ if hasattr(self, 'extra_args_') else None       # np arrays themselves
-        xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None # the names of the prem,exp,loss features
-
+        xtra_nms = self.extra_names_ if hasattr(self, 'extra_names_') else None  # the names of the prem,exp,loss features
 
         # we need to require scoring...
         scoring = self.scoring
-        if hasattr(self, 'scoring_class_') or xtra is not None: # this is a gains search, and we don't need to h2o-ize it
+        if hasattr(self, 'scoring_class_') or xtra is not None:  # this is a gains search, and we don't need to h2o-ize it
             pass
         else:
             if scoring is None:
@@ -487,24 +471,20 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             # make it a scorer
             if hasattr(scoring, '__call__'):
                 self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
-            else: # should be impossible to get here
+            else:  # should be impossible to get here
                 raise TypeError('expected string or callable for scorer, but got %s' %type(self.scoring))
-
-
 
         # validate CV
         cv = check_cv(self.cv)
 
-
         # clone estimator
         nms = {
-            'feature_names' : self.feature_names,
+            'feature_names':  self.feature_names,
             'target_feature': self.target_feature
         }
 
         # do first clone, remember to set the names...
         base_estimator = _clone_h2o_obj(self.estimator, **nms)
-
 
         # do fits, scores
         out = [
@@ -549,7 +529,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             score_validation = False
 
-
         # do scoring
         scores = list()
         grid_scores = list()
@@ -571,8 +550,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 # score validation set if necessary
                 if score_validation:
                     val_score = _score(this_estimator, self.validation_frame, 
-                        self.target_feature, val_scorer, self.is_regression_, 
-                        **kwargs)
+                                       self.target_feature, val_scorer,
+                                       self.is_regression_, **kwargs)
 
                     # if it's gains scorer, handles the iid condition internally...
                     self.validation_scores.append(val_score)
@@ -594,7 +573,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # Find the best parameters by comparing on the mean validation score:
         # note that `sorted` is deterministic in the way it breaks ties
         is_bias = minimize == 'bias'
-        the_key = (lambda x: x.mean_validation_score) if is_bias else (lambda x: x.cv_validation_scores.std()) # else == variance
+        # else == variance
+        the_key = (lambda x: x.mean_validation_score) if is_bias else (lambda x: x.cv_validation_scores.std())
         best = sorted(grid_scores, key=the_key, reverse=is_bias)[0]
 
         self.best_params_ = best.parameters
@@ -604,14 +584,12 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # clone first to work around broken estimators
         best_estimator = _clone_h2o_obj(base_estimator, **nms)
 
-
         # if verbose alert user we're at the end...
         if self.verbose > 1:
             msg = 'Target: %s; %s' % (self.target_feature, ', '.join('%s=%s' % (k,v)
                                      for k, v in six.iteritems(best.parameters) ))
             print("\nFitting best hyperparameters across all folds")
             print("[BEST] %s %s" % (msg, (64 - len(msg)) * '.'))
-
 
         # set params -- remember h2o gets funky with this...
         if isinstance(best_estimator, H2OEstimator):
@@ -622,12 +600,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             best_estimator.set_params(**best.parameters)
             best_estimator.fit(X)
 
-
         # Set the best estimator
         self.best_estimator_ = best_estimator
 
         return self
-
 
     def score(self, frame):
         check_is_fitted(self, 'best_estimator_')
@@ -635,12 +611,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                       self.scoring_class_, self.is_regression_, 
                       **self.scoring_params)
 
-
     def predict(self, frame):
         check_is_fitted(self, 'best_estimator_')
         frame = _check_is_frame(frame)
         return self.best_estimator_.predict(frame)
-
 
     def fit_predict(self, frame):
         """Fit the grid search on the given frame,
@@ -648,11 +622,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         Parameters
         ----------
+
         frame : H2OFrame
             The frame to fit
         """
         return self.fit(frame).predict(frame)
-
 
     @overrides(VizMixin)
     def plot(self, timestep, metric):
@@ -664,7 +638,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             # should be an H2OEstimator
             self.best_estimator_._plot(timestep=timestep, metric=metric)
-
 
     @staticmethod
     def load(location):
@@ -706,7 +679,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         return model
 
-
     def _save_internal(self, **kwargs):
         check_is_fitted(self, 'best_estimator_')
         best_estimator = self.best_estimator_
@@ -724,7 +696,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             self.est_name_ = best_estimator.steps[-1][0]  # don't need to duplicate--can use for base
 
             the_h2o_est = best_estimator._final_estimator
-            the_base_est= estimator._final_estimator
+            the_base_est = estimator._final_estimator
 
             is_pipe = True
         else:
@@ -738,7 +710,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         # first, save the best estimator's H2O piece...
         force = kwargs.pop('force', False)
         self.model_loc_ = h2o.save_model(model=the_h2o_est, path=model_loc, force=force)
-
 
         # set to none for pickling, and then restore state for scoring
         if is_pipe:
@@ -759,7 +730,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         with open(loc, 'wb') as output:
             pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
-
         # restore state for re-use
         if is_pipe:
             best_estimator.steps[-1] = last_step_
@@ -768,7 +738,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             self.best_estimator_ = last_step_
             self.estimator = base_last_step_
 
-            
     @if_delegate_has_method(delegate='best_estimator_')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -776,62 +745,63 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         Parameters
         ----------
+
         use_pandas : bool, optional (default=True)
             Whether to return a pandas dataframe
         """
         return self.best_estimator_.varimp(use_pandas=use_pandas)
-    
 
 
 class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+        Parameters
+        ----------
 
-    param_grid : dict
-        The hyper parameter grid over which to search.
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit.
 
-    feature_names : iterable (str)
-        The list of feature names on which to fit
+        param_grid : dict
+            The hyper parameter grid over which to search.
 
-    target_feature : str
-        The name of the target
+        feature_names : iterable (str)
+            The list of feature names on which to fit
 
-    scoring : str, optional (default='lift')
-        A valid scoring metric, i.e., "accuracy_score". See
-        ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
+        target_feature : str
+            The name of the target
 
-    scoring_params : dict, optional (default=None)
-        Any kwargs to be passed to the scoring function for
-        scoring at each iteration.
+        scoring : str, optional (default='lift')
+            A valid scoring metric, i.e., "accuracy_score". See
+            ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
 
-    cv : int or H2OCrossValidator, optional (default=5)
-        The number of folds to be fit for cross validation.
+        scoring_params : dict, optional (default=None)
+            Any kwargs to be passed to the scoring function for
+            scoring at each iteration.
 
-    verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        cv : int or H2OCrossValidator, optional (default=5)
+            The number of folds to be fit for cross validation.
 
-    iid : bool, optional (default=True)
-        Whether to consider each fold as IID. The fold scores
-        are normalized at the end by the number of observations
-        in each fold.
+        verbose : int, optional (default=0)
+            The level of verbosity. 1,2 or greater.
 
-    validation_frame : H2OFrame, optional (default=None)
-        Whether to score on the full validation frame at the
-        end of all of the model fits. Note that this will NOT be
-        used in the actual model selection process.
+        iid : bool, optional (default=True)
+            Whether to consider each fold as IID. The fold scores
+            are normalized at the end by the number of observations
+            in each fold.
 
-    minimize : str, optional (default='bias')
-        How the search selects the best model to fit on the entire dataset.
-        One of {'bias','variance'}. The default behavior is 'bias', which is
-        also the default behavior of sklearn. This will select the set of
-        hyper parameters which maximizes the cross validation score mean.
-        Alternatively, 'variance' will select the model which minimizes
-        the standard deviations between cross validation scores.
+        validation_frame : H2OFrame, optional (default=None)
+            Whether to score on the full validation frame at the
+            end of all of the model fits. Note that this will NOT be
+            used in the actual model selection process.
+
+        minimize : str, optional (default='bias')
+            How the search selects the best model to fit on the entire dataset.
+            One of {'bias','variance'}. The default behavior is 'bias', which is
+            also the default behavior of sklearn. This will select the set of
+            hyper parameters which maximizes the cross validation score mean.
+            Alternatively, 'variance' will select the model which minimizes
+            the standard deviations between cross validation scores.
     """
     def __init__(self, estimator, param_grid, 
                  feature_names, target_feature, 
@@ -857,68 +827,68 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         return self._fit(frame, ParameterGrid(self.param_grid))
 
 
-
 class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
 
-    Parameters
-    ----------
-    estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+        Parameters
+        ----------
 
-    param_grid : dict
-        The hyper parameter grid over which to search.
+        estimator : H2OPipeline or H2OEstimator
+            The estimator to fit.
 
-    feature_names : iterable (str)
-        The list of feature names on which to fit
+        param_grid : dict
+            The hyper parameter grid over which to search.
 
-    target_feature : str
-        The name of the target
+        feature_names : iterable (str)
+            The list of feature names on which to fit
 
-    n_iter : int, optional (default=10)
-        The number of iterations to fit. Note that 
-        n_iter * cv.get_n_splits will be fit. If there
-        are 10 folds and 10 iterations, 100 models (plus
-        one) will be fit.
+        target_feature : str
+            The name of the target
 
-    random_state : int, optional (default=None)
-        The random state for the search
+        n_iter : int, optional (default=10)
+            The number of iterations to fit. Note that 
+            n_iter * cv.get_n_splits will be fit. If there
+            are 10 folds and 10 iterations, 100 models (plus
+            one) will be fit.
 
-    scoring : str, optional (default='lift')
-        A valid scoring metric, i.e., "accuracy_score". See
-        ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
+        random_state : int, optional (default=None)
+            The random state for the search
 
-    scoring_params : dict, optional (default=None)
-        Any kwargs to be passed to the scoring function for
-        scoring at each iteration.
+        scoring : str, optional (default='lift')
+            A valid scoring metric, i.e., "accuracy_score". See
+            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
 
-    cv : int or H2OCrossValidator, optional (default=5)
-        The number of folds to be fit for cross validation.
-        Note that n_iter * cv.get_n_splits will be fit. If there
-        are 10 folds and 10 iterations, 100 models (plus
-        one) will be fit.
+        scoring_params : dict, optional (default=None)
+            Any kwargs to be passed to the scoring function for
+            scoring at each iteration.
 
-    verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        cv : int or H2OCrossValidator, optional (default=5)
+            The number of folds to be fit for cross validation.
+            Note that n_iter * cv.get_n_splits will be fit. If there
+            are 10 folds and 10 iterations, 100 models (plus
+            one) will be fit.
 
-    iid : bool, optional (default=True)
-        Whether to consider each fold as IID. The fold scores
-        are normalized at the end by the number of observations
-        in each fold.
+        verbose : int, optional (default=0)
+            The level of verbosity. 1,2 or greater.
 
-    validation_frame : H2OFrame, optional (default=None)
-        Whether to score on the full validation frame at the
-        end of all of the model fits. Note that this will NOT be
-        used in the actual model selection process.
+        iid : bool, optional (default=True)
+            Whether to consider each fold as IID. The fold scores
+            are normalized at the end by the number of observations
+            in each fold.
 
-    minimize : str, optional (default='bias')
-        How the search selects the best model to fit on the entire dataset.
-        One of {'bias','variance'}. The default behavior is 'bias', which is
-        also the default behavior of sklearn. This will select the set of
-        hyper parameters which maximizes the cross validation score mean.
-        Alternatively, 'variance' will select the model which minimizes
-        the standard deviations between cross validation scores.
+        validation_frame : H2OFrame, optional (default=None)
+            Whether to score on the full validation frame at the
+            end of all of the model fits. Note that this will NOT be
+            used in the actual model selection process.
+
+        minimize : str, optional (default='bias')
+            How the search selects the best model to fit on the entire dataset.
+            One of {'bias','variance'}. The default behavior is 'bias', which is
+            also the default behavior of sklearn. This will select the set of
+            hyper parameters which maximizes the cross validation score mean.
+            Alternatively, 'variance' will select the model which minimizes
+            the standard deviations between cross validation scores.
     """
     def __init__(self, estimator, param_grid,
                  feature_names, target_feature, 
@@ -950,12 +920,13 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         return self._fit(frame, sampled_params)
 
 
-def _val_exp_loss_prem(x,y,z):
+def _val_exp_loss_prem(x, y, z):
     """Takes three strings (or unicode) and cleans them
     for indexing an H2OFrame.
 
     Parameters
     ----------
+
     x : str
         exp name
 
@@ -967,6 +938,7 @@ def _val_exp_loss_prem(x,y,z):
 
     Returns
     -------
+
     tuple :
         str, str, (str or None)
     """
@@ -988,6 +960,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     Parameters
     ----------
+
     estimator : H2OPipeline or H2OEstimator
         The estimator to fit.
 
@@ -1067,7 +1040,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
                  premium_feature=None, n_iter=10, 
                  random_state=None, scoring='lift', 
                  scoring_params=None, cv=5,
-                 verbose=0, iid=True, #n_groups=10,
+                 verbose=0, iid=True,  # n_groups=10,
                  validation_frame=None, minimize='bias', 
                  error_score=np.nan, error_behavior='warn'):
 
@@ -1091,17 +1064,16 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         # for re-fitting, we need these kwargs saved
         self.grsttngs_ = {
-            'score_by'      : scoring,
-            'n_folds'       : check_cv(cv).get_n_splits(),
-            'n_iter'        : n_iter,
-            'iid'           : iid,
-            'error_score'   : error_score,
+            'score_by':       scoring,
+            'n_folds':        check_cv(cv).get_n_splits(),
+            'n_iter':         n_iter,
+            'iid':            iid,
+            'error_score':    error_score,
             'error_behavior': error_behavior
         }
 
         # the scoring_class_ (set in ``fit``) will do the scoring
         self.scoring = None 
-
 
     def fit(self, frame):
         sampled_params = ParameterSampler(self.param_grid,
@@ -1114,16 +1086,16 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         # we can do this once to avoid many as_data_frame operations
         exp, loss, prem = _val_exp_loss_prem(self.exposure_feature, self.loss_feature, self.premium_feature)
         self.extra_args_ = {
-            'expo' : _as_numpy(frame[exp]),
-            'loss' : _as_numpy(frame[loss]),
-            'prem' : _as_numpy(frame[prem]) if prem is not None else None
+            'expo': _as_numpy(frame[exp]),
+            'loss': _as_numpy(frame[loss]),
+            'prem': _as_numpy(frame[prem]) if prem is not None else None
         }
 
         # for validation set
         self.extra_names_ = {
-            'expo' : exp,
-            'loss' : loss,
-            'prem' : prem
+            'expo': exp,
+            'loss': loss,
+            'prem': prem
         }
 
         # do fit
@@ -1144,6 +1116,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         Returns
         -------
+
         rdf : pd.DataFrame
             The grid search report
         """
@@ -1181,6 +1154,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
         Parameters
         ----------
+
         frame : H2OFrame
             The frame on which to predict and score performance.
         """
@@ -1188,12 +1162,11 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         e,l,p = self.extra_names_['expo'], self.extra_names_['loss'], self.extra_names_['prem']
 
         kwargs = {
-            'expo' : frame[e],
-            'loss' : frame[l],
-            'prem' : frame[p] if p is not None else None
+            'expo': frame[e],
+            'loss': frame[l],
+            'prem': frame[p] if p is not None else None
         }
 
         y_truth = frame[self.target_feature]
         pred = self.best_estimator_.predict(frame)['predict']
         return self.scoring_class_.score_no_store(y_truth, pred, **kwargs)
-

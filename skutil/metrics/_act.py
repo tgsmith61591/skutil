@@ -1,22 +1,25 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
-from ..h2o.util import h2o_col_to_numpy
 import pandas as pd
 import numpy as np
 import warnings
-import abc
-
 
 __all__ = [
     'GainsStatisticalReport'
 ]
+
 
 def _as_numpy(*args):
     def _single_as_numpy(x):
         if not isinstance(x, np.ndarray):
             # if an H2OFrame, just return the first col
             if isinstance(x, H2OFrame):
-                return h2o_col_to_numpy(x)
+                # same as ..h2o.util.h2o_col_to_numpy, but
+                # that causes circular dependency in imports.
+                if not x.shape[1] == 1:
+                    raise ValueError('must be 1d column')
+                _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
+                return _1d[_1d.columns[0]].values
             elif hasattr(x, '__iter__'):
                 return np.asarray(x)
             else:
@@ -39,6 +42,7 @@ class GainsStatisticalReport(object):
 
     Parameters
     ----------
+
     n_groups : int, optional (default=10)
         The number of groups to use for computations.
 
@@ -59,11 +63,11 @@ class GainsStatisticalReport(object):
     # maximizing score functions must be multiplied by
     # -1 in order to most "minimize" some loss function
     _signs = {
-        'lift' : -1,
-        'gini' : -1
+        'lift': -1,
+        'gini': -1
     }
 
-    def __init__(self, n_groups=10, n_folds=None, n_iter=None, 
+    def __init__(self, n_groups=10, n_folds=None, n_iter=None,
                  score_by='lift', iid=True, error_score=np.nan,
                  error_behavior='warn'):
 
@@ -71,7 +75,7 @@ class GainsStatisticalReport(object):
         self.score_by = score_by
 
         met = self._signs.keys()
-        self.stats = {m:[] for m in met}
+        self.stats = {m: [] for m in met}
         self.sample_sizes = []
 
         self.n_folds = n_folds
@@ -83,12 +87,11 @@ class GainsStatisticalReport(object):
         # validate score_by
         if not score_by in self._signs:
             raise ValueError('score_by must be in %s, but got %s'
-                % (', '.join(met), score_by))
+                             % (', '.join(met), score_by))
 
         # how many to store in the scoring method?
         if n_folds and not n_iter:
             raise ValueError('if n_folds is set, must set n_iter')
-
 
     def as_data_frame(self):
         """Get the report in the form of a dataframe"""
@@ -105,10 +108,10 @@ class GainsStatisticalReport(object):
 
             new_stats = {}
             for metric in self._signs.keys():
-                new_stats['%s_mean'%metric] = [] # the mean scores
-                new_stats['%s_std' %metric] = [] # the std scores
-                new_stats['%s_min' %metric] = [] # the min scores
-                new_stats['%s_max' %metric] = [] # the max scores
+                new_stats['%s_mean' % metric] = []  # the mean scores
+                new_stats['%s_std' % metric] = []  # the std scores
+                new_stats['%s_min' % metric] = []  # the min scores
+                new_stats['%s_max' % metric] = []  # the max scores
                 idx = 0
 
                 for _ in range(n_iter):
@@ -125,7 +128,7 @@ class GainsStatisticalReport(object):
                             this_score *= this_n_test_samples
                             n_test_samples += this_n_test_samples
                         fold_score += this_score
-                        idx+=1
+                        idx += 1
 
                     if self.iid:
                         fold_score /= float(n_test_samples)
@@ -133,16 +136,15 @@ class GainsStatisticalReport(object):
                         fold_score /= float(n_folds)
 
                     # append the mean score, and then the std of the scores for the folds
-                    new_stats['%s_mean'%metric].append(fold_score)
-                    new_stats['%s_std' %metric].append(np.std(all_fold_scores))
-                    new_stats['%s_min' %metric].append(np.min(all_fold_scores))
-                    new_stats['%s_max' %metric].append(np.max(all_fold_scores))
+                    new_stats['%s_mean' % metric].append(fold_score)
+                    new_stats['%s_std' % metric].append(np.std(all_fold_scores))
+                    new_stats['%s_min' % metric].append(np.min(all_fold_scores))
+                    new_stats['%s_max' % metric].append(np.max(all_fold_scores))
 
             df = pd.DataFrame.from_dict(new_stats)
 
             # let's order by names
             return df[sorted(df.columns.values)]
-
 
     def _compute_stats(self, pred, expo, loss, prem):
         n_samples, n_groups = pred.shape[0], self.n_groups
@@ -154,14 +156,14 @@ class GainsStatisticalReport(object):
         groups = np.arange(n_groups)
 
         tab = pd.DataFrame({
-                'rank' : rank,
-                'pred' : pred,
-                'prem' : prem,
-                'loss' : loss,
-                'expo' : expo
-            })
+            'rank': rank,
+            'pred': pred,
+            'prem': prem,
+            'loss': loss,
+            'expo': expo
+        })
 
-        grouped = tab[['rank','pred','prem','loss','expo']].groupby('rank')
+        grouped = tab[['rank', 'pred', 'prem', 'loss', 'expo']].groupby('rank')
         agg_rlr = (grouped['loss'].agg(np.sum) / grouped['prem'].agg(np.sum)) / loss_to_returns
 
         return tab, agg_rlr, n_groups
@@ -172,6 +174,7 @@ class GainsStatisticalReport(object):
 
         Parameters
         ----------
+
         _ : H2OFrame, np.ndarray
             The truth set
 
@@ -180,7 +183,6 @@ class GainsStatisticalReport(object):
         """
         return self._score(_, pred, True, **kwargs)
 
-
     def score_no_store(self, _, pred, **kwargs):
         """Scores the new predictions on the truth set,
         and does not store the results in the internal 
@@ -188,6 +190,7 @@ class GainsStatisticalReport(object):
 
         Parameters
         ----------
+
         _ : H2OFrame, np.ndarray
             The truth set
 
@@ -196,12 +199,12 @@ class GainsStatisticalReport(object):
         """
         return self._score(_, pred, False, **kwargs)
 
-
     def _score(self, _, pred, store, **kwargs):
         """Scores the new predictions on the truth set.
 
         Parameters
         ----------
+
         _ : H2OFrame, np.ndarray
             The truth set
 
@@ -213,7 +216,7 @@ class GainsStatisticalReport(object):
             this will store the results. If called from the grid search
             ```score``` method after fit, it will not.
         """
-        ## For scoring from gridsearch...
+        # For scoring from gridsearch...
         expo, loss, prem = kwargs.get('expo'), kwargs.get('loss'), kwargs.get('prem', None)
         self.fit_fold(pred, expo, loss, prem, store)
 
@@ -221,14 +224,13 @@ class GainsStatisticalReport(object):
         # so we need to return negative for maximizing metrics
         return self.stats[self.score_by][-1] * self._signs[self.score_by]
 
-
     def fit_fold(self, pred, expo, loss, prem=None, store=True):
         """Used to fit a single fold of predicted values, 
         exposure and loss data.
         """
         # check params
-        if not self.error_behavior in ('warn','raise','ignore'):
-            raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). ' 
+        if not self.error_behavior in ('warn', 'raise', 'ignore'):
+            raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). '
                              'Encountered %s' % str(self.error_behavior))
 
         on_error = self.error_behavior
@@ -242,10 +244,10 @@ class GainsStatisticalReport(object):
         try:
             tab, stats, n_groups = self._compute_stats(pred, expo, loss, prem)
             kwargs = {
-                'pred' : pred, 'expo' : expo,
-                'loss' : loss, 'prem' : prem,
-                'stats': stats, 'tab'  : tab,
-                'n_groups' : n_groups
+                'pred': pred, 'expo': expo,
+                'loss': loss, 'prem': prem,
+                'stats': stats, 'tab': tab,
+                'n_groups': n_groups
             }
 
             # compute the metrics. This relies on the convention
@@ -254,20 +256,20 @@ class GainsStatisticalReport(object):
             if store:
                 for metric in self._signs.keys():
                     self.stats[metric].append(
-                        getattr(self, '_%s'%metric)(**kwargs)
+                        getattr(self, '_%s' % metric)(**kwargs)
                     )
-        except ValueError as v: # for a qcut error...
+        except ValueError as v:  # for a qcut error...
             if on_error == 'raise':
                 raise v
             elif on_error == 'warn':
                 warnings.warn('Encountered non-unique bin edges. Score defaults to %s'
-                              %str(self.error_score), UserWarning)
+                              % str(self.error_score), UserWarning)
 
             # if it's ignore, it will pass.
             if store:
                 for metric in self._signs.keys():
                     self.stats[metric].append(self.error_score)
-            
+
         self.sample_sizes.append(pred.shape[0])
         return self
 
@@ -275,19 +277,17 @@ class GainsStatisticalReport(object):
         agg = kwargs.pop('stats')
         n_groups = kwargs.pop('n_groups')
 
-        f, l = agg[0], agg[n_groups-1]
-        lft = l/f if l>f else f/l
+        f, l = agg[0], agg[n_groups - 1]
+        lft = l / f if l > f else f / l
         return lft
-
 
     def _gini(self, **kwargs):
         # we want a copy, not the original
-        tab = kwargs.pop('tab').copy()[['pred','loss','prem','expo']]
+        tab = kwargs.pop('tab').copy()[['pred', 'loss', 'prem', 'expo']]
         tab['idx'] = tab.index
-        tab = tab.sort_values(by=['pred','idx'], axis=0, inplace=False)
+        tab = tab.sort_values(by=['pred', 'idx'], axis=0, inplace=False)
 
-        cpct = {x:tab[x].cumsum()/tab[x].sum() for x in ('prem', 'loss')}
+        cpct = {x: tab[x].cumsum() / tab[x].sum() for x in ('prem', 'loss')}
         diff_pct = cpct['prem'] - cpct['loss']
 
         return 2 * np.average(diff_pct, weights=tab['expo'])
-

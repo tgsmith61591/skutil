@@ -1,21 +1,18 @@
 from __future__ import print_function, division, absolute_import
 import numpy as np
 import h2o
-import warnings
 import pandas as pd
 
 from pkg_resources import parse_version
-from ..utils import (validate_is_pd, human_bytes, corr_plot, 
+from ..utils import (validate_is_pd, human_bytes, corr_plot,
                      load_breast_cancer_df, load_iris_df,
-                     load_boston_df, flatten_all)
+                     load_boston_df)
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import _check_is_frame
 
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_array
-
-
 
 __all__ = [
     'from_array',
@@ -26,9 +23,10 @@ __all__ = [
     'h2o_frame_memory_estimate',
     'load_iris_h2o',
     'load_boston_h2o',
-    'load_breast_cancer_h2o'
+    'load_breast_cancer_h2o',
+    'reorder_h2o_frame',
+    'shuffle_h2o_frame'
 ]
-
 
 
 def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
@@ -61,6 +59,7 @@ def h2o_col_to_numpy(column):
 
     Returns
     -------
+
     np.ndarray (1d)
     """
     x = _check_is_1d_frame(column)
@@ -72,8 +71,9 @@ def _unq_vals_col(column):
     """Get the unique values and column name
     from a column.
 
-    Return
-    ------
+    Returns
+    -------
+
     str, np.ndarray : tuple
         (c1_nm, unq)
     """
@@ -90,6 +90,7 @@ def h2o_bincount(bins, weights=None, minlength=None):
 
     Parameters
     ----------
+
     bins : H2OFrame
         The values
 
@@ -117,11 +118,9 @@ def h2o_bincount(bins, weights=None, minlength=None):
     elif minlength < 0:
         raise ValueError('minlength must be positive')
 
-
     # create our output array
     all_vals = h2o_col_to_numpy(bins)
-    output = np.zeros(np.maximum(minlength, unq_arr.max()+1))
-
+    output = np.zeros(np.maximum(minlength, unq_arr.max() + 1))
 
     # check weights
     if weights is not None:
@@ -152,11 +151,13 @@ def from_pandas(X):
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The dataframe to convert.
 
     Returns
     -------
+
     H2OFrame
     """
     pd, _ = validate_is_pd(X, None)
@@ -178,6 +179,7 @@ def from_array(X, column_names=None):
 
     Parameters
     ----------
+
     X : ndarray
         The array to convert.
 
@@ -186,23 +188,24 @@ def from_array(X, column_names=None):
 
     Returns
     -------
+
     H2OFrame
     """
     X = check_array(X, force_all_finite=False)
     return from_pandas(pd.DataFrame.from_records(data=X, columns=column_names))
 
 
-def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, 
-        figsize=(11,9), cmap_a=220, cmap_b=10, vmax=0.3,
-        xticklabels=5, yticklabels=5, linewidths=0.5, 
-        cbar_kws={'shrink':0.5}, use='complete.obs', 
-        na_warn=True, na_rm=False):
-
+def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
+                  figsize=(11, 9), cmap_a=220, cmap_b=10, vmax=0.3,
+                  xticklabels=5, yticklabels=5, linewidths=0.5,
+                  cbar_kws={'shrink': 0.5}, use='complete.obs',
+                  na_warn=True, na_rm=False):
     """Create a simple correlation plot given a dataframe.
     Note that this requires all datatypes to be numeric and finite!
 
     Parameters
     ----------
+
     X : pd.DataFrame
         The pandas DataFrame
 
@@ -258,20 +261,19 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
         cols = [str(u) for u in X.columns]
 
         X = X.cor(use=use, na_rm=na_rm).as_data_frame(use_pandas=True)
-        X.columns = cols # set the cols to the same names
+        X.columns = cols  # set the cols to the same names
         X.index = cols
         corr = 'precomputed'
 
     else:
         # WARNING! This pulls everything into memory...
         X = X.as_data_frame(use_pandas=True)
-    
-    corr_plot(X, plot_type=plot_type, cmap=cmap, n_levels=n_levels, 
-        figsize=figsize, cmap_a=cmap_a, cmap_b=cmap_b, 
-        vmax=vmax, xticklabels=xticklabels, corr=corr,
-        yticklabels=yticklabels, linewidths=linewidths, 
-        cbar_kws=cbar_kws)
 
+    corr_plot(X, plot_type=plot_type, cmap=cmap, n_levels=n_levels,
+              figsize=figsize, cmap_a=cmap_a, cmap_b=cmap_b,
+              vmax=vmax, xticklabels=xticklabels, corr=corr,
+              yticklabels=yticklabels, linewidths=linewidths,
+              cbar_kws=cbar_kws)
 
 
 def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
@@ -281,6 +283,7 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
 
     Parameters
     ----------
+
     X : H2OFrame
         The H2OFrame in question
 
@@ -293,6 +296,7 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
 
     Returns
     -------
+
     mb : str
         The estimated number of UNIT held in the frame
     """
@@ -305,3 +309,58 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     return human_bytes(n_bytes, unit)
 
 
+def reorder_h2o_frame(X, idcs):
+    """Currently, H2O does not allow us to reorder
+    frames. This is a hack to rbind rows together in the
+    order prescribed.
+
+    Parameters
+    ----------
+
+    X : H2OFrame
+        The H2OFrame to reorder
+
+    idcs : iterable
+        The order of the H2OFrame rows to be returned.
+
+    Returns
+    -------
+
+    new_frame : H2OFrame
+        The reordered H2OFrame
+    """
+    # hack... slow but functional
+    X = _check_is_frame(X)
+    new_frame = None
+
+    for i in idcs:
+        row = X[i, :]
+        if new_frame is None:
+            new_frame = row
+        else:
+            new_frame = new_frame.rbind(row)
+
+    return new_frame
+
+
+def shuffle_h2o_frame(X):
+    """Currently, H2O does not allow us to shuffle 
+    frames. This is a hack to rbind rows together in the
+    order prescribed.
+
+    Parameters
+    ----------
+
+    X : H2OFrame
+        The H2OFrame to reorder
+
+    Returns
+    -------
+
+    shuf : H2OFrame
+        The shuffled H2OFrame
+    """
+    X = _check_is_frame(X)
+    idcs = np.random.permutation(np.arange(X.shape[0]))
+    shuf = reorder_h2o_frame(X, idcs)
+    return shuf
