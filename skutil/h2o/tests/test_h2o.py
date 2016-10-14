@@ -22,7 +22,8 @@ from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
-                             load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o)
+                             load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
+                             shuffle_h2o_frame)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.h2o.grid_search import _val_exp_loss_prem
@@ -1439,8 +1440,13 @@ def test_h2o_with_conn():
         else:
             pass
 
+    def shuffle():
+        if X is not None:
+            shuffle_h2o_frame(X)
+
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
+    shuffle()
     persist()
     act_search()
     grid()
