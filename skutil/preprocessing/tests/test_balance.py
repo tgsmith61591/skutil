@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.preprocessing.balance import _BaseBalancer, _pd_frame_to_np
+from numpy.testing import (assert_almost_equal, assert_array_almost_equal, assert_array_equal)
 from skutil.utils.tests.utils import assert_fails
 import warnings
 
@@ -102,7 +103,7 @@ def test_oversample_warning():
     # catch the warning
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter('always')
-        OversamplingClassBalancer(y='c').balance(df)
+        OversamplingClassBalancer(y='c', ratio=1.0).balance(df)
         assert len(w) == 1
 
 
@@ -114,12 +115,9 @@ def test_smote_error():
     ])
 
     df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
-    failed = False
-    try:
-        SMOTEClassBalancer(y='c').balance(df)
-    except ValueError as e:
-        failed = True
-    assert failed
+
+    # this fails because we can't perform smote on single observation (obs='4', in this case)
+    assert_fails(SMOTEClassBalancer(y='c', ratio=1.0).balance, ValueError, df)
 
 
 def test_smote():
@@ -158,6 +156,18 @@ def test_undersample():
     cts = b.target.value_counts()
     assert cts[0] == 40
     assert cts[1] == 10
+
+
+def test_unneeded():
+    for sample_class in (UndersamplingClassBalancer, 
+                         SMOTEClassBalancer, 
+                         OversamplingClassBalancer):
+        sampler = sample_class(y='target', ratio=0.2, shuffle=False)
+        sampled = sampler.balance(X)
+
+        # assert array the same
+        assert_array_equal(X.index.values, sampled.index.values)
+        assert sampled.shape[0] == X.shape[0]
 
 
 def test_superclass_not_implemented():
