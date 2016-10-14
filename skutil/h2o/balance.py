@@ -17,7 +17,7 @@ __all__ = [
 
 def _validate_x_y_ratio(X, y, ratio):
     """Validates the following, given that X is
-    already a validated H2OFrame:
+    already a validated pandas DataFrame:
 
     1. That y is a string
     2. That the number of classes does not exceed _max_classes
@@ -26,8 +26,25 @@ def _validate_x_y_ratio(X, y, ratio):
     4. That ratio is a float that falls between 0.0 (exclusive) and
        1.0 (inclusive)
 
-    Return
-    (cts, n_classes), a tuple with the sorted class value_counts and the number of classes
+    Parameters
+    ----------
+
+    X : H2OFrame
+        The frame from which to sample
+
+    y_name : str
+        The name of the column that is the response class
+
+    Returns
+    -------
+
+    out_tup : tuple, shape=(3,)
+        a length-3 tuple with the following args:
+            [0] - cts (pd.Series), the ascending sorted ``value_counts`` 
+                  of the class, where the index is the class label.
+            [1] - n_classes (int), the number of unique classes
+            [2] - needs_balancing (bool), whether the least populated class
+                  is represented at a rate lower than the demanded ratio.
     """
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
     ratio = _validate_ratio(ratio)
@@ -39,10 +56,12 @@ def _validate_x_y_ratio(X, y, ratio):
     unq_cts = dict([(val, X[y][X[y] == val].shape[0]) for val in unq_vals])
 
     # validate is < max classes
-    cts = pd.Series(unq_cts).sort_values()
+    cts = pd.Series(unq_cts).sort_values(ascending=True)
     n_classes = _validate_num_classes(cts)
+    needs_balancing = (cts.values[0] / cts.values[-1]) < ratio
 
-    return cts, n_classes
+    out_tup = (cts, n_classes, needs_balancing)
+    return out_tup
 
 
 class _BaseH2OBalancer(six.with_metaclass(ABCMeta, 
@@ -103,8 +122,8 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 
         # get the partitioner
         partitioner = _OversamplingBalancePartitioner(
-            frame, self.target_feature, 
-            self.ratio, _validate_x_y_ratio)
+            X=frame, y_name=self.target_feature, 
+            ratio=self.ratio, validation_function=_validate_x_y_ratio)
         sample_idcs = partitioner.get_indices(self.shuffle)
 
         # since H2O won't allow us to resample (it's considered rearranging)
@@ -171,7 +190,8 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 
         # get the partitioner
         partitioner = _UndersamplingBalancePartitioner(
-            frame, self.target_feature, self.ratio, _validate_x_y_ratio)
+            X=frame, y_name=self.target_feature, ratio=self.ratio, 
+            validation_function=_validate_x_y_ratio)
 
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
