@@ -1,15 +1,12 @@
 from __future__ import division, print_function
-
 import abc
 import warnings
-
 import numpy as np
 import pandas as pd
 from h2o.frame import H2OFrame
 from numpy.random import choice
 from sklearn.externals import six
 from sklearn.neighbors import NearestNeighbors
-
 from skutil.base import *
 from skutil.base import overrides
 from ..utils import *
@@ -96,7 +93,7 @@ class BalancerMixin:
         raise NotImplementedError('this method must be implemented by a subclass')
 
 
-class _BaseBalancePartitioner:
+class _BaseBalancePartitioner(six.with_metaclass(abc.ABCMeta, object)):
     """Base class for sample partitioners. The partitioner class is
     responsible for implementing the `_get_sample_indices` method, which
     implements the specific logic for which rows to sample. The `get_indices`
@@ -119,7 +116,6 @@ class _BaseBalancePartitioner:
         The function that will validate X, y and the ratio. This function
         differs for H2OFrames.
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def __init__(self, X, y_name, ratio, validation_function=_validate_x_y_ratio):
@@ -132,11 +128,11 @@ class _BaseBalancePartitioner:
         self.cts = cts
         self.n_classes = n_classes
 
-    def get_indices(self):
-        return self._get_sample_indices()
+    def get_indices(self, shuffle):
+        return self._get_sample_indices(shuffle)
 
     @abc.abstractmethod
-    def _get_sample_indices(self):
+    def _get_sample_indices(self, shuffle):
         """To be overridden"""
         raise NotImplementedError('must be overridden by subclass!')
 
@@ -153,7 +149,7 @@ class _OversamplingBalancePartitioner(_BaseBalancePartitioner):
             X, y_name, ratio, validation_function)
 
     @overrides(_BaseBalancePartitioner)
-    def _get_sample_indices(self):
+    def _get_sample_indices(self, shuffle):
         cts = self.cts
         n_classes = self.n_classes
         ratio = self.ratio
@@ -203,7 +199,8 @@ class _OversamplingBalancePartitioner(_BaseBalancePartitioner):
         all_indices.extend(sample_indices)
 
         # sorted because h2o doesn't play nicely with random indexing
-        return sorted(all_indices)
+        out = sorted(all_indices) if not shuffle else [j for j in np.random.permutation(all_indices)]
+        return out
 
 
 class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
@@ -214,7 +211,7 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
             X, y_name, ratio, validation_function)
 
     @overrides(_BaseBalancePartitioner)
-    def _get_sample_indices(self):
+    def _get_sample_indices(self, shuffle):
         cts = self.cts
         n_classes = self.n_classes
         ratio = self.ratio
@@ -251,10 +248,12 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
         # majority idcs, then sort and return
         minorities = list(all_indices[target_col != majority])
         minorities.extend(idcs)
-        return sorted(minorities)
+
+        out = sorted(minorities) if not shuffle else [j for j in np.random.permutation(minorities)]
+        return out
 
 
-class _BaseBalancer(object, BalancerMixin):
+class _BaseBalancer(six.with_metaclass(abc.ABCMeta, object, BalancerMixin)):
     """A super class for all balancer classes. Balancers are not like TransformerMixins
     or BaseEstimators, and do not implement fit or predict. This is because Balancers
     are ONLY applied to training data.
@@ -266,23 +265,27 @@ class _BaseBalancer(object, BalancerMixin):
         The name of the response column. The response column must be
         biclass, no more or less.
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input matrix, otherwise SMOTE will impute records until the
         target ratio is reached.
 
+    shuffle : bool, optional (default=True)
+        Whether or not to shuffle rows on return
+
     as_df : bool, optional (default=True)
         Whether to return a dataframe
     """
 
-    def __init__(self, y, ratio=BalancerMixin._def_ratio, as_df=True):
+    def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
         self.y_ = y
         self.ratio = ratio
+        self.shuffle = shuffle
         self.as_df = as_df
 
 
-def _over_under_balance(X, y, ratio, as_df, partitioner_class):
+def _over_under_balance(X, y, ratio, as_df, shuffle, partitioner_class):
     # check on state of X
     X, _ = validate_is_pd(X, None)  # there are no cols, and we don't want warnings
 
@@ -292,7 +295,7 @@ def _over_under_balance(X, y, ratio, as_df, partitioner_class):
     partitioner = partitioner_class(X, y, ratio)
 
     # the balancing is handled in the partitioner
-    balanced = X.iloc[partitioner.get_indices()]
+    balanced = X.iloc[partitioner.get_indices(shuffle)]
 
     # we need to re-index...
     balanced.index = np.arange(balanced.shape[0])
@@ -312,17 +315,22 @@ class OversamplingClassBalancer(_BaseBalancer):
         The name of the response column. The response column must be
         biclass, no more or less.
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input matrix
+
+    shuffle : bool, optional (default=True)
+        Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
         Whether to return a dataframe
     """
 
-    def __init__(self, y, ratio=BalancerMixin._def_ratio, as_df=True):
-        super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y, as_df=as_df)
+    def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
+        super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y, 
+                                                        shuffle=shuffle, 
+                                                        as_df=as_df)
 
     @overrides(BalancerMixin)
     def balance(self, X):
@@ -336,7 +344,8 @@ class OversamplingClassBalancer(_BaseBalancer):
         X : pandas DF, shape [n_samples, n_features]
             The data to balance
         """
-        return _over_under_balance(X, self.y_, self.ratio, self.as_df, _OversamplingBalancePartitioner)
+        return _over_under_balance(X, self.y_, self.ratio, self.shuffle,
+            self.as_df, _OversamplingBalancePartitioner)
 
 
 ###############################################################################
@@ -355,7 +364,7 @@ class SMOTEClassBalancer(_BaseBalancer):
     k : int, def 3
         The number of neighbors to use in the nearest neighbors model
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input matrix, otherwise SMOTE will impute records until the
@@ -467,17 +476,22 @@ class UndersamplingClassBalancer(_BaseBalancer):
         The name of the response column. The response column must be
         biclass, no more or less.
 
-    ratio : float, def 0.2
+    ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
         existing ratio is >= the provided ratio, the return value will merely be
         a copy of the input matrix
+
+    shuffle : bool, optional (default=True)
+        Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
         Whether to return a dataframe
     """
 
-    def __init__(self, y, ratio=0.2, as_df=True):
-        super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y, as_df=as_df)
+    def __init__(self, y, ratio=0.2, shuffle=True, as_df=True):
+        super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y, 
+                                                         shuffle=shuffle,
+                                                         as_df=as_df)
 
     def balance(self, X):
         """Apply the undersampling balance operation. Undersamples
@@ -490,4 +504,5 @@ class UndersamplingClassBalancer(_BaseBalancer):
         X : pandas DF, shape [n_samples, n_features]
             The data to balance
         """
-        return _over_under_balance(X, self.y_, self.ratio, self.as_df, _UndersamplingBalancePartitioner)
+        return _over_under_balance(X, self.y_, self.ratio, self.shuffle,
+            self.as_df, _UndersamplingBalancePartitioner)

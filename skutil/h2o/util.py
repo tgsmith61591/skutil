@@ -23,7 +23,9 @@ __all__ = [
     'h2o_frame_memory_estimate',
     'load_iris_h2o',
     'load_boston_h2o',
-    'load_breast_cancer_h2o'
+    'load_breast_cancer_h2o',
+    'reorder_h2o_frame',
+    'shuffle_h2o_frame'
 ]
 
 
@@ -305,3 +307,60 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     n_bytes = n_bits // 8
 
     return human_bytes(n_bytes, unit)
+
+
+def reorder_h2o_frame(X, idcs):
+    """Currently, H2O does not allow us to reorder
+    frames. This is a hack to rbind rows together in the
+    order prescribed.
+
+    Parameters
+    ----------
+
+    X : H2OFrame
+        The H2OFrame to reorder
+
+    idcs : iterable
+        The order of the H2OFrame rows to be returned.
+
+    Returns
+    -------
+
+    new_frame : H2OFrame
+        The reordered H2OFrame
+    """
+    # hack... slow but functional
+    X = _check_is_frame(X)
+    new_frame = None
+
+    for i in idcs:
+        row = X[i, :]
+        if new_frame is None:
+            new_frame = row
+        else:
+            new_frame = new_frame.rbind(row)
+
+    return new_frame
+
+
+def shuffle_h2o_frame(X):
+    """Currently, H2O does not allow us to shuffle 
+    frames. This is a hack to rbind rows together in the
+    order prescribed.
+
+    Parameters
+    ----------
+
+    X : H2OFrame
+        The H2OFrame to reorder
+
+    Returns
+    -------
+
+    shuf : H2OFrame
+        The shuffled H2OFrame
+    """
+    X = _check_is_frame(X)
+    idcs = np.random.permutation(np.arange(X.shape[0]))
+    shuf = reorder_h2o_frame(X, idcs)
+    return shuf
