@@ -38,6 +38,7 @@ from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingCla
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
 from skutil.utils import flatten_all
 from skutil.h2o.frame import is_integer, is_float
+from skutil.h2o.pipeline import _union_exclusions
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -104,6 +105,13 @@ def test_h2o_no_conn_needed():
     # test _val_exp_loss_prem
     assert_fails(_val_exp_loss_prem, TypeError, 1, 2, 3)  # they should be strings or unicode
     assert_fails(_val_exp_loss_prem, TypeError, '1', '2', 3)  # z should also be a string
+
+    # test union_exclusion in pipeline
+    a, b = ['a','b'], ['a','c']
+    assert not _union_exclusions(None, None)
+    assert _union_exclusions(None, b) == b
+    assert _union_exclusions(a, None) == a
+    assert _union_exclusions(a, b) == flatten_all([a, b])
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -384,7 +392,23 @@ def test_h2o_with_conn():
             # this will fail because no cols are retained
             assert_fails(pipe.fit, ValueError, train)
 
+            # test with exclusions
+            pipe = H2OPipeline([
+                ('nzv', H2ONearZeroVarianceFilterer()),
+                ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                ('est', H2ORandomForestEstimator())
+            ],
+                feature_names=F.columns.tolist(),
+                target_feature='species',
+                exclude_from_fit=['sepal width (cm)'] # will not be included in the final fit
+            )
 
+            # fit pipe, predict...
+            pipe.fit_predict(train)
+
+            # if we set params to None, assert it just does nothing but return itself
+            pipe.set_params(None)
+            assert pipe.exclude_from_fit == ['sepal width (cm)']
         else:
             pass
 
