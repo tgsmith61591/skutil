@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.feature_selection.select &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.feature_selection.select</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.feature_selection.select</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_BaseFeatureSelector</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">is_numeric</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;FeatureDropper&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;FeatureRetainer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;filter_collinearity&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;MulticollinearityFilterer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;NearZeroVarianceFilterer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SparseFeatureDropper&#39;</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_validate_cols</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate that there are at least two columns</span>
+<span class="sd">    to evaluate. This is used for the MulticollinearityFilterer,</span>
+<span class="sd">    as it requires there be at least two columns.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like or None</span>
+<span class="sd">        The columns to evaluate. If ``cols`` is not None</span>
+<span class="sd">        and the length is less than 2, will raise a </span>
+<span class="sd">        ``ValueError``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;too few features&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SparseFeatureDropper"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.SparseFeatureDropper">[docs]</a><span class="k">class</span> <span class="nc">SparseFeatureDropper</span><span class="p">(</span><span class="n">_BaseFeatureSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retains features that are less sparse (NaN) than</span>
+<span class="sd">    the provided threshold.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like, optional (default=None)</span>
+<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
+<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
+<span class="sd">        on all columns.</span>
+
+<span class="sd">    threshold : float, optional (default=0.5)</span>
+<span class="sd">        The threshold of sparsity above which features will be</span>
+<span class="sd">        deemed &quot;too sparse&quot; and will be dropped.</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
+<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    sparsity_ : array_like, (n_cols,)</span>
+<span class="sd">        The array of sparsity values</span>
+<span class="sd">    </span>
+<span class="sd">    drop_ : array_like, shape=(n_features,)</span>
+<span class="sd">        Assigned after calling ``fit``. These are the features that</span>
+<span class="sd">        are designated as &quot;bad&quot; and will be dropped in the ``transform``</span>
+<span class="sd">        method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SparseFeatureDropper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+
+
+<div class="viewcode-block" id="SparseFeatureDropper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.SparseFeatureDropper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the linear combination filterer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None.</span>
+
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">thresh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span>
+
+        <span class="c1"># validate the threshold</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_numeric</span><span class="p">(</span><span class="n">thresh</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">thresh</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;thresh must be a float between &#39;</span>
+                             <span class="s1">&#39;0 (inclusive) and 1. Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">thresh</span><span class="p">))</span>
+
+        <span class="c1"># get cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># assess sparsity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparsity_</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># numpy array</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparsity_</span> <span class="o">&gt;</span> <span class="n">thresh</span>  <span class="c1"># numpy boolean array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<div class="viewcode-block" id="FeatureDropper"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.FeatureDropper">[docs]</a><span class="k">class</span> <span class="nc">FeatureDropper</span><span class="p">(</span><span class="n">_BaseFeatureSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A very simple class to be used at the beginning or any stage of a </span>
+<span class="sd">    Pipeline that will drop the given features from the remainder of the pipe</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like (string)</span>
+<span class="sd">        The features to drop. Note that ``FeatureDropper`` behaves slightly</span>
+<span class="sd">        differently from all other ``_BaseFeatureSelector`` classes in the sense</span>
+<span class="sd">        that it will drop all of the features prescribed in this parameter. However,</span>
+<span class="sd">        if ``cols`` is None, it will not drop any (which is counter to other classes,</span>
+<span class="sd">        which will operate on all columns in the absence of an explicit ``cols``</span>
+<span class="sd">        parameter).</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
+<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    drop_ : array_like, shape=(n_features,)</span>
+<span class="sd">        Assigned after calling ``fit``. These are the features that</span>
+<span class="sd">        are designated as &quot;bad&quot; and will be dropped in the ``transform``</span>
+<span class="sd">        method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeatureDropper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FeatureDropper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.FeatureDropper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+
+
+<div class="viewcode-block" id="FeatureRetainer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.FeatureRetainer">[docs]</a><span class="k">class</span> <span class="nc">FeatureRetainer</span><span class="p">(</span><span class="n">_BaseFeatureSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A very simple class to be used at the beginning of a Pipeline that will</span>
+<span class="sd">    only propagate the given features throughout the remainder of the pipe</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    cols : array_like, optional (default=None)</span>
+<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
+<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
+<span class="sd">        on all columns.</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
+<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    drop_ : array_like, shape=(n_features,)</span>
+<span class="sd">        Assigned after calling ``fit``. These are the features that</span>
+<span class="sd">        are designated as &quot;bad&quot; and will be dropped in the ``transform``</span>
+<span class="sd">        method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FeatureRetainer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FeatureRetainer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.FeatureRetainer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="c1"># set the drop as those not in cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>  <span class="c1"># these will be the left overs</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="FeatureRetainer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.FeatureRetainer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;drop_&#39;</span><span class="p">)</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>  <span class="c1"># copy X</span>
+        <span class="n">retained</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># if cols is None, returns all</span>
+        <span class="k">return</span> <span class="n">retained</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">retained</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">_MCFTuple</span><span class="p">(</span><span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;_MCFTuple&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;feature_x&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;feature_y&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;abs_corr&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;mac&#39;</span><span class="p">))):</span>
+    <span class="sd">&quot;&quot;&quot;A raw namedtuple is very memory efficient as it packs the attributes</span>
+<span class="sd">    in a struct to get rid of the __dict__ of attributes in particular it</span>
+<span class="sd">    does not copy the string for the keys on each instance.</span>
+<span class="sd">    By deriving a namedtuple class just to introduce the __repr__ method we</span>
+<span class="sd">    would also reintroduce the __dict__ on the instance. By telling the</span>
+<span class="sd">    Python interpreter that this subclass uses static __slots__ instead of</span>
+<span class="sd">    dynamic attributes. Furthermore we don&#39;t need any additional slot in the</span>
+<span class="sd">    subclass so we set __slots__ to the empty tuple. &quot;&quot;&quot;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simple custom repr to summarize the main info&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Dropped: </span><span class="si">{0}</span><span class="s2">, Corr_feature: </span><span class="si">{1}</span><span class="s2">, abs_corr: </span><span class="si">{2:.5f}</span><span class="s2">, MAC: </span><span class="si">{3:.5f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_x</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_y</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">abs_corr</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mac</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="filter_collinearity"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.filter_collinearity">[docs]</a><span class="k">def</span> <span class="nf">filter_collinearity</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs the collinearity filtration for both the</span>
+<span class="sd">    ``MulticollinearityFilterer`` as well as the ``H2OMulticollinearityFilterer``</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    c : pandas DataFrame</span>
+<span class="sd">        The pre-computed correlation matrix. This is expected to be</span>
+<span class="sd">        a square matrix, and will raise a ``ValueError`` if it&#39;s not.</span>
+
+<span class="sd">    threshold : float</span>
+<span class="sd">        The threshold above which to filter features which</span>
+<span class="sd">        are multicollinear in nature.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    out_tup: tuple</span>
+<span class="sd">        drops, macor, crrz (The drop list, the mean absolute </span>
+<span class="sd">        correlations, and the correlation tuples)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ensure symmetric</span>
+    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;input dataframe should be symmetrical in dimensions&#39;</span><span class="p">)</span>
+
+    <span class="c1"># init drops list</span>
+    <span class="n">drops</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">macor</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># mean abs corrs</span>
+    <span class="n">corrz</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the correlations</span>
+
+    <span class="c1"># Iterate over each feature</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">finished</span><span class="p">:</span>
+
+        <span class="c1"># Whenever there&#39;s a break, this loop will start over</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">nm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+            <span class="n">this_col</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">nm</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+                <span class="n">na_position</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">)</span>  <span class="c1"># gets the column, drops the index of itself, and sorts</span>
+            <span class="n">this_col_nms</span> <span class="o">=</span> <span class="n">this_col</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">this_col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">this_col</span><span class="p">)</span>
+
+            <span class="c1"># check if last value is over thresh</span>
+            <span class="n">max_cor</span> <span class="o">=</span> <span class="n">this_col</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">max_cor</span><span class="p">)</span> <span class="ow">or</span> <span class="n">max_cor</span> <span class="o">&lt;</span> <span class="n">threshold</span> <span class="ow">or</span> <span class="n">this_col</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">c</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># control passes to next column name or end if finished</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># otherwise, we know the corr is over the threshold</span>
+            <span class="c1"># gets the current col, and drops the same row, sorts asc and gets other col</span>
+            <span class="n">other_col_nm</span> <span class="o">=</span> <span class="n">this_col_nms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">that_col</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">other_col_nm</span><span class="p">]</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">other_col_nm</span><span class="p">)</span>
+
+            <span class="c1"># get the mean absolute correlations of each</span>
+            <span class="n">mn_1</span><span class="p">,</span> <span class="n">mn_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">this_col</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">that_col</span><span class="p">)</span>
+
+            <span class="c1"># we might get nans?</span>
+            <span class="c1"># if pd.isnull(mn_1) and pd.isnull(mn_2):</span>
+            <span class="c1"># this condition is literally impossible, as it would</span>
+            <span class="c1"># require every corr to be NaN, and it wouldn&#39;t have</span>
+            <span class="c1"># even gotten here without hitting the continue block.</span>
+            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">mn_1</span><span class="p">):</span>
+                <span class="n">drop_nm</span> <span class="o">=</span> <span class="n">other_col_nm</span>
+            <span class="k">elif</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">mn_2</span><span class="p">):</span>
+                <span class="n">drop_nm</span> <span class="o">=</span> <span class="n">nm</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">drop_nm</span> <span class="o">=</span> <span class="n">nm</span> <span class="k">if</span> <span class="n">mn_1</span> <span class="o">&gt;</span> <span class="n">mn_2</span> <span class="k">else</span> <span class="n">other_col_nm</span>
+
+            <span class="c1"># drop the bad col, row</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">drop_nm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">drop_nm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># add the bad col to drops</span>
+            <span class="n">drops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">drop_nm</span><span class="p">)</span>
+            <span class="n">macor</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">mn_1</span><span class="p">,</span> <span class="n">mn_2</span><span class="p">))</span>
+            <span class="n">corrz</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_MCFTuple</span><span class="p">(</span>
+                <span class="n">feature_x</span><span class="o">=</span><span class="n">drop_nm</span><span class="p">,</span>
+                <span class="n">feature_y</span><span class="o">=</span><span class="n">nm</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">nm</span> <span class="o">==</span> <span class="n">drop_nm</span> <span class="k">else</span> <span class="n">other_col_nm</span><span class="p">,</span>
+                <span class="n">abs_corr</span><span class="o">=</span><span class="n">max_cor</span><span class="p">,</span>
+                <span class="n">mac</span><span class="o">=</span><span class="n">macor</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">))</span>
+
+            <span class="c1"># if we get here, we have to break so the loop will </span>
+            <span class="c1"># start over from the first (non-popped) column</span>
+            <span class="k">break</span>
+
+            <span class="c1"># if not finished, restarts loop, otherwise will exit loop</span>
+
+    <span class="c1"># return</span>
+    <span class="n">out_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">drops</span><span class="p">,</span> <span class="n">macor</span><span class="p">,</span> <span class="n">corrz</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out_tup</span></div>
+
+
+<div class="viewcode-block" id="MulticollinearityFilterer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.MulticollinearityFilterer">[docs]</a><span class="k">class</span> <span class="nc">MulticollinearityFilterer</span><span class="p">(</span><span class="n">_BaseFeatureSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Filter out features with a correlation greater than the provided threshold.</span>
+<span class="sd">    When a pair of correlated features is identified, the mean absolute correlation (MAC)</span>
+<span class="sd">    of each feature is considered, and the feature with the highsest MAC is discarded.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like (string)</span>
+<span class="sd">        The features on which to compute the correlation matrix and from which to</span>
+<span class="sd">        compute the ``drop_`` attribute. In the case that ``cols`` is None, </span>
+<span class="sd">        the transformer will be fit on all columns.</span>
+
+<span class="sd">    threshold : float, default 0.85</span>
+<span class="sd">        The threshold above which to filter correlated features</span>
+
+<span class="sd">    method : str, one of [&#39;pearson&#39;,&#39;kendall&#39;,&#39;spearman&#39;], default &#39;pearson&#39;</span>
+<span class="sd">        The method used to compute the correlation</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
+<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    drop_ : array_like, shape=(n_features,)</span>
+<span class="sd">        Assigned after calling ``fit``. These are the features that</span>
+<span class="sd">        are designated as &quot;bad&quot; and will be dropped in the ``transform``</span>
+<span class="sd">        method.</span>
+
+<span class="sd">    mean_abs_correlations_ : list, float</span>
+<span class="sd">        The corresponding mean absolute correlations of each ``drop_`` name</span>
+
+<span class="sd">    correlations_ : list of ``_MCFTuple`` instances</span>
+<span class="sd">        Contains detailed info on multicollinear columns</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;pearson&#39;</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MulticollinearityFilterer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+
+
+<div class="viewcode-block" id="MulticollinearityFilterer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.MulticollinearityFilterer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the multicollinearity filterer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None.</span>
+
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="MulticollinearityFilterer.fit_transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.MulticollinearityFilterer.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the multicollinearity filterer and return</span>
+<span class="sd">        the transformed training matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None.</span>
+
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        dropped : Pandas DataFrame or NumPy ndarray</span>
+<span class="sd">            The training frame sans &quot;bad&quot; columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_validate_cols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="c1"># Generate correlation matrix</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+        <span class="c1"># get drops list</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">mac</span><span class="p">,</span> <span class="n">crz</span> <span class="o">=</span> <span class="n">filter_collinearity</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="n">d</span> <span class="k">if</span> <span class="n">d</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_abs_correlations_</span> <span class="o">=</span> <span class="n">mac</span> <span class="k">if</span> <span class="n">mac</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">correlations_</span> <span class="o">=</span> <span class="n">crz</span> <span class="k">if</span> <span class="n">crz</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># if drop is None, we need to just return X</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
+
+        <span class="n">dropped</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dropped</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">dropped</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MulticollinearityFilterer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.MulticollinearityFilterer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Drops the multicollinear features from the new</span>
+<span class="sd">        input frame.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">            The Pandas frame to transform.</span>
+
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        dropped : Pandas DataFrame or NumPy ndarray</span>
+<span class="sd">            The test frame sans &quot;bad&quot; columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;drop_&#39;</span><span class="p">)</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="c1"># ensure we don&#39;t drop None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X</span>
+
+        <span class="n">dropped</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dropped</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">dropped</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="NearZeroVarianceFilterer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.NearZeroVarianceFilterer">[docs]</a><span class="k">class</span> <span class="nc">NearZeroVarianceFilterer</span><span class="p">(</span><span class="n">_BaseFeatureSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Identify and remove any features that have a variance below</span>
+<span class="sd">    a certain threshold.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like, optional (default=None)</span>
+<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
+<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
+<span class="sd">        on all columns.</span>
+
+<span class="sd">    threshold : float, optional (default=1e-6)</span>
+<span class="sd">        The threshold below which to declare &quot;zero variance&quot;</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
+<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    drop_ : array_like, shape=(n_features,)</span>
+<span class="sd">        Assigned after calling ``fit``. These are the features that</span>
+<span class="sd">        are designated as &quot;bad&quot; and will be dropped in the ``transform``</span>
+<span class="sd">        method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NearZeroVarianceFilterer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span>
+
+
+<div class="viewcode-block" id="NearZeroVarianceFilterer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.NearZeroVarianceFilterer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># check on state of X and cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="c1"># if cols is None, applies over everything</span>
+        <span class="n">variances</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">var</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">variances</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_</span> <span class="o">=</span> <span class="n">variances</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="n">variances</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># I don&#39;t like making this None; it opens up bugs in pd.drop,</span>
+        <span class="c1"># but it was the precedent the API set from early on, so don&#39;t</span>
+        <span class="c1"># want to change it without a warning.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

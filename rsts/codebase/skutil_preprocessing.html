@@ -1,0 +1,1757 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.preprocessing module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.utils module" href="skutil_utils.html"/>
+        <link rel="prev" title="skutil.odr module" href="skutil_odr.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_base.html">    skutil.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_grid_search.html">    skutil.grid_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.preprocessing module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_preprocessing.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.preprocessing">
+<span id="skutil-preprocessing-module"></span><h1>skutil.preprocessing module<a class="headerlink" href="#module-skutil.preprocessing" title="Permalink to this headline">¶</a></h1>
+<p>Provides sklearn-esque transformer classes including
+the Box-Cox transformation and the Yeo-Johnson transformation.
+Also includes selective scalers and other transformers.</p>
+<dl class="class">
+<dt id="skutil.preprocessing.BaggedCategoricalImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BaggedCategoricalImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>base_estimator=None</em>, <em>n_estimators=10</em>, <em>max_samples=1.0</em>, <em>max_features=1.0</em>, <em>bootstrap=True</em>, <em>bootstrap_features=True</em>, <em>oob_score=False</em>, <em>n_jobs=1</em>, <em>random_state=None</em>, <em>verbose=0</em>, <em>as_df=True</em>, <em>def_fill=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#BaggedCategoricalImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BaggedCategoricalImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseBaggedImputer</span></code></p>
+<p>Performs imputation on select columns by using BaggingRegressors
+on the provided columns.</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional (default=None)</span><dd>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</dd>
+<dt>base_estimator</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">object or None, optional (default=None)</span><dd>The base estimator to fit on random subsets of the dataset.
+If None, then the base estimator is a decision tree.</dd>
+<dt>n_estimators</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd>The number of base estimators in the ensemble.</dd>
+<dt>max_samples</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of samples to draw from X to train each base estimator.
+If int, then draw max_samples samples.
+If float, then draw max_samples * X.shape[0] samples.</dd>
+<dt>max_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of features to draw from X to train each base estimator.
+If int, then draw max_features features.
+If float, then draw max_features * X.shape[1] features.</dd>
+<dt>bootstrap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=True)</span><dd>Whether samples are drawn with replacement.</dd>
+<dt>bootstrap_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=False)</span><dd>Whether features are drawn with replacement.</dd>
+<dt>oob_score</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to use out-of-bag samples to estimate the generalization error.</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>The number of jobs to run in parallel for both fit and predict. If -1,
+then the number of jobs is set to the number of cores.</dd>
+<dt>random_state</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, RandomState instance or None, optional (default=None)</span><dd>If int, random_state is the seed used by the random number generator; If
+RandomState instance, random_state is the random number generator; If None,
+the random number generator is the RandomState instance used by np.random.</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd>Controls the verbosity of the building process.</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</dd>
+<dt>def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd>the fill to use for missing values in the training matrix
+when fitting a BaggingClassifier. If None, will default to -999999</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>models_</strong> : dict, (string</p>
+<blockquote class="last">
+<div><p>A dictionary mapping column names to the fit
+bagged estimator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code>(X[,&nbsp;y])</td>
+<td>Fit the bagged imputer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit the bagged imputer and return the transformed (imputed) matrix.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X[,&nbsp;y])</td>
+<td>Impute the test data after fit.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BaggedImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BaggedImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>base_estimator=None</em>, <em>n_estimators=10</em>, <em>max_samples=1.0</em>, <em>max_features=1.0</em>, <em>bootstrap=True</em>, <em>bootstrap_features=True</em>, <em>oob_score=False</em>, <em>n_jobs=1</em>, <em>random_state=None</em>, <em>verbose=0</em>, <em>as_df=True</em>, <em>def_fill=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#BaggedImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BaggedImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseBaggedImputer</span></code></p>
+<p>Performs imputation on select columns by using BaggingRegressors
+on the provided columns.</p>
+<dl class="docutils">
+<dt>cols</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional (default=None)</span><dd>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</dd>
+<dt>base_estimator</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">object or None, optional (default=None)</span><dd>The base estimator to fit on random subsets of the dataset.
+If None, then the base estimator is a decision tree.</dd>
+<dt>n_estimators</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd>The number of base estimators in the ensemble.</dd>
+<dt>max_samples</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of samples to draw from X to train each base estimator.
+If int, then draw max_samples samples.
+If float, then draw max_samples * X.shape[0] samples.</dd>
+<dt>max_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or float, optional (default=1.0)</span><dd>The number of features to draw from X to train each base estimator.
+If int, then draw max_features features.
+If float, then draw max_features * X.shape[1] features.</dd>
+<dt>bootstrap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=True)</span><dd>Whether samples are drawn with replacement.</dd>
+<dt>bootstrap_features</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">boolean, optional (default=False)</span><dd>Whether features are drawn with replacement.</dd>
+<dt>oob_score</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=False)</span><dd>Whether to use out-of-bag samples to estimate the generalization error.</dd>
+<dt>n_jobs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=1)</span><dd>The number of jobs to run in parallel for both fit and predict. If -1,
+then the number of jobs is set to the number of cores.</dd>
+<dt>random_state</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, RandomState instance or None, optional (default=None)</span><dd>If int, random_state is the seed used by the random number generator; If
+RandomState instance, random_state is the random number generator; If None,
+the random number generator is the RandomState instance used by np.random.</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd>Controls the verbosity of the building process.</dd>
+<dt>as_df</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</dd>
+<dt>def_fill</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd>the fill to use for missing values in the training matrix
+when fitting a BaggingRegressor. If None, will default to -999999</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>models_</strong> : dict, (string</p>
+<blockquote class="last">
+<div><p>A dictionary mapping column names to the fit
+bagged estimator.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code>(X[,&nbsp;y])</td>
+<td>Fit the bagged imputer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit the bagged imputer and return the transformed (imputed) matrix.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X[,&nbsp;y])</td>
+<td>Impute the test data after fit.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BalancerMixin">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BalancerMixin</code><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#BalancerMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BalancerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class for balancers that provides interface for <cite>balance</cite>
+and the constant _max_classes (default=20). Used in h2o module as well.</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.BalancerMixin.balance" title="skutil.preprocessing.BalancerMixin.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>This method must be overridden by a subclass.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.BalancerMixin.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#BalancerMixin.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BalancerMixin.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method must be overridden by
+a subclass. This does nothing right now.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.BoxCoxTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BoxCoxTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<dl class="docutils">
+<dt>Estimate a lambda parameter for each feature, and transform</dt>
+<dd>it to a distribution more-closely resembling a Gaussian bell
+using the Box-Cox transformation. By default, will ignore sparse
+features that are generated via the OneHotCategoricalTransformer.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : int, 1 by default</p>
+<blockquote>
+<div><p>The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p>If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>shift_</strong> : dict</p>
+<blockquote>
+<div><p>The shifts for each feature needed to shift the min value in 
+the feature up to at least 0.0, as every element must be positive</p>
+</div></blockquote>
+<p><strong>lambda_</strong> : dict</p>
+<blockquote class="last">
+<div><p>The lambda values corresponding to each feature</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.BoxCoxTransformer.fit" title="skutil.preprocessing.BoxCoxTransformer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.BoxCoxTransformer.transform" title="skutil.preprocessing.BoxCoxTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.BoxCoxTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.BoxCoxTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#BoxCoxTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BoxCoxTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.FunctionMapper">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">FunctionMapper</code><span class="sig-paren">(</span><em>cols=None</em>, <em>fun=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>Apply a function to a column or set of columns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>fun</strong> : function, default None</p>
+<blockquote class="last">
+<div><p>The function to apply to the feature(s)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.FunctionMapper.fit" title="skutil.preprocessing.FunctionMapper.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Validate the args</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.FunctionMapper.transform" title="skutil.preprocessing.FunctionMapper.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.FunctionMapper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the args</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF, shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The data used for estimating the lambdas</p>
+</div></blockquote>
+<p><strong>y</strong> : Passthrough for Pipeline compatibility</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.FunctionMapper.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#FunctionMapper.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.FunctionMapper.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.ImputerMixin">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">ImputerMixin</code><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#ImputerMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.ImputerMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mixin for all imputer classes. Contains the default fill value.
+This mixin is used for the H2O imputer, as well.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>_def_fill</strong> : int (default=-999999)</p>
+<blockquote class="last">
+<div><p>The default fill value for NaN values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.InteractionTermTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">InteractionTermTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em>, <em>interaction_function=None</em>, <em>name_suffix='I'</em>, <em>only_return_interactions=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>A class that will generate interaction terms between selected columns.
+An interaction captures some relationship between two independent variables
+in the form of In = (xi * xj).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+<p><strong>interaction</strong> : callable, optional (default=None)</p>
+<blockquote>
+<div><p>A callable for interactions. Default None will
+result in multiplication of two Series objects</p>
+</div></blockquote>
+<p><strong>name_suffix</strong> : str, optional (default=&#8217;I&#8217;)</p>
+<blockquote>
+<div><p>The suffix to add to the new feature name in the form of
+&lt;feature_x&gt;_&lt;feature_y&gt;_&lt;suffix&gt;</p>
+</div></blockquote>
+<p><strong>only_return_interactions</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>If set to True, will only return features in feature_names
+and their respective generated interaction terms.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>fun_</strong> : callable</p>
+<blockquote class="last">
+<div><p>The interaction term function</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.InteractionTermTransformer.fit" title="skutil.preprocessing.InteractionTermTransformer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.InteractionTermTransformer.transform" title="skutil.preprocessing.InteractionTermTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.InteractionTermTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.InteractionTermTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#InteractionTermTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.InteractionTermTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">OneHotCategoricalEncoder</code><span class="sig-paren">(</span><em>fill='Missing'</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.BaseEstimator</span></code>, <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>This class achieves three things: first, it will fill in 
+any NaN values with a provided surrogate (if desired). Second,
+it will dummy out any categorical features using OneHotEncoding
+with a safety feature that can handle previously unseen values,
+and in the transform method will re-append the dummified features
+to the dataframe. Finally, it will return a numpy ndarray.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fill</strong> : str, optional (default = &#8216;Missing&#8217;)</p>
+<blockquote>
+<div><p>The value that will fill the missing values in the column</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>obj_cols_</strong> : array_like</p>
+<blockquote>
+<div><p>The list of object-type (categorical) features</p>
+</div></blockquote>
+<p><strong>lab_encoders_</strong> : array_like</p>
+<blockquote>
+<div><p>The label encoders</p>
+</div></blockquote>
+<p><strong>one_hot_</strong> : an instance of a OneHotEncoder</p>
+<p class="last"><strong>trans_nms_</strong> : the dummified names</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.OneHotCategoricalEncoder.fit" title="skutil.preprocessing.OneHotCategoricalEncoder.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the encoder.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.OneHotCategoricalEncoder.transform" title="skutil.preprocessing.OneHotCategoricalEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform X, a DataFrame, by stripping out the object columns, dummifying them, and re-appending them to the end.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the encoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the object columns of the dataframe.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.OneHotCategoricalEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#OneHotCategoricalEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OneHotCategoricalEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform X, a DataFrame, by stripping
+out the object columns, dummifying them, and
+re-appending them to the end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : Pandas DataFrame or NumPy ndarray</p>
+<blockquote class="last">
+<div><p>The encoded dataframe or array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.OversamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">OversamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>shuffle=True</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#OversamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OversamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Oversample the minority classes until they are represented
+at the target proportion to the majority class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y</strong> : str</p>
+<blockquote>
+<div><p>The name of the response column. The response column must be
+biclass, no more or less.</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, optional (default=0.2)</p>
+<blockquote>
+<div><p>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix</p>
+</div></blockquote>
+<p><strong>shuffle</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether or not to shuffle rows on return</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">balance</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.OversamplingClassBalancer.balance" title="skutil.preprocessing.OversamplingClassBalancer.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>Apply the oversampling balance operation.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.OversamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#OversamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OversamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the oversampling balance operation. Oversamples
+the minority class to the provided ratio of minority
+class : majority class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF, shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The data to balance</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pd.DataFrame</strong> :</p>
+<blockquote class="last">
+<div><p>The balanced dataframe. The dataframe will be
+explicitly shuffled if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is True however,
+if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is False, preservation of original, 
+natural ordering is not guaranteed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SMOTEClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SMOTEClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>shuffle=True</em>, <em>k=3</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#SMOTEClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SMOTEClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Balance a matrix with the SMOTE (Synthetic Minority Oversampling TEchnique)
+method. This will generate synthetic samples for the minority class(es) using
+K-nearest neighbors</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y</strong> : str</p>
+<blockquote>
+<div><p>The name of the response column. The response column must be
+biclass, no more or less.</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, optional (default=0.2)</p>
+<blockquote>
+<div><p>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix, otherwise SMOTE will impute records until the
+target ratio is reached.</p>
+</div></blockquote>
+<p><strong>shuffle</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether or not to shuffle rows on return</p>
+</div></blockquote>
+<p><strong>k</strong> : int, def 3</p>
+<blockquote>
+<div><p>The number of neighbors to use in the nearest neighbors model</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">balance</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SMOTEClassBalancer.balance" title="skutil.preprocessing.SMOTEClassBalancer.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>Apply the SMOTE balancing operation.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.SMOTEClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#SMOTEClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SMOTEClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the SMOTE balancing operation. Oversamples
+the minority class to the provided ratio of minority
+class : majority class by interpolating points between
+each sampled point&#8217;s k-nearest neighbors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF, shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The data to balance</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pd.DataFrame</strong> :</p>
+<blockquote class="last">
+<div><p>The balanced dataframe. The dataframe will be
+explicitly shuffled if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is True however,
+if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is False, preservation of original, 
+natural ordering is not guaranteed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SafeLabelEncoder">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SafeLabelEncoder</code><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#SafeLabelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SafeLabelEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.preprocessing.label.LabelEncoder</span></code></p>
+<p>An extension of LabelEncoder that will
+not throw an exception for unseen data, but will
+instead return a default value of 99999</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><strong>classes_</strong> : the classes that are encoded</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code>(y)</td>
+<td>Fit label encoder</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(y)</td>
+<td>Fit label encoder and return encoded labels</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">inverse_transform</span></code>(y)</td>
+<td>Transform labels back to original encoding.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.preprocessing.SafeLabelEncoder.transform" title="skutil.preprocessing.SafeLabelEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(y)</td>
+<td>Perform encoding if already fit.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.SafeLabelEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/encode.html#SafeLabelEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SafeLabelEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform encoding if already fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y</strong> : array_like, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The array to encode</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>e</strong> : array_like, shape=(n_samples,)</p>
+<blockquote class="last">
+<div><p>The encoded array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SelectiveImputer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SelectiveImputer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em>, <em>def_fill='mean'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.impute._BaseImputer</span></code></p>
+<p>A more customizable form on sklearn&#8217;s <code class="docutils literal"><span class="pre">Imputer</span></code> class. This class
+can handle more than mean, median or most common... it will also take
+numeric values. Moreover, it will take a vector of strategies or values
+with which to impute corresponding columns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+<p><strong>def_fill</strong> : int, optional (default=None)</p>
+<blockquote class="last">
+<div><p>the fill to use for missing values in the training matrix
+when fitting a <code class="docutils literal"><span class="pre">SelectiveImputer</span></code>. If None, will default to &#8216;mean&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SelectiveImputer.fit" title="skutil.preprocessing.SelectiveImputer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the imputer and return the transformed matrix or frame.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SelectiveImputer.transform" title="skutil.preprocessing.SelectiveImputer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform a dataframe given the fit imputer.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveImputer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the imputer and return the
+transformed matrix or frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveImputer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/impute.html#SelectiveImputer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveImputer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a dataframe given the fit imputer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The imputed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SelectiveScaler">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SelectiveScaler</code><span class="sig-paren">(</span><em>cols=None</em>, <em>scaler=StandardScaler(copy=True</em>, <em>with_mean=True</em>, <em>with_std=True)</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>A class that will apply scaling only to a select group
+of columns. Useful for data that contains categorical features
+that have not yet been dummied, for dummied features that we
+may not want to scale, or for any already-in-scale features.
+Perhaps, even, there are some features you&#8217;d like to impute in
+a different manner than others. This, then, allows two back-to-back
+SelectiveScalers with different columns &amp; strategies in a pipeline object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>scaler</strong> : instance of a sklearn Scaler, default StandardScaler</p>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SelectiveScaler.fit" title="skutil.preprocessing.SelectiveScaler.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SelectiveScaler.transform" title="skutil.preprocessing.SelectiveScaler.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveScaler.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SelectiveScaler.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SelectiveScaler.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SelectiveScaler.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.SpatialSignTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">SpatialSignTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<p>Project the feature space of a matrix into a multi-dimensional sphere
+by dividing each feature by its squared norm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : int, 1 by default</p>
+<blockquote>
+<div><p>The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p>If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>sq_nms_</strong> : dict</p>
+<blockquote class="last">
+<div><p>The squared norms for each feature</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SpatialSignTransformer.fit" title="skutil.preprocessing.SpatialSignTransformer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.SpatialSignTransformer.transform" title="skutil.preprocessing.SpatialSignTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.SpatialSignTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.SpatialSignTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#SpatialSignTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.SpatialSignTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.UndersamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">UndersamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>shuffle=True</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#UndersamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.UndersamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
+<p>Undersample the majority class until it is represented
+at the target proportion to the most-represented minority class.
+For example, given the follow pd.Series (index = class, and values = counts):</p>
+<p>0  150
+1  30
+2  10</p>
+<p>and the ratio 0.5, the majority class (0) will be undersampled until
+the second most-populous class (1) is represented at a ratio of 0.5:</p>
+<p>0  60
+1  30
+2  10</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y</strong> : str</p>
+<blockquote>
+<div><p>The name of the response column. The response column must be
+biclass, no more or less.</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, optional (default=0.2)</p>
+<blockquote>
+<div><p>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input matrix</p>
+</div></blockquote>
+<p><strong>shuffle</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether or not to shuffle rows on return</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">balance</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.UndersamplingClassBalancer.balance" title="skutil.preprocessing.UndersamplingClassBalancer.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>Apply the undersampling balance operation.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.UndersamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#UndersamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.UndersamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the undersampling balance operation. Undersamples
+the majority class to the provided ratio over the second-most-
+populous class label.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF, shape [n_samples, n_features]</p>
+<blockquote>
+<div><p>The data to balance</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pd.DataFrame</strong> :</p>
+<blockquote class="last">
+<div><p>The balanced dataframe. The dataframe will be
+explicitly shuffled if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is True however,
+if <code class="docutils literal"><span class="pre">self.shuffle</span></code> is False, preservation of original, 
+natural ordering is not guaranteed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer">
+<em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">YeoJohnsonTransformer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_jobs=1</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.transform._BaseSelectiveTransformer</span></code></p>
+<dl class="docutils">
+<dt>Estimate a lambda parameter for each feature, and transform</dt>
+<dd>it to a distribution more-closely resembling a Gaussian bell
+using the Yeo-Johnson transformation.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : int, 1 by default</p>
+<blockquote>
+<div><p>The number of jobs to use for the computation. This works by
+estimating each of the feature lambdas in parallel.</p>
+<p>If -1 all CPUs are used. If 1 is given, no parallel computing code
+is used at all, which is useful for debugging. For n_jobs below -1,
+(n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
+one are used.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>lambda_</strong> : dict</p>
+<blockquote class="last">
+<div><p>The lambda values corresponding to each feature</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.YeoJohnsonTransformer.fit" title="skutil.preprocessing.YeoJohnsonTransformer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.preprocessing.YeoJohnsonTransformer.transform" title="skutil.preprocessing.YeoJohnsonTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Apply the transformation to test data.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.preprocessing.YeoJohnsonTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/transform.html#YeoJohnsonTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.YeoJohnsonTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the transformation to test data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_utils.html" class="btn btn-neutral float-right" title="skutil.utils module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_odr.html" class="btn btn-neutral" title="skutil.odr module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

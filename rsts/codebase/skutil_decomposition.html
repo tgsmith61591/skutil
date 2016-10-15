@@ -1,0 +1,609 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.decomposition module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.feature_selection module" href="skutil_feature_selection.html"/>
+        <link rel="prev" title="skutil.base" href="skutil_base.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_base.html">    skutil.base</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_grid_search.html">    skutil.grid_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.decomposition module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_decomposition.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.decomposition">
+<span id="skutil-decomposition-module"></span><h1>skutil.decomposition module<a class="headerlink" href="#module-skutil.decomposition" title="Permalink to this headline">¶</a></h1>
+<p>skutil.decomposition provides sklearn decompositions
+(<cite>PCA</cite>, <cite>TruncatedSVD</cite>) within the skutil API, i.e., 
+allowing such transformers to operate on a select subset
+of columns rather than the entire matrix.</p>
+<dl class="class">
+<dt id="skutil.decomposition.SelectivePCA">
+<em class="property">class </em><code class="descclassname">skutil.decomposition.</code><code class="descname">SelectivePCA</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_components=None</em>, <em>whiten=False</em>, <em>weight=False</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code></p>
+<p>A class that will apply PCA only to a select group
+of columns. Useful for data that may contain a mix of columns 
+that we do and don&#8217;t want to decompose.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string), optional (default=None)</p>
+<blockquote>
+<div><p>The names of the columns on which to apply the transformation.
+If no column names are provided, the decomposition will be <code class="docutils literal"><span class="pre">fit</span></code>
+on the entire frame. Note that the transormation will also only
+apply to the specified columns, and any other non-specified
+columns will still be present after transformation.</p>
+</div></blockquote>
+<p><strong>n_components</strong> : int, float, None or string, optional (default=None)</p>
+<blockquote>
+<div><p>The number of components to keep, per sklearn:</p>
+<ul>
+<li><p class="first">if n_components is not set, all components are kept:</p>
+<blockquote>
+<div><p>n_components == min(n_samples, n_features)</p>
+</div></blockquote>
+</li>
+<li><p class="first">if n_components == &#8216;mle&#8217; and svd_solver == &#8216;full&#8217;, Minka&#8217;s MLE is used</p>
+</li>
+</ul>
+<p>to guess the dimension.</p>
+<ul class="simple">
+<li>if <code class="docutils literal"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">n_components</span> <span class="pre">&lt;</span> <span class="pre">1</span></code> and svd_solver == &#8216;full&#8217;, select the number</li>
+</ul>
+<p>of components such that the amount of variance that needs to be
+explained is greater than the percentage specified by <code class="docutils literal"><span class="pre">n_components</span></code></p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">n_components</span></code> cannot be equal to <code class="docutils literal"><span class="pre">n_features</span></code> for <code class="docutils literal"><span class="pre">svd_solver</span></code> == &#8216;arpack&#8217;.</li>
+</ul>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=None)</p>
+<blockquote>
+<div><p>Whether or not to return a pandas DataFrame object. If
+False, will return a np.ndarray instead.</p>
+</div></blockquote>
+<p><strong>whiten</strong> : bool, optional (default False)</p>
+<blockquote>
+<div><p>When True (False by default) the <cite>components_</cite> vectors are multiplied
+by the square root of n_samples and then divided by the singular values
+to ensure uncorrelated outputs with unit component-wise variances.
+Whitening will remove some information from the transformed signal
+(the relative variance scales of the components) but can sometime
+improve the predictive accuracy of the downstream estimators by
+making their data respect some hard-wired assumptions.</p>
+</div></blockquote>
+<p><strong>weight</strong> : bool, optional (default False)</p>
+<blockquote>
+<div><p>When True (False by default) the <cite>explained_variance_</cite> vector is used to weight
+the features post-transformation. This is especially useful in clustering contexts,
+where features are all implicitly assigned the same importance, even though PCA
+by nature orders the features by importance (i.e., not all components are created equally).
+When True, weighting will subtract the median variance from the weighting vector, and add one
+(so as not to down sample or upsample everything), then multiply the weights across the
+transformed features.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<blockquote>
+<div><p>The names of the columns on which to apply 
+the transformation.</p>
+</div></blockquote>
+<p class="last"><strong>pca_</strong> : the PCA object</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.fit" title="skutil.decomposition.SelectivePCA.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer to the provided dataset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.get_decomposition" title="skutil.decomposition.SelectivePCA.get_decomposition"><code class="xref py py-obj docutils literal"><span class="pre">get_decomposition</span></code></a>()</td>
+<td>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.score" title="skutil.decomposition.SelectivePCA.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(X[,&nbsp;y])</td>
+<td>Return the average log-likelihood of all samples.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.transform" title="skutil.decomposition.SelectivePCA.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Transform the given dataset, provided the transformer has already been fit.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.decomposition.SelectivePCA.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer to the provided dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<blockquote>
+<div><p>The data to fit.</p>
+</div></blockquote>
+<p><strong>y: None</strong> :</p>
+<blockquote>
+<div><p>Pass through for grid search and pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self</strong> : SelectivePCA</p>
+<blockquote class="last">
+<div><p>The fit transformer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.decomposition.SelectivePCA.get_decomposition">
+<code class="descname">get_decomposition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.get_decomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.get_decomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,
+this method returns the internal decomposition class: 
+<code class="docutils literal"><span class="pre">sklearn.decomposition.PCA</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.pca_</strong> : sklearn.decomposition.PCA</p>
+<blockquote class="last">
+<div><p>The fit internal decomposition class</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.decomposition.SelectivePCA.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the average log-likelihood of all samples.
+This calls sklearn.decomposition.PCA&#8217;s score method
+on the specified columns.</p>
+<p>See. &#8220;Pattern Recognition and Machine Learning&#8221;
+by C. Bishop, 12.2.1 p. 574
+or <a class="reference external" href="http://www.miketipping.com/papers/met-mppca.pdf">http://www.miketipping.com/papers/met-mppca.pdf</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<blockquote>
+<div><p>The data to score.</p>
+</div></blockquote>
+<p><strong>y: None</strong> :</p>
+<blockquote>
+<div><p>Passthrough for pipeline/gridsearch</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ll: float</strong> :</p>
+<blockquote class="last">
+<div><p>Average log-likelihood of the samples under the fit
+PCA model (<cite>self.pca_</cite>)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.decomposition.SelectivePCA.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the given dataset, provided the transformer
+has already been fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<blockquote>
+<div><p>The data to fit.</p>
+</div></blockquote>
+<p><strong>y: None</strong> :</p>
+<blockquote>
+<div><p>Pass through for grid search and pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix. pd.DataFrame if <code class="docutils literal"><span class="pre">as_df</span></code>
+is True, else np.ndarray.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.decomposition.SelectiveTruncatedSVD">
+<em class="property">class </em><code class="descclassname">skutil.decomposition.</code><code class="descname">SelectiveTruncatedSVD</code><span class="sig-paren">(</span><em>cols=None</em>, <em>n_components=2</em>, <em>algorithm='randomized'</em>, <em>n_iter=5</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code></p>
+<p>A class that will apply truncated SVD (LSA) only to a select group
+of columns. Useful for data that contains categorical features
+that have not yet been dummied, or for dummied features we don&#8217;t want
+decomposed. TruncatedSVD is the equivalent of Latent Semantic Analysis,
+and returns the &#8220;concept space&#8221; of the decomposed features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<blockquote>
+<div><p>names of columns on which to apply scaling</p>
+</div></blockquote>
+<p><strong>n_components</strong> : int, default = 2</p>
+<blockquote>
+<div><p>Desired dimensionality of output data.
+Must be strictly less than the number of features.
+The default value is useful for visualisation. For LSA, a value of
+100 is recommended.</p>
+</div></blockquote>
+<p><strong>algorithm</strong> : string, default = &#8220;randomized&#8221;</p>
+<blockquote>
+<div><p>SVD solver to use. Either &#8220;arpack&#8221; for the ARPACK wrapper in SciPy
+(scipy.sparse.linalg.svds), or &#8220;randomized&#8221; for the randomized
+algorithm due to Halko (2009).</p>
+</div></blockquote>
+<p><strong>n_iter</strong> : int, optional (default 5)</p>
+<blockquote>
+<div><p>Number of iterations for randomized SVD solver. Not used by ARPACK.
+The default is larger than the default in <cite>randomized_svd</cite> to handle
+sparse matrices that may have large slowly decaying spectrum.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : boolean, default True</p>
+<blockquote>
+<div><p>Whether to return a pandas DataFrame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<blockquote>
+<div><p>the columns</p>
+</div></blockquote>
+<p class="last"><strong>svd_</strong> : the SVD object</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.fit" title="skutil.decomposition.SelectiveTruncatedSVD.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the transformer to the provided dataset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.get_decomposition" title="skutil.decomposition.SelectiveTruncatedSVD.get_decomposition"><code class="xref py py-obj docutils literal"><span class="pre">get_decomposition</span></code></a>()</td>
+<td>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="skutil.decomposition.SelectiveTruncatedSVD.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Transform the given dataset, provided the transformer has already been fit.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.decomposition.SelectiveTruncatedSVD.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer to the provided dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<blockquote>
+<div><p>The data to fit.</p>
+</div></blockquote>
+<p><strong>y: None</strong> :</p>
+<blockquote>
+<div><p>Pass through for grid search and pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.decomposition.SelectiveTruncatedSVD.get_decomposition">
+<code class="descname">get_decomposition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.get_decomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.get_decomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,
+this method returns the internal decomposition class: 
+<code class="docutils literal"><span class="pre">sklearn.decomposition.TruncatedSVD</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.svd_</strong> : sklearn.decomposition.TruncatedSVD</p>
+<blockquote class="last">
+<div><p>The fit internal decomposition class</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.decomposition.SelectiveTruncatedSVD.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the given dataset, provided the transformer
+has already been fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<blockquote>
+<div><p>The data to fit.</p>
+</div></blockquote>
+<p><strong>y: None</strong> :</p>
+<blockquote>
+<div><p>Pass through for grid search and pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : pd.DataFrame or np.ndarray</p>
+<blockquote class="last">
+<div><p>The transformed matrix. pd.DataFrame if <code class="docutils literal"><span class="pre">as_df</span></code>
+is True, else np.ndarray.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_feature_selection.html" class="btn btn-neutral float-right" title="skutil.feature_selection module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_base.html" class="btn btn-neutral" title="skutil.base" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

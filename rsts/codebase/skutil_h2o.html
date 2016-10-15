@@ -1,0 +1,3286 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.h2o module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.linear_model module" href="skutil_linear_model.html"/>
+        <link rel="prev" title="skutil.grid_search" href="skutil_grid_search.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_base.html">    skutil.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_grid_search.html">    skutil.grid_search</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.h2o module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_h2o.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.h2o">
+<span id="skutil-h2o-module"></span><h1>skutil.h2o module<a class="headerlink" href="#module-skutil.h2o" title="Permalink to this headline">¶</a></h1>
+<p>skutil.h2o bridges the functionality between sklearn and H2O with
+custom encoders, grid search functionality, and over/undersampling
+class balancers.</p>
+<dl class="class">
+<dt id="skutil.h2o.BaseH2OFeatureSelector">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">BaseH2OFeatureSelector</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>min_version='any'</em>, <em>max_version=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#BaseH2OFeatureSelector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFeatureSelector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
+<p>Base class for all H2O selectors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<blockquote>
+<div><p>The minimum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+<p><strong>max_version</strong> : str, float (default None)</p>
+<blockquote class="last">
+<div><p>The maximum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFeatureSelector.transform" title="skutil.h2o.BaseH2OFeatureSelector.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.BaseH2OFeatureSelector.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#BaseH2OFeatureSelector.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFeatureSelector.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">BaseH2OFunctionWrapper</code><span class="sig-paren">(</span><em>target_feature=None</em>, <em>min_version='any'</em>, <em>max_version=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.BaseEstimator</span></code></p>
+<p>Base class for all H2O estimators or functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target_feature</strong> : str (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)</p>
+</div></blockquote>
+<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<blockquote>
+<div><p>The minimum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+<p><strong>max_version</strong> : str, float (default None)</p>
+<blockquote class="last">
+<div><p>The maximum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFunctionWrapper.load" title="skutil.h2o.BaseH2OFunctionWrapper.load"><code class="xref py py-obj docutils literal"><span class="pre">load</span></code></a>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="skutil.h2o.BaseH2OFunctionWrapper.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+</tbody>
+</table>
+<dl class="staticmethod">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.load">
+<em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.max_version">
+<code class="descname">max_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.max_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.min_version">
+<code class="descname">min_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.min_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>warn_if_exists=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the transformer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.BaseH2OTransformer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">BaseH2OTransformer</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>min_version='any'</em>, <em>max_version=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OFunctionWrapper</span></code>, <code class="xref py py-class docutils literal"><span class="pre">sklearn.base.TransformerMixin</span></code></p>
+<p>Base class for all H2OTransformers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str)</p>
+<blockquote>
+<div><p>The list of names on which to fit the feature selector.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<blockquote>
+<div><p>The minimum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+<p><strong>max_version</strong> : str, float (default None)</p>
+<blockquote class="last">
+<div><p>The maximum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.BaseH2OTransformer.fit_transform" title="skutil.h2o.BaseH2OTransformer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.BaseH2OTransformer.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OTransformer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OTransformer.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OFeatureDropper">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OFeatureDropper</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OFeatureDropper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OFeatureDropper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.select.BaseH2OFeatureSelector</span></code></p>
+<p>A very simple class to be used at the beginning or any stage of an
+H2OPipeline that will drop the given features from the remainder of the pipe.</p>
+<p>This is useful when you have many features, but only a few to drop.
+Rather than passing the feature_names arg as the delta between many
+features and the several to drop, this allows you to drop them and keep
+feature_names as None in future steps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>feature_names</strong> :</p>
+<blockquote class="last">
+<div><p>These are the features that will be dropped by 
+the <cite>FeatureDropper</cite></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OFeatureDropper.fit" title="skutil.h2o.H2OFeatureDropper.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OFeatureDropper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OFeatureDropper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OFeatureDropper.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OGainsRandomizedSearchCV">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OGainsRandomizedSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_grid</em>, <em>feature_names</em>, <em>target_feature</em>, <em>exposure_feature</em>, <em>loss_feature</em>, <em>premium_feature=None</em>, <em>n_iter=10</em>, <em>random_state=None</em>, <em>scoring='lift'</em>, <em>scoring_params=None</em>, <em>cv=5</em>, <em>verbose=0</em>, <em>iid=True</em>, <em>validation_frame=None</em>, <em>minimize='bias'</em>, <em>error_score=nan</em>, <em>error_behavior='warn'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.grid_search.H2ORandomizedSearchCV</span></code></p>
+<p>A grid search that scores based on actuarial metrics
+(See skutil.metrics.GainsStatisticalReport). This is a more
+customized form of grid search, and must use a gains metric
+provided by the GainsStatisticalReport.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<blockquote>
+<div><p>The estimator to fit.</p>
+</div></blockquote>
+<p><strong>param_grid</strong> : dict</p>
+<blockquote>
+<div><p>The hyper parameter grid over which to search.</p>
+</div></blockquote>
+<p><strong>feature_names</strong> : iterable (str)</p>
+<blockquote>
+<div><p>The list of feature names on which to fit</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the target</p>
+</div></blockquote>
+<p><strong>exposure_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the exposure feature</p>
+</div></blockquote>
+<p><strong>loss_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the loss feature</p>
+</div></blockquote>
+<p><strong>premium_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the premium feature</p>
+</div></blockquote>
+<p><strong>n_iter</strong> : int, optional (default=10)</p>
+<blockquote>
+<div><p>The number of iterations to fit. Note that 
+n_iter * cv.get_n_splits will be fit. If there
+are 10 folds and 10 iterations, 100 models (plus
+one) will be fit.</p>
+</div></blockquote>
+<p><strong>random_state</strong> : int, optional (default=None)</p>
+<blockquote>
+<div><p>The random state for the search</p>
+</div></blockquote>
+<p><strong>scoring</strong> : str, optional (default=&#8217;lift&#8217;)</p>
+<blockquote>
+<div><p>One of {&#8216;lift&#8217;,&#8217;gini&#8217;} or other valid GainsStatisticalReport
+scoring metrics.</p>
+</div></blockquote>
+<p><strong>scoring_params</strong> : dict, optional (default=None)</p>
+<blockquote>
+<div><p>Any kwargs to be passed to the scoring function for
+scoring at each iteration.</p>
+</div></blockquote>
+<p><strong>cv</strong> : int or H2OCrossValidator, optional (default=5)</p>
+<blockquote>
+<div><p>The number of folds to be fit for cross validation.
+Note that n_iter * cv.get_n_splits will be fit. If there
+are 10 folds and 10 iterations, 100 models (plus
+one) will be fit.</p>
+</div></blockquote>
+<p><strong>verbose</strong> : int, optional (default=0)</p>
+<blockquote>
+<div><p>The level of verbosity. 1,2 or greater.</p>
+</div></blockquote>
+<p><strong>iid</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to consider each fold as IID. The fold scores
+are normalized at the end by the number of observations
+in each fold.</p>
+</div></blockquote>
+<p><strong>validation_frame</strong> : H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>Whether to score on the full validation frame at the
+end of all of the model fits. Note that this will NOT be
+used in the actual model selection process.</p>
+</div></blockquote>
+<p><strong>minimize</strong> : str, optional (default=&#8217;bias&#8217;)</p>
+<blockquote>
+<div><p>How the search selects the best model to fit on the entire dataset.
+One of {&#8216;bias&#8217;,&#8217;variance&#8217;}. The default behavior is &#8216;bias&#8217;, which is
+also the default behavior of sklearn. This will select the set of
+hyper parameters which maximizes the cross validation score mean.
+Alternatively, &#8216;variance&#8217; will select the model which minimizes
+the standard deviations between cross validation scores.</p>
+</div></blockquote>
+<p><strong>error_score</strong> : float, optional (default=np.nan)</p>
+<blockquote>
+<div><p>The default score to use in the case of a pd.qcuts ValueError
+(when there are non-unique bin edges)</p>
+</div></blockquote>
+<p><strong>error_behavior</strong> : str, optional (default=&#8217;warn&#8217;)</p>
+<blockquote class="last">
+<div><p>How to handle the pd.qcut ValueError. One of {&#8216;warn&#8217;,&#8217;raise&#8217;,&#8217;ignore&#8217;}</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.fit" title="skutil.h2o.H2OGainsRandomizedSearchCV.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
+<td>Fit the grid search on the given frame, and then generate predictions.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.report_scores" title="skutil.h2o.H2OGainsRandomizedSearchCV.report_scores"><code class="xref py py-obj docutils literal"><span class="pre">report_scores</span></code></a>()</td>
+<td>Create a dataframe report for the fitting and scoring of the gains search.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.score" title="skutil.h2o.H2OGainsRandomizedSearchCV.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(frame)</td>
+<td>Predict and score on a new frame.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Get the variable importance, if the final estimator implements such a function.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OGainsRandomizedSearchCV.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OGainsRandomizedSearchCV.report_scores">
+<code class="descname">report_scores</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV.report_scores"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV.report_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a dataframe report for the fitting and scoring of the
+gains search. Will report lift, gini and any other relevant metrics.
+If a validation set was included, will also report validation scores.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rdf</strong> : pd.DataFrame</p>
+<blockquote class="last">
+<div><p>The grid search report</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OGainsRandomizedSearchCV.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict and score on a new frame. Note that this method
+will not store performance metrics in the report that <code class="docutils literal"><span class="pre">`report_score`</span></code>
+generates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame on which to predict and score performance.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OGridSearchCV">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OGridSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_grid</em>, <em>feature_names</em>, <em>target_feature</em>, <em>scoring=None</em>, <em>scoring_params=None</em>, <em>cv=5</em>, <em>verbose=0</em>, <em>iid=True</em>, <em>validation_frame=None</em>, <em>minimize='bias'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGridSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGridSearchCV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.grid_search.BaseH2OSearchCV</span></code></p>
+<p>An exhaustive grid search that will fit models across the
+entire hyperparameter grid provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<blockquote class="last">
+<div><blockquote>
+<div><p>The estimator to fit.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>param_grid</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd><p class="first last">The hyper parameter grid over which to search.</p>
+</dd>
+<dt>feature_names</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">iterable (str)</span><dd><p class="first last">The list of feature names on which to fit</p>
+</dd>
+<dt>target_feature</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">The name of the target</p>
+</dd>
+<dt>scoring</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;lift&#8217;)</span><dd><p class="first last">A valid scoring metric, i.e., &#8220;accuracy_score&#8221;. See
+<code class="docutils literal"><span class="pre">skutil.h2o.grid_search.SCORERS</span></code> for a comprehensive list.</p>
+</dd>
+<dt>scoring_params</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional (default=None)</span><dd><p class="first last">Any kwargs to be passed to the scoring function for
+scoring at each iteration.</p>
+</dd>
+<dt>cv</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or H2OCrossValidator, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.</p>
+</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd><p class="first last">The level of verbosity. 1,2 or greater.</p>
+</dd>
+<dt>iid</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd><p class="first last">Whether to consider each fold as IID. The fold scores
+are normalized at the end by the number of observations
+in each fold.</p>
+</dd>
+<dt>validation_frame</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">H2OFrame, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
+end of all of the model fits. Note that this will NOT be
+used in the actual model selection process.</p>
+</dd>
+<dt>minimize</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;bias&#8217;)</span><dd><p class="first last">How the search selects the best model to fit on the entire dataset.
+One of {&#8216;bias&#8217;,&#8217;variance&#8217;}. The default behavior is &#8216;bias&#8217;, which is
+also the default behavior of sklearn. This will select the set of
+hyper parameters which maximizes the cross validation score mean.
+Alternatively, &#8216;variance&#8217; will select the model which minimizes
+the standard deviations between cross validation scores.</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OGridSearchCV.fit" title="skutil.h2o.H2OGridSearchCV.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
+<td>Fit the grid search on the given frame, and then generate predictions.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Get the variable importance, if the final estimator implements such a function.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OGridSearchCV.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGridSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGridSearchCV.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OInteractionTermTransformer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OInteractionTermTransformer</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>interaction_function=None</em>, <em>name_suffix='I'</em>, <em>only_return_interactions=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OInteractionTermTransformer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OInteractionTermTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
+<p>A class that will generate interaction terms between selected columns.
+An interaction captures some relationship between two independent variables
+in the form of In = (xi * xj).</p>
+<p>Note that the H2OInteractionTermTransformer will only operate on the feature_names,
+and at the transform point will return ALL features plus the newly generated ones.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>interaction</strong> : callable, optional (default=None)</p>
+<blockquote>
+<div><p>A callable for interactions. Default None will
+result in multiplication of two Series objects</p>
+</div></blockquote>
+<p><strong>name_suffix</strong> : str, optional (default=&#8217;I&#8217;)</p>
+<blockquote>
+<div><p>The suffix to add to the new feature name in the form of
+&lt;feature_x&gt;_&lt;feature_y&gt;_&lt;suffix&gt;</p>
+</div></blockquote>
+<p><strong>only_return_interactions</strong> : bool, optional (default=False)</p>
+<blockquote class="last">
+<div><p>If set to True, will only return features in feature_names
+and their respective generated interaction terms.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OInteractionTermTransformer.fit" title="skutil.h2o.H2OInteractionTermTransformer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OInteractionTermTransformer.transform" title="skutil.h2o.H2OInteractionTermTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(frame)</td>
+<td>Perform the interaction term expansion</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OInteractionTermTransformer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OInteractionTermTransformer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OInteractionTermTransformer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to transform</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OInteractionTermTransformer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OInteractionTermTransformer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OInteractionTermTransformer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the interaction term expansion</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to transform</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OKFold">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OKFold</code><span class="sig-paren">(</span><em>n_folds=3</em>, <em>shuffle=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OKFold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OKFold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.split._H2OBaseKFold</span></code></p>
+<p>K-folds cross-validator for an H2OFrame</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_n_splits</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">split</span></code>(frame[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OLabelEncoder">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OLabelEncoder</code><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OLabelEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OLabelEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
+<p>Encode categorical values in a H2OFrame (single column)
+into ordinal labels 0 - len(column) - 1.</p>
+<p>Example (given <code class="docutils literal"><span class="pre">column</span></code>):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">column</span>
+<span class="go">  C1</span>
+<span class="go">----</span>
+<span class="go">   5</span>
+<span class="go">   6</span>
+<span class="go">   5</span>
+<span class="go">   7</span>
+<span class="go">   7</span>
+<span class="go">[5 rows x 1 column]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">H2OLabelEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+<span class="go">  C1</span>
+<span class="go">----</span>
+<span class="go">   0</span>
+<span class="go">   1</span>
+<span class="go">   0</span>
+<span class="go">   2</span>
+<span class="go">   2</span>
+<span class="go">[5 rows x 1 column]</span>
+</pre></div>
+</div>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OLabelEncoder.fit" title="skutil.h2o.H2OLabelEncoder.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(column)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OLabelEncoder.transform" title="skutil.h2o.H2OLabelEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(column)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OLabelEncoder.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>column</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OLabelEncoder.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OLabelEncoder.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OLabelEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>column</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OLabelEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OLabelEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OMulticollinearityFilterer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OMulticollinearityFilterer</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>threshold=0.85</em>, <em>na_warn=True</em>, <em>na_rm=False</em>, <em>use='complete.obs'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OMulticollinearityFilterer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OMulticollinearityFilterer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.select.BaseH2OFeatureSelector</span></code></p>
+<p>Filter out features with a correlation greater than the provided threshold.
+When a pair of correlated features is identified, the mean absolute correlation (MAC)
+of each feature is considered, and the feature with the highsest MAC is discarded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, (default=0.85)</p>
+<blockquote>
+<div><p>The threshold above which to filter correlated features</p>
+</div></blockquote>
+<p><strong>na_warn</strong> : bool (default True)</p>
+<blockquote>
+<div><p>Whether to warn if any NAs are present</p>
+</div></blockquote>
+<p><strong>na_rm</strong> : bool (default False)</p>
+<blockquote>
+<div><p>Whether to remove NA values</p>
+</div></blockquote>
+<p><strong>use</strong> : str (default &#8220;complete.obs&#8221;), one of {&#8216;complete.obs&#8217;,&#8217;all.obs&#8217;,&#8217;everything&#8217;}</p>
+<blockquote>
+<div><p>A string indicating how to handle missing values.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : list, string</p>
+<blockquote>
+<div><p>The columns to drop</p>
+</div></blockquote>
+<p><strong>mean_abs_correlations_</strong> : list, float</p>
+<blockquote>
+<div><p>The corresponding mean absolute correlations of each <a href="#id1"><span class="problematic" id="id2">drop_</span></a> name</p>
+</div></blockquote>
+<p><strong>correlations_</strong> : named tuple</p>
+<blockquote class="last">
+<div><p>A list of tuples with each tuple containing the two correlated features, 
+the level of correlation, the feature that was selected for dropping, and
+the mean absolute correlation of the dropped feature.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OMulticollinearityFilterer.fit" title="skutil.h2o.H2OMulticollinearityFilterer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td>Fit the multicollinearity filterer.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OMulticollinearityFilterer.fit_transform" title="skutil.h2o.H2OMulticollinearityFilterer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(X)</td>
+<td>Fit the multicollinearity filterer and return the transformed H2OFrame, X.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OMulticollinearityFilterer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OMulticollinearityFilterer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OMulticollinearityFilterer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the multicollinearity filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OMulticollinearityFilterer.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OMulticollinearityFilterer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OMulticollinearityFilterer.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the multicollinearity filterer and
+return the transformed H2OFrame, X.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2ONearZeroVarianceFilterer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2ONearZeroVarianceFilterer</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>threshold=1e-06</em>, <em>na_warn=True</em>, <em>na_rm=False</em>, <em>use='complete.obs'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2ONearZeroVarianceFilterer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2ONearZeroVarianceFilterer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.select.BaseH2OFeatureSelector</span></code></p>
+<p>Identify and remove any features that have a variance below
+a certain threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, default 1e-6</p>
+<blockquote>
+<div><p>The threshold below which to declare &#8220;zero variance&#8221;</p>
+</div></blockquote>
+<p><strong>na_warn</strong> : bool (default True)</p>
+<blockquote>
+<div><p>Whether to warn if any NAs are present</p>
+</div></blockquote>
+<p><strong>na_rm</strong> : bool (default False)</p>
+<blockquote>
+<div><p>Whether to remove NA values</p>
+</div></blockquote>
+<p><strong>use</strong> : str (default &#8220;complete.obs&#8221;), one of {&#8216;complete.obs&#8217;,&#8217;all.obs&#8217;,&#8217;everything&#8217;}</p>
+<blockquote>
+<div><p>A string indicating how to handle missing values.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : list, string</p>
+<blockquote class="last">
+<div><p>The columns to drop</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2ONearZeroVarianceFilterer.fit" title="skutil.h2o.H2ONearZeroVarianceFilterer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td>Fit the near zero variance filterer, return the transformed X frame.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2ONearZeroVarianceFilterer.fit_transform" title="skutil.h2o.H2ONearZeroVarianceFilterer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(X)</td>
+<td>Fit the near zero variance filterer.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2ONearZeroVarianceFilterer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2ONearZeroVarianceFilterer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2ONearZeroVarianceFilterer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the near zero variance filterer,
+return the transformed X frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2ONearZeroVarianceFilterer.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2ONearZeroVarianceFilterer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2ONearZeroVarianceFilterer.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the near zero variance filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OOversamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OOversamplingClassBalancer</code><span class="sig-paren">(</span><em>target_feature</em>, <em>ratio=0.2</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/balance.html#H2OOversamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OOversamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.balance._BaseH2OBalancer</span></code></p>
+<p>Oversample the minority classes until they are represented
+at the target proportion to the majority class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the response column. The response column must be
+bi-class, no more or less.</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, optional (default=0.2)</p>
+<blockquote>
+<div><p>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input frame</p>
+</div></blockquote>
+<p><strong>shuffle</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether or not to shuffle rows on return</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OOversamplingClassBalancer.balance" title="skutil.h2o.H2OOversamplingClassBalancer.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>Apply the oversampling balance operation.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OOversamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/balance.html#H2OOversamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OOversamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the oversampling balance operation. Oversamples
+the minority class to the provided ratio of minority
+class(es) : majority class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to balance</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OPipeline">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OPipeline</code><span class="sig-paren">(</span><em>steps</em>, <em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_from_ppc=None</em>, <em>exclude_from_fit=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OFunctionWrapper</span></code>, <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.VizMixin</span></code></p>
+<p>Create a sklearn-esque pipeline of H2O steps finished with an 
+optional <cite>H2OEstimator</cite>. Note that as of version 0.1.0, the behavior
+of the H2OPipeline has slightly changed, given the inclusion of the
+<code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and <code class="docutils literal"><span class="pre">exclude_from_fit</span></code> parameters.</p>
+<p>The pipeline, at the core, is comprised of a list of length-two tuples
+in the form of <cite>(&#8216;name&#8217;, SomeH2OTransformer())</cite>, punctuated with an
+optional <cite>H2OEstimator</cite> as the final step. The pipeline will procedurally 
+fit each stage, transforming the training data prior to fitting the next stage.
+When predicting or transforming new (test) data, each stage calls either
+<cite>transform</cite> or <cite>predict</cite> at the respective step.</p>
+<p><strong>On the topic of exclusions and `feature_names`:</strong></p>
+<p>Prior to version 0.1.0, <cite>H2OTransformer`s did not take the keyword `exclude_features</cite>.
+Its addition necessitated two new keywords in the <cite>H2OPipeline</cite>, and a slight change
+in behavior of <code class="docutils literal"><span class="pre">feature_names</span></code>:</p>
+<blockquote>
+<div><ul>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> - If set in the <cite>H2OPipeline</cite> constructor, these features</dt>
+<dd><p class="first last">will be universally omitted from every preprocessing stage.
+Since <cite>exclude_features</cite> can be set individually in each
+separate transformer, in the case that <cite>exclude_features</cite> has
+been explicitly set, the exclusions in that respective stage
+will include the union of <code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and 
+<cite>exclude_features</cite>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">exclude_from_fit</span></code> - If set in the <cite>H2OPipeline</cite> constructor, these features</dt>
+<dd><p class="first last">will be omitted from the <code class="docutils literal"><span class="pre">training_cols_</span></code> fit attribute,
+which are the columns passed to the final stage in the pipeline.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">feature_names</span></code> - The former behavior of the <cite>H2OPipeline</cite> only used <code class="docutils literal"><span class="pre">feature_names</span></code></dt>
+<dd><p class="first last">in the fit of the first transformer, passing the remaining columns to
+the next transformer as the <code class="docutils literal"><span class="pre">feature_names</span></code> parameter. The new
+behavior is more discriminating in the case of explicitly-set attributes.
+In the case where a transformer&#8217;s <code class="docutils literal"><span class="pre">feature_names</span></code> parameter has been
+explicitly set, <em>only those names</em> will be used in the fit. This is useful
+in cases where someone may only want to, for instance, drop one of two
+multicollinear features using the <cite>H2OMulticollinearityFilterer</cite> rather than
+fitting against the entire dataset. It also adheres to the now expected
+behavior of the exclusion parameters.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>steps</strong> : list</p>
+<blockquote>
+<div><p>A list of named tuples wherein element 1 of each tuple is
+an instance of a BaseH2OTransformer or an H2OEstimator.</p>
+</div></blockquote>
+<p><strong>feature_names</strong> : iterable (default=None)</p>
+<blockquote>
+<div><p>The names of features on which to fit the first transformer 
+in the pipeline. The next transformer will be fit with
+<code class="docutils literal"><span class="pre">feature_names</span></code> as the result-set columns from the previous
+transformer, minus any exclusions or target features.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str (default=None)</p>
+<blockquote>
+<div><p>The name of the target feature</p>
+</div></blockquote>
+<p><strong>exclude_from_ppc</strong> : iterable, optional (default=None)</p>
+<blockquote>
+<div><p>Any names to be excluded from any preprocessor fits.
+Since the <code class="docutils literal"><span class="pre">exclude_features</span></code> can be set in respective
+steps in each preprocessor, these features will be considered
+as global exclusions and will be appended to any individually
+set exclusion features.</p>
+</div></blockquote>
+<p><strong>exclude_from_fit</strong> : iterable, optional (default=None)</p>
+<blockquote class="last">
+<div><p>Any names to be excluded from the final model fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit" title="skutil.h2o.H2OPipeline.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
+<td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_predict" title="skutil.h2o.H2OPipeline.fit_predict"><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_transform" title="skutil.h2o.H2OPipeline.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.load" title="skutil.h2o.H2OPipeline.load"><code class="xref py py-obj docutils literal"><span class="pre">load</span></code></a>(location)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.plot" title="skutil.h2o.H2OPipeline.plot"><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code></a>(timestep,&nbsp;metric)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.predict" title="skutil.h2o.H2OPipeline.predict"><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Applies transforms to the data, and the predict method of the final estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.set_params" title="skutil.h2o.H2OPipeline.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(\*\*params)</td>
+<td>Set the parameters for this pipeline.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.transform" title="skutil.h2o.H2OPipeline.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Applies transforms to the data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.varimp" title="skutil.h2o.H2OPipeline.varimp"><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Get the variable importance, if the final estimator implements such a function.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit all the transforms one after the other and transform the
+data, then fit the transformed data using the final estimator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : h2o Frame</p>
+<blockquote class="last">
+<div><p>Training data. Must fulfill input requirements of first step of the
+pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.fit_predict">
+<code class="descname">fit_predict</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.fit_predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.fit_predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit all the transforms one after the other and transform the
+data, then fit the transformed data using the final estimator. Finally,
+either predict on the final step.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : h2o Frame</p>
+<blockquote class="last">
+<div><p>Training data. Must fulfill input requirements of first step of the
+pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit all the transforms one after the other and transform the
+data, then fit the transformed data using the final estimator. Finally,
+either transform on the final step.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : h2o Frame</p>
+<blockquote class="last">
+<div><p>Training data. Must fulfill input requirements of first step of the
+pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="skutil.h2o.H2OPipeline.load">
+<em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="skutil.h2o.H2OPipeline.named_steps">
+<code class="descname">named_steps</code><a class="headerlink" href="#skutil.h2o.H2OPipeline.named_steps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>timestep</em>, <em>metric</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies transforms to the data, and the predict method of the
+final estimator. Valid only if the final estimator implements
+predict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : an h2o Frame</p>
+<blockquote class="last">
+<div><p>Data to predict on. Must fulfill input requirements of first step
+of the pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.set_params">
+<code class="descname">set_params</code><span class="sig-paren">(</span><em>**params</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.set_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.set_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the parameters for this pipeline. Will revalidate the
+steps in the estimator prior to setting the parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>self</strong> :</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies transforms to the data. Valid only if the 
+final estimator implements predict.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : an h2o Frame</p>
+<blockquote class="last">
+<div><p>Data to predict on. Must fulfill input requirements of first step
+of the pipeline.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OPipeline.varimp">
+<code class="descname">varimp</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.varimp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.varimp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the variable importance, if the final
+estimator implements such a function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>use_pandas</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to return a pandas dataframe</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2ORandomizedSearchCV">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2ORandomizedSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_grid</em>, <em>feature_names</em>, <em>target_feature</em>, <em>n_iter=10</em>, <em>random_state=None</em>, <em>scoring=None</em>, <em>scoring_params=None</em>, <em>cv=5</em>, <em>verbose=0</em>, <em>iid=True</em>, <em>validation_frame=None</em>, <em>minimize='bias'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2ORandomizedSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2ORandomizedSearchCV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.grid_search.BaseH2OSearchCV</span></code></p>
+<p>A grid search that operates over a random sub-hyperparameter space
+at each iteration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<blockquote class="last">
+<div><blockquote>
+<div><p>The estimator to fit.</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>param_grid</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd><p class="first last">The hyper parameter grid over which to search.</p>
+</dd>
+<dt>feature_names</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">iterable (str)</span><dd><p class="first last">The list of feature names on which to fit</p>
+</dd>
+<dt>target_feature</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">The name of the target</p>
+</dd>
+<dt>n_iter</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd><p class="first last">The number of iterations to fit. Note that 
+n_iter * cv.get_n_splits will be fit. If there
+are 10 folds and 10 iterations, 100 models (plus
+one) will be fit.</p>
+</dd>
+<dt>random_state</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=None)</span><dd><p class="first last">The random state for the search</p>
+</dd>
+<dt>scoring</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;lift&#8217;)</span><dd><p class="first last">A valid scoring metric, i.e., &#8220;accuracy_score&#8221;. See
+<code class="docutils literal"><span class="pre">skutil.h2o.grid_search.SCORERS</span></code> for a comprehensive list.</p>
+</dd>
+<dt>scoring_params</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict, optional (default=None)</span><dd><p class="first last">Any kwargs to be passed to the scoring function for
+scoring at each iteration.</p>
+</dd>
+<dt>cv</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or H2OCrossValidator, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.
+Note that n_iter * cv.get_n_splits will be fit. If there
+are 10 folds and 10 iterations, 100 models (plus
+one) will be fit.</p>
+</dd>
+<dt>verbose</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd><p class="first last">The level of verbosity. 1,2 or greater.</p>
+</dd>
+<dt>iid</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional (default=True)</span><dd><p class="first last">Whether to consider each fold as IID. The fold scores
+are normalized at the end by the number of observations
+in each fold.</p>
+</dd>
+<dt>validation_frame</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">H2OFrame, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
+end of all of the model fits. Note that this will NOT be
+used in the actual model selection process.</p>
+</dd>
+<dt>minimize</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str, optional (default=&#8217;bias&#8217;)</span><dd><p class="first last">How the search selects the best model to fit on the entire dataset.
+One of {&#8216;bias&#8217;,&#8217;variance&#8217;}. The default behavior is &#8216;bias&#8217;, which is
+also the default behavior of sklearn. This will select the set of
+hyper parameters which maximizes the cross validation score mean.
+Alternatively, &#8216;variance&#8217; will select the model which minimizes
+the standard deviations between cross validation scores.</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2ORandomizedSearchCV.fit" title="skutil.h2o.H2ORandomizedSearchCV.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
+<td>Fit the grid search on the given frame, and then generate predictions.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<td>Get the variable importance, if the final estimator implements such a function.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2ORandomizedSearchCV.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2ORandomizedSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2ORandomizedSearchCV.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OSafeOneHotEncoder">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OSafeOneHotEncoder</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>drop_after_encoded=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/encode.html#H2OSafeOneHotEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSafeOneHotEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
+<p>Given a set of feature_names, one-hot encodes (dummies)
+a set of vecs into an expanded set of dummied columns. Will
+drop the original columns after transformation, unless otherwise 
+specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>drop_after_encoded</strong> : bool (default=True)</p>
+<blockquote class="last">
+<div><p>Whether to drop the original columns after transform</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSafeOneHotEncoder.fit" title="skutil.h2o.H2OSafeOneHotEncoder.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td>Fit the one hot encoder.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSafeOneHotEncoder.transform" title="skutil.h2o.H2OSafeOneHotEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform a new frame after fit.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OSafeOneHotEncoder.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/encode.html#H2OSafeOneHotEncoder.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSafeOneHotEncoder.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the one hot encoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OSafeOneHotEncoder.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/encode.html#H2OSafeOneHotEncoder.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSafeOneHotEncoder.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a new frame after fit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The frame to transform</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X_transform</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The transformed H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OSelectiveImputer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OSelectiveImputer</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>def_fill='mean'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveImputer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveImputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.transform._H2OBaseImputer</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveImputer.fit" title="skutil.h2o.H2OSelectiveImputer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveImputer.transform" title="skutil.h2o.H2OSelectiveImputer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform an H2OFrame given the fit imputer.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OSelectiveImputer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveImputer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveImputer.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OSelectiveImputer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveImputer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveImputer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform an H2OFrame given the fit imputer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>The frame to fit</p>
+</div></blockquote>
+<p class="last"><strong>y</strong> : None, passthrough for pipeline</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OSelectiveScaler">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OSelectiveScaler</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>with_mean=True</em>, <em>with_std=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveScaler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
+<p>A class that will scale selected features in the H2OFrame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>with_mean</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>should subtract mean?</p>
+</div></blockquote>
+<p><strong>with_std</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>should divide by std?</p>
+</div></blockquote>
+<p><strong>Attributes</strong> :</p>
+<p><strong>&#8212;&#8212;-</strong> :</p>
+<p><strong>means</strong> : dict (string:float)</p>
+<blockquote>
+<div><p>The mapping of column names to column means</p>
+</div></blockquote>
+<p><strong>stds</strong> : dict (string:float)</p>
+<blockquote class="last">
+<div><p>The mapping of column names to column standard deviations</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveScaler.fit" title="skutil.h2o.H2OSelectiveScaler.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td>Fit the transformer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveScaler.transform" title="skutil.h2o.H2OSelectiveScaler.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Do the transformation</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OSelectiveScaler.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveScaler.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveScaler.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to transform</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.H2OSelectiveScaler.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/transform.html#H2OSelectiveScaler.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSelectiveScaler.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the transformation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to transform</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OShuffleSplit">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OShuffleSplit</code><span class="sig-paren">(</span><em>n_splits=2</em>, <em>test_size=0.1</em>, <em>train_size=None</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OShuffleSplit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OShuffleSplit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.split.H2OBaseShuffleSplit</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_n_splits</span></code>([frame,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">split</span></code>(frame[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OSparseFeatureDropper">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OSparseFeatureDropper</code><span class="sig-paren">(</span><em>feature_names=None</em>, <em>target_feature=None</em>, <em>exclude_features=None</em>, <em>threshold=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OSparseFeatureDropper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSparseFeatureDropper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.select.BaseH2OFeatureSelector</span></code></p>
+<p>Retains features that are less sparse (NA) than
+the provided threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : array_like (str), optional (default=None)</p>
+<blockquote>
+<div><p>The list of names on which to fit the transformer.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, optional (default None)</p>
+<blockquote>
+<div><p>The name of the target feature (is excluded from the fit)
+for the estimator.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None, optional (default=None)</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+</div></blockquote>
+<p><strong>threshold</strong> : float (default=0.5)</p>
+<blockquote>
+<div><p>The threshold of sparsity above which to drop</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>sparsity_</strong> : array_like, (n_cols,)</p>
+<blockquote>
+<div><p>The array of sparsity values</p>
+</div></blockquote>
+<p><strong>drop_</strong> : array_like</p>
+<blockquote class="last">
+<div><p>The array of column names to drop</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSparseFeatureDropper.fit" title="skutil.h2o.H2OSparseFeatureDropper.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X)</td>
+<td>Fit the sparsity filterer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OSparseFeatureDropper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#H2OSparseFeatureDropper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OSparseFeatureDropper.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the sparsity filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The frame to fit</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OStratifiedKFold">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OStratifiedKFold</code><span class="sig-paren">(</span><em>n_folds=3</em>, <em>shuffle=False</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OStratifiedKFold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OStratifiedKFold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.split._H2OBaseKFold</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_n_splits</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OStratifiedKFold.split" title="skutil.h2o.H2OStratifiedKFold.split"><code class="xref py py-obj docutils literal"><span class="pre">split</span></code></a>(frame,&nbsp;y)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OStratifiedKFold.split">
+<code class="descname">split</code><span class="sig-paren">(</span><em>frame</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OStratifiedKFold.split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OStratifiedKFold.split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OStratifiedShuffleSplit">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OStratifiedShuffleSplit</code><span class="sig-paren">(</span><em>n_splits=2</em>, <em>test_size=0.1</em>, <em>train_size=None</em>, <em>random_state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OStratifiedShuffleSplit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OStratifiedShuffleSplit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.split.H2OBaseShuffleSplit</span></code></p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_n_splits</span></code>([frame,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OStratifiedShuffleSplit.split" title="skutil.h2o.H2OStratifiedShuffleSplit.split"><code class="xref py py-obj docutils literal"><span class="pre">split</span></code></a>(frame,&nbsp;y)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OStratifiedShuffleSplit.split">
+<code class="descname">split</code><span class="sig-paren">(</span><em>frame</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#H2OStratifiedShuffleSplit.split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OStratifiedShuffleSplit.split" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.H2OUndersamplingClassBalancer">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OUndersamplingClassBalancer</code><span class="sig-paren">(</span><em>target_feature</em>, <em>ratio=0.2</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/balance.html#H2OUndersamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OUndersamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.balance._BaseH2OBalancer</span></code></p>
+<p>Undersample the majority class until it is represented
+at the target proportion to the most-represented minority class.
+For example, given the follow pd.Series (index = class, and values = counts):</p>
+<p>0  150
+1  30
+2  10</p>
+<p>and the ratio 0.5, the majority class (0) will be undersampled until
+the second most-populous class (1) is represented at a ratio of 0.5:</p>
+<p>0  60
+1  30
+2  10</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target_feature</strong> : str</p>
+<blockquote>
+<div><p>The name of the response column. The response column must be
+biclass, no more or less.</p>
+</div></blockquote>
+<p><strong>ratio</strong> : float, optional (default=0.2)</p>
+<blockquote>
+<div><p>The target ratio of the minority records to the majority records. If the
+existing ratio is &gt;= the provided ratio, the return value will merely be
+a copy of the input frame</p>
+</div></blockquote>
+<p><strong>shuffle</strong> : bool, optional (default=True)</p>
+<blockquote class="last">
+<div><p>Whether or not to shuffle rows on return</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OUndersamplingClassBalancer.balance" title="skutil.h2o.H2OUndersamplingClassBalancer.balance"><code class="xref py py-obj docutils literal"><span class="pre">balance</span></code></a>(X)</td>
+<td>Apply the undersampling balance operation.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
+<td>Save the transformer</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.H2OUndersamplingClassBalancer.balance">
+<code class="descname">balance</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/balance.html#H2OUndersamplingClassBalancer.balance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OUndersamplingClassBalancer.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the undersampling balance operation. Undersamples
+the majority class to the provided ratio of minority
+class(es) : majority class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame, shape [n_samples, n_features]</p>
+<blockquote class="last">
+<div><p>The data to balance</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="skutil.h2o.NAWarning">
+<em class="property">exception </em><code class="descclassname">skutil.h2o.</code><code class="descname">NAWarning</code><a class="reference internal" href="../../_modules/skutil/h2o/base.html#NAWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.NAWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<p>Custom warning used to notify user that an NA exists
+within an h2o frame (h2o can handle NA values)</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.h2o.VizMixin">
+<em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">VizMixin</code><a class="reference internal" href="../../_modules/skutil/h2o/base.html#VizMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.VizMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>This mixin class provides the interface to plot
+an H2OEstimator&#8217;s fit performance over a timestep.
+Any structure that wraps an H2OEstimator&#8217;s fitting
+functionality should derive from this mixin.</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.VizMixin.plot" title="skutil.h2o.VizMixin.plot"><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code></a>(timestep,&nbsp;metric)</td>
+<td>Plot an H2OEstimator&#8217;s performance over a given timestep.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.h2o.VizMixin.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>timestep</em>, <em>metric</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#VizMixin.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.VizMixin.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot an H2OEstimator&#8217;s performance over a
+given timestep.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>timestep</strong> : str</p>
+<blockquote>
+<div><p>A timestep as defined in the H2O API. Examples
+include number_of_trees, epochs</p>
+</div></blockquote>
+<p><strong>metric</strong> : str</p>
+<blockquote class="last">
+<div><p>The performance metric to evaluate, i.e., MSE</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.check_cv">
+<code class="descclassname">skutil.h2o.</code><code class="descname">check_cv</code><span class="sig-paren">(</span><em>cv=3</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#check_cv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.check_cv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.check_version">
+<code class="descclassname">skutil.h2o.</code><code class="descname">check_version</code><span class="sig-paren">(</span><em>min_version</em>, <em>max_version</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#check_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.check_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures the currently installed/running version
+of h2o is compatible with the min_version and max_version
+the function in question calls for.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>min_version</strong> : str, float</p>
+<blockquote>
+<div><p>The minimum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+<p><strong>max_version</strong> : str, float</p>
+<blockquote class="last">
+<div><p>The maximum version of h2o that is compatible with the transformer</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.from_array">
+<code class="descclassname">skutil.h2o.</code><code class="descname">from_array</code><span class="sig-paren">(</span><em>X</em>, <em>column_names=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#from_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.from_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple wrapper for H2OFrame.from_python. This takes a
+numpy array (or 2d array) and returns an H2OFrame with all 
+the default args.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : ndarray</p>
+<blockquote>
+<div><p>The array to convert.</p>
+</div></blockquote>
+<p><strong>column_names</strong> : list, tuple (default=None)</p>
+<blockquote>
+<div><p>the names to use for your columns</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>H2OFrame</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.from_pandas">
+<code class="descclassname">skutil.h2o.</code><code class="descname">from_pandas</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#from_pandas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.from_pandas" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple wrapper for H2OFrame.from_python. This takes
+a pandas dataframe and returns an H2OFrame with all the 
+default args (generally enough) plus named columns.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<blockquote>
+<div><p>The dataframe to convert.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>H2OFrame</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_accuracy_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_accuracy_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>normalize=True</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_accuracy_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_accuracy_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accuracy classification score for H2O</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>normalize</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to average the data</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : 1d H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>score</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_bincount">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_bincount</code><span class="sig-paren">(</span><em>bins</em>, <em>weights=None</em>, <em>minlength=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#h2o_bincount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_bincount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a 1d column of non-negative ints, <code class="docutils literal"><span class="pre">bins</span></code>, return
+a np.ndarray of positional counts of each int.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bins</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The values</p>
+</div></blockquote>
+<p><strong>weights</strong> : list or H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>The weights with which to weight the output</p>
+</div></blockquote>
+<p><strong>minlength</strong> : int, optional (default=None)</p>
+<blockquote class="last">
+<div><p>The min length of the output array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_col_to_numpy">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_col_to_numpy</code><span class="sig-paren">(</span><em>column</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#h2o_col_to_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_col_to_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a 1d numpy array from a
+single H2OFrame column.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>np.ndarray (1d)</strong> :</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_corr_plot">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_corr_plot</code><span class="sig-paren">(</span><em>X</em>, <em>plot_type='cor'</em>, <em>cmap='Blues_d'</em>, <em>n_levels=5</em>, <em>figsize=(11</em>, <em>9)</em>, <em>cmap_a=220</em>, <em>cmap_b=10</em>, <em>vmax=0.3</em>, <em>xticklabels=5</em>, <em>yticklabels=5</em>, <em>linewidths=0.5</em>, <em>cbar_kws={'shrink': 0.5}</em>, <em>use='complete.obs'</em>, <em>na_warn=True</em>, <em>na_rm=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#h2o_corr_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_corr_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a simple correlation plot given a dataframe.
+Note that this requires all datatypes to be numeric and finite!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<blockquote>
+<div><p>The pandas DataFrame</p>
+</div></blockquote>
+<p><strong>plot_type</strong> : str, optional (default=&#8217;cor&#8217;)</p>
+<blockquote>
+<div><p>The type of plot, one of (&#8216;cor&#8217;, &#8216;kde&#8217;, &#8216;pair&#8217;)</p>
+</div></blockquote>
+<p><strong>cmap</strong> : str, optional (default=&#8217;Blues_d&#8217;)</p>
+<blockquote>
+<div><p>The color to use for the kernel density estimate plot
+if plot_type == &#8216;kde&#8217;</p>
+</div></blockquote>
+<p><strong>n_levels</strong> : int, optional (default=5)</p>
+<blockquote>
+<div><p>The number of levels to use for the kde plot 
+if plot_type == &#8216;kde&#8217;</p>
+</div></blockquote>
+<p><strong>figsize</strong> : tuple (int), optional (default=(11,9))</p>
+<blockquote>
+<div><p>The size of the image</p>
+</div></blockquote>
+<p><strong>cmap_a</strong> : int, optional (default=220)</p>
+<blockquote>
+<div><p>The colormap start point</p>
+</div></blockquote>
+<p><strong>cmap_b</strong> : int, optional (default=10)</p>
+<blockquote>
+<div><p>The colormap end point</p>
+</div></blockquote>
+<p><strong>vmax</strong> : float, optional (default=0.3)</p>
+<blockquote>
+<div><p>Arg for seaborn heatmap</p>
+</div></blockquote>
+<p><strong>xticklabels</strong> : int, optional (default=5)</p>
+<blockquote>
+<div><p>The spacing for X ticks</p>
+</div></blockquote>
+<p><strong>yticklabels</strong> : int, optional (default=5)</p>
+<blockquote>
+<div><p>The spacing for Y ticks</p>
+</div></blockquote>
+<p><strong>linewidths</strong> : float, optional (default=0.5)</p>
+<blockquote>
+<div><p>The width of the lines</p>
+</div></blockquote>
+<p><strong>cbar_kws</strong> : dict, optional</p>
+<blockquote>
+<div><p>Any KWs to pass to seaborn&#8217;s heatmap when plot_type = &#8216;cor&#8217;</p>
+</div></blockquote>
+<p><strong>use</strong> : str, optional (default=&#8217;complete.obs&#8217;)</p>
+<blockquote>
+<div><p>The &#8220;use&#8221; to compute the correlation matrix</p>
+</div></blockquote>
+<p><strong>na_warn</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to warn in the presence of NA values</p>
+</div></blockquote>
+<p><strong>na_rm</strong> : bool, optional (default=False)</p>
+<blockquote class="last">
+<div><p>Whether to remove NAs</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_f1_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_f1_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>labels=None</em>, <em>pos_label=1</em>, <em>average='binary'</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_f1_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_f1_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the F1 score, the weighted average of the precision 
+and the recall:</p>
+<blockquote>
+<div><code class="docutils literal"><span class="pre">F1</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">(precision</span> <span class="pre">*</span> <span class="pre">recall)</span> <span class="pre">/</span> <span class="pre">(precision</span> <span class="pre">+</span> <span class="pre">recall)</span></code></div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The actual labels</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>labels</strong> : list, optional (default=None)</p>
+<blockquote>
+<div><p>The set of labels to include when <code class="docutils literal"><span class="pre">average</span> <span class="pre">!=</span> <span class="pre">'binary'</span></code>, and their
+order if <code class="docutils literal"><span class="pre">average</span> <span class="pre">is</span> <span class="pre">None</span></code>. By default all labels in <code class="docutils literal"><span class="pre">y_actual</span></code> and
+<code class="docutils literal"><span class="pre">y_predict</span></code> are used in sorted order.</p>
+</div></blockquote>
+<p><strong>pos_label</strong> : str or int, optional (default=1)</p>
+<blockquote>
+<div><p>The class to report if <code class="docutils literal"><span class="pre">average=='binary'</span></code> and the data is binary.
+If the data are multiclass, this will be ignored.</p>
+</div></blockquote>
+<p><strong>average</strong> : str</p>
+<blockquote>
+<div><p>One of (&#8216;binary&#8217;, &#8216;micro&#8217;, &#8216;macro&#8217;, &#8216;weighted&#8217;). This parameter is
+required for multiclass targets. If <code class="docutils literal"><span class="pre">None</span></code>, the scores for each 
+class are returned. Otherwise, this determines the type of averaging
+performed on the data:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'binary'</span></code>:</dt>
+<dd><p class="first last">Only report results for the class specified by <code class="docutils literal"><span class="pre">pos_label</span></code>.
+This is applicable only if targets (<code class="docutils literal"><span class="pre">y_{true,pred}</span></code>) are binary.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'micro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics globally by counting the total true positives,
+false negatives and false positives.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'macro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their unweighted
+mean.  This does not take label imbalance into account.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'weighted'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their average, weighted
+by support (the number of true instances for each label). This
+alters &#8216;macro&#8217; to account for label imbalance; it can result in an
+F-score that is not between precision and recall.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>The sample weights</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>float</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_fbeta_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_fbeta_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>beta</em>, <em>labels=None</em>, <em>pos_label=1</em>, <em>average='binary'</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_fbeta_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_fbeta_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the F-beta score.  The F-beta score is the weighted harmonic 
+mean of precision and recall.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The actual labels</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>beta</strong> : float</p>
+<blockquote>
+<div><p>The beta value for the F-score</p>
+</div></blockquote>
+<p><strong>labels</strong> : list, optional (default=None)</p>
+<blockquote>
+<div><p>The set of labels to include when <code class="docutils literal"><span class="pre">average</span> <span class="pre">!=</span> <span class="pre">'binary'</span></code>, and their
+order if <code class="docutils literal"><span class="pre">average</span> <span class="pre">is</span> <span class="pre">None</span></code>. By default all labels in <code class="docutils literal"><span class="pre">y_actual</span></code> and
+<code class="docutils literal"><span class="pre">y_predict</span></code> are used in sorted order.</p>
+</div></blockquote>
+<p><strong>pos_label</strong> : str or int, optional (default=1)</p>
+<blockquote>
+<div><p>The class to report if <code class="docutils literal"><span class="pre">average=='binary'</span></code> and the data is binary.
+If the data are multiclass, this will be ignored.</p>
+</div></blockquote>
+<p><strong>average</strong> : str</p>
+<blockquote>
+<div><p>One of (&#8216;binary&#8217;, &#8216;micro&#8217;, &#8216;macro&#8217;, &#8216;weighted&#8217;). This parameter is
+required for multiclass targets. If <code class="docutils literal"><span class="pre">None</span></code>, the scores for each 
+class are returned. Otherwise, this determines the type of averaging
+performed on the data:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'binary'</span></code>:</dt>
+<dd><p class="first last">Only report results for the class specified by <code class="docutils literal"><span class="pre">pos_label</span></code>.
+This is applicable only if targets (<code class="docutils literal"><span class="pre">y_{true,pred}</span></code>) are binary.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'micro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics globally by counting the total true positives,
+false negatives and false positives.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'macro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their unweighted
+mean.  This does not take label imbalance into account.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'weighted'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their average, weighted
+by support (the number of true instances for each label). This
+alters &#8216;macro&#8217; to account for label imbalance; it can result in an
+F-score that is not between precision and recall.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>The sample weights</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>float</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_frame_memory_estimate">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_frame_memory_estimate</code><span class="sig-paren">(</span><em>X</em>, <em>bit_est=32</em>, <em>unit='MB'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#h2o_frame_memory_estimate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_frame_memory_estimate" title="Permalink to this definition">¶</a></dt>
+<dd><p>We estimate the memory footprint of an H2OFrame
+to determine, possibly, whether it&#8217;s capable of being
+held in memory or not.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The H2OFrame in question</p>
+</div></blockquote>
+<p><strong>bit_est</strong> : int, optional (default=32)</p>
+<blockquote>
+<div><p>The estimated bit-size of each cell. The default
+assumes each cell is a signed 32-bit float</p>
+</div></blockquote>
+<p><strong>unit</strong> : str, optional (default=&#8217;MB&#8217;)</p>
+<blockquote>
+<div><p>The units to report. One of (&#8216;MB&#8217;, &#8216;KB&#8217;, &#8216;GB&#8217;, &#8216;TB&#8217;)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mb</strong> : str</p>
+<blockquote class="last">
+<div><p>The estimated number of UNIT held in the frame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_mean_absolute_error">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_mean_absolute_error</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_mean_absolute_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_mean_absolute_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>MAE score for H2O frames</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : 1d H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>score</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_mean_squared_error">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_mean_squared_error</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_mean_squared_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_mean_squared_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>MSE score for H2O frames</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : 1d H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>score</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_median_absolute_error">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_median_absolute_error</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_median_absolute_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_median_absolute_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Median abs error score for H2O frames</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : 1d H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>score</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_precision_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_precision_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>labels=None</em>, <em>pos_label=1</em>, <em>average='binary'</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_precision_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_precision_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the precision.  Precision is the ratio <code class="docutils literal"><span class="pre">tp</span> <span class="pre">/</span> <span class="pre">(tp</span> <span class="pre">+</span> <span class="pre">fp)</span></code> where <code class="docutils literal"><span class="pre">tp</span></code> 
+is the number of true positives and <code class="docutils literal"><span class="pre">fp</span></code> the number of false positives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The actual labels</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>labels</strong> : list, optional (default=None)</p>
+<blockquote>
+<div><p>The set of labels to include when <code class="docutils literal"><span class="pre">average</span> <span class="pre">!=</span> <span class="pre">'binary'</span></code>, and their
+order if <code class="docutils literal"><span class="pre">average</span> <span class="pre">is</span> <span class="pre">None</span></code>. By default all labels in <code class="docutils literal"><span class="pre">y_actual</span></code> and
+<code class="docutils literal"><span class="pre">y_predict</span></code> are used in sorted order.</p>
+</div></blockquote>
+<p><strong>pos_label</strong> : str or int, optional (default=1)</p>
+<blockquote>
+<div><p>The class to report if <code class="docutils literal"><span class="pre">average=='binary'</span></code> and the data is binary.
+If the data are multiclass, this will be ignored.</p>
+</div></blockquote>
+<p><strong>average</strong> : str</p>
+<blockquote>
+<div><p>One of (&#8216;binary&#8217;, &#8216;micro&#8217;, &#8216;macro&#8217;, &#8216;weighted&#8217;). This parameter is
+required for multiclass targets. If <code class="docutils literal"><span class="pre">None</span></code>, the scores for each 
+class are returned. Otherwise, this determines the type of averaging
+performed on the data:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'binary'</span></code>:</dt>
+<dd><p class="first last">Only report results for the class specified by <code class="docutils literal"><span class="pre">pos_label</span></code>.
+This is applicable only if targets (<code class="docutils literal"><span class="pre">y_{true,pred}</span></code>) are binary.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'micro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics globally by counting the total true positives,
+false negatives and false positives.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'macro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their unweighted
+mean.  This does not take label imbalance into account.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'weighted'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their average, weighted
+by support (the number of true instances for each label). This
+alters &#8216;macro&#8217; to account for label imbalance; it can result in an
+F-score that is not between precision and recall.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>The sample weights</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>float</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_r2_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_r2_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_r2_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_r2_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>R^2 score for H2O frames</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : 1d H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : 1d H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>score</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_recall_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_recall_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>labels=None</em>, <em>pos_label=1</em>, <em>average='binary'</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_recall_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_recall_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the recall</p>
+<p>Precision is the ratio <code class="docutils literal"><span class="pre">tp</span> <span class="pre">/</span> <span class="pre">(tp</span> <span class="pre">+</span> <span class="pre">fn)</span></code> where <code class="docutils literal"><span class="pre">tp</span></code> is the number of
+true positives and <code class="docutils literal"><span class="pre">fn</span></code> the number of false negatives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The actual labels</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The predicted labels</p>
+</div></blockquote>
+<p><strong>labels</strong> : list, optional (default=None)</p>
+<blockquote>
+<div><p>The set of labels to include when <code class="docutils literal"><span class="pre">average</span> <span class="pre">!=</span> <span class="pre">'binary'</span></code>, and their
+order if <code class="docutils literal"><span class="pre">average</span> <span class="pre">is</span> <span class="pre">None</span></code>. By default all labels in <code class="docutils literal"><span class="pre">y_actual</span></code> and
+<code class="docutils literal"><span class="pre">y_predict</span></code> are used in sorted order.</p>
+</div></blockquote>
+<p><strong>pos_label</strong> : str or int, optional (default=1)</p>
+<blockquote>
+<div><p>The class to report if <code class="docutils literal"><span class="pre">average=='binary'</span></code> and the data is binary.
+If the data are multiclass, this will be ignored.</p>
+</div></blockquote>
+<p><strong>average</strong> : str</p>
+<blockquote>
+<div><p>One of (&#8216;binary&#8217;, &#8216;micro&#8217;, &#8216;macro&#8217;, &#8216;weighted&#8217;). This parameter is
+required for multiclass targets. If <code class="docutils literal"><span class="pre">None</span></code>, the scores for each 
+class are returned. Otherwise, this determines the type of averaging
+performed on the data:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'binary'</span></code>:</dt>
+<dd><p class="first last">Only report results for the class specified by <code class="docutils literal"><span class="pre">pos_label</span></code>.
+This is applicable only if targets (<code class="docutils literal"><span class="pre">y_{true,pred}</span></code>) are binary.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'micro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics globally by counting the total true positives,
+false negatives and false positives.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'macro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their unweighted
+mean.  This does not take label imbalance into account.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'weighted'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their average, weighted
+by support (the number of true instances for each label). This
+alters &#8216;macro&#8217; to account for label imbalance; it can result in an
+F-score that is not between precision and recall.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame, optional (default=None)</p>
+<blockquote>
+<div><p>The sample weights</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>float</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_train_test_split">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_train_test_split</code><span class="sig-paren">(</span><em>frame</em>, <em>test_size=None</em>, <em>train_size=None</em>, <em>random_state=None</em>, <em>stratify=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/split.html#h2o_train_test_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_train_test_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits an H2OFrame into random train and test subsets</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The h2o frame to split</p>
+</div></blockquote>
+<p><strong>test_size</strong> : float, int, or None (default=None)</p>
+<blockquote>
+<div><p>If float, should be between 0.0 and 1.0 and represent the
+proportion of the dataset to include in the test split. If
+int, represents the absolute number of test samples. If None,
+the value is automatically set to the complement of the train size.
+If train size is also None, test size is set to 0.25</p>
+</div></blockquote>
+<p><strong>train_size</strong> : float, int, or None (default=None)</p>
+<blockquote>
+<div><p>If float, should be between 0.0 and 1.0 and represent the
+proportion of the dataset to include in the train split. If
+int, represents the absolute number of train samples. If None,
+the value is automatically set to the complement of the test size.</p>
+</div></blockquote>
+<p><strong>random_state</strong> : int or RandomState</p>
+<blockquote>
+<div><p>Pseudo-random number generator state used for random sampling.</p>
+</div></blockquote>
+<p><strong>stratify</strong> : str or None (default=None)</p>
+<blockquote class="last">
+<div><p>The name of the target on which to stratify the sampling</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.is_float">
+<code class="descclassname">skutil.h2o.</code><code class="descname">is_float</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/frame.html#is_float"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.is_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether a 1d H2OFrame is
+made up of floats.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : H2OFrame, 1d</p>
+<blockquote>
+<div><p>The H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>bool</strong> : True if float, else False</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.is_integer">
+<code class="descclassname">skutil.h2o.</code><code class="descname">is_integer</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/frame.html#is_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.is_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether a 1d H2OFrame is 
+made up of integers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : H2OFrame, 1d</p>
+<blockquote>
+<div><p>The H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>bool</strong> : True if integers, else False</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.is_numeric">
+<code class="descclassname">skutil.h2o.</code><code class="descname">is_numeric</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/frame.html#is_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.is_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether a 1d H2OFrame is numeric.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : H2OFrame, 1d</p>
+<blockquote>
+<div><p>The H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>bool</strong> : True if numeric, else False</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.load_boston_h2o">
+<code class="descclassname">skutil.h2o.</code><code class="descname">load_boston_h2o</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#load_boston_h2o"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.load_boston_h2o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the boston housing dataset into an H2OFrame</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.load_breast_cancer_h2o">
+<code class="descclassname">skutil.h2o.</code><code class="descname">load_breast_cancer_h2o</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#load_breast_cancer_h2o"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.load_breast_cancer_h2o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the breast cancer dataset into an H2OFrame</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.load_iris_h2o">
+<code class="descclassname">skutil.h2o.</code><code class="descname">load_iris_h2o</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='Species'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#load_iris_h2o"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.load_iris_h2o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the iris dataset into an H2OFrame</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.make_h2o_scorer">
+<code class="descclassname">skutil.h2o.</code><code class="descname">make_h2o_scorer</code><span class="sig-paren">(</span><em>score_function</em>, <em>y_true</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#make_h2o_scorer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.make_h2o_scorer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a scoring function from a callable.
+The signature for the callable should resemble:</p>
+<blockquote>
+<div><code class="docutils literal"><span class="pre">`some_function(y_true,</span> <span class="pre">y_pred,</span> <span class="pre">y_type=None...)`</span></code></div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>score_function</strong> : callable</p>
+<blockquote>
+<div><p>The function</p>
+</div></blockquote>
+<p><strong>y_true</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>An H2O frame (the ground truth). This is
+used to determine before hand whether the
+type is binary or multiclass.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.reorder_h2o_frame">
+<code class="descclassname">skutil.h2o.</code><code class="descname">reorder_h2o_frame</code><span class="sig-paren">(</span><em>X</em>, <em>idcs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#reorder_h2o_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.reorder_h2o_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently, H2O does not allow us to reorder
+frames. This is a hack to rbind rows together in the
+order prescribed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The H2OFrame to reorder</p>
+</div></blockquote>
+<p><strong>idcs</strong> : iterable</p>
+<blockquote>
+<div><p>The order of the H2OFrame rows to be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>new_frame</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The reordered H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.shuffle_h2o_frame">
+<code class="descclassname">skutil.h2o.</code><code class="descname">shuffle_h2o_frame</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#shuffle_h2o_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.shuffle_h2o_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently, H2O does not allow us to shuffle 
+frames. This is a hack to rbind rows together in the
+order prescribed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The H2OFrame to reorder</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>shuf</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The shuffled H2OFrame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.validate_x">
+<code class="descclassname">skutil.h2o.</code><code class="descname">validate_x</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#validate_x"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.validate_x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an iterable or None, <code class="docutils literal"><span class="pre">x</span></code>, validate that if
+it is an iterable, it only contains string types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : None, iterable</p>
+<blockquote>
+<div><p>The feature names</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : iterable or None</p>
+<blockquote class="last">
+<div><p>The feature names</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.validate_x_y">
+<code class="descclassname">skutil.h2o.</code><code class="descname">validate_x_y</code><span class="sig-paren">(</span><em>X</em>, <em>feature_names</em>, <em>target_feature</em>, <em>exclude_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#validate_x_y"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.validate_x_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the feature_names and target_feature arguments
+passed to an H2OTransformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>feature_names</strong> : iterable or None</p>
+<blockquote>
+<div><p>The feature names to be used in a transformer. If feature_names
+is None, the transformer will use all of the frame&#8217;s column names.
+However, if the feature_names are an iterable, they must all be
+either strings or unicode names of columns in the frame.</p>
+</div></blockquote>
+<p><strong>target_feature</strong> : str, unicode or None</p>
+<blockquote>
+<div><p>The target name to exclude from the transformer analysis. If None,
+unsupervised is assumed, otherwise must be string or unicode.</p>
+</div></blockquote>
+<p><strong>exclude_features</strong> : iterable or None</p>
+<blockquote>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">x</span></code></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>(feature_names, target_feature)</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_linear_model.html" class="btn btn-neutral float-right" title="skutil.linear_model module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_grid_search.html" class="btn btn-neutral" title="skutil.grid_search" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

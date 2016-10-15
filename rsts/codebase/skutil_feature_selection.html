@@ -1,0 +1,896 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.feature_selection module &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.grid_search" href="skutil_grid_search.html"/>
+        <link rel="prev" title="skutil.decomposition module" href="skutil_decomposition.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="skutil_base.html">    skutil.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_grid_search.html">    skutil.grid_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.feature_selection module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_feature_selection.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-skutil.feature_selection">
+<span id="skutil-feature-selection-module"></span><h1>skutil.feature_selection module<a class="headerlink" href="#module-skutil.feature_selection" title="Permalink to this headline">¶</a></h1>
+<p>skutil.feature_selection provides a mechanism by which you can provide an
+array of columns and subsequently drop columns that are deemed worthy of dropping
+via the fit method within the _BaseFeatureSelector class.
+The LinearCombinationFilter class is used to remove linear combinations of features.
+All public classes within select.py extend the _BaseFeatureSelector class.</p>
+<dl class="class">
+<dt id="skutil.feature_selection.FeatureDropper">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">FeatureDropper</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#FeatureDropper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.FeatureDropper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>A very simple class to be used at the beginning or any stage of a 
+Pipeline that will drop the given features from the remainder of the pipe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<blockquote>
+<div><p>The features to drop. Note that <code class="docutils literal"><span class="pre">FeatureDropper</span></code> behaves slightly
+differently from all other <code class="docutils literal"><span class="pre">_BaseFeatureSelector</span></code> classes in the sense
+that it will drop all of the features prescribed in this parameter. However,
+if <code class="docutils literal"><span class="pre">cols</span></code> is None, it will not drop any (which is counter to other classes,
+which will operate on all columns in the absence of an explicit <code class="docutils literal"><span class="pre">cols</span></code>
+parameter).</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.FeatureDropper.fit" title="skutil.feature_selection.FeatureDropper.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.FeatureDropper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#FeatureDropper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.FeatureDropper.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.feature_selection.FeatureRetainer">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">FeatureRetainer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#FeatureRetainer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.FeatureRetainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>A very simple class to be used at the beginning of a Pipeline that will
+only propagate the given features throughout the remainder of the pipe</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.FeatureRetainer.fit" title="skutil.feature_selection.FeatureRetainer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.FeatureRetainer.transform" title="skutil.feature_selection.FeatureRetainer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.FeatureRetainer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#FeatureRetainer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.FeatureRetainer.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="skutil.feature_selection.FeatureRetainer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#FeatureRetainer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.FeatureRetainer.transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.feature_selection.LinearCombinationFilterer">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">LinearCombinationFilterer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/combos.html#LinearCombinationFilterer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.LinearCombinationFilterer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>The <a href="#id1"><span class="problematic" id="id2">``</span></a>LinearCombinationFilterer will resolve linear combinations in a numeric matrix. 
+The QR decomposition is used to determine whether the matrix is full rank, and then 
+identify the sets of columns that are involved in the dependencies. This class is adapted 
+from the implementation in the R package, caret.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns. Note that since this transformer can only operate
+on numeric columns, not explicitly setting the <code class="docutils literal"><span class="pre">cols</span></code> parameter
+may result in errors for categorical data.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.LinearCombinationFilterer.fit" title="skutil.feature_selection.LinearCombinationFilterer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the linear combination filterer.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.feature_selection.LinearCombinationFilterer.fit_transform" title="skutil.feature_selection.LinearCombinationFilterer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the linear combination filterer and return the transformed matrix or DataFrame.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.LinearCombinationFilterer.transform" title="skutil.feature_selection.LinearCombinationFilterer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Drops the linear combination features from the new input frame.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.LinearCombinationFilterer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/combos.html#LinearCombinationFilterer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.LinearCombinationFilterer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the linear combination filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.feature_selection.LinearCombinationFilterer.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/combos.html#LinearCombinationFilterer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.LinearCombinationFilterer.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the linear combination filterer and return
+the transformed matrix or DataFrame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dropped</strong> : Pandas DataFrame or NumPy ndarray</p>
+<blockquote class="last">
+<div><p>The training frame sans &#8220;bad&#8221; columns</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.feature_selection.LinearCombinationFilterer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/combos.html#LinearCombinationFilterer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.LinearCombinationFilterer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drops the linear combination features from the new
+input frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dropped</strong> : Pandas DataFrame or NumPy ndarray</p>
+<blockquote class="last">
+<div><p>The test frame sans &#8220;bad&#8221; columns</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.feature_selection.MulticollinearityFilterer">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">MulticollinearityFilterer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>threshold=0.85</em>, <em>method='pearson'</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#MulticollinearityFilterer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.MulticollinearityFilterer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>Filter out features with a correlation greater than the provided threshold.
+When a pair of correlated features is identified, the mean absolute correlation (MAC)
+of each feature is considered, and the feature with the highsest MAC is discarded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<blockquote>
+<div><p>The features on which to compute the correlation matrix and from which to
+compute the <code class="docutils literal"><span class="pre">drop_</span></code> attribute. In the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, 
+the transformer will be fit on all columns.</p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, default 0.85</p>
+<blockquote>
+<div><p>The threshold above which to filter correlated features</p>
+</div></blockquote>
+<p><strong>method</strong> : str, one of [&#8216;pearson&#8217;,&#8217;kendall&#8217;,&#8217;spearman&#8217;], default &#8216;pearson&#8217;</p>
+<blockquote>
+<div><p>The method used to compute the correlation</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote>
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+<p><strong>mean_abs_correlations_</strong> : list, float</p>
+<blockquote>
+<div><p>The corresponding mean absolute correlations of each <code class="docutils literal"><span class="pre">drop_</span></code> name</p>
+</div></blockquote>
+<p><strong>correlations_</strong> : list of <code class="docutils literal"><span class="pre">_MCFTuple</span></code> instances</p>
+<blockquote class="last">
+<div><p>Contains detailed info on multicollinear columns</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.MulticollinearityFilterer.fit" title="skutil.feature_selection.MulticollinearityFilterer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the multicollinearity filterer.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.feature_selection.MulticollinearityFilterer.fit_transform" title="skutil.feature_selection.MulticollinearityFilterer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the multicollinearity filterer and return the transformed training matrix.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.MulticollinearityFilterer.transform" title="skutil.feature_selection.MulticollinearityFilterer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
+<td>Drops the multicollinear features from the new input frame.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.MulticollinearityFilterer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#MulticollinearityFilterer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.MulticollinearityFilterer.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the multicollinearity filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.feature_selection.MulticollinearityFilterer.fit_transform">
+<code class="descname">fit_transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#MulticollinearityFilterer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.MulticollinearityFilterer.fit_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the multicollinearity filterer and return
+the transformed training matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dropped</strong> : Pandas DataFrame or NumPy ndarray</p>
+<blockquote class="last">
+<div><p>The training frame sans &#8220;bad&#8221; columns</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.feature_selection.MulticollinearityFilterer.transform">
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#MulticollinearityFilterer.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.MulticollinearityFilterer.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drops the multicollinear features from the new
+input frame.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to transform.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dropped</strong> : Pandas DataFrame or NumPy ndarray</p>
+<blockquote class="last">
+<div><p>The test frame sans &#8220;bad&#8221; columns</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.feature_selection.NearZeroVarianceFilterer">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">NearZeroVarianceFilterer</code><span class="sig-paren">(</span><em>cols=None</em>, <em>threshold=1e-06</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#NearZeroVarianceFilterer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.NearZeroVarianceFilterer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>Identify and remove any features that have a variance below
+a certain threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns.</p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, optional (default=1e-6)</p>
+<blockquote>
+<div><p>The threshold below which to declare &#8220;zero variance&#8221;</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.NearZeroVarianceFilterer.fit" title="skutil.feature_selection.NearZeroVarianceFilterer.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.NearZeroVarianceFilterer.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#NearZeroVarianceFilterer.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.NearZeroVarianceFilterer.fit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.feature_selection.SparseFeatureDropper">
+<em class="property">class </em><code class="descclassname">skutil.feature_selection.</code><code class="descname">SparseFeatureDropper</code><span class="sig-paren">(</span><em>cols=None</em>, <em>threshold=0.5</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#SparseFeatureDropper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.SparseFeatureDropper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.feature_selection.base._BaseFeatureSelector</span></code></p>
+<p>Retains features that are less sparse (NaN) than
+the provided threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, optional (default=None)</p>
+<blockquote>
+<div><p>The columns on which the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>. In
+the case that <code class="docutils literal"><span class="pre">cols</span></code> is None, the transformer will be fit
+on all columns.</p>
+</div></blockquote>
+<p><strong>threshold</strong> : float, optional (default=0.5)</p>
+<blockquote>
+<div><p>The threshold of sparsity above which features will be
+deemed &#8220;too sparse&#8221; and will be dropped.</p>
+</div></blockquote>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return a Pandas DataFrame in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a NumPy ndarray instead. 
+Since most skutil transformers depend on explicitly-named
+DataFrame features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>sparsity_</strong> : array_like, (n_cols,)</p>
+<blockquote>
+<div><p>The array of sparsity values</p>
+</div></blockquote>
+<p><strong>drop_</strong> : array_like, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>Assigned after calling <code class="docutils literal"><span class="pre">fit</span></code>. These are the features that
+are designated as &#8220;bad&#8221; and will be dropped in the <code class="docutils literal"><span class="pre">transform</span></code>
+method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.feature_selection.SparseFeatureDropper.fit" title="skutil.feature_selection.SparseFeatureDropper.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
+<td>Fit the linear combination filterer.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
+<td>Fit to data, then transform it.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
+<td>Get parameters for this estimator.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<td>Set the parameters of this estimator.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X[,&nbsp;y])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="skutil.feature_selection.SparseFeatureDropper.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#SparseFeatureDropper.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.SparseFeatureDropper.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit the linear combination filterer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas DataFrame</p>
+<blockquote>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None.</p>
+</div></blockquote>
+<p><strong>y</strong> : None</p>
+<blockquote>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.feature_selection.filter_collinearity">
+<code class="descclassname">skutil.feature_selection.</code><code class="descname">filter_collinearity</code><span class="sig-paren">(</span><em>c</em>, <em>threshold</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/feature_selection/select.html#filter_collinearity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.feature_selection.filter_collinearity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the collinearity filtration for both the
+<code class="docutils literal"><span class="pre">MulticollinearityFilterer</span></code> as well as the <code class="docutils literal"><span class="pre">H2OMulticollinearityFilterer</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>c</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>The pre-computed correlation matrix. This is expected to be
+a square matrix, and will raise a <code class="docutils literal"><span class="pre">ValueError</span></code> if it&#8217;s not.</p>
+</div></blockquote>
+<p><strong>threshold</strong> : float</p>
+<blockquote>
+<div><p>The threshold above which to filter features which
+are multicollinear in nature.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out_tup: tuple</strong> :</p>
+<blockquote class="last">
+<div><p>drops, macor, crrz (The drop list, the mean absolute 
+correlations, and the correlation tuples)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_grid_search.html" class="btn btn-neutral float-right" title="skutil.grid_search" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="skutil_decomposition.html" class="btn btn-neutral" title="skutil.decomposition module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
