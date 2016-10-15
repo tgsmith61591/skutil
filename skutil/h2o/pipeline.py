@@ -38,11 +38,50 @@ def _union_exclusions(a, b):
     if not b:
         return a
 
-    return flatten_all(a, b)
+    return flatten_all([a, b])
 
 
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
-    """Create a sklearn-esque pipeline of H2O steps finished with an H2OEstimator.
+    """Create a sklearn-esque pipeline of H2O steps finished with an 
+    optional `H2OEstimator`. Note that as of version 0.1.0, the behavior
+    of the H2OPipeline has slightly changed, given the inclusion of the
+    ``exclude_from_ppc`` and ``exclude_from_fit`` parameters.
+
+    The pipeline, at the core, is comprised of a list of length-two tuples
+    in the form of `('name', SomeH2OTransformer())`, punctuated with an
+    optional `H2OEstimator` as the final step. The pipeline will procedurally 
+    fit each stage, transforming the training data prior to fitting the next stage.
+    When predicting or transforming new (test) data, each stage calls either
+    `transform` or `predict` at the respective step.
+
+    **On the topic of exclusions and `feature_names`:**
+
+    Prior to version 0.1.0, `H2OTransformer`s did not take the keyword `exclude_features`.
+    Its addition necessitated two new keywords in the `H2OPipeline`, and a slight change
+    in behavior of ``feature_names``:
+
+        * ``exclude_from_ppc`` - If set in the `H2OPipeline` constructor, these features
+                                 will be universally omitted from every preprocessing stage.
+                                 Since `exclude_features` can be set individually in each
+                                 separate transformer, in the case that `exclude_features` has
+                                 been explicitly set, the exclusions in that respective stage
+                                 will include the union of ``exclude_from_ppc`` and 
+                                 `exclude_features`.
+
+        * ``exclude_from_fit`` - If set in the `H2OPipeline` constructor, these features
+                                 will be omitted from the ``training_cols_`` fit attribute,
+                                 which are the columns passed to the final stage in the pipeline.
+
+        * ``feature_names`` - The former behavior of the `H2OPipeline` only used ``feature_names``
+                              in the fit of the first transformer, passing the remaining columns to
+                              the next transformer as the ``feature_names`` parameter. The new
+                              behavior is more discriminating in the case of explicitly-set attributes.
+                              In the case where a transformer's ``feature_names`` parameter has been
+                              explicitly set, *only those names* will be used in the fit. This is useful
+                              in cases where someone may only want to, for instance, drop one of two
+                              multicollinear features using the `H2OMulticollinearityFilterer` rather than
+                              fitting against the entire dataset. It also adheres to the now expected
+                              behavior of the exclusion parameters.
 
     Parameters
     ----------

@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
 from sklearn.ensemble import BaggingRegressor, BaggingClassifier
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
-
+from abc import ABCMeta
 from skutil.base import SelectiveMixin
 from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 
@@ -23,9 +23,10 @@ def _validate_all_numeric(X):
     are numeric types. If not, raises a
     ValueError
 
-    **Raises**
+    Raises
+    ------
 
-    ValueError if not all columns are numeric
+    ``ValueError`` if not all columns are numeric
     """
     if not is_entirely_numeric(X):
         raise ValueError('provided columns must be of only numeric columns')
@@ -37,10 +38,12 @@ def _col_mode(col):
     Returns
     -------
 
-    The column's most common value.
+    com : int, float
+        The column's most common value.
     """
     vals = col.value_counts()
-    return vals.index[0] if not np.isnan(vals.index[0]) else vals.index[1]
+    com = vals.index[0] if not np.isnan(vals.index[0]) else vals.index[1]
+    return com
 
 
 def _val_values(vals):
@@ -51,7 +54,7 @@ def _val_values(vals):
     Raises
     ------
 
-    TypeError if not all values are numeric or
+    ``TypeError`` if not all values are numeric or
     in valid values.
     """
     if not all([
@@ -63,8 +66,6 @@ def _val_values(vals):
         raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
                         'Got: %s' % ', '.join(vals))
 
-
-###############################################################################
 
 class ImputerMixin:
     """A mixin for all imputer classes. Contains the default fill value.
@@ -79,20 +80,35 @@ class ImputerMixin:
     _def_fill = -999999
 
 
-class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin):
+class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator, 
+                                      SelectiveMixin, TransformerMixin, 
+                                      ImputerMixin)):
     """A base class for all imputers. Handles assignment of the fill value.
 
     Parameters
     ----------
 
     cols : array_like, optional (default=None)
-        The columns to impute
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     as_df : bool, optional (default=True)
-        Whether to return a data frame
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
     def_fill : int, float, string or iterable, optional (default=None)
         The fill values to use for missing values in columns
+
+    Attributes
+    ----------
+
+    fill_ : float, int, None or str
+        The fill
     """
 
     def __init__(self, cols=None, as_df=True, def_fill=None):
@@ -102,7 +118,7 @@ class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin
 
 
 class SelectiveImputer(_BaseImputer):
-    """A more customizable form on sklearn's Imputer class. This class
+    """A more customizable form on sklearn's ``Imputer`` class. This class
     can handle more than mean, median or most common... it will also take
     numeric values. Moreover, it will take a vector of strategies or values
     with which to impute corresponding columns.
@@ -111,30 +127,46 @@ class SelectiveImputer(_BaseImputer):
     ----------
 
     cols : array_like, optional (default=None)
-        the features to impute
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-    as_df : boolean , optional (default=True)
-        whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
     def_fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
-        when fitting a SelectiveClassifier. If None, will default to 'mean'
+        when fitting a ``SelectiveImputer``. If None, will default to 'mean'
     """
 
     def __init__(self, cols=None, as_df=True, def_fill='mean'):
         super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
 
     def fit(self, X, y=None):
-        """Fit the CategoricalImputer and return the
+        """Fit the imputer and return the
         transformed matrix or frame.
 
         Parameters
         ----------
 
-        X : pandas DataFrame
-            The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-        y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
 
         # check on state of X and cols
@@ -211,10 +243,18 @@ class SelectiveImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : pandas DataFrame
-            The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
-        y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The imputed matrix
         """
 
         check_is_fitted(self, 'modes_')
@@ -237,6 +277,10 @@ class SelectiveImputer(_BaseImputer):
 
 
 class _BaseBaggedImputer(_BaseImputer):
+    """Base class for all bagged imputers. See subclasses
+    ``BaggedCategoricalImputer`` and ``BaggedImputer`` for specifics.
+    """
+
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,
                  max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
                  oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True,
@@ -258,33 +302,50 @@ class _BaseBaggedImputer(_BaseImputer):
         self.is_classification = is_classification
 
     def fit(self, X, y=None):
-        """Fit the BaggedImputer.
+        """Fit the bagged imputer.
 
         Parameters
         ----------
 
-        X : pandas DataFrame
-            The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-        y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
-
         self.fit_transform(X, y)
         return self
 
     def fit_transform(self, X, y=None):
-        """Fit the BaggedImputer and return the
-        transformed matrix or frame.
+        """Fit the bagged imputer and return the
+        transformed (imputed) matrix.
 
         Parameters
         ----------
 
-        X : pandas DataFrame
-            The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-        y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The imputed matrix.
         """
-
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
         cols = self.cols if not self.cols is None else X.columns.values
@@ -376,17 +437,24 @@ class _BaseBaggedImputer(_BaseImputer):
         return X if self.as_df else X.as_matrix()
 
     def transform(self, X, y=None):
-        """Transform a dataframe given the fit imputer.
+        """Impute the test data after fit.
 
         Parameters
         ----------
 
-        X : pandas DataFrame
-            The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
-        y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        dropped : Pandas DataFrame or NumPy ndarray
+            The test frame sans "bad" columns
         """
-
         check_is_fitted(self, 'models_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
@@ -423,7 +491,11 @@ class BaggedCategoricalImputer(_BaseBaggedImputer):
     on the provided columns.
 
     cols : array_like, optional (default=None)
-        the features to impute
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     base_estimator : object or None, optional (default=None)
         The base estimator to fit on random subsets of the dataset.
@@ -463,12 +535,22 @@ class BaggedCategoricalImputer(_BaseBaggedImputer):
     verbose : int, optional (default=0)
         Controls the verbosity of the building process.
 
-    as_df : boolean , optional (default=True)
-        whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
     def_fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a BaggingClassifier. If None, will default to -999999
+
+    Attributes
+    ----------
+
+    models_ : dict, (string : ``sklearn.base.BaseEstimator``)
+        A dictionary mapping column names to the fit
+        bagged estimator.
     """
 
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,
@@ -489,7 +571,11 @@ class BaggedImputer(_BaseBaggedImputer):
     on the provided columns.
 
     cols : array_like, optional (default=None)
-        the features to impute
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     base_estimator : object or None, optional (default=None)
         The base estimator to fit on random subsets of the dataset.
@@ -529,12 +615,22 @@ class BaggedImputer(_BaseBaggedImputer):
     verbose : int, optional (default=0)
         Controls the verbosity of the building process.
 
-    as_df : boolean , optional (default=True)
-        whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
     def_fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a BaggingRegressor. If None, will default to -999999
+
+    Attributes
+    ----------
+
+    models_ : dict, (string : ``sklearn.base.BaseEstimator``)
+        A dictionary mapping column names to the fit
+        bagged estimator.
     """
 
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,

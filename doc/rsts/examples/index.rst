@@ -8,3 +8,4 @@ Code Examples
 
        Transformers  <transformers.rst>
        Encoders <encoders.rst>
+       H2OPipeline <h2opipeline.rst>

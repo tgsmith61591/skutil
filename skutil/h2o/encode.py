@@ -91,14 +91,14 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the encoder.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     drop_after_encoded : bool (default=True)
@@ -173,7 +173,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
             name = str(name)
             dummied = enc[name].transform(cat[name])
 
-            # cbind
+            # duplicative of R's cbind (bind columns together)
             output = dummied if output is None else output.cbind(dummied)
 
         # if we need to drop the original columns, we do that here:

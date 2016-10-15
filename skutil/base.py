@@ -11,12 +11,10 @@ __all__ = [
 ]
 
 
-###############################################################################
 def overrides(interface_class):
     """Decorator for methods that override super methods.
     Nice syntactic sugar and easy to follow OOP on sources like Git.
     """
-
     def overrider(method):
         assert (method.__name__ in dir(interface_class)), '%s.%s must override a super method!' % (
             interface_class.__name__, method.__name__)
@@ -60,20 +58,6 @@ class SelectiveWarning(UserWarning):
 
 class SelectiveMixin:
     """A mixin class that all selective transformers
-    should implement. Returns the columns used to transform on.
-
-    Attributes
-    ----------
-
-    cols : array_like
-        The columns transformed
+    should implement. All ``SelectiveMixin`` implementers
+    should only apply their ``fit`` method on the defined columns.
     """
-
-    def get_features(self):
-        return self.cols
-
-    def set_features(self, cols=None):
-        """This might corrupt your fit...
-        FIXME: add _reset to entire class
-        """
-        self.cols = cols

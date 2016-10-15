@@ -10,6 +10,15 @@ __all__ = [
 
 
 def _as_numpy(*args):
+    """Given an iterable (a 1d list, np.ndarray, pd.Series, 
+    pd.DataFrame or H2OFrame), convert it into a 1d np.ndarray
+    for further processing.
+
+    Returns
+    -------
+    arrs : list
+        Returns a list (of 1d np.ndarrays) of length==len(args)
+    """
     def _single_as_numpy(x):
         if not isinstance(x, np.ndarray):
             # if an H2OFrame, just return the first col
@@ -35,25 +44,24 @@ def _as_numpy(*args):
 
 
 class GainsStatisticalReport(object):
-    """A class that computes actuarial statistics
-    for predictions given exposure and loss data.
-    Primarily intended for use with 
-    skutil.h2o.H2OGainsRandomizedSearchCV
+    """A class that computes actuarial statistics for scoring predictions
+    given prescribed weighting and loss data. Primarily intended for use with 
+    ``skutil.h2o.H2OGainsRandomizedSearchCV``.
 
     Parameters
     ----------
 
     n_groups : int, optional (default=10)
-        The number of groups to use for computations.
+        The number of groups to use for lift and gini computations.
 
     score_by : str, optional (default='lift')
-        The metric to return for the _score method.
+        The metric to return for the ``score`` method.
 
     n_folds : int, optional (default=None)
         The number of folds that are being fit. 
 
     error_score : float, optional (default=np.nan)
-        The score to return for a qcut error
+        The score to return for a ``pd.qcut`` error
 
     error_behavior : str, optional (default='warn')
         One of {'warn', 'raise', 'ignore'}. How to handle non-unique
@@ -94,7 +102,16 @@ class GainsStatisticalReport(object):
             raise ValueError('if n_folds is set, must set n_iter')
 
     def as_data_frame(self):
-        """Get the report in the form of a dataframe"""
+        """Get the summary report of the fold fits in the
+        form of a pd.DataFrame.
+
+        Returns
+        -------
+
+        df : pd.DataFrame
+            A dataframe of summary statistics for each fold
+        """
+
         if not self.n_folds:
             # if there were no folds, these are each individual scores
             return pd.DataFrame.from_dict(self.stats)
@@ -108,7 +125,7 @@ class GainsStatisticalReport(object):
 
             new_stats = {}
             for metric in self._signs.keys():
-                new_stats['%s_mean' % metric] = []  # the mean scores
+                new_stats['%s_mean' % metric] = [] # the mean scores
                 new_stats['%s_std' % metric] = []  # the std scores
                 new_stats['%s_min' % metric] = []  # the min scores
                 new_stats['%s_max' % metric] = []  # the max scores
@@ -180,8 +197,15 @@ class GainsStatisticalReport(object):
 
         pred : H2OFrame, np.ndarray
             The predictions
+
+        Returns
+        -------
+        
+        scr : float
+            The score (lift/gini) for the new predictions
         """
-        return self._score(_, pred, True, **kwargs)
+        scr = self._score(_, pred, True, **kwargs)
+        return scr
 
     def score_no_store(self, _, pred, **kwargs):
         """Scores the new predictions on the truth set,
@@ -196,8 +220,15 @@ class GainsStatisticalReport(object):
 
         pred : H2OFrame, np.ndarray
             The predictions
+
+        Returns
+        -------
+        
+        scr : float
+            The score (lift/gini) for the new predictions
         """
-        return self._score(_, pred, False, **kwargs)
+        scr = self._score(_, pred, False, **kwargs)
+        return scr
 
     def _score(self, _, pred, store, **kwargs):
         """Scores the new predictions on the truth set.
@@ -214,7 +245,13 @@ class GainsStatisticalReport(object):
         store : bool, optional (default=True)
             Whether to store the results. If called from a grid search,
             this will store the results. If called from the grid search
-            ```score``` method after fit, it will not.
+            ``score`` method after fit, it will not.
+
+        Returns
+        -------
+
+        scr : float
+            The score (lift/gini) for the new predictions
         """
         # For scoring from gridsearch...
         expo, loss, prem = kwargs.get('expo'), kwargs.get('loss'), kwargs.get('prem', None)
@@ -222,11 +259,39 @@ class GainsStatisticalReport(object):
 
         # return the score we want... grid search is MINIMIZING
         # so we need to return negative for maximizing metrics
-        return self.stats[self.score_by][-1] * self._signs[self.score_by]
+        scr = self.stats[self.score_by][-1] * self._signs[self.score_by]
+        return scr
 
     def fit_fold(self, pred, expo, loss, prem=None, store=True):
         """Used to fit a single fold of predicted values, 
         exposure and loss data.
+
+        Parameters
+        ----------
+
+        pred : 1d H2OFrame, pd.DataFrame, np.ndarray
+            The array of predictions
+
+        expo : 1d H2OFrame, pd.DataFrame, np.ndarray
+            The array of exposure values
+
+        loss : 1d H2OFrame, pd.DataFrame, np.ndarray
+            The array of loss values
+
+        prem : 1d H2OFrame, pd.DataFrame, np.ndarray, optional (default=None)
+            The array of premium values. If None, is
+            equal to the ``expo`` parameter.
+
+        store : bool, optional (default=True)
+            Whether or not to store the results of 
+            the scoring procedure. This is set to false
+            when calling ``score``, which is intended for
+            test data.
+
+        Returns
+        -------
+
+        self
         """
         # check params
         if not self.error_behavior in ('warn', 'raise', 'ignore'):

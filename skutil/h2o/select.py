@@ -43,7 +43,8 @@ def _validate_use(X, use, na_warn):
     Returns
     -------
 
-    use
+    use : string
+        The appropriate use string
     """
     # validate use
     _valid_use = ['complete.obs', 'all.obs', 'everything']
@@ -68,14 +69,14 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the feature selector.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     min_version : str, float (default 'any')
@@ -112,15 +113,25 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the feature selector.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
     exclude_features : iterable or None
         Any names that should be excluded from ``feature_names``
+
+    Attributes
+    ----------
+
+    feature_names
+        These are the features that will be dropped by 
+        the `FeatureDropper`
     """
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None):
@@ -149,21 +160,18 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the feature selector.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     threshold : float (default=0.5)
         The threshold of sparsity above which to drop
-
-    as_df : boolean, optional (True default)
-        Whether to return a dataframe
 
     Attributes
     ----------
@@ -221,17 +229,17 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the feature selector.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    threshold : float, default 0.85
+    threshold : float, (default=0.85)
         The threshold above which to filter correlated features
 
     na_warn : bool (default True)
@@ -251,6 +259,11 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
     mean_abs_correlations_ : list, float
         The corresponding mean absolute correlations of each drop_ name
+
+    correlations_ : named tuple
+        A list of tuples with each tuple containing the two correlated features, 
+        the level of correlation, the feature that was selected for dropping, and
+        the mean absolute correlation of the dropped feature.
     """
 
     _min_version = '3.8.2.9'
@@ -314,14 +327,14 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     Parameters
     ----------
 
-    feature_names : array_like (str)
-        The list of names on which to fit the feature selector.
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     threshold : float, default 1e-6

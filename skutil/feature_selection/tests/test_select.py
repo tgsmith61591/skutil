@@ -174,7 +174,7 @@ def test_feature_dropper():
     assert FeatureDropper(['sepal length (cm)', 'sepal width (cm)']).fit_transform(X).shape[1] == 2
 
     # test the selective mixin
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
 
 def test_feature_selector():
@@ -186,7 +186,7 @@ def test_feature_selector():
     assert transformer.transform(X).shape[1] == 2
 
     # test the selective mixin
-    assert isinstance(transformer.get_features(), list)
+    assert isinstance(transformer.cols, list)
 
 
 def test_multi_collinearity():
@@ -200,12 +200,12 @@ def test_multi_collinearity():
     assert col_nms[0] == 'sepal length (cm)'
     assert col_nms[1] == 'sepal width (cm)'
     assert col_nms[2] == 'petal width (cm)'
-    assert len(transformer.drop) == 1
+    assert len(transformer.drop_) == 1
     assert len(transformer.mean_abs_correlations_) == 1
     print(transformer.correlations_)  # the correlations...
 
     # test the selective mixin
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
     # Test fit, then transform
     transformer = MulticollinearityFilterer().fit(X)
@@ -216,7 +216,7 @@ def test_multi_collinearity():
     assert col_nms[0] == 'sepal length (cm)'
     assert col_nms[1] == 'sepal width (cm)'
     assert col_nms[2] == 'petal width (cm)'
-    assert len(transformer.drop) == 1
+    assert len(transformer.drop_) == 1
 
     # Check as_df false
     transformer.as_df = False
@@ -224,7 +224,7 @@ def test_multi_collinearity():
 
     # check 1.0
     transformer = MulticollinearityFilterer(threshold=1.0).fit(X)
-    assert not transformer.drop
+    assert not transformer.drop_
 
     # make sure non-square will fail
     assert_fails(filter_collinearity, ValueError, pd.DataFrame.from_records(np.ones((3, 2))), 0.6)
@@ -232,18 +232,18 @@ def test_multi_collinearity():
 
 def test_nzv_filterer():
     transformer = NearZeroVarianceFilterer().fit(X)
-    assert transformer.drop is None
+    assert transformer.drop_ is None
 
     y = X.copy()
     y['zeros'] = np.zeros(150)
 
     transformer = NearZeroVarianceFilterer().fit(y)
-    assert len(transformer.drop) == 1
-    assert transformer.drop[0] == 'zeros'
+    assert len(transformer.drop_) == 1
+    assert transformer.drop_[0] == 'zeros'
     assert transformer.transform(y).shape[1] == 4
 
     # test the selective mixin
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
     # see what happens if we have a nan or inf in the mix:
     a = pd.DataFrame.from_records(data=np.reshape(np.arange(25), (5, 5)))
@@ -272,7 +272,7 @@ def test_feature_dropper_warning():
 
 def test_linear_combos():
     lcf = LinearCombinationFilterer().fit(Z)
-    assert_array_equal(lcf.drop, ['C'])
+    assert_array_equal(lcf.drop_, ['C'])
 
     z = lcf.transform(Z)
     assert_array_equal(z.columns.values, ['A', 'B'])
@@ -280,7 +280,7 @@ def test_linear_combos():
 
     # test on no linear combos
     lcf = LinearCombinationFilterer(cols=['A', 'B']).fit(Z)
-    assert not lcf.drop
+    assert not lcf.drop_
     assert Z.equals(lcf.transform(Z))
 
     # test too few features
@@ -298,14 +298,14 @@ def test_sparsity():
 
     # test at .33 level
     filt = SparseFeatureDropper(threshold=0.3).fit(df)
-    assert len(filt.drop) == 2
-    assert all([i in filt.drop for i in ('b', 'c')]), 'expected "b" and "c" but got %s' % ', '.join(filt.drop)
-    assert isinstance(filt.drop, list)
+    assert len(filt.drop_) == 2
+    assert all([i in filt.drop_ for i in ('b', 'c')]), 'expected "b" and "c" but got %s' % ', '.join(filt.drop_)
+    assert isinstance(filt.drop_, list)
 
     # test at 2/3 level
     filt = SparseFeatureDropper(threshold=0.6).fit(df)
-    assert len(filt.drop) == 1
-    assert 'c' in filt.drop, 'expected "c" but got %s' % filt.drop
+    assert len(filt.drop_) == 1
+    assert 'c' in filt.drop_, 'expected "c" but got %s' % filt.drop_
 
     # test with a bad value
     assert_fails(SparseFeatureDropper(threshold=1.0).fit, ValueError, df)
@@ -314,7 +314,7 @@ def test_sparsity():
 
     # only try on the 'a' col
     filt = SparseFeatureDropper(cols=['a']).fit(df)
-    assert not filt.drop
+    assert not filt.drop_
 
 
 def test_enumLC():

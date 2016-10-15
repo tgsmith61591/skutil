@@ -13,21 +13,35 @@ __all__ = [
 ]
 
 
-###############################################################################
 class LinearCombinationFilterer(_BaseFeatureSelector):
-    """Resolve linear combinations in a numeric matrix. The QR decomposition is 
-    used to determine whether the matrix is full rank, and then identify the sets
-    of columns that are involved in the dependencies. This class is adapted from
-    the implementation in the R package, caret.
+    """The ``LinearCombinationFilterer will resolve linear combinations in a numeric matrix. 
+    The QR decomposition is used to determine whether the matrix is full rank, and then 
+    identify the sets of columns that are involved in the dependencies. This class is adapted 
+    from the implementation in the R package, caret.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        cols : array_like (string)
-            The features to select
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-        as_df : boolean, optional (True default)
-            Whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
+
+    Attributes
+    ----------
+
+    drop_ : array_like, shape=(n_features,)
+        Assigned after calling ``fit``. These are the features that
+        are designated as "bad" and will be dropped in the ``transform``
+        method.
     """
 
     def __init__(self, cols=None, as_df=True):
@@ -36,28 +50,47 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
     def fit(self, X, y=None):
         """Fit the linear combination filterer.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-            X : pandas DataFrame
-                The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-            y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         self.fit_transform(X, y)
         return self
 
     def fit_transform(self, X, y=None):
-        """Fit the multicollinearity filterer and
-        return the filtered frame.
+        """Fit the linear combination filterer and return
+        the transformed matrix or DataFrame.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-            X : pandas DataFrame
-                The frame to fit
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-            y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        dropped : Pandas DataFrame or NumPy ndarray
+            The training frame sans "bad" columns
         """
 
         # check on state of X and cols
@@ -94,39 +127,47 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
                 # will break when lc_list returns None
 
         # Assign attributes, return
-        self.drop = [p for p in set(drops)] # a list from the a set of the drops
-        dropped = X.drop(self.drop, axis=1)
+        self.drop_ = [p for p in set(drops)] # a list from the a set of the drops
+        dropped = X.drop(self.drop_, axis=1)
 
         return dropped if self.as_df else dropped.as_matrix()
 
-    def transform(self, X, y = None):
+    def transform(self, X, y=None):
         """Drops the linear combination features from the new
         input frame.
 
-            Parameters
-            ----------
+        Parameters
+        ----------
 
-            X : pandas DataFrame
-                The frame to transform
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
-            y : None, passthrough for pipeline
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        dropped : Pandas DataFrame or NumPy ndarray
+            The test frame sans "bad" columns
         """
-        check_is_fitted(self, 'drop')
+        check_is_fitted(self, 'drop_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
 
-        dropped = X.drop(self.drop, axis=1)
+        dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
         
 
 def _enumLC(decomp):
     """Perform a single iteration of linear combo scoping.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        decomp : a QRDecomposition object
-            The QR decomposition of the matrix
+    decomp : a QRDecomposition object
+        The QR decomposition of the matrix
     """
     qr = decomp.qr  # the decomposition matrix
 

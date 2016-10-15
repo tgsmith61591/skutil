@@ -44,7 +44,7 @@ def test_boxcox():
     assert isinstance(BoxCoxTransformer(as_df=False).fit_transform(X), np.ndarray)
 
     # test the selective mixin
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
     # Test on only one row...
     assert_fails(BoxCoxTransformer().fit, ValueError, X.iloc[0])
@@ -156,7 +156,7 @@ def test_yeo_johnson():
 
     # assert as df false yields array
     assert isinstance(YeoJohnsonTransformer(as_df=False).fit_transform(X), np.ndarray)
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
     # Test on only one row...
     failed = False
@@ -208,7 +208,7 @@ def test_spatial_sign():
 
     # assert as df false yields array
     assert isinstance(SpatialSignTransformer(as_df=False).fit_transform(X), np.ndarray)
-    assert transformer.get_features() is None
+    assert transformer.cols is None
 
 
 def test_strange_input():
@@ -245,6 +245,4 @@ def test_selective_scale():
     assert_array_almost_equal(new_std, np.array([1., 0.43214658, 1.75852918, 0.76061262]))
 
     # test the selective mixin
-    assert isinstance(transformer.get_features(), list)
-    transformer.set_features(cols=None)
-    assert transformer.get_features() is None
+    assert isinstance(transformer.cols, list)

@@ -125,7 +125,6 @@ def _check_targets(y_true, y_pred, y_type=None):
         if y_type == 'unknown':
             raise ValueError('cannot determine datatype of y_true: is it all the same value?')
 
-    # TODO: more?
     return y_type, y_true, y_pred
 
 
