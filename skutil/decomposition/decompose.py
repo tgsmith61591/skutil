@@ -146,7 +146,8 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         Returns
         -------
 
-        self
+        self : SelectivePCA
+            The fit transformer
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
@@ -206,6 +207,15 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
+        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        this method returns the internal decomposition class: 
+        ``sklearn.decomposition.PCA``
+
+        Returns
+        -------
+        self.pca_ : sklearn.decomposition.PCA
+            The fit internal decomposition class
+        """
         return self.pca_ if hasattr(self, 'pca_') else None
 
     def score(self, X, y=None):
@@ -354,4 +364,13 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
+        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        this method returns the internal decomposition class: 
+        ``sklearn.decomposition.TruncatedSVD``
+
+        Returns
+        -------
+        self.svd_ : sklearn.decomposition.TruncatedSVD
+            The fit internal decomposition class
+        """
         return self.svd_ if hasattr(self, 'svd_') else None

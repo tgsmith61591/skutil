@@ -29,9 +29,7 @@ def test_selective_pca():
     assert SelectivePCA().get_decomposition() is None
 
     # test the selective mixin
-    assert isinstance(transformer.get_features(), list)
-    transformer.set_features(cols=None)
-    assert transformer.get_features() is None
+    assert isinstance(transformer.cols, list)
 
     # what if we want to weight it?
     pca_df = SelectivePCA(weight=True, n_components=0.99, as_df=False).fit_transform(original)
@@ -60,9 +58,7 @@ def test_selective_tsvd():
     assert SelectiveTruncatedSVD().get_decomposition() is None  # default None
 
     # test the selective mixin
-    assert isinstance(transformer.get_features(), list)
-    transformer.set_features(cols=None)
-    assert transformer.get_features() is None
+    assert isinstance(transformer.cols, list)
 
 
 def test_not_implemented_failure():
