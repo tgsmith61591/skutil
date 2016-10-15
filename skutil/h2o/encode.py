@@ -173,7 +173,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
             name = str(name)
             dummied = enc[name].transform(cat[name])
 
-            # cbind
+            # duplicative of R's cbind (bind columns together)
             output = dummied if output is None else output.cbind(dummied)
 
         # if we need to drop the original columns, we do that here:

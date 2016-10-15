@@ -1,5 +1,7 @@
 """
-Custom H2O transformers
+skutil.h2o bridges the functionality between sklearn and H2O with
+custom encoders, grid search functionality, and over/undersampling
+class balancers.
 """
 
 from .base import *
