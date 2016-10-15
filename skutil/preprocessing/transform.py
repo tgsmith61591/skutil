@@ -1,5 +1,4 @@
 from __future__ import print_function, absolute_import, division
-
 import numpy as np
 import pandas as pd
 from scipy import optimize
@@ -9,9 +8,9 @@ from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
-
 from skutil.base import *
 from ..utils import *
+from abc import ABCMeta
 
 __all__ = [
     'BoxCoxTransformer',
@@ -42,9 +41,10 @@ def _validate_rows(X):
         raise ValueError('n_samples should be at least two, but got %i' % m)
 
 
-class _BaseSelectiveTransformer(BaseEstimator, TransformerMixin, SelectiveMixin):
+class _BaseSelectiveTransformer(six.with_metaclass(ABCMeta, BaseEstimator, 
+                                                   TransformerMixin, 
+                                                   SelectiveMixin)):
     """Base class for skutil transformers"""
-
     def __init__(self, cols=None, as_df=True):
         self.cols = cols
         self.as_df = as_df
@@ -56,8 +56,12 @@ class FunctionMapper(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : string or array_like, default None
-        The columns to apply a function to
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     fun : function, default None
         The function to apply to the feature(s)
@@ -79,6 +83,11 @@ class FunctionMapper(_BaseSelectiveTransformer):
             The data used for estimating the lambdas
         
         y : Passthrough for Pipeline compatibility
+
+        Returns
+        -------
+
+        self
         """
         # Check this second in this case
         X, self.cols = validate_is_pd(X, self.cols)
@@ -97,15 +106,23 @@ class FunctionMapper(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X, y=None):
-        """Apply the function to the new data.
-        
+        """Apply the transformation to test data.
+
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
         """
         X, cols = validate_is_pd(X, self.cols)
         cols = cols if not cols is None else X.columns
@@ -141,11 +158,18 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : array_like (string)
-        names of columns on which to apply transformation
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     as_df : bool, optional (default=True)
-        Whether to return a dataframe
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
     interaction : callable, optional (default=None)
         A callable for interactions. Default None will
@@ -158,6 +182,12 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
     only_return_interactions : bool, optional (default=False)
         If set to True, will only return features in feature_names
         and their respective generated interaction terms.
+
+    Attributes
+    ----------
+
+    fun_ : callable
+        The interaction term function
     """
 
     def __init__(self, cols=None, as_df=True, interaction_function=None,
@@ -174,11 +204,19 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
         y : None
-            Passthrough for pipeline
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         X, cols = validate_is_pd(X, self.cols)
         self.cols = X.columns if not self.cols else self.cols
@@ -195,13 +233,19 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X):
-        """Perform the interaction term expansion
-        
+        """Apply the transformation to test data.
+
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
         """
         check_is_fitted(self, 'fun_')
         X, cols = validate_is_pd(X, self.cols)
@@ -243,23 +287,20 @@ class SelectiveScaler(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : array_like (string)
-        names of columns on which to apply scaling
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     scaler : instance of a sklearn Scaler, default StandardScaler
 
-    as_df : boolean, default True
-        Whether to return a dataframe
-
-
-    Attributes
-    ----------
-
-    cols : array_like (string)
-        the columns
-
-    scaler : instance of a sklearn Scaler
-        the scaler
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, cols=None, scaler=StandardScaler(), as_df=True):
@@ -267,16 +308,24 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         self.scaler = scaler
 
     def fit(self, X, y=None, **kwargs):
-        """Fit the scaler
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
         y : None
-            Passthrough for pipeline
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
@@ -287,7 +336,24 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X, y=None):
-        """Transform on new data, return a pd DataFrame"""
+        """Apply the transformation to test data.
+
+        Parameters
+        ----------
+
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
+        """
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
@@ -306,8 +372,12 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : array_like, str
-       The columns which to transform
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -318,8 +388,11 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
-    as_df : boolean, def True
-       Whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
 
     Attributes
@@ -338,15 +411,24 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
         self.n_jobs = n_jobs
 
     def fit(self, X, y=None):
-        """Estimate the lambdas, provided X
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
@@ -372,16 +454,23 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X, y=None):
-        """Perform Box-Cox transformation
-        
+        """Apply the transformation to test data.
+
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
         y : None
-            Passthrough for pipeline
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
         """
         check_is_fitted(self, 'shift_')
         # check on state of X and cols
@@ -459,8 +548,12 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : array_like, str
-       The columns which to transform
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -471,8 +564,11 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
-    as_df : boolean, def True
-       Whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
 
     Attributes
@@ -487,15 +583,24 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
         self.n_jobs = n_jobs
 
     def fit(self, X, y=None):
-        """Estimate the lambdas, provided X
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-        y : Passthrough for Pipeline compatibility
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
@@ -513,13 +618,23 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X, y=None):
-        """Perform Yeo-Johnson transformation
+        """Apply the transformation to test data.
 
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
         """
         check_is_fitted(self, 'lambda_')
         # check on state of X and cols
@@ -668,8 +783,12 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
     Parameters
     ----------
 
-    cols : array_like, str
-       The columns which to transform
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -680,8 +799,11 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
        (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but
        one are used.
 
-    as_df : boolean, def True
-       Whether to return a dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
 
     Attributes
@@ -696,17 +818,25 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         self.n_jobs = n_jobs
 
     def fit(self, X, y=None):
-        """Estimate the squared norms for each feature, provided X
-        
+        """Fit the transformer.
+
         Parameters
         ----------
 
-        X : pd DF, shape [n_samples, n_features]
-            The data used for estimating the lambdas
-        
-        y : Passthrough for Pipeline compatibility
-        """
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
@@ -720,13 +850,23 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
         return self
 
     def transform(self, X, y=None):
-        """Perform spatial sign transformation
-        
+        """Apply the transformation to test data.
+
         Parameters
         ----------
 
-        X : pd DF, shape [n_samples, n_features]
-            The data to transform
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The transformed matrix
         """
         check_is_fitted(self, 'sq_nms_')
 

@@ -33,6 +33,20 @@ class SafeLabelEncoder(LabelEncoder):
     """
 
     def transform(self, y):
+        """Perform encoding if already fit.
+
+        Parameters
+        ----------
+
+        y : array_like, shape=(n_samples,)
+            The array to encode
+
+        Returns
+        -------
+
+        e : array_like, shape=(n_samples,)
+            The encoded array
+        """
         check_is_fitted(self, 'classes_')
         y = column_or_1d(y, warn=True)
 
@@ -44,10 +58,12 @@ class SafeLabelEncoder(LabelEncoder):
         if len(classes) >= unseen:
             raise ValueError('Too many factor levels in feature. Max is %i' % unseen)
 
-        return np.array([np.searchsorted(self.classes_, x) \
-                             if x in self.classes_ \
-                             else unseen \
-                         for x in y])
+        e = np.array([
+            np.searchsorted(self.classes_, x) if x in self.classes_ else unseen 
+            for x in y
+        ])
+
+        return e
 
 
 class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
@@ -64,15 +80,14 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     fill : str, optional (default = 'Missing')
         The value that will fill the missing values in the column
 
-    as_df : boolean, default = True
-        Whether to return a pandas dataframe
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
         
     Attributes
     ----------
-
-    fill : see above
-
-    as_df : see above
     
     obj_cols_ : array_like
         The list of object-type (categorical) features
@@ -90,13 +105,23 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         self.as_df = as_df
 
     def fit(self, X, y=None):
-        """Fit the estimator.
-        
+        """Fit the encoder.
+
         Parameters
         ----------
 
-        X : pandas dataframe
-        y : passthrough for Pipeline
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the object columns of the dataframe.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
         """
         # check on state of X, don't care about cols or the warning
         X, _ = validate_is_pd(X, None)
@@ -167,7 +192,14 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         Parameters
         ----------
 
-        X : pandas dataframe
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        Returns
+        -------
+
+        x : Pandas DataFrame or NumPy ndarray
+            The encoded dataframe or array
         """
         check_is_fitted(self, 'obj_cols_')
         # check on state of X, don't care about cols or warning

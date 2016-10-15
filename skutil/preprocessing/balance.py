@@ -306,7 +306,10 @@ class _BaseBalancer(six.with_metaclass(abc.ABCMeta, object, BalancerMixin)):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a dataframe
+        Whether to return a Pandas DataFrame in the ``balance``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
@@ -355,7 +358,10 @@ class OversamplingClassBalancer(_BaseBalancer):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a dataframe
+        Whether to return a Pandas DataFrame in the ``balance``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
@@ -414,7 +420,10 @@ class SMOTEClassBalancer(_BaseBalancer):
         The number of neighbors to use in the nearest neighbors model
 
     as_df : bool, optional (default=True)
-        Whether to return a dataframe
+        Whether to return a Pandas DataFrame in the ``balance``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, k=3, as_df=True):
@@ -546,7 +555,10 @@ class UndersamplingClassBalancer(_BaseBalancer):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a dataframe
+        Whether to return a Pandas DataFrame in the ``balance``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, y, ratio=0.2, shuffle=True, as_df=True):
