@@ -482,7 +482,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
             else:
                 score /= float(n_folds)
             scores.append((score, parameters))
-            # TODO: shall we also store the test_fold_sizes?
+            
             grid_scores.append(_CVScoreTuple(
                 parameters,
                 score,

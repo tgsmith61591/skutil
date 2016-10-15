@@ -517,7 +517,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 
         # I don't like making this None; it opens up bugs in pd.drop,
         # but it was the precedent the API set from early on, so don't
-        # want to change it without a warning. #TODO: warn of change
+        # want to change it without a warning.
         if not self.drop_:
             self.drop_ = None
 
