@@ -249,17 +249,30 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (string)
-        names of features on which to apply trans
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str
-        name of target feature (ignored in fit and transform)
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
 
     with_mean : bool, optional (default=True)
         should subtract mean?
 
     with_std : bool, optional (default=True)
         should divide by std?
+
+    Attributes
+    -------
+    
+    means : dict (string:float)
+        The mapping of column names to column means
+
+    stds : dict (string:float)
+        The mapping of column names to column standard deviations
     """
 
     _min_version = '3.8.2.9'
@@ -351,11 +364,15 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (string)
-        names of features on which to apply trans
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
 
-    target_feature : str
-        name of target feature (ignored in fit and transform)
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
 
     interaction : callable, optional (default=None)
         A callable for interactions. Default None will

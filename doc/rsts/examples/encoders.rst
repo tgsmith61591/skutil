@@ -1,6 +1,6 @@
 Encoders
 =========
-Currently implemented encoders:
+Selected implemented encoders:
 
 - ``OneHotCategoricalEncoder``:
   - Should be the first phase in your ``Pipeline`` object. Takes a Pandas dataframe, imputes missing categorical data with a provided string and dummies out the object (string) columns. Finally, returns a ``numpy.ndarray`` transformed array.
