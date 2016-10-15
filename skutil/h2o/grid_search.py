@@ -773,7 +773,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
 
         scoring : str, optional (default='lift')
             A valid scoring metric, i.e., "accuracy_score". See
-            ```skutil.h2o.grid_search.SCORERS``` for a comprehensive list.
+            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
 
         scoring_params : dict, optional (default=None)
             Any kwargs to be passed to the scoring function for

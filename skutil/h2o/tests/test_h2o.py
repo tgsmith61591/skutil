@@ -39,6 +39,7 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 from skutil.utils import flatten_all
 from skutil.h2o.frame import is_integer, is_float
 from skutil.h2o.pipeline import _union_exclusions
+from skutil.h2o.select import _validate_use
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -113,6 +114,9 @@ def test_h2o_no_conn_needed():
     assert _union_exclusions(a, None) == a
     assert _union_exclusions(a, b) == flatten_all([a, b])
 
+    # test _validate_use
+    assert_fails(_validate_use, ValueError, None, 'blah', False)
+
 
 # if we can't start an h2o instance, let's just pass all these tests
 def test_h2o_with_conn():
@@ -153,6 +157,35 @@ def test_h2o_with_conn():
             ret = fun(**kwargs)
             # assert len(w) > 0 if X is None else True, 'expected warning to be thrown'
             return ret
+
+    def valid_use():
+        if X is not None:
+            df = pd.DataFrame.from_records(data=[[1,'NA'], [2,'NA'], [3, 3]],
+                                           columns=['a','b'])
+
+            try:
+                dfh = new_h2o_frame(df)
+            except Exception as e:
+                dfh = None
+                return
+
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+
+                assert _validate_use(dfh, 'all.obs', True) == 'complete.obs'
+                assert len(w) > 0
+
+    def feature_dropper_coverage():
+        if X is not None:
+            dropper = H2OFeatureDropper(feature_names=None)
+            y = dropper.fit_transform(X)
+
+            # assert nothing dropped
+            assert len(y.columns) == len(X.columns)
+
+            # try feature dropper with non-iterable
+            dropper = H2OFeatureDropper(feature_names=1)
+            assert_fails(dropper.fit, ValueError, X)
 
     def multicollinearity():
         # one way or another, we can initialize it
@@ -407,7 +440,7 @@ def test_h2o_with_conn():
             pipe.fit_predict(train)
 
             # if we set params to None, assert it just does nothing but return itself
-            pipe.set_params(None)
+            pipe.set_params(**{})
             assert pipe.exclude_from_fit == ['sepal width (cm)']
         else:
             pass
@@ -1470,7 +1503,8 @@ def test_h2o_with_conn():
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
-    shuffle()
+    valid_use()
+    feature_dropper_coverage()
     persist()
     act_search()
     grid()
@@ -1494,3 +1528,4 @@ def test_h2o_with_conn():
     scale()
     load_frames()
     isinteger_isfloat()
+    shuffle()
