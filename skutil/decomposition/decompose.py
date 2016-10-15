@@ -251,7 +251,6 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         return ll
 
 
-###############################################################################
 class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     """A class that will apply truncated SVD (LSA) only to a select group
     of columns. Useful for data that contains categorical features
