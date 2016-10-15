@@ -18,3 +18,9 @@ skutil/scratch
 
 # But not these
 !doc/images/*.png
+
+# sphinx
+gh-pages/
+
+# pycharm
+.idea/

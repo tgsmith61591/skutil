@@ -1,5 +1,7 @@
 """
-Custom H2O transformers
+skutil.h2o bridges the functionality between sklearn and H2O with
+custom encoders, grid search functionality, and over/undersampling
+class balancers.
 """
 
 from .base import *
@@ -14,4 +16,4 @@ from .split import *
 from .transform import *
 from .util import *
 
-__all__ = [s for s in dir() if not s.startswith("_")] ## Remove hiddens
+__all__ = [s for s in dir() if not s.startswith("_")]  # Remove hiddens

@@ -4,169 +4,179 @@ import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.preprocessing.balance import _BaseBalancer, _pd_frame_to_np
+from numpy.testing import (assert_almost_equal, assert_array_almost_equal, assert_array_equal)
 from skutil.utils.tests.utils import assert_fails
 import warnings
 
-
-## Def data for testing
+# Def data for testing
 iris = load_iris()
 X = pd.DataFrame(data=iris.data, columns=iris.feature_names)
 X['target'] = iris.target
 
 
 def _get_three_results(sampler):
-	x = X.iloc[:60] # 50 zeros, 10 ones
-	y = pd.concat([x, X.iloc[140:150]])
-	a,b = sampler.balance(x), sampler.balance(y)
-	sampler.ratio = 0.2
-	return a, b, sampler.balance(y)
+    x = X.iloc[:60]  # 50 zeros, 10 ones
+    y = pd.concat([x, X.iloc[140:150]])
+    a, b = sampler.balance(x), sampler.balance(y)
+    sampler.ratio = 0.2
+    return a, b, sampler.balance(y)
+
 
 def test_pd_frame_to_np():
-	x = X.target
-	assert isinstance(_pd_frame_to_np(x), np.ndarray)
-	assert isinstance(_pd_frame_to_np(x.values), np.ndarray)
+    x = X.target
+    assert isinstance(_pd_frame_to_np(x), np.ndarray)
+    assert isinstance(_pd_frame_to_np(x.values), np.ndarray)
+
 
 def test_oversample():
-	a, b, c = _get_three_results(OversamplingClassBalancer(y='target', ratio=0.5))
+    a, b, c = _get_three_results(OversamplingClassBalancer(y='target', ratio=0.5))
 
-	expected_1_ct = 25
-	cts = a.target.value_counts()
-	assert cts[1] == expected_1_ct
+    expected_1_ct = 25
+    cts = a.target.value_counts()
+    assert cts[1] == expected_1_ct
 
-	cts = b.target.value_counts()
-	assert cts[1] == expected_1_ct
-	assert cts[2] == expected_1_ct
+    cts = b.target.value_counts()
+    assert cts[1] == expected_1_ct
+    assert cts[2] == expected_1_ct
 
-	expected_2_ct = 10
-	cts = c.target.value_counts()
-	assert cts[1] == expected_2_ct
-	assert cts[2] == expected_2_ct
+    expected_2_ct = 10
+    cts = c.target.value_counts()
+    assert cts[1] == expected_2_ct
+    assert cts[2] == expected_2_ct
 
-	# test what happens when non-string passed as col name
-	failed = False
-	try:
-		OversamplingClassBalancer(y=1).balance(X)
-	except ValueError as v:
-		failed = True
-	assert failed
+    # test what happens when non-string passed as col name
+    failed = False
+    try:
+        OversamplingClassBalancer(y=1).balance(X)
+    except ValueError as v:
+        failed = True
+    assert failed
 
-	# test with too many classes
-	Y = X.copy()
-	Y['class'] = np.arange(Y.shape[0])
-	failed = False
-	try:
-		OversamplingClassBalancer(y='class').balance(Y)
-	except ValueError as v:
-		failed = True
-	assert failed
+    # test with too many classes
+    Y = X.copy()
+    Y['class'] = np.arange(Y.shape[0])
+    failed = False
+    try:
+        OversamplingClassBalancer(y='class').balance(Y)
+    except ValueError as v:
+        failed = True
+    assert failed
 
-	# test with one class
-	Y['class'] = np.zeros(Y.shape[0])
-	failed = False
-	try:
-		OversamplingClassBalancer(y='class').balance(Y)
-	except ValueError as v:
-		failed = True
-	assert failed
+    # test with one class
+    Y['class'] = np.zeros(Y.shape[0])
+    failed = False
+    try:
+        OversamplingClassBalancer(y='class').balance(Y)
+    except ValueError as v:
+        failed = True
+    assert failed
 
-	# test with bad ratio
-	for r in [0.0, 1.1, 'string']:
-		failed = False
-		try:
-			OversamplingClassBalancer(y='target', ratio=r).balance(X)
-		except ValueError as v:
-			failed=True
-		assert failed
+    # test with bad ratio
+    for r in [0.0, 1.1, 'string']:
+        failed = False
+        try:
+            OversamplingClassBalancer(y='target', ratio=r).balance(X)
+        except ValueError as v:
+            failed = True
+        assert failed
 
+    # test where two classes are equally represented, and one has only a few
+    Y = X.iloc[:105]
+    d = OversamplingClassBalancer(y='target', ratio=1.0).balance(Y)
+    assert d.shape[0] == 150
 
-	# test where two classes are equally represented, and one has only a few
-	Y = X.iloc[:105]
-	d = OversamplingClassBalancer(y='target', ratio=1.0).balance(Y)
-	assert d.shape[0] == 150
+    cts = d.target.value_counts()
+    assert cts[0] == 50
+    assert cts[1] == 50
+    assert cts[2] == 50
 
-	cts= d.target.value_counts()
-	assert cts[0] == 50
-	assert cts[1] == 50
-	assert cts[2] == 50
 
 def test_oversample_warning():
-	x = np.array([
-			[1,2,3],
-			[1,2,3],
-			[1,2,4]
-		])
+    x = np.array([
+        [1, 2, 3],
+        [1, 2, 3],
+        [1, 2, 4]
+    ])
 
-	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
+    df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
 
-	# catch the warning
-	with warnings.catch_warnings(record=True) as w:
-		warnings.simplefilter('always')
-		OversamplingClassBalancer(y='c').balance(df)
-		assert len(w) == 1
+    # catch the warning
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        OversamplingClassBalancer(y='c', ratio=1.0).balance(df)
+        assert len(w) == 1
+
 
 def test_smote_error():
-	x = np.array([
-			[1,2,3],
-			[1,2,3],
-			[1,2,4]
-		])
+    x = np.array([
+        [1, 2, 3],
+        [1, 2, 3],
+        [1, 2, 4]
+    ])
 
-	df = pd.DataFrame.from_records(data=x, columns=['a','b','c'])
-	failed = False
-	try:
-		SMOTEClassBalancer(y='c').balance(df)
-	except ValueError as e:
-		failed = True
-	assert failed
+    df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+
+    # this fails because we can't perform smote on single observation (obs='4', in this case)
+    assert_fails(SMOTEClassBalancer(y='c', ratio=1.0).balance, ValueError, df)
 
 
 def test_smote():
-	a, b, c = _get_three_results(SMOTEClassBalancer(y='target', ratio=0.5))
+    a, b, c = _get_three_results(SMOTEClassBalancer(y='target', ratio=0.5))
 
-	expected_1_ct = 25
-	cts = a.target.value_counts()
-	assert cts[1] == expected_1_ct
+    expected_1_ct = 25
+    cts = a.target.value_counts()
+    assert cts[1] == expected_1_ct
 
-	cts = b.target.value_counts()
-	assert cts[1] == expected_1_ct
-	assert cts[2] == expected_1_ct
+    cts = b.target.value_counts()
+    assert cts[1] == expected_1_ct
+    assert cts[2] == expected_1_ct
 
-	expected_2_ct = 10
-	cts = c.target.value_counts()
-	assert cts[1] == expected_2_ct
-	assert cts[2] == expected_2_ct
+    expected_2_ct = 10
+    cts = c.target.value_counts()
+    assert cts[1] == expected_2_ct
+    assert cts[2] == expected_2_ct
+
 
 def test_undersample():
-	# since all classes are equal, should be no change here
-	b = UndersamplingClassBalancer(y='target').balance(X)
-	assert b.shape[0] == X.shape[0]
+    # since all classes are equal, should be no change here
+    b = UndersamplingClassBalancer(y='target').balance(X)
+    assert b.shape[0] == X.shape[0]
 
-	x = X.iloc[:60] # 50 zeros, 10 ones
-	b = UndersamplingClassBalancer(y='target', ratio=0.5).balance(x)
+    x = X.iloc[:60]  # 50 zeros, 10 ones
+    b = UndersamplingClassBalancer(y='target', ratio=0.5).balance(x)
 
-	assert b.shape[0] == 30
-	cts = b.target.value_counts()
-	assert cts[0] == 20
-	assert cts[1] == 10
+    assert b.shape[0] == 30
+    cts = b.target.value_counts()
+    assert cts[0] == 20
+    assert cts[1] == 10
 
-	b = UndersamplingClassBalancer(y='target', ratio=0.25).balance(x)
+    b = UndersamplingClassBalancer(y='target', ratio=0.25).balance(x)
 
-	assert b.shape[0] == 50
-	cts = b.target.value_counts()
-	assert cts[0] == 40
-	assert cts[1] == 10
+    assert b.shape[0] == 50
+    cts = b.target.value_counts()
+    assert cts[0] == 40
+    assert cts[1] == 10
+
+
+def test_unneeded():
+    for sample_class in (UndersamplingClassBalancer, 
+                         SMOTEClassBalancer, 
+                         OversamplingClassBalancer):
+        sampler = sample_class(y='target', ratio=0.2, shuffle=False)
+        sampled = sampler.balance(X)
+
+        # assert array the same
+        assert_array_equal(X.index.values, sampled.index.values)
+        assert sampled.shape[0] == X.shape[0]
+
 
 def test_superclass_not_implemented():
-	# anon balancer
-	class AnonBalancer(_BaseBalancer):
-		def __init__(self, y=None, ratio=0.2, as_df=True):
-			super(AnonBalancer, self).__init__(ratio, y, as_df)
+    # anon balancer
+    class AnonBalancer(_BaseBalancer):
+        def __init__(self, y=None, ratio=0.2, as_df=True):
+            super(AnonBalancer, self).__init__(ratio, y, as_df)
 
-		def balance(self, X):
-			return super(AnonBalancer, self).balance(X)
+        def balance(self, X):
+            return super(AnonBalancer, self).balance(X)
 
-	assert_fails(AnonBalancer().balance, NotImplementedError, X)
-
-
-
-
+    assert_fails(AnonBalancer().balance, NotImplementedError, X)

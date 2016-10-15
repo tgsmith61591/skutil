@@ -1,29 +1,19 @@
 from __future__ import print_function, absolute_import, division
-import numpy as np
 import pandas as pd
 import h2o
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_is_fitted
-from sklearn.externals import six
 from ..preprocessing.encode import _get_unseen
-from .base import (NAWarning, 
-                   BaseH2OTransformer, 
-                   _check_is_frame, 
-                   _retain_features,
-                   _frame_from_x_y)
-
+from .frame import _check_is_1d_frame
+from .base import (BaseH2OTransformer, _check_is_frame, _frame_from_x_y)
 
 __all__ = [
     'H2OSafeOneHotEncoder'
 ]
 
 
-
 def _val_vec(y):
-    if not isinstance(y, H2OFrame):
-        raise TypeError('y must be an H2OFrame, got type=%s' % type(y))
-    elif not y.shape[1] == 1:
-        raise ValueError('y must be a single column')
+    _check_is_1d_frame(y)
     return y
 
 
@@ -39,6 +29,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     def __init__(self):
         super(_H2OVecSafeOneHotEncoder, self).__init__(feature_names=None,
                                                        target_feature=None,
+                                                       exclude_features=None,
                                                        min_version=self._min_version,
                                                        max_version=self._max_version)
 
@@ -52,14 +43,13 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         # max class check:
         max_classes = _get_unseen()
         if len(clz) > max_classes:
-            raise ValueError('max_classes=%i, but got %i' 
-                % (max_classes, len(clz)))
+            raise ValueError('max_classes=%i, but got %i'
+                             % (max_classes, len(clz)))
 
         # set internal
         self.classes_ = clz
 
         return self
-
 
     def transform(self, y):
         # make sure is fitted, validate y
@@ -75,7 +65,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         # iterate over the classes
         for clz in self.classes_:
             isnan = False
-            rep = clz # we copy for sake of NaN preservation
+            rep = clz  # we copy for sake of NaN preservation
 
             # if the clz is np.nan, then the actual rep is 'NA'
             if pd.isnull(clz):
@@ -92,7 +82,6 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         return output
 
 
-
 class H2OSafeOneHotEncoder(BaseH2OTransformer):
     """Given a set of feature_names, one-hot encodes (dummies)
     a set of vecs into an expanded set of dummied columns. Will
@@ -101,11 +90,16 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
     Parameters
     ----------
-    feature_names : array_like (string)
-        The features from which to drop
 
-    target_feature : str (default None)
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
         The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
 
     drop_after_encoded : bool (default=True)
         Whether to drop the original columns after transform
@@ -114,53 +108,57 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    def __init__(self, feature_names=None, target_feature=None, drop_after_encoded=True):
+    def __init__(self, feature_names=None, target_feature=None, exclude_features=None, drop_after_encoded=True):
         super(H2OSafeOneHotEncoder, self).__init__(feature_names=feature_names,
                                                    target_feature=target_feature,
+                                                   exclude_features=exclude_features,
                                                    min_version=self._min_version,
                                                    max_version=self._max_version)
 
         self.drop_after_encoded = drop_after_encoded
-
 
     def fit(self, X):
         """Fit the one hot encoder.
 
         Parameters
         ----------
+
         X : H2OFrame
             The frame to fit
 
         Returns
         -------
+
         self
         """
 
         frame = _check_is_frame(X)
 
         # these are just the features to encode
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         # do fit
         self.encoders_ = {
-            str(k):_H2OVecSafeOneHotEncoder().fit(cat[str(k)]) 
+            str(k): _H2OVecSafeOneHotEncoder().fit(cat[str(k)])
             for k in cat.columns
-        }
+            }
 
         return self
-
 
     def transform(self, X):
         """Transform a new frame after fit.
 
         Parameters
         ----------
+
         X : H2OFrame
             The frame to transform
 
         Returns
         -------
-        X_transform
+
+        X_transform : H2OFrame
+            The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')
         frame = _check_is_frame(X)
@@ -168,14 +166,14 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         # these are just the features to encode. (we will return the 
         # entire frame unless told not to...)
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
         output = None
         for name in cat.columns:
             name = str(name)
             dummied = enc[name].transform(cat[name])
 
-            # cbind
+            # duplicative of R's cbind (bind columns together)
             output = dummied if output is None else output.cbind(dummied)
 
         # if we need to drop the original columns, we do that here:
@@ -187,6 +185,3 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         X = X.cbind(output)
 
         return X
-
-
-

@@ -1,553 +1,646 @@
 from __future__ import division, print_function, absolute_import
-from abc import ABCMeta, abstractmethod
-import warnings
-import pandas as pd
+
 import numpy as np
-from sklearn.externals import six
+import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
-from sklearn.utils.validation import check_is_fitted
-from sklearn.preprocessing import Imputer
 from sklearn.ensemble import BaggingRegressor, BaggingClassifier
-from ..base import SelectiveMixin
+from sklearn.externals import six
+from sklearn.utils.validation import check_is_fitted
+from abc import ABCMeta
+from skutil.base import SelectiveMixin
 from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 
-
 __all__ = [
-	'BaggedImputer',
-	'BaggedCategoricalImputer',
-	'ImputerMixin',
-	'SelectiveImputer'
+    'BaggedImputer',
+    'BaggedCategoricalImputer',
+    'ImputerMixin',
+    'SelectiveImputer'
 ]
 
 
 def _validate_all_numeric(X):
-	"""Validate that all columns in X
-	are numeric types. If not, raises a
-	ValueError
+    """Validate that all columns in X
+    are numeric types. If not, raises a
+    ValueError
 
-	Raises
-	------
-	ValueError if not all columns are numeric
-	"""
-	if not is_entirely_numeric(X):
-		raise ValueError('provided columns must be of only numeric columns')
+    Raises
+    ------
+
+    ``ValueError`` if not all columns are numeric
+    """
+    if not is_entirely_numeric(X):
+        raise ValueError('provided columns must be of only numeric columns')
 
 
 def _col_mode(col):
-	"""Get the mode from a series.
+    """Get the mode from a series.
 
-	Returns
-	-------
-	The column's most common value.
-	"""
-	vals = col.value_counts()
-	return vals.index[0] if not np.isnan(vals.index[0]) else vals.index[1]
+    Returns
+    -------
+
+    com : int, float
+        The column's most common value.
+    """
+    vals = col.value_counts()
+    com = vals.index[0] if not np.isnan(vals.index[0]) else vals.index[1]
+    return com
 
 
 def _val_values(vals):
-	"""Validate that all values in the iterable
-	are either numeric, or in ('mode', 'median', 'mean').
-	If not, will raise a TypeError
+    """Validate that all values in the iterable
+    are either numeric, or in ('mode', 'median', 'mean').
+    If not, will raise a TypeError
 
-	Raises
-	------
-	TypeError if not all values are numeric or 
-	in valid values.
-	"""
-	if not all([
-		(is_numeric(i) or \
-			(isinstance(i, six.string_types)) and \
-			i in ('mode', 'mean', 'median')) \
-		for i in vals
-	]):
-		raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
-						'Got: %s' % ', '.join(vals))
+    Raises
+    ------
 
+    ``TypeError`` if not all values are numeric or
+    in valid values.
+    """
+    if not all([
+                   (is_numeric(i) or \
+                                (isinstance(i, six.string_types)) and \
+                                        i in ('mode', 'mean', 'median')) \
+                   for i in vals
+                   ]):
+        raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
+                        'Got: %s' % ', '.join(vals))
 
-###############################################################################
 
 class ImputerMixin:
-	"""A mixin for all imputer classes. Contains the default fill value. 
-	This mixin is used for the H2O imputer, as well.
+    """A mixin for all imputer classes. Contains the default fill value.
+    This mixin is used for the H2O imputer, as well.
 
-	Attributes
-	----------
-	_def_fill : int (default=-999999)
-		The default fill value for NaN values
-	"""
-	_def_fill = -999999
+    Attributes
+    ----------
+
+    _def_fill : int (default=-999999)
+        The default fill value for NaN values
+    """
+    _def_fill = -999999
 
 
-class _BaseImputer(BaseEstimator, SelectiveMixin, TransformerMixin, ImputerMixin):
-	"""A base class for all imputers. Handles assignment of the fill value.
-	
-	Parameters
-	----------
-	cols : array_like, optional (default=None)
-		The columns to impute
+class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator, 
+                                      SelectiveMixin, TransformerMixin, 
+                                      ImputerMixin)):
+    """A base class for all imputers. Handles assignment of the fill value.
 
-	as_df : bool, optional (default=True)
-		Whether to return a data frame
+    Parameters
+    ----------
 
-	def_fill : int, float, string or iterable, optional (default=None)
-		The fill values to use for missing values in columns
-	"""
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-	def __init__(self, cols=None, as_df=True, def_fill=None):
-		self.cols = cols
-		self.as_df = as_df
-		self.fill_ = self._def_fill if def_fill is None else def_fill
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
+
+    def_fill : int, float, string or iterable, optional (default=None)
+        The fill values to use for missing values in columns
+
+    Attributes
+    ----------
+
+    fill_ : float, int, None or str
+        The fill
+    """
+
+    def __init__(self, cols=None, as_df=True, def_fill=None):
+        self.cols = cols
+        self.as_df = as_df
+        self.fill_ = self._def_fill if def_fill is None else def_fill
 
 
 class SelectiveImputer(_BaseImputer):
-	"""A more customizable form on sklearn's Imputer class. This class
-	can handle more than mean, median or most common... it will also take
-	numeric values. Moreover, it will take a vector of strategies or values
-	with which to impute corresponding columns.
-	
-	Parameters
-	----------
-	cols : array_like, optional (default=None)
-		the features to impute
+    """A more customizable form on sklearn's ``Imputer`` class. This class
+    can handle more than mean, median or most common... it will also take
+    numeric values. Moreover, it will take a vector of strategies or values
+    with which to impute corresponding columns.
 
-	as_df : boolean , optional (default=True)
-		whether to return a dataframe
+    Parameters
+    ----------
 
-	def_fill : int, optional (default=None)
-		the fill to use for missing values in the training matrix 
-		when fitting a SelectiveClassifier. If None, will default to 'mean'
-	"""
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-	def __init__(self, cols=None, as_df=True, def_fill='mean'):
-		super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
-	def fit(self, X, y=None):
-		"""Fit the CategoricalImputer and return the 
-		transformed matrix or frame.
+    def_fill : int, optional (default=None)
+        the fill to use for missing values in the training matrix
+        when fitting a ``SelectiveImputer``. If None, will default to 'mean'
+    """
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+    def __init__(self, cols=None, as_df=True, def_fill='mean'):
+        super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
 
-		y : None, passthrough for pipeline
-		"""
+    def fit(self, X, y=None):
+        """Fit the imputer and return the
+        transformed matrix or frame.
 
-		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols)
-		cols = self.cols if not self.cols is None else X.columns.values
+        Parameters
+        ----------
 
-		# validate the fill, do fit
-		fill = self.fill_
-		if isinstance(fill, six.string_types):
-			fill = str(fill)
-			if not fill in ('mode', 'mean', 'median'):
-				raise TypeError('self.fill must be either "mode", "mean", "median", None, '
-								'a number, or an iterable. Got %s' % fill)
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-			if fill == 'mode':
-				# for each column to impute, we go through and get the value counts
-				# of each, sorting by the max...
-				self.modes_ = dict(zip(cols, X[cols].apply(lambda x: _col_mode(x))))
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-			elif fill == 'median':
-				self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmedian(x.values))))
+        Returns
+        -------
 
-			else:
-				self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
+        self
+        """
 
+        # check on state of X and cols
+        X, self.cols = validate_is_pd(X, self.cols)
+        cols = self.cols if not self.cols is None else X.columns.values
 
-		# if the fill is an iterable, we have to get a bit more stringent on our validation
-		elif hasattr(fill, '__iter__'):
+        # validate the fill, do fit
+        fill = self.fill_
+        if isinstance(fill, six.string_types):
+            fill = str(fill)
+            if not fill in ('mode', 'mean', 'median'):
+                raise TypeError('self.fill must be either "mode", "mean", "median", None, '
+                                'a number, or an iterable. Got %s' % fill)
 
-			# if fill is a dictionary
-			if isinstance(fill, dict):
-				# if it's a dict, we can assume that these are the cols...
-				cols, fill = zip(*fill.items())
-				self.cols = cols # we reset self.cols in this case!!!
+            if fill == 'mode':
+                # for each column to impute, we go through and get the value counts
+                # of each, sorting by the max...
+                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: _col_mode(x))))
 
+            elif fill == 'median':
+                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmedian(x.values))))
 
-			# we need to get the length of the iterable,
-			# make sure it matches the len of cols
-			if not len(fill) == len(cols):
-				raise ValueError('len of fill does not match that of cols')
+            else:
+                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
 
-			# make sure they're all ints
-			_val_values(fill)
-			d = {}
-			for ind, c in enumerate(cols):
-				f = fill[ind]
+        # if the fill is an iterable, we have to get a bit more stringent on our validation
+        elif hasattr(fill, '__iter__'):
 
-				if is_numeric(f):
-					d[c] = f
-				else:
-					the_col = X[c]
-					if f == 'mode':
-						d[c] = _col_mode(the_col)
-					elif f == 'median':
-						d[c] = np.nanmedian(the_col.values)
-					else:
-						d[c] = np.nanmean(the_col.values)
+            # if fill is a dictionary
+            if isinstance(fill, dict):
+                # if it's a dict, we can assume that these are the cols...
+                cols, fill = zip(*fill.items())
+                self.cols = cols  # we reset self.cols in this case!!!
 
+            # we need to get the length of the iterable,
+            # make sure it matches the len of cols
+            if not len(fill) == len(cols):
+                raise ValueError('len of fill does not match that of cols')
 
-			self.modes_ = d
+            # make sure they're all ints
+            _val_values(fill)
+            d = {}
+            for ind, c in enumerate(cols):
+                f = fill[ind]
 
-		else:
-			if not is_numeric(fill):
-				raise TypeError('self.fill must be either "mode", "mean", "median", None, '
-								'a number, or an iterable. Got %s' % str(fill))
+                if is_numeric(f):
+                    d[c] = f
+                else:
+                    the_col = X[c]
+                    if f == 'mode':
+                        d[c] = _col_mode(the_col)
+                    elif f == 'median':
+                        d[c] = np.nanmedian(the_col.values)
+                    else:
+                        d[c] = np.nanmean(the_col.values)
 
-			# either the fill is an int, or it's something the user provided...
-			# if it's not an int or float, we'll let it go and not catch it because
-			# the it's their fault they were dumb.
-			self.modes_ = fill
+            self.modes_ = d
 
-		return self
+        else:
+            if not is_numeric(fill):
+                raise TypeError('self.fill must be either "mode", "mean", "median", None, '
+                                'a number, or an iterable. Got %s' % str(fill))
 
-	def transform(self, X):
-		"""Transform a dataframe given the fit imputer.
+            # either the fill is an int, or it's something the user provided...
+            # if it's not an int or float, we'll let it go and not catch it because
+            # the it's their fault they were dumb.
+            self.modes_ = fill
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+        return self
 
-		y : None, passthrough for pipeline
-		"""
+    def transform(self, X):
+        """Transform a dataframe given the fit imputer.
 
-		check_is_fitted(self, 'modes_')
-		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
-		cols = self.cols if not self.cols is None else X.columns.values
+        Parameters
+        ----------
 
-		# get the fills
-		modes = self.modes_
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
-		# if it's a single int, easy:
-		if isinstance(modes, int):
-			X[cols] = X[cols].fillna(modes)
-		else:
-			# it's a dict
-			for nm in cols:
-				X[nm] = X[nm].fillna(modes[nm])
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-		return X if self.as_df else X.as_matrix()
+        Returns
+        -------
+
+        X : pd.DataFrame or np.ndarray
+            The imputed matrix
+        """
+
+        check_is_fitted(self, 'modes_')
+        # check on state of X and cols
+        X, _ = validate_is_pd(X, self.cols)
+        cols = self.cols if not self.cols is None else X.columns.values
+
+        # get the fills
+        modes = self.modes_
+
+        # if it's a single int, easy:
+        if isinstance(modes, int):
+            X[cols] = X[cols].fillna(modes)
+        else:
+            # it's a dict
+            for nm in cols:
+                X[nm] = X[nm].fillna(modes[nm])
+
+        return X if self.as_df else X.as_matrix()
 
 
 class _BaseBaggedImputer(_BaseImputer):
-	def __init__(self, cols=None, base_estimator=None, n_estimators=10, 
-		max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
-		oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, 
-		def_fill=None, is_classification=False):
+    """Base class for all bagged imputers. See subclasses
+    ``BaggedCategoricalImputer`` and ``BaggedImputer`` for specifics.
+    """
 
-		super(_BaseBaggedImputer, self).__init__(cols=cols, as_df=as_df, def_fill=def_fill)
+    def __init__(self, cols=None, base_estimator=None, n_estimators=10,
+                 max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
+                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True,
+                 def_fill=None, is_classification=False):
 
-		# set self attributes
-		self.base_estimator = base_estimator
-		self.n_estimators = n_estimators
-		self.max_samples = max_samples
-		self.max_features = max_features
-		self.bootstrap = bootstrap
-		self.bootstrap_features = bootstrap_features
-		self.oob_score = oob_score
-		self.n_jobs = n_jobs
-		self.random_state = random_state
-		self.verbose = verbose
-		self.is_classification = is_classification
+        super(_BaseBaggedImputer, self).__init__(cols=cols, as_df=as_df, def_fill=def_fill)
 
-	def fit(self, X, y=None):
-		"""Fit the BaggedImputer.
+        # set self attributes
+        self.base_estimator = base_estimator
+        self.n_estimators = n_estimators
+        self.max_samples = max_samples
+        self.max_features = max_features
+        self.bootstrap = bootstrap
+        self.bootstrap_features = bootstrap_features
+        self.oob_score = oob_score
+        self.n_jobs = n_jobs
+        self.random_state = random_state
+        self.verbose = verbose
+        self.is_classification = is_classification
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+    def fit(self, X, y=None):
+        """Fit the bagged imputer.
 
-		y : None, passthrough for pipeline
-		"""
+        Parameters
+        ----------
 
-		self.fit_transform(X, y)
-		return self
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-	def fit_transform(self, X, y=None):
-		"""Fit the BaggedImputer and return the 
-		transformed matrix or frame.
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+        Returns
+        -------
 
-		y : None, passthrough for pipeline
-		"""
+        self
+        """
+        self.fit_transform(X, y)
+        return self
 
-		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols)
-		cols = self.cols if not self.cols is None else X.columns.values
+    def fit_transform(self, X, y=None):
+        """Fit the bagged imputer and return the
+        transformed (imputed) matrix.
 
-		# subset, validate
-		# we have to validate that all of the columns we're going to impute
-		# are numeric (this could be float, or int...).
-		_validate_all_numeric(X[cols])
+        Parameters
+        ----------
 
-		# we need to get all of the numerics out of X, because these are
-		# the features we'll be modeling on.
-		numeric_cols = get_numeric(X)
-		numerics = X[numeric_cols]
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-		# if is_classification and our estimator is NOT, then we need to raise
-		if self.base_estimator is not None:
-			if self.is_classification and not is_classifier(self.base_estimator):
-				raise TypeError('self.is_classification=True, '
-								'but base_estimator is not a classifier')
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-		# set which estimator type to fit:
-		_model = BaggingRegressor if not self.is_classification else BaggingClassifier
+        Returns
+        -------
 
-		# if there's only one numeric, we know at this point it's the one
-		# we're imputing. In that case, there's too few cols on which to model
-		if numerics.shape[1] == 1:
-			raise ValueError('too few numeric columns on which to model')
+        X : pd.DataFrame or np.ndarray
+            The imputed matrix.
+        """
+        # check on state of X and cols
+        X, self.cols = validate_is_pd(X, self.cols)
+        cols = self.cols if not self.cols is None else X.columns.values
 
+        # subset, validate
+        # we have to validate that all of the columns we're going to impute
+        # are numeric (this could be float, or int...).
+        _validate_all_numeric(X[cols])
 
-		# the core algorithm:
-		# - for each col to impute
-		#   - subset to all numeric columns except the col to impute
-		#   - retain only the complete observations, separate the missing observations
-		#   - build a bagging regressor model to predict for observations with missing values
-		#   - fill in missing values in a copy of the dataframe
+        # we need to get all of the numerics out of X, because these are
+        # the features we'll be modeling on.
+        numeric_cols = get_numeric(X)
+        numerics = X[numeric_cols]
 
-		models = {}
-		for col in cols:
-			x = numerics.copy()              # get copy of numerics for this model iteration
-			y_missing = pd.isnull(x[col])    # boolean vector of which are missing in the current y
-			y = x.pop(col)                   # pop off the y vector from the matrix
+        # if is_classification and our estimator is NOT, then we need to raise
+        if self.base_estimator is not None:
+            if self.is_classification and not is_classifier(self.base_estimator):
+                raise TypeError('self.is_classification=True, '
+                                'but base_estimator is not a classifier')
 
-			# if y_missing is all of the rows, we need to bail
-			if y_missing.sum() == x.shape[0]:
-				raise ValueError('%s has all missing values, cannot train model' % col)
+        # set which estimator type to fit:
+        _model = BaggingRegressor if not self.is_classification else BaggingClassifier
 
-			# at this point we've identified which y values we need to predict, however, we still
-			# need to prep our x matrix... There are a few corner cases we need to account for:
-			# 
-			# 1. there are no complete rows in the X matrix
-			#   - we can eliminate some columns to model on in this case, but there's no silver bullet
-			# 2. the cols selected for model building are missing in the rows needed to impute.
-			#   - this is a hard solution that requires even more NA imputation...
-			# 
-			# the most "catch-all" solution is going to be to fill all missing values with some val, say -999999
+        # if there's only one numeric, we know at this point it's the one
+        # we're imputing. In that case, there's too few cols on which to model
+        if numerics.shape[1] == 1:
+            raise ValueError('too few numeric columns on which to model')
 
-			x = x.fillna(self.fill_)
-			X_train = x[~y_missing]          # the rows that don't correspond to missing y values
-			X_test  = x[y_missing]           # the rows to "predict" on
-			y_train = y[~y_missing]          # the training y vector
+        # the core algorithm:
+        # - for each col to impute
+        #   - subset to all numeric columns except the col to impute
+        #   - retain only the complete observations, separate the missing observations
+        #   - build a bagging regressor model to predict for observations with missing values
+        #   - fill in missing values in a copy of the dataframe
 
-			# define the model
-			model = _model(
-				base_estimator=self.base_estimator,
-				n_estimators=self.n_estimators,
-				max_samples=self.max_samples,
-				max_features=self.max_features,
-				bootstrap=self.bootstrap,
-				bootstrap_features=self.bootstrap_features,
-				oob_score=self.oob_score,
-				n_jobs=self.n_jobs,
-				random_state=self.random_state,
-				verbose=self.verbose)
+        models = {}
+        for col in cols:
+            x = numerics.copy()  # get copy of numerics for this model iteration
+            y_missing = pd.isnull(x[col])  # boolean vector of which are missing in the current y
+            y = x.pop(col)  # pop off the y vector from the matrix
 
-			# fit the model
-			model.fit(X_train, y_train)
+            # if y_missing is all of the rows, we need to bail
+            if y_missing.sum() == x.shape[0]:
+                raise ValueError('%s has all missing values, cannot train model' % col)
 
-			# predict on the missing values, stash the model and the features used to train it
-			if X_test.shape[0] != 0: # only do this step if there are actually any missing
-				y_pred = model.predict(X_test)
-				X.loc[y_missing, col] = y_pred # fill the y vector missing slots and reassign back to X
+            # at this point we've identified which y values we need to predict, however, we still
+            # need to prep our x matrix... There are a few corner cases we need to account for:
+            #
+            # 1. there are no complete rows in the X matrix
+            #   - we can eliminate some columns to model on in this case, but there's no silver bullet
+            # 2. the cols selected for model building are missing in the rows needed to impute.
+            #   - this is a hard solution that requires even more NA imputation...
+            #
+            # the most "catch-all" solution is going to be to fill all missing values with some val, say -999999
 
-			models[col] = {
-				'model'         : model,
-				'feature_names' : X_train.columns.values
-			}
+            x = x.fillna(self.fill_)
+            X_train = x[~y_missing]  # the rows that don't correspond to missing y values
+            X_test = x[y_missing]  # the rows to "predict" on
+            y_train = y[~y_missing]  # the training y vector
 
+            # define the model
+            model = _model(
+                base_estimator=self.base_estimator,
+                n_estimators=self.n_estimators,
+                max_samples=self.max_samples,
+                max_features=self.max_features,
+                bootstrap=self.bootstrap,
+                bootstrap_features=self.bootstrap_features,
+                oob_score=self.oob_score,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+                verbose=self.verbose)
 
-		# assign the model dict to self -- this is the "fit" portion
-		self.models_ = models
-		return X if self.as_df else X.as_matrix()
+            # fit the model
+            model.fit(X_train, y_train)
 
-	def transform(self, X, y=None):
-		"""Transform a dataframe given the fit imputer.
+            # predict on the missing values, stash the model and the features used to train it
+            if X_test.shape[0] != 0:  # only do this step if there are actually any missing
+                y_pred = model.predict(X_test)
+                X.loc[y_missing, col] = y_pred  # fill the y vector missing slots and reassign back to X
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+            models[col] = {
+                'model': model,
+                'feature_names': X_train.columns.values
+            }
 
-		y : None, passthrough for pipeline
-		"""
+        # assign the model dict to self -- this is the "fit" portion
+        self.models_ = models
+        return X if self.as_df else X.as_matrix()
 
-		check_is_fitted(self, 'models_')
-		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
+    def transform(self, X, y=None):
+        """Impute the test data after fit.
 
-		# perform the transformations for missing vals
-		models = self.models_
-		for col, kv in six.iteritems(models):
-			features, model = kv['feature_names'], kv['model']
-			y = X[col] # the y we're predicting
+        Parameters
+        ----------
 
-			# this will throw a key error if one of the features isn't there
-			X_test = X[features] # we need another copy
+        X : Pandas DataFrame
+            The Pandas frame to transform.
 
-			# if col is in the features, there's something wrong internally
-			assert not col in features, 'predictive column should not be in fit features (%s)' % col
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-			# since this is a copy, we can add the missing vals where needed
-			X_test = X_test.fillna(self.fill_)
+        Returns
+        -------
 
-			# generate predictions, subset where y was null
-			y_null = pd.isnull(y)
-			pred_y = model.predict(X_test.loc[y_null])
+        dropped : Pandas DataFrame or NumPy ndarray
+            The test frame sans "bad" columns
+        """
+        check_is_fitted(self, 'models_')
+        # check on state of X and cols
+        X, _ = validate_is_pd(X, self.cols)
 
-			# fill where necessary:
-			if y_null.sum() > 0:
-				y[y_null] = pred_y # fill where null
-				X[col] = y # set back to X
+        # perform the transformations for missing vals
+        models = self.models_
+        for col, kv in six.iteritems(models):
+            features, model = kv['feature_names'], kv['model']
+            y = X[col]  # the y we're predicting
 
-		return X if self.as_df else X.as_matrix()
+            # this will throw a key error if one of the features isn't there
+            X_test = X[features]  # we need another copy
 
+            # if col is in the features, there's something wrong internally
+            assert not col in features, 'predictive column should not be in fit features (%s)' % col
+
+            # since this is a copy, we can add the missing vals where needed
+            X_test = X_test.fillna(self.fill_)
+
+            # generate predictions, subset where y was null
+            y_null = pd.isnull(y)
+            pred_y = model.predict(X_test.loc[y_null])
+
+            # fill where necessary:
+            if y_null.sum() > 0:
+                y[y_null] = pred_y  # fill where null
+                X[col] = y  # set back to X
+
+        return X if self.as_df else X.as_matrix()
 
 
 class BaggedCategoricalImputer(_BaseBaggedImputer):
-	"""Performs imputation on select columns by using BaggingRegressors
-	on the provided columns.
+    """Performs imputation on select columns by using BaggingRegressors
+    on the provided columns.
 
-	cols : array_like, optional (default=None)
-		the features to impute
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-	base_estimator : object or None, optional (default=None)
-		The base estimator to fit on random subsets of the dataset. 
-		If None, then the base estimator is a decision tree.
+    base_estimator : object or None, optional (default=None)
+        The base estimator to fit on random subsets of the dataset.
+        If None, then the base estimator is a decision tree.
 
-	n_estimators : int, optional (default=10)
-		The number of base estimators in the ensemble.
+    n_estimators : int, optional (default=10)
+        The number of base estimators in the ensemble.
 
-	max_samples : int or float, optional (default=1.0)
-		The number of samples to draw from X to train each base estimator.
-		If int, then draw max_samples samples.
-		If float, then draw max_samples * X.shape[0] samples.
+    max_samples : int or float, optional (default=1.0)
+        The number of samples to draw from X to train each base estimator.
+        If int, then draw max_samples samples.
+        If float, then draw max_samples * X.shape[0] samples.
 
-	max_features : int or float, optional (default=1.0)
-		The number of features to draw from X to train each base estimator.
-		If int, then draw max_features features.
-		If float, then draw max_features * X.shape[1] features.
+    max_features : int or float, optional (default=1.0)
+        The number of features to draw from X to train each base estimator.
+        If int, then draw max_features features.
+        If float, then draw max_features * X.shape[1] features.
 
-	bootstrap : boolean, optional (default=True)
-		Whether samples are drawn with replacement.
+    bootstrap : boolean, optional (default=True)
+        Whether samples are drawn with replacement.
 
-	bootstrap_features : boolean, optional (default=False)
-		Whether features are drawn with replacement.
+    bootstrap_features : boolean, optional (default=False)
+        Whether features are drawn with replacement.
 
-	oob_score : bool, optional (default=False)
-		Whether to use out-of-bag samples to estimate the generalization error.
+    oob_score : bool, optional (default=False)
+        Whether to use out-of-bag samples to estimate the generalization error.
 
-	n_jobs : int, optional (default=1)
-		The number of jobs to run in parallel for both fit and predict. If -1, 
-		then the number of jobs is set to the number of cores.
-	
-	random_state : int, RandomState instance or None, optional (default=None)
-		If int, random_state is the seed used by the random number generator; If 
-		RandomState instance, random_state is the random number generator; If None, 
-		the random number generator is the RandomState instance used by np.random.
-	
-	verbose : int, optional (default=0)
-		Controls the verbosity of the building process.
+    n_jobs : int, optional (default=1)
+        The number of jobs to run in parallel for both fit and predict. If -1,
+        then the number of jobs is set to the number of cores.
 
-	as_df : boolean , optional (default=True)
-		whether to return a dataframe
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number generator; If
+        RandomState instance, random_state is the random number generator; If None,
+        the random number generator is the RandomState instance used by np.random.
 
-	def_fill : int, optional (default=None)
-		the fill to use for missing values in the training matrix 
-		when fitting a BaggingClassifier. If None, will default to -999999
-	"""
-	def __init__(self, cols=None, base_estimator=None, n_estimators=10, 
-		max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
-		oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+    verbose : int, optional (default=0)
+        Controls the verbosity of the building process.
 
-		# categorical imputer needs to be classification
-		super(BaggedCategoricalImputer, self).__init__(
-			cols=cols, as_df=as_df, def_fill=def_fill, 
-			base_estimator=base_estimator, n_estimators=n_estimators, 
-			max_samples=max_samples, max_features=max_features, bootstrap=bootstrap, 
-			bootstrap_features=bootstrap_features, oob_score=oob_score, 
-			n_jobs=n_jobs, random_state=random_state, verbose=verbose, 
-			is_classification=True)
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
+    def_fill : int, optional (default=None)
+        the fill to use for missing values in the training matrix
+        when fitting a BaggingClassifier. If None, will default to -999999
 
+    Attributes
+    ----------
+
+    models_ : dict, (string : ``sklearn.base.BaseEstimator``)
+        A dictionary mapping column names to the fit
+        bagged estimator.
+    """
+
+    def __init__(self, cols=None, base_estimator=None, n_estimators=10,
+                 max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
+                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+        # categorical imputer needs to be classification
+        super(BaggedCategoricalImputer, self).__init__(
+            cols=cols, as_df=as_df, def_fill=def_fill,
+            base_estimator=base_estimator, n_estimators=n_estimators,
+            max_samples=max_samples, max_features=max_features, bootstrap=bootstrap,
+            bootstrap_features=bootstrap_features, oob_score=oob_score,
+            n_jobs=n_jobs, random_state=random_state, verbose=verbose,
+            is_classification=True)
 
 
 class BaggedImputer(_BaseBaggedImputer):
-	"""Performs imputation on select columns by using BaggingRegressors
-	on the provided columns.
+    """Performs imputation on select columns by using BaggingRegressors
+    on the provided columns.
 
-	cols : array_like, optional (default=None)
-		the features to impute
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-	base_estimator : object or None, optional (default=None)
-		The base estimator to fit on random subsets of the dataset. 
-		If None, then the base estimator is a decision tree.
+    base_estimator : object or None, optional (default=None)
+        The base estimator to fit on random subsets of the dataset.
+        If None, then the base estimator is a decision tree.
 
-	n_estimators : int, optional (default=10)
-		The number of base estimators in the ensemble.
+    n_estimators : int, optional (default=10)
+        The number of base estimators in the ensemble.
 
-	max_samples : int or float, optional (default=1.0)
-		The number of samples to draw from X to train each base estimator.
-		If int, then draw max_samples samples.
-		If float, then draw max_samples * X.shape[0] samples.
+    max_samples : int or float, optional (default=1.0)
+        The number of samples to draw from X to train each base estimator.
+        If int, then draw max_samples samples.
+        If float, then draw max_samples * X.shape[0] samples.
 
-	max_features : int or float, optional (default=1.0)
-		The number of features to draw from X to train each base estimator.
-		If int, then draw max_features features.
-		If float, then draw max_features * X.shape[1] features.
+    max_features : int or float, optional (default=1.0)
+        The number of features to draw from X to train each base estimator.
+        If int, then draw max_features features.
+        If float, then draw max_features * X.shape[1] features.
 
-	bootstrap : boolean, optional (default=True)
-		Whether samples are drawn with replacement.
+    bootstrap : boolean, optional (default=True)
+        Whether samples are drawn with replacement.
 
-	bootstrap_features : boolean, optional (default=False)
-		Whether features are drawn with replacement.
+    bootstrap_features : boolean, optional (default=False)
+        Whether features are drawn with replacement.
 
-	oob_score : bool, optional (default=False)
-		Whether to use out-of-bag samples to estimate the generalization error.
+    oob_score : bool, optional (default=False)
+        Whether to use out-of-bag samples to estimate the generalization error.
 
-	n_jobs : int, optional (default=1)
-		The number of jobs to run in parallel for both fit and predict. If -1, 
-		then the number of jobs is set to the number of cores.
-	
-	random_state : int, RandomState instance or None, optional (default=None)
-		If int, random_state is the seed used by the random number generator; If 
-		RandomState instance, random_state is the random number generator; If None, 
-		the random number generator is the RandomState instance used by np.random.
-	
-	verbose : int, optional (default=0)
-		Controls the verbosity of the building process.
+    n_jobs : int, optional (default=1)
+        The number of jobs to run in parallel for both fit and predict. If -1,
+        then the number of jobs is set to the number of cores.
 
-	as_df : boolean , optional (default=True)
-		whether to return a dataframe
+    random_state : int, RandomState instance or None, optional (default=None)
+        If int, random_state is the seed used by the random number generator; If
+        RandomState instance, random_state is the random number generator; If None,
+        the random number generator is the RandomState instance used by np.random.
 
-	def_fill : int, optional (default=None)
-		the fill to use for missing values in the training matrix 
-		when fitting a BaggingRegressor. If None, will default to -999999
-	"""
+    verbose : int, optional (default=0)
+        Controls the verbosity of the building process.
 
-	def __init__(self, cols=None, base_estimator=None, n_estimators=10, 
-		max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
-		oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
-		# invoke super constructor
-		super(BaggedImputer, self).__init__(
-			cols=cols, as_df=as_df, def_fill=def_fill, 
-			base_estimator=base_estimator, n_estimators=n_estimators, 
-			max_samples=max_samples, max_features=max_features, bootstrap=bootstrap, 
-			bootstrap_features=bootstrap_features, oob_score=oob_score, 
-			n_jobs=n_jobs, random_state=random_state, verbose=verbose, 
-			is_classification=False)
+    def_fill : int, optional (default=None)
+        the fill to use for missing values in the training matrix
+        when fitting a BaggingRegressor. If None, will default to -999999
 
-		
+    Attributes
+    ----------
+
+    models_ : dict, (string : ``sklearn.base.BaseEstimator``)
+        A dictionary mapping column names to the fit
+        bagged estimator.
+    """
+
+    def __init__(self, cols=None, base_estimator=None, n_estimators=10,
+                 max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
+                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+        # invoke super constructor
+        super(BaggedImputer, self).__init__(
+            cols=cols, as_df=as_df, def_fill=def_fill,
+            base_estimator=base_estimator, n_estimators=n_estimators,
+            max_samples=max_samples, max_features=max_features, bootstrap=bootstrap,
+            bootstrap_features=bootstrap_features, oob_score=oob_score,
+            n_jobs=n_jobs, random_state=random_state, verbose=verbose,
+            is_classification=False)

@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import numpy as np
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
-from numpy.linalg.linalg import LinAlgError
 from skutil.odr import QRDecomposition
 from .base import _BaseFeatureSelector
 from .select import _validate_cols
@@ -10,151 +9,197 @@ from ..utils import flatten_all, validate_is_pd
 
 
 __all__ = [
-	'LinearCombinationFilterer'
+    'LinearCombinationFilterer'
 ]
 
 
-###############################################################################
 class LinearCombinationFilterer(_BaseFeatureSelector):
-	"""Resolve linear combinations in a numeric matrix. The QR decomposition is 
-	used to determine whether the matrix is full rank, and then identify the sets
-	of columns that are involved in the dependencies. This class is adapted from
-	the implementation in the R package, caret.
+    """The ``LinearCombinationFilterer will resolve linear combinations in a numeric matrix. 
+    The QR decomposition is used to determine whether the matrix is full rank, and then 
+    identify the sets of columns that are involved in the dependencies. This class is adapted 
+    from the implementation in the R package, caret.
 
-	Parameters
-	----------
-	cols : array_like (string)
-		The features to select
+    Parameters
+    ----------
 
-	as_df : boolean, optional (True default)
-		Whether to return a dataframe
-	"""
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns. Note that since this transformer can only operate
+        on numeric columns, not explicitly setting the ``cols`` parameter
+        may result in errors for categorical data.
 
-	def __init__(self, cols=None, as_df=True):
-		super(LinearCombinationFilterer, self).__init__(cols=cols, as_df=as_df)
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
 
-	def fit(self, X, y=None):
-		"""Fit the linear combination filterer.
+    Attributes
+    ----------
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+    drop_ : array_like, shape=(n_features,)
+        Assigned after calling ``fit``. These are the features that
+        are designated as "bad" and will be dropped in the ``transform``
+        method.
+    """
 
-		y : None, passthrough for pipeline
-		"""
-		self.fit_transform(X, y)
-		return self
+    def __init__(self, cols=None, as_df=True):
+        super(LinearCombinationFilterer, self).__init__(cols=cols, as_df=as_df)
 
-	def fit_transform(self, X, y=None):
-		"""Fit the multicollinearity filterer and
-		return the filtered frame.
+    def fit(self, X, y=None):
+        """Fit the linear combination filterer.
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to fit
+        Parameters
+        ----------
 
-		y : None, passthrough for pipeline
-		"""
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-		# check on state of X and cols
-		X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-		_validate_cols(self.cols)
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-		# init drops list
-		drops = []
+        Returns
+        -------
 
-		# Generate sub matrix for qr decomposition
-		cols = [n for n in (self.cols if not self.cols is None else X.columns)] # get a copy of the cols
-		x = X[cols].as_matrix()
-		cols = np.array(cols) # so we can do boolean indexing
+        self
+        """
+        self.fit_transform(X, y)
+        return self
 
-		# do subroutines
-		lc_list = _enumLC(QRDecomposition(x))
+    def fit_transform(self, X, y=None):
+        """Fit the linear combination filterer and return
+        the transformed matrix or DataFrame.
 
-		if not lc_list is None:
-			while lc_list is not None:
-				# we want the first index in each of the keys in the dict
-				bad = np.array([p for p in set([v[0] for _, v in six.iteritems(lc_list)])])
+        Parameters
+        ----------
 
-				# get the corresponding bad names
-				bad_nms = cols[bad]
-				drops.extend(bad_nms)
+        X : Pandas DataFrame
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None.
 
-				# update our X, and then our cols
-				x = np.delete(x, bad, axis=1)
-				cols = np.delete(cols, bad)
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
-				# keep removing linear dependencies until it resolves
-				lc_list = _enumLC(QRDecomposition(x))
+        Returns
+        -------
 
-				# will break when lc_list returns None
+        dropped : Pandas DataFrame or NumPy ndarray
+            The training frame sans "bad" columns
+        """
 
-		# Assign attributes, return
-		self.drop = [p for p in set(drops)] # a list from the a set of the drops
-		dropped = X.drop(self.drop, axis=1)
+        # check on state of X and cols
+        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
+        _validate_cols(self.cols)
 
-		return dropped if self.as_df else dropped.as_matrix()
+        # init drops list
+        drops = []
 
-	def transform(self, X, y = None):
-		"""Drops the linear combination features from the new
-		input frame.
+        # Generate sub matrix for qr decomposition
+        cols = [n for n in (self.cols if not self.cols is None else X.columns)]  # get a copy of the cols
+        x = X[cols].as_matrix()
+        cols = np.array(cols)  # so we can do boolean indexing
 
-		Parameters
-		----------
-		X : pandas DataFrame
-			The frame to transform
+        # do subroutines
+        lc_list = _enumLC(QRDecomposition(x))
 
-		y : None, passthrough for pipeline
-		"""
-		check_is_fitted(self, 'drop')
-		# check on state of X and cols
-		X, _ = validate_is_pd(X, self.cols)
+        if not lc_list is None:
+            while lc_list is not None:
+                # we want the first index in each of the keys in the dict
+                bad = np.array([p for p in set([v[0] for _, v in six.iteritems(lc_list)])])
 
-		dropped = X.drop(self.drop, axis=1)
-		return dropped if self.as_df else dropped.as_matrix()
-		
+                # get the corresponding bad names
+                bad_nms = cols[bad]
+                drops.extend(bad_nms)
+
+                # update our X, and then our cols
+                x = np.delete(x, bad, axis=1)
+                cols = np.delete(cols, bad)
+
+                # keep removing linear dependencies until it resolves
+                lc_list = _enumLC(QRDecomposition(x))
+
+                # will break when lc_list returns None
+
+        # Assign attributes, return
+        self.drop_ = [p for p in set(drops)] # a list from the a set of the drops
+        dropped = X.drop(self.drop_, axis=1)
+
+        return dropped if self.as_df else dropped.as_matrix()
+
+    def transform(self, X, y=None):
+        """Drops the linear combination features from the new
+        input frame.
+
+        Parameters
+        ----------
+
+        X : Pandas DataFrame
+            The Pandas frame to transform.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        dropped : Pandas DataFrame or NumPy ndarray
+            The test frame sans "bad" columns
+        """
+        check_is_fitted(self, 'drop_')
+        # check on state of X and cols
+        X, _ = validate_is_pd(X, self.cols)
+
+        dropped = X.drop(self.drop_, axis=1)
+        return dropped if self.as_df else dropped.as_matrix()
+        
 
 def _enumLC(decomp):
-	"""Perform a single iteration of linear combo scoping.
+    """Perform a single iteration of linear combo scoping.
 
-	Parameters
-	----------
-	qr_decomp : a QRDecomposition object
-		The QR decomposition of the matrix
-	"""
-	qr = decomp.qr # the decomposition matrix
+    Parameters
+    ----------
 
-	# extract the R matrix
-	R = decomp.get_R()         # the R matrix
-	n_features = R.shape[1]    # number of columns in R
-	is_zero = n_features == 0  # whether there are no features
-	rank = decomp.get_rank()   # the rank of the original matrix, or num of independent cols
+    decomp : a QRDecomposition object
+        The QR decomposition of the matrix
+    """
+    qr = decomp.qr  # the decomposition matrix
 
-	if not (rank == n_features):
-		pivot = decomp.pivot        # the pivot vector
-		X = R[:rank, :rank]         # extract the independent cols
-		Y = R[:rank, rank:]#+1?     # extract the dependent columns
+    # extract the R matrix
+    R = decomp.get_R()         # the R matrix
+    n_features = R.shape[1]    # number of columns in R
+    is_zero = n_features == 0  # whether there are no features
+    rank = decomp.get_rank()   # the rank of the original matrix, or num of independent cols
 
-		new_qr = QRDecomposition(X) # factor the independent columns
-		b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
+    if not (rank == n_features):
+        pivot = decomp.pivot        # the pivot vector
+        X = R[:rank, :rank]         # extract the independent cols
+        Y = R[:rank, rank:]  # +1?     # extract the dependent columns
 
-		# if b is None, then there were no dependent columns
-		if b is not None:
-			b[np.abs(b) < 1e-6] = 0 # zap small values
-			
-			# will return a dict of {dim : list of bad idcs}
-			d = {}
-			row_idcs = np.arange(b.shape[0])
-			for i in range(Y.shape[1]): # should only ever be 1, right?
-				nested = [ 
-							pivot[rank+i],
-							pivot[row_idcs[b[:,i] != 0]]
-						 ]
-				d[i] = flatten_all(nested)
+        new_qr = QRDecomposition(X)  # factor the independent columns
+        b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
 
-			return d
+        # if b is None, then there were no dependent columns
+        if b is not None:
+            b[np.abs(b) < 1e-6] = 0  # zap small values
+            
+            # will return a dict of {dim : list of bad idcs}
+            d = {}
+            row_idcs = np.arange(b.shape[0])
+            for i in range(Y.shape[1]):  # should only ever be 1, right?
+                nested = [ 
+                            pivot[rank+i],
+                            pivot[row_idcs[b[:,i] != 0]]
+                         ]
+                d[i] = flatten_all(nested)
 
-	# if we get here, there are no linear combos to discover
-	return None
+            return d
+
+    # if we get here, there are no linear combos to discover
+    return None
