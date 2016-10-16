@@ -41,10 +41,11 @@ def _validate_rows(X):
         raise ValueError('n_samples should be at least two, but got %i' % m)
 
 
-class _BaseSelectiveTransformer(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                                   TransformerMixin, 
+class _BaseSelectiveTransformer(six.with_metaclass(ABCMeta, BaseEstimator,
+                                                   TransformerMixin,
                                                    SelectiveMixin)):
     """Base class for skutil transformers"""
+
     def __init__(self, cols=None, as_df=True):
         self.cols = cols
         self.as_df = as_df
@@ -125,7 +126,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
             The transformed matrix
         """
         X, cols = validate_is_pd(X, self.cols)
-        cols = cols if not cols is None else X.columns
+        cols = cols if cols is not None else X.columns
 
         # apply the function
         X[cols] = X[cols].apply(lambda x: self.fun(x, **self.kwargs))

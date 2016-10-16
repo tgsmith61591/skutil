@@ -75,7 +75,6 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         super(SparseFeatureDropper, self).__init__(cols=cols, as_df=as_df)
         self.threshold = threshold
 
-
     def fit(self, X, y=None):
         """Fit the linear combination filterer.
 
@@ -147,7 +146,6 @@ class FeatureDropper(_BaseFeatureSelector):
     def __init__(self, cols=None, as_df=True):
         super(FeatureDropper, self).__init__(cols=cols, as_df=as_df)
 
-
     def fit(self, X, y=None):
         # check on state of X and cols
         _, self.cols = validate_is_pd(X, self.cols)
@@ -185,17 +183,15 @@ class FeatureRetainer(_BaseFeatureSelector):
     def __init__(self, cols=None, as_df=True):
         super(FeatureRetainer, self).__init__(cols=cols, as_df=as_df)
 
-
     def fit(self, X, y=None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
 
         # set the drop as those not in cols
-        cols = self.cols if not self.cols is None else []
+        cols = self.cols if self.cols is not None else []
         self.drop_ = X.drop(cols, axis=1).columns.tolist()  # these will be the left overs
 
         return self
-
 
     def transform(self, X, y=None):
         check_is_fitted(self, 'drop_')
@@ -369,7 +365,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         self.threshold = threshold
         self.method = method
 
-
     def fit(self, X, y=None):
         """Fit the multicollinearity filterer.
 
@@ -392,7 +387,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         """
         self.fit_transform(X, y)
         return self
-
 
     def fit_transform(self, X, y=None):
         """Fit the multicollinearity filterer and return
@@ -435,7 +429,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
 
         dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
-
 
     def transform(self, X, y=None):
         """Drops the multicollinear features from the new
@@ -503,11 +496,10 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         super(NearZeroVarianceFilterer, self).__init__(cols=cols, as_df=as_df)
         self.threshold = threshold
 
-
     def fit(self, X, y=None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-        cols = self.cols if not self.cols is None else X.columns
+        cols = self.cols if self.cols is not None else X.columns
 
         # if cols is None, applies over everything
         variances = X[cols].var()

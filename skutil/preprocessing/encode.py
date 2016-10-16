@@ -59,9 +59,9 @@ class SafeLabelEncoder(LabelEncoder):
             raise ValueError('Too many factor levels in feature. Max is %i' % unseen)
 
         e = np.array([
-            np.searchsorted(self.classes_, x) if x in self.classes_ else unseen 
-            for x in y
-        ])
+                         np.searchsorted(self.classes_, x) if x in self.classes_ else unseen
+                         for x in y
+                         ])
 
         return e
 
@@ -130,7 +130,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         obj_cols_ = X.select_dtypes(include=['object']).columns.values
 
         # If we need to fill in the NAs, take care of it
-        if not self.fill is None:
+        if self.fill is not None:
             X[obj_cols_] = X[obj_cols_].fillna(self.fill)
 
         # Set an array of uninitialized label encoders
@@ -169,7 +169,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         trans = np.array(trans_array).transpose()
 
         # flatten the name array, append numeric names prior
-        num_nms = [n for n in X.columns.values if not n in obj_cols_]
+        num_nms = [n for n in X.columns.values if n not in obj_cols_]
         trans_nms_ = [item for sublist in tnms for item in sublist]
         self.trans_nms_ = num_nms + trans_nms_
 
@@ -210,15 +210,15 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
             return X if self.as_df else X.as_matrix()
 
         # Retain just the numers
-        numers = X[[nm for nm in X.columns.values if not nm in self.obj_cols_]]
+        numers = X[[nm for nm in X.columns.values if nm not in self.obj_cols_]]
         objs = X[self.obj_cols_]
 
         # If we need to fill in the NAs, take care of it
-        if not self.fill is None:
+        if self.fill is not None:
             objs = objs.fillna(self.fill)
 
         # Do label encoding using the safe label encoders
-        trans = np.array([v.transform(objs[self.obj_cols_[i]]) for \
+        trans = np.array([v.transform(objs[self.obj_cols_[i]]) for
                           i, v in enumerate(self.lab_encoders_)]).transpose()
 
         # Finally, get the one-hot encoding...

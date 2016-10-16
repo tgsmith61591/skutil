@@ -199,8 +199,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
         X : pandas DataFrame
             The frame to fit
-
-        y : None, passthrough for pipeline
         """
 
         check_is_fitted(self, 'fill_val_')
@@ -222,7 +220,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         # iter over cols
         is_int = isinstance(fill_val, int)  # is it an int?
         for _, col in enumerate(cols):
-            if not is_int and not col in fill_val:  # then it's a dict and this col doesn't exist in it...
+            if not is_int and col not in fill_val:  # then it's a dict and this col doesn't exist in it...
                 continue
 
             # get the column index
@@ -295,7 +293,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        frame : H2OFrame, shape [n_samples, n_features]
+        X : H2OFrame, shape [n_samples, n_features]
             The data to transform
         """
         frame = _check_is_frame(X)
@@ -317,7 +315,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        frame : H2OFrame, shape [n_samples, n_features]
+        X : H2OFrame, shape [n_samples, n_features]
             The data to transform
         """
         check_is_fitted(self, 'cols_')

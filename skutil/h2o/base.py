@@ -177,6 +177,10 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     Parameters
     ----------
 
+
+    X : H2OFrame
+        The frame from which to drop
+
     feature_names : iterable or None
         The feature names to be used in a transformer. If feature_names
         is None, the transformer will use all of the frame's column names.
@@ -235,6 +239,9 @@ class VizMixin:
     Any structure that wraps an H2OEstimator's fitting
     functionality should derive from this mixin.
     """
+
+    def __init__(self):
+        pass
 
     def plot(self, timestep, metric):
         """Plot an H2OEstimator's performance over a
@@ -309,7 +316,7 @@ def check_version(min_version, max_version):
                                    'exceeds the maximum permitted '
                                    'version for this transformer (%s)'
                                    % (h2ov, str(max_version)))
-    elif not max_version is None:  # remember we allow None
+    elif max_version is not None:  # remember we allow None
         raise ValueError('max_version must be a float, '
                          'a string in the form of "X.x" '
                          'or None, but got %s: %s' % (type(max_version), str(max_version)))
@@ -368,7 +375,19 @@ class BaseH2OFunctionWrapper(BaseEstimator):
             return pickle.load(f)
 
     def save(self, location, warn_if_exists=True, **kwargs):
-        """Save the transformer"""
+        """Save the transformer
+
+        Parameters
+        ----------
+
+        location : str
+            The location to save the transformer to
+
+        warn_if_exists :  bool, optional (default=True)
+            Warn the user that ``location`` exists if True.
+
+
+        """
         if warn_if_exists and os.path.exists(location):
             warnings.warn('Overwriting existing path: %s' % location, UserWarning)
 

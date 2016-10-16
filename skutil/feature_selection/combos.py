@@ -101,14 +101,14 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         drops = []
 
         # Generate sub matrix for qr decomposition
-        cols = [n for n in (self.cols if not self.cols is None else X.columns)]  # get a copy of the cols
+        cols = [n for n in (self.cols if self.cols is not None else X.columns)]  # get a copy of the cols
         x = X[cols].as_matrix()
         cols = np.array(cols)  # so we can do boolean indexing
 
         # do subroutines
         lc_list = _enumLC(QRDecomposition(x))
 
-        if not lc_list is None:
+        if lc_list is not None:
             while lc_list is not None:
                 # we want the first index in each of the keys in the dict
                 bad = np.array([p for p in set([v[0] for _, v in six.iteritems(lc_list)])])
@@ -195,7 +195,7 @@ def _enumLC(decomp):
             for i in range(Y.shape[1]):  # should only ever be 1, right?
                 nested = [ 
                             pivot[rank+i],
-                            pivot[row_idcs[b[:,i] != 0]]
+                            pivot[row_idcs[b[:, i] != 0]]
                          ]
                 d[i] = flatten_all(nested)
 
