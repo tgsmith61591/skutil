@@ -400,9 +400,8 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
         """
         # we can use this to extract the feature names to pass...
         feature_names = _frame_from_x_y(
-            X=X, x=self.feature_names, 
-            y=self.target_feature, 
-            exclude=self.exclude_features).columns
+            X=X, x=self.feature_names, y=self.target_feature, 
+            exclude_features=self.exclude_features).columns
 
         cv = check_cv(self.cv)
         _validate_alpha(self.alpha) # need to validate is in range
