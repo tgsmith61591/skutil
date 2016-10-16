@@ -4,7 +4,7 @@ sklearn-esque transformers for python
 import sys
 from .utils import log, exp  # want these visible at module level
 
-__version__ = '0.1.0-dev'
+__version__ = '0.1.2-dev'
 
 try:
     # This variable is injected in the __builtins__ by the build
