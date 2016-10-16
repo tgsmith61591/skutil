@@ -3,14 +3,16 @@ import numpy as np
 import pandas as pd
 import warnings
 from abc import ABCMeta, abstractmethod
-from scipy import special
+from scipy import special, stats
 from sklearn.externals import six
 from .split import *
 from .select import BaseH2OFeatureSelector
 from .util import _unq_vals_col, rbind_all
+from ..utils import is_integer
 from .base import (BaseH2OTransformer, _check_is_frame, 
                    _retain_features, _frame_from_x_y, 
                    validate_x_y)
+from sklearn.utils import as_float_array
 
 __all__ = [
     'h2o_f_classif',
@@ -18,25 +20,14 @@ __all__ = [
     'H2OFScoreSelector'
 ]
 
-def _validate_alpha(alpha):
-    """Ensure that alpha is a float greater than zero
-    and less that 1.0.
 
-    Parameters
-    ----------
-
-    alpha : float
-        The alpha value to validate
-
-    Returns
-    -------
-
-    alpha : float
-        The validated alpha
-    """
-    if not 0 < alpha < 1.0:
-        raise ValueError('alpha must be a float between 0 and 1')
-    return alpha
+# This function is re-written from sklearn.feature_selection
+# and is included for compatability for older versions of
+# sklearn that might raise an ImportError.
+def _clean_nans(scores):
+    scores = as_float_array(scores, copy=True)
+    scores[np.isnan(scores)] = np.finfo(scores.dtype).min
+    return scores
 
 
 def h2o_f_classif(X, feature_names, target_feature):
@@ -214,10 +205,6 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
         validation, we can more confidently select the features 
         to drop.
 
-    alpha : float, optional (default=0.05)
-        The significance level below which to consider a feature
-        "significant."
-
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
@@ -231,7 +218,7 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
     """
     @abstractmethod
     def __init__(self, feature_names=None, target_feature=None,
-                 exclude_features=None, cv=3, alpha=0.05, iid=True,
+                 exclude_features=None, cv=3, iid=True,
                  min_version='any', max_version=None):
         super(_H2OBaseUnivariateSelector, self).__init__(
             feature_names=feature_names, target_feature=target_feature,
@@ -240,7 +227,7 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
 
         # validate CV
         self.cv = cv
-        self.alpha = alpha
+        self.iid = iid
 
 
 def _repack_tuple(two, one):
@@ -357,9 +344,8 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
         validation, we can more confidently select the features 
         to drop.
 
-    alpha : float, optional (default=0.05)
-        The significance level below which to consider a feature
-        "significant."
+    percentile : int, optional (default=10)
+        The percent of features to keep.
 
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
@@ -371,18 +357,31 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
 
     max_version : str, float (default None)
         The maximum version of h2o that is compatible with the transformer
+
+    Attributes
+    ----------
+
+    score_ : np.ndarray, float
+        The score array, adjusted for ``n_folds``
+
+    p_values_ : np.ndarray, float
+        The p-value array, adjusted for ``n_folds``
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
 
     def __init__(self, feature_names=None, target_feature=None,
-                 exclude_features=None, cv=3, alpha=0.05, iid=True):
+                 exclude_features=None, cv=3, percentile=10, iid=True):
         super(H2OFScoreSelector, self).__init__(
             feature_names=feature_names, target_feature=target_feature,
-            exclude_features=exclude_features, cv=cv, alpha=alpha,
+            exclude_features=exclude_features, cv=cv,
             iid=iid, min_version=self._min_version, 
             max_version=self._max_version)
+
+        # set instance attributes
+        self.percentile = percentile
+
 
     def fit(self, X):
         """Fit the F-score feature selector.
@@ -404,15 +403,36 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
             exclude_features=self.exclude_features).columns
 
         cv = check_cv(self.cv)
-        _validate_alpha(self.alpha) # need to validate is in range
+        if not is_integer(self.percentile):
+            raise ValueError('percentile must be an integer')
 
         # use the X frame (full frame) including target
-        self.f_scores_, self.p_values_ = _test_and_score(
+        scores, self.p_values_ = _test_and_score(
             frame=X, fun=h2o_f_classif, cv=cv, 
             feature_names=feature_names, # extracted above
             target_feature=self.target_feature, 
             iid=self.iid)
 
+        # compute percentiles
+        if self.percentile == 100:
+            self.drop_ = []
+        elif self.percentile == 0:
+            self.drop_ = feature_names
+        else:
+            # adapted from sklearn.feature_selection.SelectPercentile
+            scores = _clean_nans(scores)
+            thresh = stats.scoreatpercentile(scores, 100 - self.percentile)
+
+            mask = scores > thresh
+            ties = np.where(scores == thresh)[0]
+            if len(ties):
+                max_feats = int(len(scores) * self.percentile / 100)
+                kept_ties = ties[:max_feats - mask.sum()]
+                mask[kept_ties] = True
+
+                # inverse, since we're recording which features to DROP, not keep
+                mask = (~mask).tolist()
+                self.drop = (np.asarray(feature_names)[mask]).tolist()
 
         # set self.drop_
         # TODO:
