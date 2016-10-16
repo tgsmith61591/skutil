@@ -1,32 +1,25 @@
 from __future__ import division, print_function, absolute_import
-
 import numbers
 import warnings
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
-
-try:
-    from h2o import H2OEstimator
-except ImportError as e:
-    from h2o.estimators.estimator_base import H2OEstimator
-
 from .base import _check_is_frame
 from skutil.base import overrides
-
 from sklearn.externals import six
 from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
 from math import ceil, floor
+try:
+    from h2o import H2OEstimator
+except ImportError as e:
+    from h2o.estimators.estimator_base import H2OEstimator
 
 try:
     from sklearn.model_selection import KFold
-
     SK18 = True
 except ImportError as e:
     from sklearn.cross_validation import KFold
-
     SK18 = False
 
 __all__ = [

@@ -65,7 +65,7 @@ class GainsStatisticalReport(object):
 
     error_behavior : str, optional (default='warn')
         One of {'warn', 'raise', 'ignore'}. How to handle non-unique
-        biin edges in pd.qcut
+        bin edges in pd.qcut
     """
 
     # maximizing score functions must be multiplied by

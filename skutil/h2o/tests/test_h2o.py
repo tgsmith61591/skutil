@@ -20,7 +20,7 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
-from skutil.h2o.one_way_fs import h2o_f_classif
+from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScoreSelector
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
@@ -1502,19 +1502,28 @@ def test_h2o_with_conn():
         if X is not None:
             shuffle_h2o_frame(X)
 
-    def f_test():
+    def univariate():
         if X is not None:
             try:
                 t = load_iris_h2o()
             except Exception as e:
                 return
 
+            # f-score test
             f,p = h2o_f_classif(t, t.columns[:-1], t.columns[-1])
             assert_array_almost_equal(f, np.array([119.26450218,47.3644614,1179.0343277,959.32440573]))
-            assert_array_almost_equal(f, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+            assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+
+            # f-score feature selector -- just testing fit works for now...
+            selector = H2OFScoreSelector(target_feature='Species')
+            selector.fit(t)
+
+            # TODO: transform
+
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
+    univariate()
     persist()
     act_search()
     grid()

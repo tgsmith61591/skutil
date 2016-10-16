@@ -1,11 +1,8 @@
 from __future__ import print_function, division, absolute_import
 import warnings
 import numpy as np
-
 from sklearn.utils.validation import check_is_fitted
-
 from h2o.frame import H2OFrame
-
 from ..feature_selection import filter_collinearity
 from ..utils import is_numeric
 from .base import (BaseH2OTransformer, _check_is_frame, _retain_features, _frame_from_x_y)

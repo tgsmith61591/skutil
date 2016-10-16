@@ -2,7 +2,11 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import pandas as pd
 import warnings
+from abc import ABCMeta, abstractmethod
 from scipy import special
+from sklearn.externals import six
+from .split import *
+from .select import BaseH2OFeatureSelector
 from .util import _unq_vals_col, rbind_all
 from .base import (BaseH2OTransformer, _check_is_frame, 
                    _retain_features, _frame_from_x_y, 
@@ -10,8 +14,29 @@ from .base import (BaseH2OTransformer, _check_is_frame,
 
 __all__ = [
     'h2o_f_classif',
-    'h2o_f_oneway'
+    'h2o_f_oneway',
+    'H2OFScoreSelector'
 ]
+
+def _validate_alpha(alpha):
+    """Ensure that alpha is a float greater than zero
+    and less that 1.0.
+
+    Parameters
+    ----------
+
+    alpha : float
+        The alpha value to validate
+
+    Returns
+    -------
+
+    alpha : float
+        The validated alpha
+    """
+    if not 0 < alpha < 1.0:
+        raise ValueError('alpha must be a float between 0 and 1')
+    return alpha
 
 
 def h2o_f_classif(X, feature_names, target_feature):
@@ -164,4 +189,233 @@ def h2o_f_oneway(*args):
     # compute prob
     prob = special.fdtrc(dfbn, dfwn, f)
     return f, prob
+
+
+class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta, 
+                                                    BaseH2OFeatureSelector)):
+    """The base class for all univariate feature selectors in H2O.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+        Univariate feature selection can very easily remove
+        features erroneously or cause overfitting. Using cross
+        validation, we can more confidently select the features 
+        to drop.
+
+    alpha : float, optional (default=0.05)
+        The significance level below which to consider a feature
+        "significant."
+
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold
+
+    min_version : str, float (default 'any')
+        The minimum version of h2o that is compatible with the transformer
+
+    max_version : str, float (default None)
+        The maximum version of h2o that is compatible with the transformer
+    """
+    @abstractmethod
+    def __init__(self, feature_names=None, target_feature=None,
+                 exclude_features=None, cv=3, alpha=0.05, iid=True,
+                 min_version='any', max_version=None):
+        super(_H2OBaseUnivariateSelector, self).__init__(
+            feature_names=feature_names, target_feature=target_feature,
+            exclude_features=exclude_features, min_version=self._min_version,
+            max_version=self._max_version)
+
+        # validate CV
+        self.cv = cv
+        self.alpha = alpha
+
+
+def _repack_tuple(two, one):
+    """Utility for ``_test_and_score``.
+    Packs the scores, p-values and train-fold length
+    into a single, flat tuple.
+
+    Parameters
+    ----------
+
+    two : tuple, shape=(2,)
+        The scores & p-values tuple
+
+    one : int
+        The train fold length
+
+    Returns
+    -------
+
+    out : tuple, shape=(3,)
+        The flattened tuple: (F-scores, p-values, 
+        train-fold size)
+    """
+    return (two[0], two[1], one)
+
+
+def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
+    """Fit all the folds of some provided function, repack the scores
+    tuple and adjust the fold score if ``iid`` is True.
+
+    Parameters
+    ----------
+
+    frame : H2OFrame
+            The frame to fit
+
+    fun : callable
+        The function to call
+
+    cv : ``H2OBaseCrossValidator``
+        The cross validation class
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold
+
+    Returns
+    -------
+
+    all_scores : np.ndarray
+        The normalized scores
+
+    all_pvalues : np.ndarray
+        The normalized p-values
+    """
+
+    fn, tf = feature_names, target_feature
+    scores = [
+        _repack_tuple(fun(frame[train,:], fn, tf), len(train))
+        for train, _ in cv.split(frame, tf)
+    ]
+
+    # compute the mean F-score, p-value, adjust with IID
+    n_folds = cv.get_n_splits()
+    all_scores = 0.
+    all_pvalues = 0.
+
+    # adjust the fold scores
+    for these_scores, p_vals, fold_size in scores:
+        if iid:
+            these_scores *= fold_size
+            p_vals *= fold_size
+        all_scores += these_scores
+        all_pvalues += p_vals
+
+    if iid:
+        all_scores /= frame.shape[0]
+        all_pvalues /= frame.shape[0]
+    else:
+        all_scores /= float(n_folds)
+        all_pvalues /= float(n_folds)
+
+    return all_scores, all_pvalues
+
+
+class H2OFScoreSelector(_H2OBaseUnivariateSelector):
+    """Select features based on the F-score, using the 
+    ``h2o_f_classif`` method.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+        Univariate feature selection can very easily remove
+        features erroneously or cause overfitting. Using cross
+        validation, we can more confidently select the features 
+        to drop.
+
+    alpha : float, optional (default=0.05)
+        The significance level below which to consider a feature
+        "significant."
+
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold
+
+    min_version : str, float (default 'any')
+        The minimum version of h2o that is compatible with the transformer
+
+    max_version : str, float (default None)
+        The maximum version of h2o that is compatible with the transformer
+    """
+
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self, feature_names=None, target_feature=None,
+                 exclude_features=None, cv=3, alpha=0.05, iid=True):
+        super(H2OFScoreSelector, self).__init__(
+            feature_names=feature_names, target_feature=target_feature,
+            exclude_features=exclude_features, cv=cv, alpha=alpha,
+            iid=iid, min_version=self._min_version, 
+            max_version=self._max_version)
+
+    def fit(self, X):
+        """Fit the F-score feature selector.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The frame to fit
+
+        Returns
+        -------
+
+        self
+        """
+        # we can use this to extract the feature names to pass...
+        feature_names = _frame_from_x_y(
+            X=X, x=feature_names=self.feature_names, 
+            y=self.target_feature, 
+            exclude=self.exclude_features).columns
+
+        cv = check_cv(self.cv)
+        _validate_alpha(self.alpha) # need to validate is in range
+
+        # use the X frame (full frame) including target
+        self.f_scores_, self.p_values_ = _test_and_score(
+            frame=X, fun=h2o_f_classif, cv=cv, 
+            feature_names=feature_names, # extracted above
+            target_feature=self.target_feature, 
+            iid=self.iid)
+
+
+        # set self.drop_
+        # TODO:
+        return self
 
