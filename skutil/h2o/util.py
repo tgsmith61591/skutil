@@ -24,6 +24,7 @@ __all__ = [
     'load_iris_h2o',
     'load_boston_h2o',
     'load_breast_cancer_h2o',
+    'rbind_all',
     'reorder_h2o_frame',
     'shuffle_h2o_frame'
 ]
@@ -307,6 +308,38 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     n_bytes = n_bits // 8
 
     return human_bytes(n_bytes, unit)
+
+
+def rbind_all(*args):
+    """Given a variable set of H2OFrames,
+    rbind all of them into a single H2OFrame.
+
+    Parameters
+    ----------
+
+    array1, array2, ... : H2OFrame, shape=(n_samples, n_features)
+        The H2OFrames to rbind. All should match in column
+        dimensionality.
+
+    Returns
+    -------
+
+    f : H2OFrame
+        The rbound H2OFrame
+    """
+    # check all are H2OFrames
+    for x in args:
+        _check_is_frame(x)
+
+    # check col dim
+    if np.unique([x.shape[1] for x in args]).shape[0] != 1:
+        raise ValueError('inconsistent column dimensions')
+
+    f = None
+    for x in args:
+        f = x if f is None else f.rbind(x)
+
+    return f
 
 
 def reorder_h2o_frame(X, idcs):
