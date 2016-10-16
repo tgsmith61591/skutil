@@ -15,6 +15,7 @@ def overrides(interface_class):
     """Decorator for methods that override super methods.
     Nice syntactic sugar and easy to follow OOP on sources like Git.
     """
+
     def overrider(method):
         assert (method.__name__ in dir(interface_class)), '%s.%s must override a super method!' % (
             interface_class.__name__, method.__name__)
@@ -61,3 +62,5 @@ class SelectiveMixin:
     should implement. All ``SelectiveMixin`` implementers
     should only apply their ``fit`` method on the defined columns.
     """
+    def __init__(self):
+        pass

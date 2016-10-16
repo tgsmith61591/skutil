@@ -103,9 +103,19 @@ class BalancerMixin:
     _max_classes = 20
     _def_ratio = 0.2
 
+    def __init__(self):
+        pass
+
     def balance(self, X):
         """This method must be overridden by
         a subclass. This does nothing right now.
+
+        Parameters
+        ----------
+
+        X : pd.DataFrame
+            The frame from which to balance
+
         """
         raise NotImplementedError('this method must be implemented by a subclass')
 
@@ -365,8 +375,8 @@ class OversamplingClassBalancer(_BaseBalancer):
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
-        super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y, 
-                                                        shuffle=shuffle, 
+        super(OversamplingClassBalancer, self).__init__(ratio=ratio, y=y,
+                                                        shuffle=shuffle,
                                                         as_df=as_df)
 
     @overrides(BalancerMixin)
@@ -390,8 +400,8 @@ class OversamplingClassBalancer(_BaseBalancer):
             if ``self.shuffle`` is False, preservation of original, 
             natural ordering is not guaranteed.
         """
-        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio, 
-                                   shuffle=self.shuffle, as_df=self.as_df, 
+        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
+                                   shuffle=self.shuffle, as_df=self.as_df,
                                    partitioner_class=_OversamplingBalancePartitioner)
 
 
@@ -427,7 +437,7 @@ class SMOTEClassBalancer(_BaseBalancer):
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, k=3, as_df=True):
-        super(SMOTEClassBalancer, self).__init__(ratio=ratio, y=y, 
+        super(SMOTEClassBalancer, self).__init__(ratio=ratio, y=y,
                                                  shuffle=shuffle,
                                                  as_df=as_df)
         self.k = k
@@ -562,7 +572,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
     """
 
     def __init__(self, y, ratio=0.2, shuffle=True, as_df=True):
-        super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y, 
+        super(UndersamplingClassBalancer, self).__init__(ratio=ratio, y=y,
                                                          shuffle=shuffle,
                                                          as_df=as_df)
 
@@ -586,6 +596,6 @@ class UndersamplingClassBalancer(_BaseBalancer):
             if ``self.shuffle`` is False, preservation of original, 
             natural ordering is not guaranteed.
         """
-        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio, 
-                                   shuffle=self.shuffle, as_df=self.as_df, 
+        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
+                                   shuffle=self.shuffle, as_df=self.as_df,
                                    partitioner_class=_UndersamplingBalancePartitioner)

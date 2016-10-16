@@ -137,7 +137,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         estimator = estimators[-1]
 
         for t in transforms:
-            if (not isinstance(t, BaseH2OTransformer)):
+            if not isinstance(t, BaseH2OTransformer):
                 raise TypeError("All intermediate steps of the chain should "
                                 "be instances of BaseH2OTransformer"
                                 " '%s' (type %s) isn't)" % (t, type(t)))
@@ -222,7 +222,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         # if there are any exclude names, remove them from training_cols_, then assign to self
         if self.exclude_from_fit:
-            training_cols_ = [i for i in training_cols_ if not i in self.exclude_from_fit]
+            training_cols_ = [i for i in training_cols_ if i not in self.exclude_from_fit]
         self.training_cols_ = training_cols_
 
         # if the last step is not an h2o estimator, we need to do things differently...
@@ -262,7 +262,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         parm_dict = {}
         for k, v in six.iteritems(params):
             key, val = k.split('__')
-            if not key in parm_dict:
+            if key not in parm_dict:
                 parm_dict[key] = {}
 
             # step_name : {parm_name : v}
