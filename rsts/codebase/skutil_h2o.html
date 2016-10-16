@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="skutil.linear_model module" href="skutil_linear_model.html"/>
@@ -210,7 +209,7 @@ for the estimator.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFeatureSelector.transform" title="skutil.h2o.BaseH2OFeatureSelector.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
@@ -266,7 +265,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="skutil.h2o.BaseH2OFunctionWrapper.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 </tbody>
@@ -347,7 +346,7 @@ for the estimator.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 </tbody>
@@ -423,7 +422,7 @@ the <cite>FeatureDropper</cite></p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
@@ -481,7 +480,7 @@ provided by the GainsStatisticalReport.</p>
 <p><strong>n_iter</strong> : int, optional (default=10)</p>
 <blockquote>
 <div><p>The number of iterations to fit. Note that 
-n_iter * cv.get_n_splits will be fit. If there
+<code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
 are 10 folds and 10 iterations, 100 models (plus
 one) will be fit.</p>
 </div></blockquote>
@@ -502,7 +501,7 @@ scoring at each iteration.</p>
 <p><strong>cv</strong> : int or H2OCrossValidator, optional (default=5)</p>
 <blockquote>
 <div><p>The number of folds to be fit for cross validation.
-Note that n_iter * cv.get_n_splits will be fit. If there
+Note that <code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
 are 10 folds and 10 iterations, 100 models (plus
 one) will be fit.</p>
 </div></blockquote>
@@ -578,10 +577,10 @@ the standard deviations between cross validation scores.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.score" title="skutil.h2o.H2OGainsRandomizedSearchCV.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(frame)</td>
 <td>Predict and score on a new frame.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(*args,&nbsp;**kwargs)</td>
 <td>Get the variable importance, if the final estimator implements such a function.</td>
 </tr>
 </tbody>
@@ -615,7 +614,7 @@ If a validation set was included, will also report validation scores.</p>
 <dt id="skutil.h2o.H2OGainsRandomizedSearchCV.score">
 <code class="descname">score</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Predict and score on a new frame. Note that this method
-will not store performance metrics in the report that <code class="docutils literal"><span class="pre">`report_score`</span></code>
+will not store performance metrics in the report that <code class="docutils literal"><span class="pre">report_score</span></code>
 generates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -727,10 +726,10 @@ the standard deviations between cross validation scores.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(*args,&nbsp;**kwargs)</td>
 <td>Get the variable importance, if the final estimator implements such a function.</td>
 </tr>
 </tbody>
@@ -748,7 +747,8 @@ the standard deviations between cross validation scores.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.base.BaseH2OTransformer</span></code></p>
 <p>A class that will generate interaction terms between selected columns.
 An interaction captures some relationship between two independent variables
-in the form of In = (xi * xj).</p>
+in the form of:</p>
+<p><span class="math">\(In = (x_i * x_j)\)</span></p>
 <p>Note that the H2OInteractionTermTransformer will only operate on the feature_names,
 and at the transform point will return ALL features plus the newly generated ones.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -809,7 +809,7 @@ and their respective generated interaction terms.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OInteractionTermTransformer.transform" title="skutil.h2o.H2OInteractionTermTransformer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(frame)</td>
@@ -928,7 +928,7 @@ into ordinal labels 0 - len(column) - 1.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OLabelEncoder.transform" title="skutil.h2o.H2OLabelEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(column)</td>
@@ -1030,7 +1030,7 @@ the mean absolute correlation of the dropped feature.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
@@ -1148,7 +1148,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
@@ -1243,7 +1243,7 @@ a copy of the input frame</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 </tbody>
@@ -1370,10 +1370,10 @@ set exclusion features.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit" title="skutil.h2o.H2OPipeline.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(frame)</td>
 <td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_predict" title="skutil.h2o.H2OPipeline.fit_predict"><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_predict" title="skutil.h2o.H2OPipeline.fit_predict"><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_transform" title="skutil.h2o.H2OPipeline.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.fit_transform" title="skutil.h2o.H2OPipeline.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Fit all the transforms one after the other and transform the data, then fit the transformed data using the final estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
@@ -1385,19 +1385,19 @@ set exclusion features.</p>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.plot" title="skutil.h2o.H2OPipeline.plot"><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code></a>(timestep,&nbsp;metric)</td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.predict" title="skutil.h2o.H2OPipeline.predict"><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.predict" title="skutil.h2o.H2OPipeline.predict"><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Applies transforms to the data, and the predict method of the final estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.set_params" title="skutil.h2o.H2OPipeline.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(\*\*params)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.set_params" title="skutil.h2o.H2OPipeline.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(**params)</td>
 <td>Set the parameters for this pipeline.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.transform" title="skutil.h2o.H2OPipeline.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.transform" title="skutil.h2o.H2OPipeline.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Applies transforms to the data.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.varimp" title="skutil.h2o.H2OPipeline.varimp"><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.varimp" title="skutil.h2o.H2OPipeline.varimp"><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code></a>(*args,&nbsp;**kwargs)</td>
 <td>Get the variable importance, if the final estimator implements such a function.</td>
 </tr>
 </tbody>
@@ -1583,7 +1583,7 @@ at each iteration.</p>
 </dd>
 <dt>n_iter</dt>
  <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=10)</span><dd><p class="first last">The number of iterations to fit. Note that 
-n_iter * cv.get_n_splits will be fit. If there
+<code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
 are 10 folds and 10 iterations, 100 models (plus
 one) will be fit.</p>
 </dd>
@@ -1600,7 +1600,7 @@ scoring at each iteration.</p>
 </dd>
 <dt>cv</dt>
  <span class="classifier-delimiter">:</span> <span class="classifier">int or H2OCrossValidator, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.
-Note that n_iter * cv.get_n_splits will be fit. If there
+Note that <code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
 are 10 folds and 10 iterations, 100 models (plus
 one) will be fit.</p>
 </dd>
@@ -1662,10 +1662,10 @@ the standard deviations between cross validation scores.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(\*args,&nbsp;\*\*kwargs)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">varimp</span></code>(*args,&nbsp;**kwargs)</td>
 <td>Get the variable importance, if the final estimator implements such a function.</td>
 </tr>
 </tbody>
@@ -1732,7 +1732,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSafeOneHotEncoder.transform" title="skutil.h2o.H2OSafeOneHotEncoder.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
@@ -1813,7 +1813,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveImputer.transform" title="skutil.h2o.H2OSelectiveImputer.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
@@ -1913,7 +1913,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OSelectiveScaler.transform" title="skutil.h2o.H2OSelectiveScaler.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
@@ -2043,7 +2043,7 @@ for the estimator.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
@@ -2180,7 +2180,7 @@ a copy of the input frame</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
 <td>Save the transformer</td>
 </tr>
-<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(**params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
 </tbody>
@@ -3076,7 +3076,7 @@ made up of integers.</p>
 <dd><p>Make a scoring function from a callable.
 The signature for the callable should resemble:</p>
 <blockquote>
-<div><code class="docutils literal"><span class="pre">`some_function(y_true,</span> <span class="pre">y_pred,</span> <span class="pre">y_type=None...)`</span></code></div></blockquote>
+<div><code class="docutils literal"><span class="pre">some_function(y_true,</span> <span class="pre">y_pred,</span> <span class="pre">y_type=None...)</span></code></div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

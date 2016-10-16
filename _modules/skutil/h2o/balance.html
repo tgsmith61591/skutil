@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,15 +132,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.balance</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">reorder_h2o_frame</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span>
-<span class="kn">from</span> <span class="nn">..preprocessing</span> <span class="k">import</span> <span class="n">BalancerMixin</span>
-<span class="kn">from</span> <span class="nn">..preprocessing.balance</span> <span class="k">import</span> <span class="p">(</span><span class="n">_validate_ratio</span><span class="p">,</span> <span class="n">_validate_target</span><span class="p">,</span> <span class="n">_validate_num_classes</span><span class="p">,</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="kn">import</span> <span class="n">overrides</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">reorder_h2o_frame</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span>
+<span class="kn">from</span> <span class="nn">..preprocessing</span> <span class="kn">import</span> <span class="n">BalancerMixin</span>
+<span class="kn">from</span> <span class="nn">..preprocessing.balance</span> <span class="kn">import</span> <span class="p">(</span><span class="n">_validate_ratio</span><span class="p">,</span> <span class="n">_validate_target</span><span class="p">,</span> <span class="n">_validate_num_classes</span><span class="p">,</span>
                                      <span class="n">_OversamplingBalancePartitioner</span><span class="p">,</span> <span class="n">_UndersamplingBalancePartitioner</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -187,11 +186,11 @@
 
     <span class="c1"># generate cts. Have to get kludgier in h2o...</span>
     <span class="n">unq_vals</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-    <span class="n">unq_vals</span> <span class="o">=</span> <span class="n">unq_vals</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">unq_vals</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># numpy array of unique vals</span>
+    <span class="n">unq_vals</span> <span class="o">=</span> <span class="n">unq_vals</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="n">unq_vals</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># numpy array of unique vals</span>
     <span class="n">unq_cts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">val</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="n">val</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">unq_vals</span><span class="p">])</span>
 
     <span class="c1"># validate is &lt; max classes</span>
-    <span class="n">cts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">unq_cts</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">unq_cts</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">n_classes</span> <span class="o">=</span> <span class="n">_validate_num_classes</span><span class="p">(</span><span class="n">cts</span><span class="p">)</span>
     <span class="n">needs_balancing</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">ratio</span>
 
@@ -207,7 +206,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> 
-                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_BaseH2OBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                <span class="n">min_version</span><span class="o">=</span><span class="n">min_version</span><span class="p">,</span>
                                                <span class="n">max_version</span><span class="o">=</span><span class="n">max_version</span><span class="p">)</span>
@@ -235,7 +234,7 @@
 <span class="sd">        Whether or not to shuffle rows on return</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="c1"># as of now, no min/max version; it&#39;s simply compatible with all...</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OOversamplingClassBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
             <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">)</span>
@@ -300,9 +299,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OUndersamplingClassBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
             <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">ratio</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span> 
             <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">)</span>

@@ -1,0 +1,7 @@
+.idea/
+build/
+cythonize.dat
+doc/
+gh-pages/
+skutil.egg-info/
+skutil/

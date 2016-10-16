@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,19 +132,19 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.preprocessing.transform</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
-<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">boxcox</span>
-<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals.joblib</span> <span class="k">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">StandardScaler</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="kn">import</span> <span class="n">boxcox</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals.joblib</span> <span class="kn">import</span> <span class="n">Parallel</span><span class="p">,</span> <span class="n">delayed</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;BoxCoxTransformer&#39;</span><span class="p">,</span>
@@ -159,10 +158,10 @@
 <span class="c1"># A very small number used to measure differences.</span>
 <span class="c1"># If the absolute difference between two numbers is</span>
 <span class="c1"># &lt;= EPS, it is considered equal.</span>
-<span class="n">EPS</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span>
+<span class="n">EPS</span> <span class="o">=</span> <span class="mf">1e-12</span>
 
 <span class="c1"># A very small number used to represent zero.</span>
-<span class="n">ZERO</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">16</span>
+<span class="n">ZERO</span> <span class="o">=</span> <span class="mf">1e-16</span>
 
 
 <span class="c1"># Helper funtions:</span>
@@ -180,7 +179,7 @@
                                                    <span class="n">TransformerMixin</span><span class="p">,</span> 
                                                    <span class="n">SelectiveMixin</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;Base class for skutil transformers&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
 
@@ -202,13 +201,13 @@
 <span class="sd">        The function to apply to the feature(s)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fun</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FunctionMapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">fun</span> <span class="o">=</span> <span class="n">fun</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
 
-<div class="viewcode-block" id="FunctionMapper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionMapper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Validate the args</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
@@ -240,7 +239,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="FunctionMapper.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionMapper.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
 
 <span class="sd">        Parameters</span>
@@ -260,7 +259,7 @@
 <span class="sd">            The transformed matrix</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
 
         <span class="c1"># apply the function</span>
         <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">))</span>
@@ -325,15 +324,15 @@
 <span class="sd">        The interaction term function</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interaction_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">name_suffix</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">only_return_interactions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">interaction_function</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">name_suffix</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">only_return_interactions</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">InteractionTermTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="o">=</span> <span class="n">interaction_function</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name_suffix</span> <span class="o">=</span> <span class="n">name_suffix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">only_return_interactions</span> <span class="o">=</span> <span class="n">only_return_interactions</span>
 
-<div class="viewcode-block" id="InteractionTermTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.InteractionTermTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="InteractionTermTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.InteractionTermTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
@@ -355,7 +354,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_mul</span>
 
         <span class="c1"># validate function</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
@@ -438,11 +437,11 @@
 <span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SelectiveScaler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">scaler</span>
 
-<div class="viewcode-block" id="SelectiveScaler.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectiveScaler.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
@@ -470,7 +469,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SelectiveScaler.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectiveScaler.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
 
 <span class="sd">        Parameters</span>
@@ -541,11 +540,11 @@
 <span class="sd">       The lambda values corresponding to each feature</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BoxCoxTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
 
-<div class="viewcode-block" id="BoxCoxTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BoxCoxTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
@@ -574,7 +573,7 @@
 
         <span class="c1"># First step is to compute all the shifts needed, then add back to X...</span>
         <span class="n">min_Xs</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">min_Xs</span><span class="p">])</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">min_Xs</span><span class="p">])</span>
         <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
 
         <span class="c1"># now put shift into a dict</span>
@@ -588,7 +587,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="BoxCoxTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BoxCoxTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
 
 <span class="sd">        Parameters</span>
@@ -621,7 +620,7 @@
             <span class="n">X</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shifts_</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
 
         <span class="c1"># If the shifts are too low, truncate...</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
 
         <span class="c1"># do transformations</span>
         <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
@@ -669,7 +668,7 @@
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
     <span class="c1"># Use scipy&#39;s log-likelihood estimator</span>
-    <span class="n">b</span> <span class="o">=</span> <span class="n">boxcox</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lmbda</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">boxcox</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lmbda</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
 
     <span class="c1"># Return lambda corresponding to maximum P</span>
     <span class="k">return</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -713,11 +712,11 @@
 <span class="sd">       The lambda values corresponding to each feature</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">YeoJohnsonTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
 
-<div class="viewcode-block" id="YeoJohnsonTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="YeoJohnsonTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
@@ -752,7 +751,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="YeoJohnsonTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="YeoJohnsonTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
 
 <span class="sd">        Parameters</span>
@@ -774,7 +773,7 @@
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lambda_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
 
         <span class="n">lambdas_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_</span>
 
@@ -948,11 +947,11 @@
 <span class="sd">       The squared norms for each feature</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SpatialSignTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
 
-<div class="viewcode-block" id="SpatialSignTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpatialSignTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
@@ -984,7 +983,7 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SpatialSignTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpatialSignTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
 
 <span class="sd">        Parameters</span>

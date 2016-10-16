@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,14 +132,14 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.transform</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> <span class="n">_check_is_frame</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span><span class="p">,</span> <span class="n">flatten_all</span>
-<span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">h2o_col_to_numpy</span><span class="p">,</span> <span class="n">_unq_vals_col</span>
-<span class="kn">from</span> <span class="nn">..preprocessing</span> <span class="k">import</span> <span class="n">ImputerMixin</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> <span class="n">_check_is_frame</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">is_numeric</span><span class="p">,</span> <span class="n">flatten_all</span>
+<span class="kn">from</span> <span class="nn">.frame</span> <span class="kn">import</span> <span class="n">_check_is_1d_frame</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">h2o_col_to_numpy</span><span class="p">,</span> <span class="n">_unq_vals_col</span>
+<span class="kn">from</span> <span class="nn">..preprocessing</span> <span class="kn">import</span> <span class="n">ImputerMixin</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;H2OInteractionTermTransformer&#39;</span><span class="p">,</span>
@@ -186,12 +185,12 @@
 <span class="sd">    [5 rows x 1 column]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">H2OLabelEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">H2OLabelEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                              <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                              <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                               <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
                                               <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
 
@@ -229,21 +228,21 @@
 <span class="k">class</span> <span class="nc">_H2OBaseImputer</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">ImputerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A base class for all H2O imputers&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_H2OBaseImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                               <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                               <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
                                               <span class="n">min_version</span><span class="o">=</span><span class="n">min_version</span><span class="p">,</span>
                                               <span class="n">max_version</span><span class="o">=</span><span class="n">max_version</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_def_fill</span> <span class="k">if</span> <span class="n">def_fill</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">def_fill</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_def_fill</span> <span class="k">if</span> <span class="n">def_fill</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">def_fill</span>
 
 
 <div class="viewcode-block" id="H2OSelectiveImputer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OSelectiveImputer">[docs]</a><span class="k">class</span> <span class="nc">H2OSelectiveImputer</span><span class="p">(</span><span class="n">_H2OBaseImputer</span><span class="p">):</span>
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OSelectiveImputer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                   <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                   <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -272,10 +271,10 @@
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;h2o has not yet implemented &quot;mode&quot; functionality&#39;</span><span class="p">)</span>
 
             <span class="k">elif</span> <span class="n">fill</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
 
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
 
@@ -308,9 +307,9 @@
                         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;h2o has not yet implemented &quot;mode&quot; functionality&#39;</span><span class="p">)</span>
                         <span class="c1"># d[c] = _col_mode(the_col)</span>
                     <span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
-                        <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                        <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                        <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="n">d</span>
 
@@ -368,7 +367,7 @@
 
             <span class="c1"># unfortunately, since we can&#39;t boolean index the</span>
             <span class="c1"># h2oframe, we have to convert pandas</span>
-            <span class="n">the_na_col</span> <span class="o">=</span> <span class="n">na_frame</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">the_na_col</span> <span class="o">=</span> <span class="n">na_frame</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
             <span class="n">na_mask_idcs</span> <span class="o">=</span> <span class="n">the_na_col</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">the_na_col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
             <span class="k">for</span> <span class="n">na_row</span> <span class="ow">in</span> <span class="n">na_mask_idcs</span><span class="p">:</span>
@@ -411,10 +410,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">with_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">with_std</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">with_mean</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">with_std</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OSelectiveScaler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                  <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                  <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -491,7 +490,9 @@
 <div class="viewcode-block" id="H2OInteractionTermTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OInteractionTermTransformer">[docs]</a><span class="k">class</span> <span class="nc">H2OInteractionTermTransformer</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A class that will generate interaction terms between selected columns.</span>
 <span class="sd">    An interaction captures some relationship between two independent variables</span>
-<span class="sd">    in the form of In = (xi * xj).</span>
+<span class="sd">    in the form of:</span>
+
+<span class="sd">    :math:`In = (x_i * x_j)`</span>
 
 <span class="sd">    Note that the H2OInteractionTermTransformer will only operate on the feature_names,</span>
 <span class="sd">    and at the transform point will return ALL features plus the newly generated ones.</span>
@@ -523,10 +524,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">interaction_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name_suffix</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">only_return_interactions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">interaction_function</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">name_suffix</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="n">only_return_interactions</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OInteractionTermTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                             <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
@@ -549,7 +550,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># the cols we&#39;ll ultimately operate on</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">_mul</span>
 
         <span class="c1"># validate function</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>

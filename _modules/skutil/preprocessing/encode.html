@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,15 +132,15 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.preprocessing.encode</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">LabelEncoder</span><span class="p">,</span> <span class="n">OneHotEncoder</span>
-<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">BaseEstimator</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">column_or_1d</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing.label</span> <span class="k">import</span> <span class="n">_check_numpy_unicode_bug</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">skutil.utils</span> <span class="k">import</span> <span class="n">validate_is_pd</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">LabelEncoder</span><span class="p">,</span> <span class="n">OneHotEncoder</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">TransformerMixin</span><span class="p">,</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="kn">import</span> <span class="n">column_or_1d</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing.label</span> <span class="kn">import</span> <span class="n">_check_numpy_unicode_bug</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">skutil.utils</span> <span class="kn">import</span> <span class="n">validate_is_pd</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;SafeLabelEncoder&#39;</span><span class="p">,</span>
@@ -183,7 +182,7 @@
 <span class="sd">            The encoded array</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;classes_&#39;</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">column_or_1d</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">column_or_1d</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
         <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
         <span class="n">_check_numpy_unicode_bug</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span>
@@ -235,11 +234,11 @@
 <span class="sd">    trans_nms_ : the dummified names</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;Missing&#39;</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;Missing&#39;</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fill</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
 
-<div class="viewcode-block" id="OneHotCategoricalEncoder.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OneHotCategoricalEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotCategoricalEncoder.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OneHotCategoricalEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the encoder.</span>
 
 <span class="sd">        Parameters</span>
@@ -259,13 +258,13 @@
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X, don&#39;t care about cols or the warning</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
         <span class="c1"># Extract the object columns</span>
         <span class="n">obj_cols_</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
 
         <span class="c1"># If we need to fill in the NAs, take care of it</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">X</span><span class="p">[</span><span class="n">obj_cols_</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">obj_cols_</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
 
         <span class="c1"># Set an array of uninitialized label encoders</span>
@@ -313,7 +312,7 @@
         <span class="n">is_empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape_tup</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">shape_tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>  <span class="c1"># zero cols</span>
 
         <span class="c1"># Now we can do the actual one hot encoding, set internal state</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">one_hot_</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">is_empty</span> <span class="k">else</span> <span class="n">OneHotEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">one_hot_</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">is_empty</span> <span class="k">else</span> <span class="n">OneHotEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obj_cols_</span> <span class="o">=</span> <span class="n">obj_cols_</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lab_encoders_</span> <span class="o">=</span> <span class="n">lab_encoders_</span>
 
@@ -338,7 +337,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;obj_cols_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X, don&#39;t care about cols or warning</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
         <span class="c1"># if there is no encoder to speak of, just bail early</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">one_hot_</span><span class="p">:</span>
@@ -349,7 +348,7 @@
         <span class="n">objs</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_cols_</span><span class="p">]</span>
 
         <span class="c1"># If we need to fill in the NAs, take care of it</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">objs</span> <span class="o">=</span> <span class="n">objs</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fill</span><span class="p">)</span>
 
         <span class="c1"># Do label encoding using the safe label encoders</span>

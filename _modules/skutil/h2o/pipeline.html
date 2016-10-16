@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,27 +132,27 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.pipeline</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">h2o</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">h2o</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
+    <span class="kn">from</span> <span class="nn">h2o</span> <span class="kn">import</span> <span class="n">H2OEstimator</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">h2o.estimators.estimator_base</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
+    <span class="kn">from</span> <span class="nn">h2o.estimators.estimator_base</span> <span class="kn">import</span> <span class="n">H2OEstimator</span>
 
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span>
                    <span class="n">validate_x_y</span><span class="p">,</span> <span class="n">validate_x</span><span class="p">,</span> <span class="n">VizMixin</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="kn">import</span> <span class="n">overrides</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">tosequence</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span>
-<span class="kn">from</span> <span class="nn">..utils.metaestimators</span> <span class="k">import</span> <span class="n">if_delegate_has_method</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">flatten_all</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="kn">import</span> <span class="n">tosequence</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span> <span class="nn">..utils.metaestimators</span> <span class="kn">import</span> <span class="n">if_delegate_has_method</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">flatten_all</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
+    <span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pickle</span>
 
@@ -167,7 +166,7 @@
 <span class="sd">    and create a union set or None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">a</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">b</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">a</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">b</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">b</span><span class="p">:</span>
@@ -246,10 +245,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">exclude_from_ppc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_from_fit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">exclude_from_ppc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_from_fit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OPipeline</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                           <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
                                           <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
@@ -289,7 +288,7 @@
     <span class="k">def</span> <span class="nf">_final_estimator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_pre_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_pre_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">frame_t</span> <span class="o">=</span> <span class="n">frame</span>
 
         <span class="c1"># we have to set the feature names at each stage to be</span>
@@ -308,7 +307,7 @@
             <span class="c1"># if the names are *not* explicitly set, we will set the </span>
             <span class="c1"># estimator&#39;s `feature_names` to the `next_feature_names`</span>
             <span class="c1"># variable set...</span>
-            <span class="k">if</span> <span class="n">transform</span><span class="o">.</span><span class="n">feature_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">transform</span><span class="o">.</span><span class="n">feature_names</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">transform</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="n">next_feature_names</span>
 
             <span class="c1"># now set the exclude_features if they exist</span>
@@ -405,8 +404,8 @@
 
         <span class="c1"># go through steps, now (first the transforms).</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">step_params</span> <span class="o">=</span> <span class="n">parm_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">step_params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">step_params</span> <span class="o">=</span> <span class="n">parm_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">step_params</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">continue</span>
 
             <span class="k">for</span> <span class="n">parm</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">step_params</span><span class="p">):</span>
@@ -446,12 +445,12 @@
         <span class="n">ends_in_h2o</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;model_loc_&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ends_in_h2o</span><span class="p">:</span>
             <span class="c1"># read the model portion, delete the model path</span>
-            <span class="n">ex</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ex</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="k">for</span> <span class="n">pth</span> <span class="ow">in</span> <span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">model_loc_</span><span class="p">,</span> <span class="s1">&#39;hdfs://</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">model</span><span class="o">.</span><span class="n">model_loc_</span><span class="p">]:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">the_h2o_model</span> <span class="o">=</span> <span class="n">h2o</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">pth</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">ex</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ex</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                         <span class="n">ex</span> <span class="o">=</span> <span class="n">e</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="c1"># only throws if fails twice</span>
@@ -473,7 +472,7 @@
         <span class="c1"># first, save the estimator... if it&#39;s there</span>
         <span class="n">ends_in_h2o</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_final_estimator</span><span class="p">,</span> <span class="n">H2OEstimator</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ends_in_h2o</span><span class="p">:</span>
-            <span class="n">force</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;force&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">force</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;force&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model_loc_</span> <span class="o">=</span> <span class="n">h2o</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_final_estimator</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">model_loc</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
 
             <span class="c1"># set the _final_estimator to None just for pickling</span>
@@ -482,7 +481,7 @@
             <span class="c1"># let&#39;s keep a pointer to the last step, so</span>
             <span class="c1"># after the pickling we can reassign it to retain state</span>
             <span class="n">last_step_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="c1"># now save the rest of things...</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
@@ -561,7 +560,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div>
 
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">)</span>
-<div class="viewcode-block" id="H2OPipeline.varimp"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.varimp">[docs]</a>    <span class="k">def</span> <span class="nf">varimp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="H2OPipeline.varimp"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.varimp">[docs]</a>    <span class="k">def</span> <span class="nf">varimp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the variable importance, if the final</span>
 <span class="sd">        estimator implements such a function.</span>
 

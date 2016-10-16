@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,14 +132,14 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.encode</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">h2o</span>
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
-<span class="kn">from</span> <span class="nn">..preprocessing.encode</span> <span class="k">import</span> <span class="n">_get_unseen</span>
-<span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">..preprocessing.encode</span> <span class="kn">import</span> <span class="n">_get_unseen</span>
+<span class="kn">from</span> <span class="nn">.frame</span> <span class="kn">import</span> <span class="n">_check_is_1d_frame</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;H2OSafeOneHotEncoder&#39;</span>
@@ -159,12 +158,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">_H2OVecSafeOneHotEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                                       <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                                       <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_H2OVecSafeOneHotEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                                       <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                                                       <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                                                        <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
                                                        <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
 
@@ -195,16 +194,16 @@
         <span class="n">col_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="c1"># the frame output</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="c1"># iterate over the classes</span>
         <span class="k">for</span> <span class="n">clz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">:</span>
-            <span class="n">isnan</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">isnan</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">rep</span> <span class="o">=</span> <span class="n">clz</span>  <span class="c1"># we copy for sake of NaN preservation</span>
 
             <span class="c1"># if the clz is np.nan, then the actual rep is &#39;NA&#39;</span>
             <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">clz</span><span class="p">):</span>
-                <span class="n">isnan</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">isnan</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="n">rep</span> <span class="o">=</span> <span class="s1">&#39;NA&#39;</span>
 
             <span class="c1"># returns int vec of 1s and 0s</span>
@@ -212,7 +211,7 @@
             <span class="n">dummies</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">clz</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">isnan</span> <span class="k">else</span> <span class="s1">&#39;nan&#39;</span><span class="p">)]</span>
 
             <span class="c1"># cbind</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">dummies</span> <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">output</span><span class="o">.</span><span class="n">cbind</span><span class="p">(</span><span class="n">dummies</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">dummies</span> <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">output</span><span class="o">.</span><span class="n">cbind</span><span class="p">(</span><span class="n">dummies</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">output</span>
 
@@ -241,9 +240,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_after_encoded</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">drop_after_encoded</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OSafeOneHotEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                    <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                    <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -303,13 +302,13 @@
         <span class="c1"># entire frame unless told not to...)</span>
         <span class="n">cat</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
 
-        <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">cat</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
             <span class="n">dummied</span> <span class="o">=</span> <span class="n">enc</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">cat</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
 
             <span class="c1"># duplicative of R&#39;s cbind (bind columns together)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">dummied</span> <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">output</span><span class="o">.</span><span class="n">cbind</span><span class="p">(</span><span class="n">dummied</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">dummied</span> <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">output</span><span class="o">.</span><span class="n">cbind</span><span class="p">(</span><span class="n">dummied</span><span class="p">)</span>
 
         <span class="c1"># if we need to drop the original columns, we do that here:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_after_encoded</span><span class="p">:</span>

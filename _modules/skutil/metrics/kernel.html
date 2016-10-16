@@ -1,0 +1,736 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.metrics.kernel &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.metrics.kernel</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.metrics.kernel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">skutil</span> <span class="kn">import</span> <span class="n">exp</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics.pairwise</span> <span class="kn">import</span> <span class="p">(</span><span class="n">check_pairwise_arrays</span><span class="p">,</span>
+                                      <span class="n">linear_kernel</span> <span class="k">as</span> <span class="n">lk</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">._kernel_fast</span> <span class="kn">import</span> <span class="p">(</span><span class="n">_hilbert_dot_fast</span><span class="p">,</span> <span class="n">_hilbert_matrix_fast</span><span class="p">,</span> <span class="n">_spline_kernel_fast</span><span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;exponential_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;gaussian_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;inverse_multiquadric_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;laplace_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;linear_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;multiquadric_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;polynomial_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;power_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;rbf_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;spline_kernel&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;tanh_kernel&#39;</span>
+<span class="p">]</span>
+
+<span class="c1"># TODO: add LaTeX feature branch for documentation</span>
+
+<span class="k">def</span> <span class="nf">_div</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">div</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+        <span class="c1"># do division operation -- might throw runtimewarning</span>
+        <span class="k">return</span> <span class="n">num</span> <span class="o">/</span> <span class="n">div</span>
+
+
+<span class="k">def</span> <span class="nf">_prep_X_Y_for_cython</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">check_pairwise_arrays</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="n">Y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="c1"># transposing Y here!</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">res</span>
+
+
+<span class="c1"># Cython proxies</span>
+<span class="k">def</span> <span class="nf">_hilbert_dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="c1"># return ``2 * safe_sparse_dot(x, y) - safe_sparse_dot(x, x.T) - safe_sparse_dot(y, y.T)``</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_hilbert_dot_fast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">scalar</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="n">_prep_X_Y_for_cython</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">_hilbert_matrix_fast</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">(</span><span class="n">scalar</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+
+<div class="viewcode-block" id="exponential_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.exponential_kernel">[docs]</a><span class="k">def</span> <span class="nf">exponential_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``exponential_kernel`` is closely related to the ``gaussian_kernel``, </span>
+<span class="sd">    with only the square of the norm left out. It is also an ``rbf_kernel``. Note that</span>
+<span class="sd">    the adjustable parameter, ``sigma``, plays a major role in the performance of the</span>
+<span class="sd">    kernel and should be carefully tuned. If overestimated, the exponential will behave </span>
+<span class="sd">    almost linearly and the higher-dimensional projection will start to lose its non-linear </span>
+<span class="sd">    power. In the other hand, if underestimated, the function will lack regularization and </span>
+<span class="sd">    the decision boundary will be highly sensitive to noise in training data.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = exp( -||x-y|| / 2\\sigma^2 )`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    sigma : float, optional (default=1.0)</span>
+<span class="sd">        The exponential tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="gaussian_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.gaussian_kernel">[docs]</a><span class="k">def</span> <span class="nf">gaussian_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``gaussian_kernel`` is closely related to the ``exponential_kernel``.</span>
+<span class="sd">    It is also an ``rbf_kernel``. Note that the adjustable parameter, ``sigma``, </span>
+<span class="sd">    plays a major role in the performance of the kernel and should be carefully </span>
+<span class="sd">    tuned. If overestimated, the exponential will behave almost linearly and </span>
+<span class="sd">    the higher-dimensional projection will start to lose its non-linear </span>
+<span class="sd">    power. In the other hand, if underestimated, the function will lack regularization and </span>
+<span class="sd">    the decision boundary will be highly sensitive to noise in training data.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = exp( -||x-y||^2 / 2\\sigma^2 )`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    sigma : float, optional (default=1.0)</span>
+<span class="sd">        The exponential tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">),</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="inverse_multiquadric_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.inverse_multiquadric_kernel">[docs]</a><span class="k">def</span> <span class="nf">inverse_multiquadric_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``inverse_multiquadric_kernel``, as with the ``gaussian_kernel``, </span>
+<span class="sd">    results in a kernel matrix with full rank (Micchelli, 1986) and thus forms </span>
+<span class="sd">    an infinite dimension feature space.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = 1 / sqrt( -||x-y||^2 + c^2 )`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    constant : float, optional (default=1.0)</span>
+<span class="sd">        The linear tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">_div</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">multiquadric_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">constant</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="laplace_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.laplace_kernel">[docs]</a><span class="k">def</span> <span class="nf">laplace_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``laplace_kernel`` is completely equivalent to the ``exponential_kernel``, </span>
+<span class="sd">    except for being less sensitive for changes in the ``sigma`` parameter. </span>
+<span class="sd">    Being equivalent, it is also an ``rbf_kernel``.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = exp( -||x-y|| / \\sigma )`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    sigma : float, optional (default=1.0)</span>
+<span class="sd">        The exponential tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="linear_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.linear_kernel">[docs]</a><span class="k">def</span> <span class="nf">linear_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``linear_kernel`` is the simplest kernel function. It is </span>
+<span class="sd">    given by the inner product &lt;x,y&gt; plus an optional ``constant`` parameter. </span>
+<span class="sd">    Kernel algorithms using a linear kernel are often equivalent to their non-kernel </span>
+<span class="sd">    counterparts, i.e. KPCA with a ``linear_kernel`` is the same as standard PCA.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = x^Ty + c`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    constant : float, optional (default=0.0)</span>
+<span class="sd">        The linear tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">lk</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">)</span> <span class="o">+</span> <span class="n">constant</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="multiquadric_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.multiquadric_kernel">[docs]</a><span class="k">def</span> <span class="nf">multiquadric_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``multiquadric_kernel`` can be used in the same situations </span>
+<span class="sd">    as the Rational Quadratic kernel. As is the case with the Sigmoid kernel, </span>
+<span class="sd">    it is also an example of an non-positive definite kernel.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = sqrt( -||x-y||^2 + c^2 )`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    constant : float, optional (default=0.0)</span>
+<span class="sd">        The linear tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">hs</span> <span class="o">=</span> <span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">hs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">hs</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">constant</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="polynomial_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.polynomial_kernel">[docs]</a><span class="k">def</span> <span class="nf">polynomial_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``polynomial_kernel`` is a non-stationary kernel. Polynomial </span>
+<span class="sd">    kernels are well suited for problems where all the training data is normalized.</span>
+<span class="sd">    Adjustable parameters are the slope (``alpha``), the constant term (``constant``), </span>
+<span class="sd">    and the polynomial degree (``degree``).</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = ( \\alpha x^Ty + c)^d`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    alpha : float, optional (default=1.0)</span>
+<span class="sd">        The slope tuning parameter.</span>
+
+<span class="sd">    degree : float, optional (default=1.0)</span>
+<span class="sd">        The polynomial degree tuning parameter.</span>
+
+<span class="sd">    constant : float, optional (default=1.0)</span>
+<span class="sd">        The linear tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">linear_kernel</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">lc</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">+</span> <span class="n">constant</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="power_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.power_kernel">[docs]</a><span class="k">def</span> <span class="nf">power_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``power_kernel`` is also known as the (unrectified) triangular kernel. </span>
+<span class="sd">    It is an example of scale-invariant kernel (Sahbi and Fleuret, 2004) and is </span>
+<span class="sd">    also only conditionally positive definite.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = -||x-y||^d`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    degree : float, optional (default=1.0)</span>
+<span class="sd">        The polynomial degree tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">),</span> <span class="n">degree</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="rbf_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.rbf_kernel">[docs]</a><span class="k">def</span> <span class="nf">rbf_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``rbf_kernel`` is closely related to the ``exponential_kernel`` and</span>
+<span class="sd">    ``gaussian_kernel``. Note that the adjustable parameter, ``sigma``, </span>
+<span class="sd">    plays a major role in the performance of the kernel and should be carefully </span>
+<span class="sd">    tuned. If overestimated, the exponential will behave almost linearly and </span>
+<span class="sd">    the higher-dimensional projection will start to lose its non-linear </span>
+<span class="sd">    power. In the other hand, if underestimated, the function will lack regularization and </span>
+<span class="sd">    the decision boundary will be highly sensitive to noise in training data.</span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = exp(- \\gamma * ||x-y||^2)`</span>
+
+<span class="sd">    where:</span>
+
+<span class="sd">        :math:`\\gamma = 1/( \\sigma ^2)`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    sigma : float, optional (default=1.0)</span>
+<span class="sd">        The exponential tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">_hilbert_matrix</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">scalar</span><span class="o">=</span><span class="n">sigma</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="spline_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.spline_kernel">[docs]</a><span class="k">def</span> <span class="nf">spline_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The ``spline_kernel`` is given as a piece-wise cubic polynomial,</span>
+<span class="sd">    as derived in the works by Gunn (1998).</span>
+
+<span class="sd">   The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = 1 + xy + xy * min(x,y) - (1/2 * (x+y)) * min(x,y)^2 + 1/3 * min(x,y)^3`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    res : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="n">_prep_X_Y_for_cython</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">_spline_kernel_fast</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="tanh_kernel"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.tanh_kernel">[docs]</a><span class="k">def</span> <span class="nf">tanh_kernel</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The ``tanh_kernel`` (Hyperbolic Tangent Kernel) is also known as the Sigmoid </span>
+<span class="sd">    Kernel and as the Multilayer Perceptron (MLP) kernel. The Sigmoid Kernel comes </span>
+<span class="sd">    from the Neural Networks field, where the bipolar sigmoid function is often used </span>
+<span class="sd">    as an activation function for artificial neurons. </span>
+
+<span class="sd">    The kernel is given by:</span>
+
+<span class="sd">        :math:`k(x, y) = tanh (\\alpha x^T y + c)`</span>
+
+<span class="sd">    It is interesting to note that a SVM model using a sigmoid kernel function is </span>
+<span class="sd">    equivalent to a two-layer, perceptron neural network. This kernel was quite popular </span>
+<span class="sd">    for support vector machines due to its origin from neural network theory. Also, despite </span>
+<span class="sd">    being only conditionally positive definite, it has been found to perform well in practice.</span>
+
+<span class="sd">    There are two adjustable parameters in the sigmoid kernel, the slope ``alpha`` and the </span>
+<span class="sd">    intercept ``constant``. A common value for alpha is 1/N, where N is the data dimension. </span>
+<span class="sd">    A more detailed study on sigmoid kernels can be found in the works by Hsuan-Tien and Chih-Jen.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : array_like (float), shape=(n_samples, n_features)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    Y : array_like (float), shape=(n_samples, n_features), optional (default=None)</span>
+<span class="sd">        The array of pandas DataFrame on which to compute </span>
+<span class="sd">        the kernel. If ``Y`` is None, the kernel will be computed</span>
+<span class="sd">        with ``X``.</span>
+
+<span class="sd">    constant : float, optional (default=0.0)</span>
+<span class="sd">        The linear tuning parameter.</span>
+
+<span class="sd">    alpha : float, optional (default=1.0)</span>
+<span class="sd">        The slope tuning parameter.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    c : float</span>
+<span class="sd">        The result of the kernel computation.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Souza, Cesar R., Kernel Functions for Machine Learning Applications</span>
+<span class="sd">    http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">linear_kernel</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">constant</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>  <span class="c1"># don&#39;t add it here</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">lc</span> <span class="o">+</span> <span class="n">constant</span><span class="p">)</span>     <span class="c1"># add it here</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

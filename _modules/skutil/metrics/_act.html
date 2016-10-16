@@ -1,0 +1,554 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.metrics._act &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.metrics._act</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.metrics._act</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;GainsStatisticalReport&#39;</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_as_numpy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given an iterable (a 1d list, np.ndarray, pd.Series, </span>
+<span class="sd">    pd.DataFrame or H2OFrame), convert it into a 1d np.ndarray</span>
+<span class="sd">    for further processing.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    arrs : list</span>
+<span class="sd">        Returns a list (of 1d np.ndarrays) of length==len(args)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_single_as_numpy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="c1"># if an H2OFrame, just return the first col</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
+                <span class="c1"># same as ..h2o.util.h2o_col_to_numpy, but</span>
+                <span class="c1"># that causes circular dependency in imports.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must be 1d column&#39;</span><span class="p">)</span>
+                <span class="n">_1d</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_1d</span><span class="p">[</span><span class="n">_1d</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot create numpy array out of type=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">arrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">_single_as_numpy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arrs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">arrs</span> <span class="o">=</span> <span class="n">arrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">arrs</span>
+
+
+<div class="viewcode-block" id="GainsStatisticalReport"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.GainsStatisticalReport">[docs]</a><span class="k">class</span> <span class="nc">GainsStatisticalReport</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class that computes actuarial statistics for scoring predictions</span>
+<span class="sd">    given prescribed weighting and loss data. Primarily intended for use with </span>
+<span class="sd">    ``skutil.h2o.H2OGainsRandomizedSearchCV``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    n_groups : int, optional (default=10)</span>
+<span class="sd">        The number of groups to use for lift and gini computations.</span>
+
+<span class="sd">    score_by : str, optional (default=&#39;lift&#39;)</span>
+<span class="sd">        The metric to return for the ``score`` method.</span>
+
+<span class="sd">    n_folds : int, optional (default=None)</span>
+<span class="sd">        The number of folds that are being fit. </span>
+
+<span class="sd">    error_score : float, optional (default=np.nan)</span>
+<span class="sd">        The score to return for a ``pd.qcut`` error</span>
+
+<span class="sd">    error_behavior : str, optional (default=&#39;warn&#39;)</span>
+<span class="sd">        One of {&#39;warn&#39;, &#39;raise&#39;, &#39;ignore&#39;}. How to handle non-unique</span>
+<span class="sd">        biin edges in pd.qcut</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># maximizing score functions must be multiplied by</span>
+    <span class="c1"># -1 in order to most &quot;minimize&quot; some loss function</span>
+    <span class="n">_signs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;lift&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;gini&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_groups</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_folds</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">score_by</span><span class="o">=</span><span class="s1">&#39;lift&#39;</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">error_score</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+                 <span class="n">error_behavior</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_groups</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_by</span> <span class="o">=</span> <span class="n">score_by</span>
+
+        <span class="n">met</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="p">{</span><span class="n">m</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">met</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_sizes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_folds</span> <span class="o">=</span> <span class="n">n_folds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iid</span> <span class="o">=</span> <span class="n">iid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_score</span> <span class="o">=</span> <span class="n">error_score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">error_behavior</span> <span class="o">=</span> <span class="n">error_behavior</span>
+
+        <span class="c1"># validate score_by</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">score_by</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;score_by must be in </span><span class="si">%s</span><span class="s1">, but got </span><span class="si">%s</span><span class="s1">&#39;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">met</span><span class="p">),</span> <span class="n">score_by</span><span class="p">))</span>
+
+        <span class="c1"># how many to store in the scoring method?</span>
+        <span class="k">if</span> <span class="n">n_folds</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">n_iter</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;if n_folds is set, must set n_iter&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GainsStatisticalReport.as_data_frame"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.GainsStatisticalReport.as_data_frame">[docs]</a>    <span class="k">def</span> <span class="nf">as_data_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the summary report of the fold fits in the</span>
+<span class="sd">        form of a pd.DataFrame.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            A dataframe of summary statistics for each fold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_folds</span><span class="p">:</span>
+            <span class="c1"># if there were no folds, these are each individual scores</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># otherwise they are cross validation scores...</span>
+            <span class="c1"># ensure divisibility...</span>
+            <span class="n">n_obs</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">,</span> <span class="n">n_iter</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_folds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">n_folds</span> <span class="o">*</span> <span class="n">n_iter</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_obs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_obs is not divisible by n_folds and n_iter&#39;</span><span class="p">)</span>
+
+            <span class="n">new_stats</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mean&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># the mean scores</span>
+                <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_std&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the std scores</span>
+                <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_min&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the min scores</span>
+                <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_max&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the max scores</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iter</span><span class="p">):</span>
+                    <span class="n">fold_score</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">n_test_samples</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">all_fold_scores</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="k">for</span> <span class="n">fold</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_folds</span><span class="p">):</span>
+                        <span class="n">this_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">metric</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+                        <span class="n">this_n_test_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_sizes</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                        <span class="n">all_fold_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">this_score</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iid</span><span class="p">:</span>
+                            <span class="n">this_score</span> <span class="o">*=</span> <span class="n">this_n_test_samples</span>
+                            <span class="n">n_test_samples</span> <span class="o">+=</span> <span class="n">this_n_test_samples</span>
+                        <span class="n">fold_score</span> <span class="o">+=</span> <span class="n">this_score</span>
+                        <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iid</span><span class="p">:</span>
+                        <span class="n">fold_score</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_test_samples</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fold_score</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span>
+
+                    <span class="c1"># append the mean score, and then the std of the scores for the folds</span>
+                    <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mean&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fold_score</span><span class="p">)</span>
+                    <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_std&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">all_fold_scores</span><span class="p">))</span>
+                    <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_min&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">all_fold_scores</span><span class="p">))</span>
+                    <span class="n">new_stats</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_max&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">all_fold_scores</span><span class="p">))</span>
+
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">new_stats</span><span class="p">)</span>
+
+            <span class="c1"># let&#39;s order by names</span>
+            <span class="k">return</span> <span class="n">df</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span></div>
+
+    <span class="k">def</span> <span class="nf">_compute_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prem</span><span class="p">):</span>
+        <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_groups</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_groups</span>
+        <span class="n">pred_ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+        <span class="n">loss_to_returns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">prem</span><span class="p">)</span>
+
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">qcut</span><span class="p">(</span><span class="n">pred_ser</span><span class="p">,</span> <span class="n">n_groups</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">n_groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">rank</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_groups</span><span class="p">)</span>
+
+        <span class="n">tab</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+            <span class="s1">&#39;rank&#39;</span><span class="p">:</span> <span class="n">rank</span><span class="p">,</span>
+            <span class="s1">&#39;pred&#39;</span><span class="p">:</span> <span class="n">pred</span><span class="p">,</span>
+            <span class="s1">&#39;prem&#39;</span><span class="p">:</span> <span class="n">prem</span><span class="p">,</span>
+            <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span>
+            <span class="s1">&#39;expo&#39;</span><span class="p">:</span> <span class="n">expo</span>
+        <span class="p">})</span>
+
+        <span class="n">grouped</span> <span class="o">=</span> <span class="n">tab</span><span class="p">[[</span><span class="s1">&#39;rank&#39;</span><span class="p">,</span> <span class="s1">&#39;pred&#39;</span><span class="p">,</span> <span class="s1">&#39;prem&#39;</span><span class="p">,</span> <span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="s1">&#39;expo&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;rank&#39;</span><span class="p">)</span>
+        <span class="n">agg_rlr</span> <span class="o">=</span> <span class="p">(</span><span class="n">grouped</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span> <span class="o">/</span> <span class="n">grouped</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">))</span> <span class="o">/</span> <span class="n">loss_to_returns</span>
+
+        <span class="k">return</span> <span class="n">tab</span><span class="p">,</span> <span class="n">agg_rlr</span><span class="p">,</span> <span class="n">n_groups</span>
+
+<div class="viewcode-block" id="GainsStatisticalReport.score"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.GainsStatisticalReport.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scores the new predictions on the truth set,</span>
+<span class="sd">        and stores the results in the internal stats array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        _ : H2OFrame, np.ndarray</span>
+<span class="sd">            The truth set</span>
+
+<span class="sd">        pred : H2OFrame, np.ndarray</span>
+<span class="sd">            The predictions</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        scr : float</span>
+<span class="sd">            The score (lift/gini) for the new predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scr</span></div>
+
+<div class="viewcode-block" id="GainsStatisticalReport.score_no_store"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.GainsStatisticalReport.score_no_store">[docs]</a>    <span class="k">def</span> <span class="nf">score_no_store</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scores the new predictions on the truth set,</span>
+<span class="sd">        and does not store the results in the internal </span>
+<span class="sd">        stats array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        _ : H2OFrame, np.ndarray</span>
+<span class="sd">            The truth set</span>
+
+<span class="sd">        pred : H2OFrame, np.ndarray</span>
+<span class="sd">            The predictions</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        scr : float</span>
+<span class="sd">            The score (lift/gini) for the new predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scr</span></div>
+
+    <span class="k">def</span> <span class="nf">_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scores the new predictions on the truth set.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        _ : H2OFrame, np.ndarray</span>
+<span class="sd">            The truth set</span>
+
+<span class="sd">        pred : H2OFrame, np.ndarray</span>
+<span class="sd">            The predictions</span>
+
+<span class="sd">        store : bool, optional (default=True)</span>
+<span class="sd">            Whether to store the results. If called from a grid search,</span>
+<span class="sd">            this will store the results. If called from the grid search</span>
+<span class="sd">            ``score`` method after fit, it will not.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        scr : float</span>
+<span class="sd">            The score (lift/gini) for the new predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For scoring from gridsearch...</span>
+        <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prem</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;expo&#39;</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prem&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fit_fold</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prem</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+
+        <span class="c1"># return the score we want... grid search is MINIMIZING</span>
+        <span class="c1"># so we need to return negative for maximizing metrics</span>
+        <span class="n">scr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">score_by</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">score_by</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">scr</span>
+
+<div class="viewcode-block" id="GainsStatisticalReport.fit_fold"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.GainsStatisticalReport.fit_fold">[docs]</a>    <span class="k">def</span> <span class="nf">fit_fold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prem</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Used to fit a single fold of predicted values, </span>
+<span class="sd">        exposure and loss data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        pred : 1d H2OFrame, pd.DataFrame, np.ndarray</span>
+<span class="sd">            The array of predictions</span>
+
+<span class="sd">        expo : 1d H2OFrame, pd.DataFrame, np.ndarray</span>
+<span class="sd">            The array of exposure values</span>
+
+<span class="sd">        loss : 1d H2OFrame, pd.DataFrame, np.ndarray</span>
+<span class="sd">            The array of loss values</span>
+
+<span class="sd">        prem : 1d H2OFrame, pd.DataFrame, np.ndarray, optional (default=None)</span>
+<span class="sd">            The array of premium values. If None, is</span>
+<span class="sd">            equal to the ``expo`` parameter.</span>
+
+<span class="sd">        store : bool, optional (default=True)</span>
+<span class="sd">            Whether or not to store the results of </span>
+<span class="sd">            the scoring procedure. This is set to false</span>
+<span class="sd">            when calling ``score``, which is intended for</span>
+<span class="sd">            test data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check params</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_behavior</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;error_behavior must be one of (&quot;warn&quot;, &quot;raise&quot;, &quot;ignore&quot;). &#39;</span>
+                             <span class="s1">&#39;Encountered </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_behavior</span><span class="p">))</span>
+
+        <span class="n">on_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">error_behavior</span>
+        <span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prem</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">prem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">expo</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prem</span> <span class="o">=</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">prem</span><span class="p">)</span>
+
+        <span class="c1"># compute the stats</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tab</span><span class="p">,</span> <span class="n">stats</span><span class="p">,</span> <span class="n">n_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_stats</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">expo</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prem</span><span class="p">)</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;pred&#39;</span><span class="p">:</span> <span class="n">pred</span><span class="p">,</span> <span class="s1">&#39;expo&#39;</span><span class="p">:</span> <span class="n">expo</span><span class="p">,</span>
+                <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span> <span class="s1">&#39;prem&#39;</span><span class="p">:</span> <span class="n">prem</span><span class="p">,</span>
+                <span class="s1">&#39;stats&#39;</span><span class="p">:</span> <span class="n">stats</span><span class="p">,</span> <span class="s1">&#39;tab&#39;</span><span class="p">:</span> <span class="n">tab</span><span class="p">,</span>
+                <span class="s1">&#39;n_groups&#39;</span><span class="p">:</span> <span class="n">n_groups</span>
+            <span class="p">}</span>
+
+            <span class="c1"># compute the metrics. This relies on the convention</span>
+            <span class="c1"># that the computation method is the name of the metric</span>
+            <span class="c1"># preceded by an underscore...</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">metric</span><span class="p">)(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">v</span><span class="p">:</span>  <span class="c1"># for a qcut error...</span>
+            <span class="k">if</span> <span class="n">on_error</span> <span class="o">==</span> <span class="s1">&#39;raise&#39;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">v</span>
+            <span class="k">elif</span> <span class="n">on_error</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Encountered non-unique bin edges. Score defaults to </span><span class="si">%s</span><span class="s1">&#39;</span>
+                              <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_score</span><span class="p">),</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
+            <span class="c1"># if it&#39;s ignore, it will pass.</span>
+            <span class="k">if</span> <span class="n">store</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">error_score</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+    <span class="k">def</span> <span class="nf">_lift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">agg</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stats&#39;</span><span class="p">)</span>
+        <span class="n">n_groups</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;n_groups&#39;</span><span class="p">)</span>
+
+        <span class="n">f</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="n">agg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">agg</span><span class="p">[</span><span class="n">n_groups</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">lft</span> <span class="o">=</span> <span class="n">l</span> <span class="o">/</span> <span class="n">f</span> <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="n">f</span> <span class="k">else</span> <span class="n">f</span> <span class="o">/</span> <span class="n">l</span>
+        <span class="k">return</span> <span class="n">lft</span>
+
+    <span class="k">def</span> <span class="nf">_gini</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># we want a copy, not the original</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tab&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()[[</span><span class="s1">&#39;pred&#39;</span><span class="p">,</span> <span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="s1">&#39;prem&#39;</span><span class="p">,</span> <span class="s1">&#39;expo&#39;</span><span class="p">]]</span>
+        <span class="n">tab</span><span class="p">[</span><span class="s1">&#39;idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tab</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="n">tab</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">,</span> <span class="s1">&#39;idx&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="n">cpct</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">tab</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span> <span class="o">/</span> <span class="n">tab</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;prem&#39;</span><span class="p">,</span> <span class="s1">&#39;loss&#39;</span><span class="p">)}</span>
+        <span class="n">diff_pct</span> <span class="o">=</span> <span class="n">cpct</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">cpct</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">diff_pct</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">tab</span><span class="p">[</span><span class="s1">&#39;expo&#39;</span><span class="p">])</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

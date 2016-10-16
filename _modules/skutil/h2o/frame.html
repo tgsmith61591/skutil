@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,10 +132,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.frame</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_check_is_frame</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">flatten_all</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_check_is_frame</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">flatten_all</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;_check_is_1d_frame&#39;</span><span class="p">,</span>
@@ -202,7 +201,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">False</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">digits</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span></div>
 
 

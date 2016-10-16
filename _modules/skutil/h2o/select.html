@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,17 +132,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.select</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_is_fitted</span>
 
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
 
-<span class="kn">from</span> <span class="nn">..feature_selection</span> <span class="k">import</span> <span class="n">filter_collinearity</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">_retain_features</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..feature_selection</span> <span class="kn">import</span> <span class="n">filter_collinearity</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">is_numeric</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">_retain_features</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;BaseH2OFeatureSelector&#39;</span><span class="p">,</span>
@@ -221,8 +220,8 @@
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BaseH2OFeatureSelector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                      <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                      <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -269,14 +268,14 @@
 <span class="sd">        the `FeatureDropper`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OFeatureDropper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                 <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                 <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">)</span>
 
-<div class="viewcode-block" id="H2OFeatureDropper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFeatureDropper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="H2OFeatureDropper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFeatureDropper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span>
-        <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c1"># We validate the features_names is a list or iterable</span>
@@ -319,9 +318,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OSparseFeatureDropper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                       <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                       <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -346,7 +345,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;thresh must be a float between &#39;</span>
                              <span class="s1">&#39;0 (inclusive) and 1. Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">thresh</span><span class="p">))</span>
 
-        <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span>
         <span class="n">ser</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -402,10 +401,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">threshold</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">na_warn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">threshold</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span> <span class="n">na_warn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2OMulticollinearityFilterer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                            <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                            <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -446,7 +445,7 @@
         <span class="n">use</span> <span class="o">=</span> <span class="n">_validate_use</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">na_warn</span><span class="p">)</span>
 
         <span class="c1"># Generate absolute correlation matrix</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">cor</span><span class="p">(</span><span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rm</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">cor</span><span class="p">(</span><span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rm</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">c</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span>  <span class="c1"># set the cols to the same names</span>
         <span class="n">c</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span>
 
@@ -492,10 +491,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="bp">None</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">na_warn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span> <span class="n">na_warn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">H2ONearZeroVarianceFilterer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
                                                           <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
                                                           <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span>
@@ -536,7 +535,7 @@
 
         <span class="c1"># get covariance matrix, extract the diagonal</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
-        <span class="n">diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rm</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">)</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diagonal</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">na_rm</span><span class="p">,</span> <span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">)</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
 
         <span class="c1"># create mask</span>
         <span class="n">var_mask</span> <span class="o">=</span> <span class="n">diag</span> <span class="o">&lt;</span> <span class="n">thresh</span>

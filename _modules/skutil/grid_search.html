@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
@@ -133,9 +132,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.grid_search</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">sklearn</span>
-<span class="kn">from</span> <span class="nn">.utils.fixes</span> <span class="k">import</span> <span class="p">(</span><span class="n">_validate_X</span><span class="p">,</span> <span class="n">_validate_y</span><span class="p">,</span> 
+<span class="kn">from</span> <span class="nn">.utils.fixes</span> <span class="kn">import</span> <span class="p">(</span><span class="n">_validate_X</span><span class="p">,</span> <span class="n">_validate_y</span><span class="p">,</span> 
     <span class="n">_check_param_grid</span><span class="p">,</span> <span class="n">_as_numpy</span><span class="p">,</span> <span class="n">_CVScoreTuple</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -145,20 +144,20 @@
 
 <span class="c1"># deprecation in sklearn 0.18</span>
 <span class="k">if</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">&#39;0.18&#39;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">sklearn.model_selection</span> <span class="k">as</span> <span class="nn">ms</span>
+    <span class="kn">import</span> <span class="nn">sklearn.model_selection</span> <span class="kn">as</span> <span class="nn">ms</span>
 
     <span class="k">class</span> <span class="nc">GridSearchCV</span><span class="p">(</span><span class="n">ms</span><span class="o">.</span><span class="n">GridSearchCV</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Had to wrap GridSearchCV in order to allow</span>
 <span class="sd">        fitting a series as Y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="GridSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.grid_search.GridSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GridSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.grid_search.GridSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">GridSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">))</span></div>
 
     <span class="k">class</span> <span class="nc">RandomizedSearchCV</span><span class="p">(</span><span class="n">ms</span><span class="o">.</span><span class="n">RandomizedSearchCV</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Had to wrap RandomizedSearchCV in order to allow</span>
 <span class="sd">        fitting a series as Y.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="RandomizedSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.grid_search.RandomizedSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomizedSearchCV.fit"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.grid_search.RandomizedSearchCV.fit">[docs]</a>        <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
             <span class="nb">super</span><span class="p">(</span><span class="n">RandomizedSearchCV</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">))</span></div>
 <span class="k">else</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -166,7 +165,7 @@
 <span class="sd">    love in 0.18, thus, we only define these methods if we&#39;re using &lt; 0.18.</span>
 <span class="sd">    Otherwise, we&#39;ll use their default. These are defined in skutil.utils.fixes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">fixes</span>
+    <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">fixes</span>
 
 <div class="viewcode-block" id="GridSearchCV"><a class="viewcode-back" href="../../rsts/codebase/skutil_model_selection.html#skutil.grid_search.GridSearchCV">[docs]</a>    <span class="k">class</span> <span class="nc">GridSearchCV</span><span class="p">(</span><span class="n">fixes</span><span class="o">.</span><span class="n">_SK17GridSearchCV</span><span class="p">):</span>
         <span class="k">pass</span></div>

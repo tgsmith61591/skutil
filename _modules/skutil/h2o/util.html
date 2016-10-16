@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,21 +132,21 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.util</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">h2o</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">human_bytes</span><span class="p">,</span> <span class="n">corr_plot</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">parse_version</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">human_bytes</span><span class="p">,</span> <span class="n">corr_plot</span><span class="p">,</span>
                      <span class="n">load_breast_cancer_df</span><span class="p">,</span> <span class="n">load_iris_df</span><span class="p">,</span>
                      <span class="n">load_boston_df</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.select</span> <span class="k">import</span> <span class="n">_validate_use</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_check_is_frame</span>
+<span class="kn">from</span> <span class="nn">.frame</span> <span class="kn">import</span> <span class="n">_check_is_1d_frame</span>
+<span class="kn">from</span> <span class="nn">.select</span> <span class="kn">import</span> <span class="n">_validate_use</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_check_is_frame</span>
 
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_array</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="kn">import</span> <span class="n">check_array</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;from_array&#39;</span><span class="p">,</span>
@@ -164,7 +163,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="load_iris_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_iris_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_iris_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;Species&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="load_iris_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_iris_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_iris_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;Species&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Load the iris dataset into an H2OFrame&quot;&quot;&quot;</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
@@ -173,7 +172,7 @@
     <span class="k">return</span> <span class="n">X</span></div>
 
 
-<div class="viewcode-block" id="load_breast_cancer_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_breast_cancer_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_breast_cancer_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="load_breast_cancer_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_breast_cancer_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_breast_cancer_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Load the breast cancer dataset into an H2OFrame&quot;&quot;&quot;</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_breast_cancer_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">include_tgt</span><span class="p">:</span>
@@ -182,7 +181,7 @@
     <span class="k">return</span> <span class="n">X</span></div>
 
 
-<div class="viewcode-block" id="load_boston_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_boston_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_boston_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="load_boston_h2o"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.load_boston_h2o">[docs]</a><span class="k">def</span> <span class="nf">load_boston_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Load the boston housing dataset into an H2OFrame&quot;&quot;&quot;</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">load_boston_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="p">,</span> <span class="n">tgt_name</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">X</span></div>
@@ -198,7 +197,7 @@
 <span class="sd">    np.ndarray (1d)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
-    <span class="n">_1d</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_1d</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_1d</span><span class="p">[</span><span class="n">_1d</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span></div>
 
 
@@ -212,14 +211,14 @@
 <span class="sd">    str, np.ndarray : tuple</span>
 <span class="sd">        (c1_nm, unq)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">unq</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">unq</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">c1_nm</span> <span class="o">=</span> <span class="n">unq</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">unq</span> <span class="o">=</span> <span class="n">unq</span><span class="p">[</span><span class="n">unq</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">c1_nm</span><span class="p">,</span> <span class="n">unq</span>
 
 
-<div class="viewcode-block" id="h2o_bincount"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_bincount">[docs]</a><span class="k">def</span> <span class="nf">h2o_bincount</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="h2o_bincount"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_bincount">[docs]</a><span class="k">def</span> <span class="nf">h2o_bincount</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Given a 1d column of non-negative ints, ``bins``, return</span>
 <span class="sd">    a np.ndarray of positional counts of each int.</span>
 
@@ -248,7 +247,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;values must be ints&#39;</span><span class="p">)</span>
 
     <span class="c1"># adjust minlength</span>
-    <span class="k">if</span> <span class="n">minlength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">minlength</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">minlength</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">elif</span> <span class="n">minlength</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;minlength must be positive&#39;</span><span class="p">)</span>
@@ -258,7 +257,7 @@
     <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">minlength</span><span class="p">,</span> <span class="n">unq_arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
     <span class="c1"># check weights</span>
-    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
             <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
@@ -295,7 +294,7 @@
 
 <span class="sd">    H2OFrame</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pd</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">pd</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="c1"># older version of h2o are super funky with this</span>
     <span class="k">if</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">h2o</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">parse_version</span><span class="p">(</span><span class="s1">&#39;3.10.0.7&#39;</span><span class="p">):</span>
@@ -307,7 +306,7 @@
     <span class="k">return</span> <span class="n">H2OFrame</span><span class="o">.</span><span class="n">from_python</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="from_array"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.from_array">[docs]</a><span class="k">def</span> <span class="nf">from_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="from_array"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.from_array">[docs]</a><span class="k">def</span> <span class="nf">from_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">column_names</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A simple wrapper for H2OFrame.from_python. This takes a</span>
 <span class="sd">    numpy array (or 2d array) and returns an H2OFrame with all </span>
 <span class="sd">    the default args.</span>
@@ -326,7 +325,7 @@
 
 <span class="sd">    H2OFrame</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">from_pandas</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">column_names</span><span class="p">))</span></div>
 
 
@@ -334,7 +333,7 @@
                   <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="n">cmap_a</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">cmap_b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
                   <span class="n">xticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">yticklabels</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
                   <span class="n">cbar_kws</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shrink&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span> <span class="n">use</span><span class="o">=</span><span class="s1">&#39;complete.obs&#39;</span><span class="p">,</span>
-                  <span class="n">na_warn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                  <span class="n">na_warn</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a simple correlation plot given a dataframe.</span>
 <span class="sd">    Note that this requires all datatypes to be numeric and finite!</span>
 
@@ -389,20 +388,20 @@
 <span class="sd">        Whether to remove NAs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-    <span class="n">corr</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">if</span> <span class="n">plot_type</span> <span class="o">==</span> <span class="s1">&#39;cor&#39;</span><span class="p">:</span>
         <span class="n">use</span> <span class="o">=</span> <span class="n">_validate_use</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">use</span><span class="p">,</span> <span class="n">na_warn</span><span class="p">)</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
 
-        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">cor</span><span class="p">(</span><span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="n">na_rm</span><span class="p">)</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">cor</span><span class="p">(</span><span class="n">use</span><span class="o">=</span><span class="n">use</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="n">na_rm</span><span class="p">)</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">cols</span>  <span class="c1"># set the cols to the same names</span>
         <span class="n">X</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">cols</span>
         <span class="n">corr</span> <span class="o">=</span> <span class="s1">&#39;precomputed&#39;</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># WARNING! This pulls everything into memory...</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
     <span class="n">corr_plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">plot_type</span><span class="o">=</span><span class="n">plot_type</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">n_levels</span><span class="o">=</span><span class="n">n_levels</span><span class="p">,</span>
               <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">cmap_a</span><span class="o">=</span><span class="n">cmap_a</span><span class="p">,</span> <span class="n">cmap_b</span><span class="o">=</span><span class="n">cmap_b</span><span class="p">,</span>
@@ -466,11 +465,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># hack... slow but functional</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-    <span class="n">new_frame</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">new_frame</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idcs</span><span class="p">:</span>
         <span class="n">row</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
-        <span class="k">if</span> <span class="n">new_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">new_frame</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">new_frame</span> <span class="o">=</span> <span class="n">row</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">new_frame</span> <span class="o">=</span> <span class="n">new_frame</span><span class="o">.</span><span class="n">rbind</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>

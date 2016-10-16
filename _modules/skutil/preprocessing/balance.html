@@ -30,7 +30,6 @@
   
 
   
-        <link rel="search" title="Search" href="../../../search.html"/>
     <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
@@ -133,18 +132,18 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.preprocessing.balance</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
-<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">choice</span>
-<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">NearestNeighbors</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="kn">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">choice</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="kn">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="kn">import</span> <span class="n">NearestNeighbors</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="kn">import</span> <span class="n">overrides</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;BalancerMixin&#39;</span><span class="p">,</span>
@@ -211,7 +210,7 @@
     <span class="n">y</span> <span class="o">=</span> <span class="n">_validate_target</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>  <span class="c1"># force to string</span>
 
     <span class="c1"># validate is &lt; max classes</span>
-    <span class="n">cts</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cts</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
     <span class="n">n_classes</span> <span class="o">=</span> <span class="n">_validate_num_classes</span><span class="p">(</span><span class="n">cts</span><span class="p">)</span>
     <span class="n">needs_balancing</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">ratio</span>
 
@@ -223,7 +222,7 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="bp">True</span><span class="p">)[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
 
     <span class="c1"># assume is np and return</span>
     <span class="k">return</span> <span class="n">x</span>
@@ -274,7 +273,7 @@
 <span class="sd">        differs for H2OFrames.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="nd">@abc.abstractmethod</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">validation_function</span><span class="o">=</span><span class="n">_validate_x_y_ratio</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y_name</span>
@@ -289,7 +288,7 @@
     <span class="k">def</span> <span class="nf">get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_sample_indices</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
 
-    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="nd">@abc.abstractmethod</span>
     <span class="k">def</span> <span class="nf">_get_sample_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;To be overridden&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;must be overridden by subclass!&#39;</span><span class="p">)</span>
@@ -344,7 +343,7 @@
                 <span class="k">continue</span>  <span class="c1"># move onto next class</span>
 
             <span class="n">minority_recs</span> <span class="o">=</span> <span class="n">all_indices</span><span class="p">[</span><span class="n">target_col</span> <span class="o">==</span> <span class="n">minority</span><span class="p">]</span>
-            <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">minority_recs</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">minority_recs</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
             <span class="c1"># old style where all were pd:</span>
             <span class="c1"># minority_recs = X[X[y] == minority]</span>
@@ -396,7 +395,7 @@
         <span class="c1"># if not returned early, drop some indices</span>
         <span class="n">target_col</span> <span class="o">=</span> <span class="n">_pd_frame_to_np</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">])</span>
         <span class="n">majority_recs</span> <span class="o">=</span> <span class="n">all_indices</span><span class="p">[</span><span class="n">target_col</span> <span class="o">==</span> <span class="n">majority</span><span class="p">]</span>
-        <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">majority_recs</span><span class="p">,</span> <span class="n">n_required</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">majority_recs</span><span class="p">,</span> <span class="n">n_required</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
         <span class="c1"># Old style (when everything was PD):</span>
         <span class="c1"># majority_recs = X[X[self.y_] == majority]</span>
@@ -447,7 +446,7 @@
 <span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
@@ -456,7 +455,7 @@
 
 <span class="k">def</span> <span class="nf">_over_under_balance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">as_df</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">,</span> <span class="n">partitioner_class</span><span class="p">):</span>
     <span class="c1"># check on state of X</span>
-    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># there are no cols, and we don&#39;t want warnings</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>  <span class="c1"># there are no cols, and we don&#39;t want warnings</span>
 
     <span class="c1"># since we rely on indexing X, we need to reset indices</span>
     <span class="c1"># in case X is the result of a slice and they&#39;re out of order.</span>
@@ -499,7 +498,7 @@
 <span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OversamplingClassBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">ratio</span><span class="o">=</span><span class="n">ratio</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> 
                                                         <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span> 
                                                         <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
@@ -561,7 +560,7 @@
 <span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="n">BalancerMixin</span><span class="o">.</span><span class="n">_def_ratio</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SMOTEClassBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">ratio</span><span class="o">=</span><span class="n">ratio</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> 
                                                  <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
                                                  <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
@@ -590,7 +589,7 @@
 <span class="sd">            natural ordering is not guaranteed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># there are no cols, and we don&#39;t want warnings</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># there are no cols, and we don&#39;t want warnings</span>
 
         <span class="c1"># since we rely on indexing X, we need to reset indices</span>
         <span class="c1"># in case X is the result of a slice and they&#39;re out of order.</span>
@@ -696,7 +695,7 @@
 <span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">UndersamplingClassBalancer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">ratio</span><span class="o">=</span><span class="n">ratio</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> 
                                                          <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
                                                          <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
