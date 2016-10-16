@@ -400,7 +400,7 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
         """
         # we can use this to extract the feature names to pass...
         feature_names = _frame_from_x_y(
-            X=X, x=feature_names=self.feature_names, 
+            X=X, x=self.feature_names, 
             y=self.target_feature, 
             exclude=self.exclude_features).columns
 
