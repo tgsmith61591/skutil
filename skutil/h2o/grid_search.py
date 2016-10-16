@@ -848,7 +848,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 
         n_iter : int, optional (default=10)
             The number of iterations to fit. Note that 
-            n_iter * cv.get_n_splits will be fit. If there
+            ``n_iter * cv.get_n_splits`` will be fit. If there
             are 10 folds and 10 iterations, 100 models (plus
             one) will be fit.
 
@@ -865,7 +865,7 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
 
         cv : int or H2OCrossValidator, optional (default=5)
             The number of folds to be fit for cross validation.
-            Note that n_iter * cv.get_n_splits will be fit. If there
+            Note that ``n_iter * cv.get_n_splits`` will be fit. If there
             are 10 folds and 10 iterations, 100 models (plus
             one) will be fit.
 
@@ -984,7 +984,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     n_iter : int, optional (default=10)
         The number of iterations to fit. Note that 
-        n_iter * cv.get_n_splits will be fit. If there
+        ``n_iter * cv.get_n_splits`` will be fit. If there
         are 10 folds and 10 iterations, 100 models (plus
         one) will be fit.
 
@@ -1001,7 +1001,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     cv : int or H2OCrossValidator, optional (default=5)
         The number of folds to be fit for cross validation.
-        Note that n_iter * cv.get_n_splits will be fit. If there
+        Note that ``n_iter * cv.get_n_splits`` will be fit. If there
         are 10 folds and 10 iterations, 100 models (plus
         one) will be fit.
 
@@ -1149,7 +1149,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     @overrides(BaseH2OSearchCV)
     def score(self, frame):
         """Predict and score on a new frame. Note that this method
-        will not store performance metrics in the report that ```report_score```
+        will not store performance metrics in the report that ``report_score``
         generates.
 
         Parameters

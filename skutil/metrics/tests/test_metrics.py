@@ -1,8 +1,8 @@
 from skutil.metrics import *
 import numpy as np
 import timeit
-from skutil.metrics._kernel import (_hilbert_dot,
-                                    _hilbert_matrix)
+from skutil.metrics.kernel import (_hilbert_dot,
+                                   _hilbert_matrix)
 from skutil.metrics import GainsStatisticalReport
 from skutil.utils.tests.utils import assert_fails
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)

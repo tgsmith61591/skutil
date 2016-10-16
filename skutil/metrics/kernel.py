@@ -39,7 +39,7 @@ def _prep_X_Y_for_cython(X, Y):
 
 # Cython proxies
 def _hilbert_dot(x, y, scalar=1.0):
-    # return 2 * safe_sparse_dot(x, y) - safe_sparse_dot(x, x.T) - safe_sparse_dot(y, y.T)
+    # return ``2 * safe_sparse_dot(x, y) - safe_sparse_dot(x, x.T) - safe_sparse_dot(y, y.T)``
     x, y = x.astype(np.double, order='C'), y.astype(np.double, order='C')
     return _hilbert_dot_fast(x, y, scalar)
 
@@ -58,6 +58,10 @@ def exponential_kernel(X, Y=None, sigma=1.0):
     almost linearly and the higher-dimensional projection will start to lose its non-linear 
     power. In the other hand, if underestimated, the function will lack regularization and 
     the decision boundary will be highly sensitive to noise in training data.
+
+    The kernel is given by:
+
+        :math:`k(x, y) = exp( -||x-y|| / 2\\sigma^2 )`
 
     Parameters
     ----------
@@ -92,13 +96,17 @@ def exponential_kernel(X, Y=None, sigma=1.0):
 
 
 def gaussian_kernel(X, Y=None, sigma=1.0):
-    """The ``gaussian_kernel`` is closely related to the ``exponential_kernel``. 
+    """The ``gaussian_kernel`` is closely related to the ``exponential_kernel``.
     It is also an ``rbf_kernel``. Note that the adjustable parameter, ``sigma``, 
     plays a major role in the performance of the kernel and should be carefully 
     tuned. If overestimated, the exponential will behave almost linearly and 
     the higher-dimensional projection will start to lose its non-linear 
     power. In the other hand, if underestimated, the function will lack regularization and 
     the decision boundary will be highly sensitive to noise in training data.
+
+    The kernel is given by:
+
+        :math:`k(x, y) = exp( -||x-y||^2 / 2\\sigma^2 )`
 
     Parameters
     ----------
@@ -137,6 +145,10 @@ def inverse_multiquadric_kernel(X, Y=None, constant=1.0):
     results in a kernel matrix with full rank (Micchelli, 1986) and thus forms 
     an infinite dimension feature space.
 
+    The kernel is given by:
+
+        :math:`k(x, y) = 1 / sqrt( -||x-y||^2 + c^2 )`
+
     Parameters
     ----------
 
@@ -173,6 +185,10 @@ def laplace_kernel(X, Y=None, sigma=1.0):
     """The ``laplace_kernel`` is completely equivalent to the ``exponential_kernel``, 
     except for being less sensitive for changes in the ``sigma`` parameter. 
     Being equivalent, it is also an ``rbf_kernel``.
+
+    The kernel is given by:
+
+        :math:`k(x, y) = exp( -||x-y|| / \\sigma )`
 
     Parameters
     ----------
@@ -212,6 +228,10 @@ def linear_kernel(X, Y=None, constant=0.0):
     Kernel algorithms using a linear kernel are often equivalent to their non-kernel 
     counterparts, i.e. KPCA with a ``linear_kernel`` is the same as standard PCA.
 
+    The kernel is given by:
+
+        :math:`k(x, y) = x^Ty + c`
+
     Parameters
     ----------
 
@@ -248,6 +268,10 @@ def multiquadric_kernel(X, Y=None, constant=0.0):
     """The ``multiquadric_kernel`` can be used in the same situations 
     as the Rational Quadratic kernel. As is the case with the Sigmoid kernel, 
     it is also an example of an non-positive definite kernel.
+
+    The kernel is given by:
+
+        :math:`k(x, y) = sqrt( -||x-y||^2 + c^2 )`
 
     Parameters
     ----------
@@ -288,6 +312,10 @@ def polynomial_kernel(X, Y=None, alpha=1.0, degree=1.0, constant=1.0):
     kernels are well suited for problems where all the training data is normalized.
     Adjustable parameters are the slope (``alpha``), the constant term (``constant``), 
     and the polynomial degree (``degree``).
+
+    The kernel is given by:
+
+        :math:`k(x, y) = ( \\alpha x^Ty + c)^d`
 
     Parameters
     ----------
@@ -333,6 +361,10 @@ def power_kernel(X, Y=None, degree=1.0):
     It is an example of scale-invariant kernel (Sahbi and Fleuret, 2004) and is 
     also only conditionally positive definite.
 
+    The kernel is given by:
+
+        :math:`k(x, y) = -||x-y||^d`
+
     Parameters
     ----------
 
@@ -374,6 +406,14 @@ def rbf_kernel(X, Y=None, sigma=1.0):
     power. In the other hand, if underestimated, the function will lack regularization and 
     the decision boundary will be highly sensitive to noise in training data.
 
+    The kernel is given by:
+
+        :math:`k(x, y) = exp(- \\gamma * ||x-y||^2)`
+
+    where:
+
+        :math:`\\gamma = 1/( \\sigma ^2)`
+
     Parameters
     ----------
 
@@ -407,8 +447,13 @@ def rbf_kernel(X, Y=None, sigma=1.0):
 
 
 def spline_kernel(X, Y=None):
-    """The ``spline_kernel`` is given as a piece-wise cubic polynomial, 
+    """
+    The ``spline_kernel`` is given as a piece-wise cubic polynomial,
     as derived in the works by Gunn (1998).
+
+   The kernel is given by:
+
+        :math:`k(x, y) = 1 + xy + xy * min(x,y) - (1/2 * (x+y)) * min(x,y)^2 + 1/3 * min(x,y)^3`
 
     Parameters
     ----------
@@ -448,7 +493,7 @@ def tanh_kernel(X, Y=None, constant=0.0, alpha=1.0):
 
     The kernel is given by:
 
-        k(x, y) = tanh (alpha x^T y + c)
+        :math:`k(x, y) = tanh (\\alpha x^T y + c)`
 
     It is interesting to note that a SVM model using a sigmoid kernel function is 
     equivalent to a two-layer, perceptron neural network. This kernel was quite popular 
