@@ -453,7 +453,7 @@ def spline_kernel(X, Y=None):
 
    The kernel is given by:
 
-        :math:`k(x, y) = 1 + xy + xy * min(x,y) - ((1/2 * (x+y)) * min(x,y)^2 + 1/3 * min(x,y)^3`
+        :math:`k(x, y) = 1 + xy + xy * min(x,y) - (1/2 * (x+y)) * min(x,y)^2 + 1/3 * min(x,y)^3`
 
     Parameters
     ----------
