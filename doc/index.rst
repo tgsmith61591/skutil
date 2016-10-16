@@ -23,21 +23,14 @@ come to know and love.
 Travis CI Build Status
 ======================
 
-.. raw:: html
+.. image:: https://travis-ci.org/tgsmith61591/skutil.svg?branch=master
+   :target: https://travis-ci.org/tgsmith61591/skutil
 
-   <p style="height:22px">
-     <a href="https://travis-ci.org/tgsmith61591/skutil" >
-       <img src="https://travis-ci.org/tgsmith61591/skutil.svg?branch=master"/>
-     </a>
-     <a href="https://coveralls.io/github/tgsmith61591/skutil?branch=master" >
-       <img src="https://coveralls.io/repos/github/tgsmith61591/skutil/badge.svg?branch=master"/>
-     </a>
-     <a href="https://img.shields.io/badge/python-2.7-blue" >
-       <img src="https://img.shields.io/badge/python-2.7-blue.svg"/>
-     </a>
-   </p>
+.. image:: https://coveralls.io/repos/github/tgsmith61591/skutil/badge.svg?branch=master
+   :target: https://coveralls.io/github/tgsmith61591/skutil?branch=master
 
-
+.. image:: https://img.shields.io/badge/python-2.7-blue.svg
+   :target: https://img.shields.io/badge/python-2.7-blue
 
 Helpful Links
 =============

@@ -780,7 +780,7 @@ def make_h2o_scorer(score_function, y_true):
     """Make a scoring function from a callable.
     The signature for the callable should resemble:
 
-        ```some_function(y_true, y_pred, y_type=None...)```
+        ``some_function(y_true, y_pred, y_type=None...)``
 
     Parameters
     ----------
@@ -802,9 +802,9 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
     with H2OFrames. The first two arguments in the scoring function
     signature should resemble the following: 
 
-        ```some_function(y_true, y_pred, y_type=None...)```
+        ``some_function(y_true, y_pred, y_type=None...)``
 
-    Any specific scoring kwargs should be passed to the ```score```
+    Any specific scoring kwargs should be passed to the ``score``
     function in the class instance.
 
     Parameters

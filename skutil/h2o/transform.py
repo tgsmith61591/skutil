@@ -356,7 +356,9 @@ def _mul(a, b):
 class H2OInteractionTermTransformer(BaseH2OTransformer):
     """A class that will generate interaction terms between selected columns.
     An interaction captures some relationship between two independent variables
-    in the form of In = (xi * xj).
+    in the form of:
+
+    :math:`In = (x_i * x_j)`
 
     Note that the H2OInteractionTermTransformer will only operate on the feature_names,
     and at the transform point will return ALL features plus the newly generated ones.
