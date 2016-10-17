@@ -436,7 +436,7 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
             mask = (~mask).tolist()
 
             # now se the drop as the inverse mask
-            self.drop = (np.asarray(feature_names)[mask]).tolist()
+            self.drop_ = (np.asarray(feature_names)[mask]).tolist()
 
         return self
 
