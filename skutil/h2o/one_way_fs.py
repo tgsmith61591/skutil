@@ -644,7 +644,7 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
 
         self
         """
-        if not (k == 'all' or (is_integer(self.k) and self.k > 0)):
+        if not (self.k == 'all' or (is_integer(self.k) and self.k > 0)):
             raise ValueError('k must be a non-negative integer or "all"')
         return self._fit(X)
 
