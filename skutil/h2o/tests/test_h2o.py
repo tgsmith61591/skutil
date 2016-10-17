@@ -1502,7 +1502,7 @@ def test_h2o_with_conn():
         if X is not None:
             shuffle_h2o_frame(X)
 
-    def univariate():
+    def fscore():
         if X is not None:
             try:
                 t = load_iris_h2o()
@@ -1515,15 +1515,48 @@ def test_h2o_with_conn():
             assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
 
             # f-score feature selector -- just testing fit works for now...
-            selector = H2OFScoreSelector(target_feature='Species', cv=H2OKFold(n_folds=3, shuffle=True))
-            selector.fit(t)
+            for iid in (True, False)
+                selector = H2OFScoreSelector(target_feature='Species', iid=iid,
+                                             cv=H2OKFold(n_folds=3, shuffle=True))
+                selector.fit_transform(t)
 
-            # TODO: transform
+            # assert fails on non-int percentile
+            assert_fails(
+                H2OFScoreSelector(target_feature='Species', percentile='10').fit,
+                ValueError, t)
+
+            # this will fail because not all numeric (enum target still present)
+            assert_fails(
+                H2OFScoreSelector(target_feature=None).fit,
+                ValueError, t)
+
+            # assert what happens when percentile is 0 or 100
+            drops = H2OFScoreSelector(target_feature='Species', percentile=100).fit(t).drop_
+            assert len(drops) == 0
+
+            drops = H2OFScoreSelector(target_feature='Species', percentile=0).fit(t).drop_
+            assert len(drops) == t.shape[1]-1
+
+            # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
+            # This might evoke the warning we want to cover as well as force a tie
+            # if we're very lucky...
+            irs = load_iris_df()
+            irs['constant'] = [0 if i==0 else 1 if i==1 else 2 for i in irs.Species]
+            try:
+                irs = new_h2o_frame(irs)
+            except Exception as e:
+                return
+
+            # make species enum...
+            irs['Species'] = irs['Species'].asfactor()
+            names = [str(i) for i in irs.columns if not str(i)=='Species']
+            selector = H2OFScoreSelector(feature_names=names, target_feature='Species', percentile=50)
+            selector.fit_transform(irs)
 
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
-    univariate()
+    fscore()
     persist()
     act_search()
     grid()
