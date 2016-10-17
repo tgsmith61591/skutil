@@ -20,7 +20,7 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
-from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScoreSelector
+from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2OFScoreKBestSelector
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
@@ -1527,26 +1527,36 @@ def test_h2o_with_conn():
 
             # f-score feature selector -- just testing fit works for now...
             for iid in (True, False):
-                selector = H2OFScoreSelector(target_feature='Species', iid=iid,
-                                             cv=H2OKFold(n_folds=3, shuffle=True))
-                selector.fit_transform(t)
+                for selector_class in (H2OFScorePercentileSelector, H2OFScoreKBestSelector):
+                    selector = selector_class(target_feature='Species', iid=iid,
+                                              cv=H2OKFold(n_folds=3, shuffle=True))
+                    selector.fit_transform(t)
+
+            # assert kbest fails on non-int or non all
+            assert_fails(
+                H2OFScoreKBestSelector(target_feature='Species', k='10').fit,
+                ValueError, t)
 
             # assert fails on non-int percentile
             assert_fails(
-                H2OFScoreSelector(target_feature='Species', percentile='10').fit,
+                H2OFScorePercentileSelector(target_feature='Species', percentile='10').fit,
                 ValueError, t)
 
-            # this will fail because not all numeric (enum target still present)
+            # this will fail because we need a target
             assert_fails(
-                H2OFScoreSelector(target_feature=None).fit,
+                H2OFScorePercentileSelector(target_feature=None).fit,
                 ValueError, t)
 
             # assert what happens when percentile is 0 or 100
-            drops = H2OFScoreSelector(target_feature='Species', percentile=100).fit(t).drop_
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=100).fit(t).drop_
             assert len(drops) == 0
 
-            drops = H2OFScoreSelector(target_feature='Species', percentile=0).fit(t).drop_
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=0).fit(t).drop_
             assert len(drops) == t.shape[1]-1
+
+            # assert what happens when k is 'all'
+            drops = H2OFScoreKBestSelector(target_feature='Species', k='all').fit(t).drop_
+            assert len(drops) == 0
 
             # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
             # This might evoke the warning we want to cover as well as force a tie
@@ -1561,7 +1571,7 @@ def test_h2o_with_conn():
             # make species enum...
             irs['Species'] = irs['Species'].asfactor()
             names = [str(i) for i in irs.columns if not str(i)=='Species']
-            selector = H2OFScoreSelector(feature_names=names, target_feature='Species', percentile=50)
+            selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
             selector.fit_transform(irs)
 
 

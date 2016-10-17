@@ -12,12 +12,14 @@ from ..utils import is_integer
 from .base import (BaseH2OTransformer, _check_is_frame, 
                    _retain_features, _frame_from_x_y, 
                    validate_x_y)
+from ..base import overrides
 from sklearn.utils import as_float_array
 
 __all__ = [
     'h2o_f_classif',
     'h2o_f_oneway',
-    'H2OFScoreSelector'
+    'H2OFScoreKBestSelector',
+    'H2OFScorePercentileSelector'
 ]
 
 
@@ -254,7 +256,7 @@ def _repack_tuple(two, one):
     return (two[0], two[1], one)
 
 
-def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, percentile):
+def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, select_fun):
     """Fit all the folds of some provided function, repack the scores
     tuple and adjust the fold score if ``iid`` is True.
 
@@ -282,8 +284,8 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, percenti
         are normalized at the end by the number of observations
         in each fold
 
-    percentile : int, optional (default=10)
-        The percent of features to keep.
+    select_fun : callable
+        The function used for feature selection
 
     Returns
     -------
@@ -294,10 +296,12 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, percenti
     all_pvalues : np.ndarray
         The normalized p-values
 
-    drop_ : list
-        The column names to drop
+    list : The column names to drop
     """
     fn, tf = feature_names, target_feature
+    if tf is None:
+        raise ValueError('target_feature must be a string')
+
     scores = [
         _repack_tuple(fun(frame[train,:], 
                           feature_names=fn, 
@@ -326,36 +330,124 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, percenti
         all_scores /= float(n_folds)
         all_pvalues /= float(n_folds)
 
-    # compute which features to keep or drop
-    if percentile == 100:
-        drop_ = []
-    elif percentile == 0:
-        drop_ = feature_names
-    else:
-        # adapted from sklearn.feature_selection.SelectPercentile
-        all_scores = _clean_nans(all_scores)
-        thresh = stats.scoreatpercentile(all_scores, 100 - percentile)
-
-        mask = all_scores > thresh
-        ties = np.where(all_scores == thresh)[0]
-        if len(ties):
-            max_feats = int(len(all_scores) * percentile / 100)
-            kept_ties = ties[:max_feats - mask.sum()]
-            mask[kept_ties] = True
-
-        # inverse, since we're recording which features to DROP, not keep
-        mask = (~mask).tolist()
-
-        # now se the drop as the inverse mask
-        drop_ = (np.asarray(feature_names)[mask]).tolist()
 
     # return tuple
-    return all_scores, all_pvalues, drop_
+    return all_scores, all_pvalues, select_fun(all_scores, all_pvalues)
 
 
-class H2OFScoreSelector(_H2OBaseUnivariateSelector):
+class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta, 
+                                                _H2OBaseUnivariateSelector)):
     """Select features based on the F-score, using the 
-    ``h2o_f_classif`` method.
+    ``h2o_f_classif`` method. Sub-classes will define how the
+    number of features to retain is selected.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+        Univariate feature selection can very easily remove
+        features erroneously or cause overfitting. Using cross
+        validation, we can more confidently select the features 
+        to drop.
+
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold
+
+    min_version : str, float (default 'any')
+        The minimum version of h2o that is compatible with the transformer
+
+    max_version : str, float (default None)
+        The maximum version of h2o that is compatible with the transformer
+
+    Attributes
+    ----------
+
+    scores_ : np.ndarray, float
+        The score array, adjusted for ``n_folds``
+
+    p_values_ : np.ndarray, float
+        The p-value array, adjusted for ``n_folds``
+    """
+
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self, feature_names=None, target_feature=None,
+                 exclude_features=None, cv=3, n_features=10, iid=True):
+        super(_BaseH2OFScoreSelector, self).__init__(
+            feature_names=feature_names, target_feature=target_feature,
+            exclude_features=exclude_features, cv=cv,
+            iid=iid, min_version=self._min_version, 
+            max_version=self._max_version)
+
+    @abstractmethod
+    def _select_features(self, all_scores, all_pvalues):
+        """This function should be overridden by subclasses, and
+        should handle the selection of features given the scores
+        and pvalues.
+
+        Parameters
+        ----------
+
+        all_scores : np.ndarray, float
+            The scores
+
+        all_pvalues : np.ndarray, float
+            The p-values
+
+        Returns
+        -------
+
+        list : the features to drop
+        """
+        raise NotImplementedError('must be implemented by subclass')
+
+    def _fit(self, X):
+        """Fit the F-score feature selector.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The frame to fit
+
+        Returns
+        -------
+
+        self
+        """
+        # we can use this to extract the feature names to pass...
+        feature_names = _frame_from_x_y(
+            X=X, x=self.feature_names, y=self.target_feature, 
+            exclude_features=self.exclude_features).columns
+
+        cv = check_cv(self.cv)
+
+        # use the X frame (full frame) including target
+        self.scores_, self.p_values_, self.drop_ = _test_and_score(
+            frame=X, fun=h2o_f_classif, cv=cv, 
+            feature_names=feature_names, # extracted above
+            target_feature=self.target_feature, 
+            iid=self.iid, select_fun=self._select_features)
+
+        return self
+
+
+class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
+    """Select the top percentile of features based on the F-score, 
+    using the ``h2o_f_classif`` method.
 
     Parameters
     ----------
@@ -405,15 +497,11 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
 
     def __init__(self, feature_names=None, target_feature=None,
                  exclude_features=None, cv=3, percentile=10, iid=True):
-        super(H2OFScoreSelector, self).__init__(
+        super(H2OFScorePercentileSelector, self).__init__(
             feature_names=feature_names, target_feature=target_feature,
-            exclude_features=exclude_features, cv=cv,
-            iid=iid, min_version=self._min_version, 
-            max_version=self._max_version)
+            exclude_features=exclude_features, cv=cv, iid=iid)
 
-        # set instance attributes
         self.percentile = percentile
-
 
     def fit(self, X):
         """Fit the F-score feature selector.
@@ -429,21 +517,164 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
 
         self
         """
-        # we can use this to extract the feature names to pass...
-        feature_names = _frame_from_x_y(
-            X=X, x=self.feature_names, y=self.target_feature, 
-            exclude_features=self.exclude_features).columns
-
-        cv = check_cv(self.cv)
         if not is_integer(self.percentile):
             raise ValueError('percentile must be an integer')
+        return self._fit(X)
 
-        # use the X frame (full frame) including target
-        self.scores_, self.p_values_, self.drop_ = _test_and_score(
-            frame=X, fun=h2o_f_classif, cv=cv, 
-            feature_names=feature_names, # extracted above
-            target_feature=self.target_feature, 
-            iid=self.iid, percentile=self.percentile)
+    @overrides(_BaseH2OFScoreSelector)
+    def _select_features(self, all_scores, all_pvalues):
+        """This function selects the top ``percentile`` of
+        features from the F-scores.
 
-        return self
+        Parameters
+        ----------
+
+        all_scores : np.ndarray, float
+            The scores
+
+        all_pvalues : np.ndarray, float
+            The p-values
+
+        Returns
+        -------
+
+        list : the features to drop
+        """
+        percentile = self.percentile
+
+        # compute which features to keep or drop
+        if percentile == 100:
+            return []
+        elif percentile == 0:
+            return feature_names
+        else:
+            # adapted from sklearn.feature_selection.SelectPercentile
+            all_scores = _clean_nans(all_scores)
+            thresh = stats.scoreatpercentile(all_scores, 100 - percentile)
+
+            mask = all_scores > thresh
+            ties = np.where(all_scores == thresh)[0]
+            if len(ties):
+                max_feats = int(len(all_scores) * percentile / 100)
+                kept_ties = ties[:max_feats - mask.sum()]
+                mask[kept_ties] = True
+
+            # inverse, since we're recording which features to DROP, not keep
+            mask = (~mask).tolist()
+
+            # now se the drop as the inverse mask
+            return (np.asarray(feature_names)[mask]).tolist()
+
+
+class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
+    """Select the top ``k`` features based on the F-score, 
+    using the ``h2o_f_classif`` method.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+        Univariate feature selection can very easily remove
+        features erroneously or cause overfitting. Using cross
+        validation, we can more confidently select the features 
+        to drop.
+
+    k : int, optional (default=10)
+        The number of features to keep.
+
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold
+
+    min_version : str, float (default 'any')
+        The minimum version of h2o that is compatible with the transformer
+
+    max_version : str, float (default None)
+        The maximum version of h2o that is compatible with the transformer
+
+    Attributes
+    ----------
+
+    scores_ : np.ndarray, float
+        The score array, adjusted for ``n_folds``
+
+    p_values_ : np.ndarray, float
+        The p-value array, adjusted for ``n_folds``
+    """
+
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self, feature_names=None, target_feature=None,
+                 exclude_features=None, cv=3, k=10, iid=True):
+        super(H2OFScoreKBestSelector, self).__init__(
+            feature_names=feature_names, target_feature=target_feature,
+            exclude_features=exclude_features, cv=cv, iid=iid)
+
+        self.k = k
+
+    def fit(self, X):
+        """Fit the F-score feature selector.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The frame to fit
+
+        Returns
+        -------
+
+        self
+        """
+        if not (k == 'all' or (is_integer(self.k) and self.k > 0)):
+            raise ValueError('k must be a non-negative integer or "all"')
+        return self._fit(X)
+
+    @overrides(_BaseH2OFScoreSelector)
+    def _select_features(self, all_scores, all_pvalues):
+        """This function selects the top ``k`` features 
+        from the F-scores.
+
+        Parameters
+        ----------
+
+        all_scores : np.ndarray, float
+            The scores
+
+        all_pvalues : np.ndarray, float
+            The p-values
+
+        Returns
+        -------
+
+        list : the features to drop
+        """
+        k = self.k
+
+        # compute which features to keep or drop
+        if k == 'all':
+            return []
+        else:
+            # adapted from sklearn.feature_selection.SelectKBest
+            all_scores = _clean_nans(all_scores)
+            mask = np.zeros(all_scores.shape, dtype=bool)
+            mask[np.argsort(scores, kind="mergesort")[-self.k:]] = 1
+
+            # inverse, since we're recording which features to DROP, not keep
+            mask = (~mask).tolist()
+
+            # now se the drop as the inverse mask
+            return (np.asarray(feature_names)[mask]).tolist()
 
