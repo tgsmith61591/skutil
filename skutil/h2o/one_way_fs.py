@@ -176,7 +176,7 @@ def h2o_f_oneway(*args):
 
     # convert to numpy ndarray for special
     try:
-        f = np.asarray(f.as_data_frame(use_pandas=False)[1]).astype(np.float)
+        f = f.as_data_frame(use_pandas=True).iloc[0].values
     except ValueError as e:
         print(f)
         raise ValueError('Cannot figure it out: %s, %s, %s, %s, %s' % (str(msb), str(msw), str(f), str(dfbn), str(dfwn)))
