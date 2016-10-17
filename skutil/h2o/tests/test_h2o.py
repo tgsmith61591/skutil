@@ -118,6 +118,17 @@ def test_h2o_no_conn_needed():
     # test _validate_use
     assert_fails(_validate_use, ValueError, None, 'blah', False)
 
+    # Test not implemented on h2o base cross validator
+    class AnonCV(H2OBaseCrossValidator):
+        def __init__(self):
+            super(AnonCV, self).__init__()
+
+        def get_n_splits(): # overrides
+            return 0
+
+    anoncv = AnonCV()
+    assert_fails(anoncv._iter_test_indices, NotImplementedError, None, None)
+
 
 # if we can't start an h2o instance, let's just pass all these tests
 def test_h2o_with_conn():
@@ -1515,7 +1526,7 @@ def test_h2o_with_conn():
             assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
 
             # f-score feature selector -- just testing fit works for now...
-            for iid in (True, False)
+            for iid in (True, False):
                 selector = H2OFScoreSelector(target_feature='Species', iid=iid,
                                              cv=H2OKFold(n_folds=3, shuffle=True))
                 selector.fit_transform(t)
