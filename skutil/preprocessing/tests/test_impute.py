@@ -144,7 +144,7 @@ def test_selective_imputer():
     assert_fails(SelectiveImputer(def_fill=['a', 'b', 'c']).fit, TypeError, a)
     assert_fails(SelectiveImputer(def_fill='a').fit, TypeError, a)
     assert_fails(SelectiveImputer(def_fill=[1, 2, 'a']).fit, TypeError, a)
-    # assert_fails(SelectiveImputer(def_fill=True).fit, TypeError, a)
+    assert_fails(SelectiveImputer().fit, TypeError, a)
 
 
 def test_bagged_imputer_errors():
