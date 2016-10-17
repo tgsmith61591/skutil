@@ -588,7 +588,8 @@ def is_entirely_numeric(X):
 
 
 def is_integer(x):
-    return isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    return (not isinstance(x, (bool, np.bool))) and \
+        isinstance(x, (numbers.Integral, int, long, np.int, np.long))
 
 
 def is_float(x):

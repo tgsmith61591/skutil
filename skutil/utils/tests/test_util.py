@@ -199,6 +199,7 @@ def test_is_numeric():
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)
     assert not is_numeric('a')
+    assert not is_numeric(True)
 
 
 def test_get_numeric():
