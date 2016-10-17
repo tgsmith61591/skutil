@@ -23,6 +23,7 @@ try:
     SK18 = True
 except ImportError as ie:
     from sklearn.cross_validation import KFold, train_test_split
+    from sklearn.grid_search import RandomizedSearchCV
 
     SK18 = False
 
