@@ -20,6 +20,7 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
+from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2OFScoreKBestSelector
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
@@ -116,6 +117,17 @@ def test_h2o_no_conn_needed():
 
     # test _validate_use
     assert_fails(_validate_use, ValueError, None, 'blah', False)
+
+    # Test not implemented on h2o base cross validator
+    class AnonCV(H2OBaseCrossValidator):
+        def __init__(self):
+            super(AnonCV, self).__init__()
+
+        def get_n_splits(): # overrides
+            return 0
+
+    anoncv = AnonCV()
+    assert_fails(anoncv._iter_test_indices, NotImplementedError, None, None)
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -1501,10 +1513,71 @@ def test_h2o_with_conn():
         if X is not None:
             shuffle_h2o_frame(X)
 
+    def fscore():
+        if X is not None:
+            try:
+                t = load_iris_h2o()
+            except Exception as e:
+                return
+
+            # f-score test
+            f,p = h2o_f_classif(t, t.columns[:-1], t.columns[-1])
+            assert_array_almost_equal(f, np.array([119.26450218,47.3644614,1179.0343277,959.32440573]))
+            assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+
+            # f-score feature selector -- just testing fit works for now...
+            for iid in (True, False):
+                for selector_class in (H2OFScorePercentileSelector, H2OFScoreKBestSelector):
+                    selector = selector_class(target_feature='Species', iid=iid,
+                                              cv=H2OKFold(n_folds=3, shuffle=True))
+                    selector.fit_transform(t)
+
+            # assert kbest fails on non-int or non all
+            assert_fails(
+                H2OFScoreKBestSelector(target_feature='Species', k='10').fit,
+                ValueError, t)
+
+            # assert fails on non-int percentile
+            assert_fails(
+                H2OFScorePercentileSelector(target_feature='Species', percentile='10').fit,
+                ValueError, t)
+
+            # this will fail because we need a target
+            assert_fails(
+                H2OFScorePercentileSelector(target_feature=None).fit,
+                ValueError, t)
+
+            # assert what happens when percentile is 0 or 100
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=100).fit(t).drop_
+            assert len(drops) == 0
+
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=0).fit(t).drop_
+            assert len(drops) == t.shape[1]-1
+
+            # assert what happens when k is 'all'
+            drops = H2OFScoreKBestSelector(target_feature='Species', k='all').fit(t).drop_
+            assert len(drops) == 0
+
+            # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
+            # This might evoke the warning we want to cover as well as force a tie
+            # if we're very lucky...
+            irs = load_iris_df()
+            irs['constant'] = [0 if i==0 else 1 if i==1 else 2 for i in irs.Species]
+            try:
+                irs = new_h2o_frame(irs)
+            except Exception as e:
+                return
+
+            # make species enum...
+            irs['Species'] = irs['Species'].asfactor()
+            names = [str(i) for i in irs.columns if not str(i)=='Species']
+            selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
+            selector.fit_transform(irs)
+
+
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
-    valid_use()
-    feature_dropper_coverage()
+    fscore()
     persist()
     act_search()
     grid()
@@ -1529,3 +1602,5 @@ def test_h2o_with_conn():
     load_frames()
     isinteger_isfloat()
     shuffle()
+    valid_use()
+    feature_dropper_coverage()
