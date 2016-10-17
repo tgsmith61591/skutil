@@ -254,7 +254,7 @@ def _repack_tuple(two, one):
     return (two[0], two[1], one)
 
 
-def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
+def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, percentile):
     """Fit all the folds of some provided function, repack the scores
     tuple and adjust the fold score if ``iid`` is True.
 
@@ -282,6 +282,9 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
         are normalized at the end by the number of observations
         in each fold
 
+    percentile : int, optional (default=10)
+        The percent of features to keep.
+
     Returns
     -------
 
@@ -290,6 +293,9 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
 
     all_pvalues : np.ndarray
         The normalized p-values
+
+    drop_ : list
+        The column names to drop
     """
     fn, tf = feature_names, target_feature
     scores = [
@@ -320,7 +326,31 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
         all_scores /= float(n_folds)
         all_pvalues /= float(n_folds)
 
-    return all_scores, all_pvalues
+    # compute which features to keep or drop
+    if percentile == 100:
+        drop_ = []
+    elif percentile == 0:
+        drop_ = feature_names
+    else:
+        # adapted from sklearn.feature_selection.SelectPercentile
+        all_scores = _clean_nans(all_scores)
+        thresh = stats.scoreatpercentile(all_scores, 100 - percentile)
+
+        mask = all_scores > thresh
+        ties = np.where(all_scores == thresh)[0]
+        if len(ties):
+            max_feats = int(len(all_scores) * percentile / 100)
+            kept_ties = ties[:max_feats - mask.sum()]
+            mask[kept_ties] = True
+
+        # inverse, since we're recording which features to DROP, not keep
+        mask = (~mask).tolist()
+
+        # now se the drop as the inverse mask
+        drop_ = (np.asarray(feature_names)[mask]).tolist()
+
+    # return tuple
+    return all_scores, all_pvalues, drop_
 
 
 class H2OFScoreSelector(_H2OBaseUnivariateSelector):
@@ -363,7 +393,7 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
     Attributes
     ----------
 
-    score_ : np.ndarray, float
+    scores_ : np.ndarray, float
         The score array, adjusted for ``n_folds``
 
     p_values_ : np.ndarray, float
@@ -409,34 +439,11 @@ class H2OFScoreSelector(_H2OBaseUnivariateSelector):
             raise ValueError('percentile must be an integer')
 
         # use the X frame (full frame) including target
-        scores, self.p_values_ = _test_and_score(
+        self.scores_, self.p_values_, self.drop_ = _test_and_score(
             frame=X, fun=h2o_f_classif, cv=cv, 
             feature_names=feature_names, # extracted above
             target_feature=self.target_feature, 
-            iid=self.iid)
-
-        # compute percentiles
-        if self.percentile == 100:
-            self.drop_ = []
-        elif self.percentile == 0:
-            self.drop_ = feature_names
-        else:
-            # adapted from sklearn.feature_selection.SelectPercentile
-            scores = _clean_nans(scores)
-            thresh = stats.scoreatpercentile(scores, 100 - self.percentile)
-
-            mask = scores > thresh
-            ties = np.where(scores == thresh)[0]
-            if len(ties):
-                max_feats = int(len(scores) * self.percentile / 100)
-                kept_ties = ties[:max_feats - mask.sum()]
-                mask[kept_ties] = True
-
-            # inverse, since we're recording which features to DROP, not keep
-            mask = (~mask).tolist()
-
-            # now se the drop as the inverse mask
-            self.drop_ = (np.asarray(feature_names)[mask]).tolist()
+            iid=self.iid, percentile=self.percentile)
 
         return self
 
