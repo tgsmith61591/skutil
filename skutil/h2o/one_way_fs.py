@@ -175,7 +175,11 @@ def h2o_f_oneway(*args):
     f = (msb / msw)
 
     # convert to numpy ndarray for special
-    f = np.asarray(f.as_data_frame(use_pandas=False)[1]).astype(np.float)
+    try:
+        f = np.asarray(f.as_data_frame(use_pandas=False)[1]).astype(np.float)
+    except ValueError as e:
+        print(f)
+        raise e
 
     # compute prob
     prob = special.fdtrc(dfbn, dfwn, f)
@@ -291,10 +295,12 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid):
     all_pvalues : np.ndarray
         The normalized p-values
     """
-
     fn, tf = feature_names, target_feature
     scores = [
-        _repack_tuple(fun(frame[train,:], fn, tf), len(train))
+        _repack_tuple(fun(frame[train,:], 
+                          feature_names=fn, 
+                          target_feature=tf), 
+                      len(train))
         for train, _ in cv.split(frame, tf)
     ]
 
