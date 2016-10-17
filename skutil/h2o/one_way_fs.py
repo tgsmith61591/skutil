@@ -175,11 +175,7 @@ def h2o_f_oneway(*args):
     f = (msb / msw)
 
     # convert to numpy ndarray for special
-    try:
-        f = f.as_data_frame(use_pandas=True).iloc[0].values
-    except ValueError as e:
-        print(f)
-        raise ValueError('Cannot figure it out: %s, %s, %s, %s, %s' % (str(msb), str(msw), str(f), str(dfbn), str(dfwn)))
+    f = f.as_data_frame(use_pandas=True).iloc[0].values
 
     # compute prob
     prob = special.fdtrc(dfbn, dfwn, f)

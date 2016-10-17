@@ -1515,7 +1515,7 @@ def test_h2o_with_conn():
             assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
 
             # f-score feature selector -- just testing fit works for now...
-            selector = H2OFScoreSelector(target_feature='Species', cv=H2OKFold(n_folds=3, shuffle=False))
+            selector = H2OFScoreSelector(target_feature='Species', cv=H2OKFold(n_folds=3, shuffle=True))
             selector.fit(t)
 
             # TODO: transform
