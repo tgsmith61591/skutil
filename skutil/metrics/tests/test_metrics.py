@@ -155,7 +155,7 @@ def test_act_stats():
     assert_fails(GainsStatisticalReport, ValueError, **{'score_by': 'accuracy'})
 
     # purposefully set n_folds and not set n_iter
-    assert_fails(GainsStatisticalReport(n_folds=10), ValueError, **{'score_by': 'accuracy'})
+    assert_fails(GainsStatisticalReport, ValueError, **{'n_folds': 10})
 
     # assert this is two in length...
     d = a.as_data_frame()
