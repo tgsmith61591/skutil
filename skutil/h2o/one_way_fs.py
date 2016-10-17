@@ -332,7 +332,7 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, select_f
 
 
     # return tuple
-    return all_scores, all_pvalues, select_fun(all_scores, all_pvalues)
+    return all_scores, all_pvalues, select_fun(all_scores, all_pvalues, fn)
 
 
 class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta, 
@@ -393,7 +393,7 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
             max_version=self._max_version)
 
     @abstractmethod
-    def _select_features(self, all_scores, all_pvalues):
+    def _select_features(self, all_scores, all_pvalues, feature_names):
         """This function should be overridden by subclasses, and
         should handle the selection of features given the scores
         and pvalues.
@@ -406,6 +406,9 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
 
         all_pvalues : np.ndarray, float
             The p-values
+
+        feature_names : array_like (str)
+            The list of names that are eligible for drop
 
         Returns
         -------
@@ -522,7 +525,7 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         return self._fit(X)
 
     @overrides(_BaseH2OFScoreSelector)
-    def _select_features(self, all_scores, all_pvalues):
+    def _select_features(self, all_scores, all_pvalues, feature_names):
         """This function selects the top ``percentile`` of
         features from the F-scores.
 
@@ -534,6 +537,9 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
 
         all_pvalues : np.ndarray, float
             The p-values
+
+        feature_names : array_like (str)
+            The list of names that are eligible for drop
 
         Returns
         -------
@@ -643,7 +649,7 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         return self._fit(X)
 
     @overrides(_BaseH2OFScoreSelector)
-    def _select_features(self, all_scores, all_pvalues):
+    def _select_features(self, all_scores, all_pvalues, feature_names):
         """This function selects the top ``k`` features 
         from the F-scores.
 
@@ -655,6 +661,9 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
 
         all_pvalues : np.ndarray, float
             The p-values
+
+        feature_names : array_like (str)
+            The list of names that are eligible for drop
 
         Returns
         -------
@@ -670,7 +679,7 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
             # adapted from sklearn.feature_selection.SelectKBest
             all_scores = _clean_nans(all_scores)
             mask = np.zeros(all_scores.shape, dtype=bool)
-            mask[np.argsort(scores, kind="mergesort")[-self.k:]] = 1
+            mask[np.argsort(all_scores, kind="mergesort")[-k:]] = 1 # we know k > 0
 
             # inverse, since we're recording which features to DROP, not keep
             mask = (~mask).tolist()
