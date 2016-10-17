@@ -45,7 +45,7 @@ def _validate_use(X, use, na_warn):
     """
     # validate use
     _valid_use = ['complete.obs', 'all.obs', 'everything']
-    if not use in _valid_use:
+    if use not in _valid_use:
         raise ValueError('expected one of (%s) but got %s' % (', '.join(_valid_use), use))
 
     # check on NAs

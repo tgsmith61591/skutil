@@ -31,7 +31,21 @@ __all__ = [
 
 
 def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
-    """Load the iris dataset into an H2OFrame"""
+    """Load the iris dataset into an H2OFrame
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="Species")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+    """
+
     X = from_pandas(load_iris_df(include_tgt, tgt_name, shuffle))
     if include_tgt:
         X[tgt_name] = X[tgt_name].asfactor()
@@ -40,7 +54,21 @@ def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
 
 
 def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
-    """Load the breast cancer dataset into an H2OFrame"""
+    """Load the breast cancer dataset into an H2OFrame
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+
+    """
     X = from_pandas(load_breast_cancer_df(include_tgt, tgt_name, shuffle))
     if include_tgt:
         X[tgt_name] = X[tgt_name].asfactor()
@@ -49,7 +77,22 @@ def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
 
 
 def load_boston_h2o(include_tgt=True, tgt_name="target", shuffle=False):
-    """Load the boston housing dataset into an H2OFrame"""
+    """Load the boston housing dataset into an H2OFrame
+
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+
+    """
     X = from_pandas(load_boston_df(include_tgt, tgt_name, shuffle))
     return X
 
@@ -57,6 +100,12 @@ def load_boston_h2o(include_tgt=True, tgt_name="target", shuffle=False):
 def h2o_col_to_numpy(column):
     """Return a 1d numpy array from a
     single H2OFrame column.
+
+    Parameters
+    ----------
+
+    column : H2OFrame column
+        A column from an H2OFrame
 
     Returns
     -------

@@ -20,7 +20,6 @@ __all__ = [
     'tanh_kernel'
 ]
 
-# TODO: add LaTeX feature branch for documentation
 
 def _div(num, div):
     with warnings.catch_warnings():
@@ -32,7 +31,7 @@ def _div(num, div):
 
 def _prep_X_Y_for_cython(X, Y):
     X, Y = check_pairwise_arrays(X, Y)
-    X, Y = X.astype(np.double, order='C'), Y.astype(np.double, order='C').T # transposing Y here!
+    X, Y = X.astype(np.double, order='C'), Y.astype(np.double, order='C').T  # transposing Y here!
     res = np.zeros((X.shape[0], Y.shape[1]), dtype=X.dtype)
     return X, Y, res
 
@@ -91,7 +90,7 @@ def exponential_kernel(X, Y=None, sigma=1.0):
     Souza, Cesar R., Kernel Functions for Machine Learning Applications
     http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html
     """
-    c = exp(_hilbert_matrix(X, Y, scalar=-1.0) / 2*np.power(sigma, 2))
+    c = exp(_hilbert_matrix(X, Y, scalar=-1.0) / 2 * np.power(sigma, 2))
     return c
 
 
@@ -136,7 +135,7 @@ def gaussian_kernel(X, Y=None, sigma=1.0):
     Souza, Cesar R., Kernel Functions for Machine Learning Applications
     http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html
     """
-    c = exp(-np.power(_hilbert_matrix(X, Y), 2.0) / 2*np.power(sigma, 2))
+    c = exp(-np.power(_hilbert_matrix(X, Y), 2.0) / 2 * np.power(sigma, 2))
     return c
 
 
@@ -260,7 +259,7 @@ def linear_kernel(X, Y=None, constant=0.0):
     Souza, Cesar R., Kernel Functions for Machine Learning Applications
     http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html
     """
-    c = lk(X,Y) + constant
+    c = lk(X, Y) + constant
     return c
 
 
@@ -536,5 +535,5 @@ def tanh_kernel(X, Y=None, constant=0.0, alpha=1.0):
     http://crsouza.blogspot.com/2010/03/kernel-functions-for-machine-learning.html
     """
     lc = linear_kernel(X=X, Y=Y, constant=0.0)  # don't add it here
-    c = np.tanh(alpha * lc + constant)     # add it here
+    c = np.tanh(alpha * lc + constant)  # add it here
     return c

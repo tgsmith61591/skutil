@@ -178,7 +178,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         # if we need to drop the original columns, we do that here:
         if self.drop_after_encoded:
-            keep_nms = [str(n) for n in X.columns if not n in cat.columns]
+            keep_nms = [str(n) for n in X.columns if n not in cat.columns]
             X = X[keep_nms]
 
         # cbind the dummies at the end

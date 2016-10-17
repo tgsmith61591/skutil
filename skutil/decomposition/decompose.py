@@ -185,7 +185,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in cols]
+        other_nms = [nm for nm in X.columns if nm not in cols]
         transform = self.pca_.transform(X[cols])
 
         # do weighting if necessary
@@ -351,7 +351,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in cols]
+        other_nms = [nm for nm in X.columns if nm not in cols]
         transform = self.svd_.transform(X[cols])
         left = pd.DataFrame.from_records(data=transform,
                                          columns=[('Concept%i' % (i + 1)) for i in range(transform.shape[1])])
