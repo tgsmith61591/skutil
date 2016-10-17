@@ -154,6 +154,9 @@ def test_act_stats():
     # initializing with a bad 'score_by' will fail
     assert_fails(GainsStatisticalReport, ValueError, **{'score_by': 'accuracy'})
 
+    # purposefully set n_folds and not set n_iter
+    assert_fails(GainsStatisticalReport(n_folds=10), ValueError, **{'score_by': 'accuracy'})
+
     # assert this is two in length...
     d = a.as_data_frame()
     assert d.shape[0] == 2
