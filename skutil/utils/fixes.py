@@ -6,12 +6,11 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils.validation import _num_samples
+from sklearn.utils.validation import _num_samples, indexable
 from sklearn.metrics.scorer import check_scoring
 from collections import namedtuple, Sized
-import warnings
-
 from .metaestimators import if_delegate_has_method
+import warnings
 
 __all__ = [
     '_as_numpy',
@@ -29,7 +28,6 @@ if sklearn.__version__ >= '0.18':
     from sklearn.model_selection import check_cv
     from sklearn.model_selection._validation import _fit_and_score
     from sklearn.model_selection import ParameterSampler, ParameterGrid
-    from sklearn.utils.validation import indexable
 
     def _do_fit(n_jobs, verbose, pre_dispatch, base_estimator, 
                X, y, scorer, parameter_iterable, fit_params, 
