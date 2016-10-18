@@ -780,7 +780,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
 
             plt.show()
 
-    elif charts and not CAN_CHART:
+    elif charts and not CAN_CHART_MPL:
         warnings.warn('no module matplotlib, will not be able to display charts', ModuleImportWarning)
 
     return result_df
