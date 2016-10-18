@@ -164,6 +164,8 @@ def test_corr():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
+        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed') # This should just do nothing besides add coverage
+
         assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
 
         pass
