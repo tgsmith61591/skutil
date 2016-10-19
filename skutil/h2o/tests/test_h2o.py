@@ -1385,7 +1385,7 @@ def test_h2o_with_conn():
         irs['species'] = iris.target
         irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
         irs['arbitrary'] = [3 for i in range(irs.shape[0])]
-        irs['rand'] = [choice([0,1]) for i in range(irs.shape[0])]
+        irs['rand'] = [i%2 for i in iris.target] # 1 for 1, 0 else
         irs['zero'] = [0 for i in range(irs.shape[0])]
 
         try:
@@ -1442,7 +1442,7 @@ def test_h2o_with_conn():
 
             # now binary
             y_act, y_pred = Y['rand'], Y['rand']
-            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':2, 'y_type':'binary', 'average':'binary'}) # pos label not present
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
 
 
         else:
