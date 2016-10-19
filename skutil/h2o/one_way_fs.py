@@ -566,7 +566,7 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
                 mask[kept_ties] = True
 
             # inverse, since we're recording which features to DROP, not keep
-            mask = (~mask).tolist()
+            mask = np.asarray(~mask)
 
             # now se the drop as the inverse mask
             return (np.asarray(feature_names)[mask]).tolist()

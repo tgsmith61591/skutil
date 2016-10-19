@@ -1394,14 +1394,14 @@ def test_h2o_with_conn():
             Y = None
 
         if Y is not None:
-            assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
-            assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
-            assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+            assert h2o_accuracy_score(Y['species'], Y['species'], y_type='multiclass') == 1.0
+            assert h2o_accuracy_score(Y['letters'], Y['letters'], y_type='multiclass') == 1.0
+            assert h2o_accuracy_score(Y['species'], Y['arbitrary'], y_type='multiclass') == 0.0
 
             # weight coverage to make sure it still passes...
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01)
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01)
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=False)
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01, y_type='multiclass')
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01, y_type='multiclass')
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, y_type='multiclass')
 
             # test making the scorer
             accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
