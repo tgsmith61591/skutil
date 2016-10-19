@@ -1437,7 +1437,7 @@ def test_h2o_with_conn():
 
             # force all negative labels on recall/support/precision
             y_act, y_pred = Y['zero'], Y['zero']
-            assert_array_equal(np.asarraay(h2o_precision_recall_fscore_support(y_act, y_pred, pos_label=1, y_type='binary', average='binary')), 
+            assert_array_equal(np.asarray(h2o_precision_recall_fscore_support(y_act, y_pred, pos_label=1, y_type='binary', average='binary')), 
                 np.asarray([0.0, 0.0, 0.0, 0.0]))
 
             # now binary
