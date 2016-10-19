@@ -17,6 +17,8 @@ from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
 
+from matplotlib.testing.decorators import cleanup
+
 # Def data for testing
 iris = load_iris()
 X = load_iris_df(include_tgt=False)
@@ -160,18 +162,17 @@ def test_pd_stats():
     assert_fails(pd_stats, ValueError, Y, 'bad_type')
 
 
+@cleanup
 def test_corr():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed') # This should just do nothing besides add coverage
+        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
+        corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
+        corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
+        corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
 
         assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
-
-        pass
-        # we'll lose coverage, but it'll save the windows from tying things up...
-        # corr_plot(X_no_targ)
-        # corr_plot(X_no_targ, kde=True, n_levels=3)
 
 
 def test_bytes():

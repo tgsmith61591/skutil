@@ -19,9 +19,8 @@ try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        # do actual import
-        # import matplotlib as mpl
-        # mpl.use('TkAgg') # set backend
+        import matplotlib
+        matplotlib.use('Agg')  # set backend
         from matplotlib import pyplot as plt
 
         # log it
