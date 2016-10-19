@@ -17,6 +17,8 @@ from skutil.preprocessing import *
 from skutil.utils import report_grid_score_detail
 from skutil.utils.tests.utils import assert_fails
 
+from matplotlib.testing.decorators import cleanup
+
 try:
     from sklearn.model_selection import KFold, train_test_split, RandomizedSearchCV
 
@@ -53,6 +55,7 @@ def test_as_numpy():
     assert_array_equal(_as_numpy(pd.DataFrame.from_records(X)), X)
 
 
+@cleanup
 def test_large_grid():
     """In this test, we purposely overfit a RandomForest to completely random data
     in order to assert that the test error will far supercede the train error.
@@ -116,4 +119,4 @@ def test_large_grid():
     assert_fails(report_grid_score_detail, ValueError, **{'random_search': grid, 'y_axis': 'bad_axis'})
 
     # assert passes otherwise
-    report = report_grid_score_detail(grid, charts=False, percentile=0.95)  # just ensure percentile works
+    report = report_grid_score_detail(grid, charts=True, percentile=0.95)  # just ensure percentile works
