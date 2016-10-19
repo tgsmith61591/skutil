@@ -16,6 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
+from skutil.utils.metaestimators import if_delegate_has_method
 
 from matplotlib.testing.decorators import cleanup
 
@@ -44,6 +45,68 @@ def test_suppress():
         warnings.simplefilter("always")
         raise_warning()  # should be caught
         assert len(w) == 0, 'expected no warning to be thrown'
+
+
+def test_delegate_decorator():
+    # some anonymous classes
+    class A(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            return 'A'
+
+        def do_something(self):
+            return 'something'
+
+
+    class B(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            return 'B'
+
+        def do_something_else(self):
+            return 'something else'
+
+    class Other(object):
+        def __init__(self):
+            pass
+
+
+    class C(object):
+        def __init__(self):
+            self.a = A()
+            self.b = B()
+            self.c = Other()
+
+        @if_delegate_has_method(delegate=['a','b'])
+        def foo(self):
+            return self.b.foo()
+
+        @if_delegate_has_method(delegate='c', method='do_something')
+        def do_something_new(self):
+            # this won't exist because c doesn't have the method
+            pass
+
+        @if_delegate_has_method('a')
+        def do_something(self):
+            return self.a.do_something()
+
+        @if_delegate_has_method('b')
+        def do_something_else(self):
+            return self.b.do_something_else()
+
+
+    c = C()
+    assert hasattr(c, 'foo')
+    assert hasattr(c, 'do_something')
+    assert hasattr(c, 'do_something_else')
+    assert c.foo() == c.b.foo()
+    assert not hasattr(c, 'do_something_new')
+    assert c.do_something() == c.a.do_something()
+    assert c.do_something_else() == c.b.do_something_else()
 
 
 def test_safe_log_exp():

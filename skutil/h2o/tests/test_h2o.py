@@ -27,7 +27,7 @@ from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_binco
                              shuffle_h2o_frame)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
-from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support
+from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
@@ -136,6 +136,7 @@ def test_h2o_no_conn_needed():
     assert _get_bool(True)
     assert not _get_bool(False)
     assert _get_bool([True, False])
+    assert_fails(_err_for_discrete, ValueError, 'binary') # this method fails on non-'continuous'
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -1415,14 +1416,17 @@ def test_h2o_with_conn():
             assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
             assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
             assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
+            assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0) == 1.0
 
             # test on same
             assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
             assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
             assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0) == 0.0
 
             # test R^2 on the same
             assert h2o_r2_score(reg_target, reg_target) == 1.0
+            assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0) == 1.0
 
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
