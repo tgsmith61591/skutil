@@ -27,6 +27,7 @@ from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_binco
                              shuffle_h2o_frame)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
+from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support
 from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
@@ -48,6 +49,8 @@ from scipy.stats import randint, uniform
 
 from numpy.random import choice
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+
+from matplotlib.testing.decorators import cleanup
 
 # for split
 try:
@@ -128,6 +131,11 @@ def test_h2o_no_conn_needed():
 
     anoncv = AnonCV()
     assert_fails(anoncv._iter_test_indices, NotImplementedError, None, None)
+
+    # test get_bool
+    assert _get_bool(True)
+    assert not _get_bool(False)
+    assert _get_bool([True, False])
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -1189,11 +1197,15 @@ def test_h2o_with_conn():
         else:
             pass
 
+    @cleanup
     def corr():
         if X is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
+
+            # plots for the test, should be cleaned up by the decorator
+            h2o_corr_plot(X, plot_type='cor', na_warn=False)
 
         else:
             pass
@@ -1373,6 +1385,8 @@ def test_h2o_with_conn():
         irs['species'] = iris.target
         irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
         irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+        irs['rand'] = [choice([0,1]) for i in range(irs.shape[0])]
+        irs['zero'] = [0 for i in range(irs.shape[0])]
 
         try:
             Y = new_h2o_frame(irs)
@@ -1383,6 +1397,11 @@ def test_h2o_with_conn():
             assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
             assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
             assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+
+            # weight coverage to make sure it still passes...
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01)
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01)
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False)
 
             # test making the scorer
             accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
@@ -1409,6 +1428,22 @@ def test_h2o_with_conn():
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
             assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
             assert_fails(make_h2o_scorer, TypeError, 'a', Y['species'])  # 'a' is not callable
+
+            # h2o precision recall support
+            y_act, y_pred = Y['species'], Y['species']
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+
+            # force all negative labels on recall/support/precision
+            y_act, y_pred = Y['zero'], Y['zero']
+            assert_array_equal(np.asarraay(h2o_precision_recall_fscore_support(y_act, y_pred, pos_label=1, y_type='binary', average='binary')), 
+                np.asarray([0.0, 0.0, 0.0, 0.0]))
+
+            # now binary
+            y_act, y_pred = Y['rand'], Y['rand']
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':2, 'y_type':'binary', 'average':'binary'}) # pos label not present
+
 
         else:
             pass

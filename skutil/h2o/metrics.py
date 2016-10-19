@@ -78,6 +78,10 @@ def _type_of_target(y):
     Adapted from sklearn.utils.multiclass.type_of_target.
     If is int, will treat the column as a factor.
 
+    Note that this can be achieved using h2o frames' ``types``,
+    however, if there is a 'real' type that is only "nominally
+    real," i.e., [1.0, 2.0, 3.0], we will treat them as ints.
+
     Parameters
     ----------
 
