@@ -166,12 +166,12 @@ def test_grid_search_fix():
         # test value error on missing scorer_
         sco = grid2.scorer_
         grid2.scorer_ = None
-        assert_fails(grid2.score, ValueError, X, y)
+        assert_fails(grid2.score, ValueError, df, y)
         grid2.scorer_ = sco
 
         # test predict proba
-        grid2.predict_proba(X)
-        grid2.predict_log_proba(X)
+        grid2.predict_proba(df)
+        grid2.predict_log_proba(df)
 
 
 
