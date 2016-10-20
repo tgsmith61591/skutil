@@ -30,7 +30,6 @@ install:
  - pip install python-coveralls
  - pip install scipy>=0.17
  - pip install seaborn
- - python setup.py develop
 
 before_script:
   - "export DISPLAY=:99.0"
@@ -38,7 +37,8 @@ before_script:
   - sleep 5 # give xvfb some time to start by sleeping for 5 seconds
 
 script:
-  - tox -e $TOX_ENV
+  - tox -e $TOX_ENV #set scikit-learn and python version dynamically
+  - python setup.py develop
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
     else
