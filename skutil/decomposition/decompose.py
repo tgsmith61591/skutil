@@ -62,6 +62,25 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator,
         """
         raise NotImplementedError('this should be implemented by a subclass')
 
+    def inverse_transform(self, X):
+        """Given a transformed dataframe, inverse the transformation.
+
+        Parameters
+        ----------
+
+        X : pd.DataFrame
+            The transformed dataframe
+
+        Returns
+        -------
+
+        Xi : pd.DataFrame
+            The inverse-transformed dataframe
+        """
+        X, _ = validate_is_pd(X, None)
+        Xi = self.get_decomposition().inverse_transform(X)
+        return Xi
+
 
 class SelectivePCA(_BaseSelectiveDecomposer):
     """A class that will apply PCA only to a select group

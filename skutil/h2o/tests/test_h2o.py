@@ -334,7 +334,7 @@ def test_h2o_with_conn():
                 target_feature='species'
             )
 
-            X_transformed = pipe.fit(train).transform(train)
+            X_transformed = pipe.fit_transform(train)
 
             # test with all transformers and no estimator -- but this time, we
             # are testing that we can set the params even when the last step
