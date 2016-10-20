@@ -28,12 +28,12 @@ before_script:
 
 script:
   - tox -e $TOX_ENV #set scikit-learn and python version dynamically
-  - python setup.py develop
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
-    else
-      nosetests --logging-level=INFO;
-    fi
+  #- python setup.py develop
+  #- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+  #    nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
+  #  else
+  #    nosetests --logging-level=INFO;
+  #  fi
 
 # Compute Coverage Using Coveralls
 after_success:
