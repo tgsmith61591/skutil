@@ -103,9 +103,6 @@ class BalancerMixin:
     _max_classes = 20
     _def_ratio = 0.2
 
-    def __init__(self):
-        pass
-
     def balance(self, X):
         """This method must be overridden by
         a subclass. This does nothing right now.

@@ -440,7 +440,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
             underlying estimator.
         """
         Xt = _validate_X(Xt)
-        return self.best_estimator_.transform(Xt)
+        return self.best_estimator_.inverse_transform(Xt)
 
     def _fit(self, X, y, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""

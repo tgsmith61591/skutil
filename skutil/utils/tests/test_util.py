@@ -152,13 +152,27 @@ def test_grid_search_fix():
 
         # try with just a transformer
         grid3 = _SK17GridSearchCV(estimator=pipe2, param_grid=hyp2, cv=2)
-        grid3.fit_transform(df, None)
+        X_trans = grid3.fit_transform(df, None)
+
+        # test inverse transform
+        grid3.inverse_transform(X_trans)
 
         # __repr__ coverage
         grid3.grid_scores_[0]
 
         # test fail with mismatched dims
         assert_fails(grid3.fit, ValueError, X, np.array([1,2,3]))
+
+        # test value error on missing scorer_
+        sco = grid2.scorer_
+        grid2.scorer_ = None
+        assert_fails(grid2.score, ValueError, df, y)
+        grid2.scorer_ = sco
+
+        # test predict proba
+        grid2.predict_proba(df)
+        grid2.predict_log_proba(df)
+
 
 
 def test_fixes():
