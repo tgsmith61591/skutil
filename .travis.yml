@@ -38,6 +38,7 @@ before_script:
 
 script:
   - tox -e $TOX_ENV #set scikit-learn and python version dynamically
+  - cat /home/travis/build/tgsmith61591/skutil/.tox/log/tox-0.log
   - python setup.py develop
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
