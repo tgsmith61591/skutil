@@ -17,19 +17,39 @@ env:
  - TOX_ENV=python-2-7-sklearn-0-17
  - TOX_ENV=python-2-7-sklearn-0-18
 
+## Install the packages
 install:
- - pip install tox
- - pip install coverage
- - pip install coveralls
- - pip install Cython>=0.22
- - pip install h2o>=3.8.2.9
- - pip install matplotlib
- - pip install nose-cov
- - pip install numpy>=1.6
- - pip install pandas>=0.18
- - pip install python-coveralls
- - pip install scipy>=0.17
- - pip install seaborn
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # dependencies
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy scikit-learn pandas coverage cython
+  - source activate test-environment
+
+  # Coverage packages
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install --yes -c dan_blanchard python-coveralls nose-cov;
+    fi
+
+  - pip install coveralls
+  - pip install matplotlib
+  - pip install seaborn
+  - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
+  - python setup.py develop
 
 before_script:
   - "export DISPLAY=:99.0"
