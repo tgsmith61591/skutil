@@ -47,6 +47,7 @@ install:
       conda install --yes -c dan_blanchard python-coveralls nose-cov;
     fi
 
+  - ./.travis/install.sh
   - pip install coveralls
   - pip install matplotlib
   - pip install seaborn
