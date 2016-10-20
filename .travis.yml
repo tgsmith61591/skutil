@@ -17,19 +17,19 @@ env:
  - TOX_ENV=python-2-7-sklearn-0-17
  - TOX_ENV=python-2-7-sklearn-0-18
 
-#install:
-# - pip install tox
-# - pip install coverage
-# - pip install coveralls
-# - pip install Cython>=0.22
-# - pip install h2o>=3.8.2.9
-# - pip install matplotlib
-# - pip install nose-cov
-# - pip install numpy>=1.6
-# - pip install pandas>=0.18
-# - pip install python-coveralls
-# - pip install scipy>=0.17
-# - pip install seaborn
+install:
+ - pip install tox
+ - pip install coverage
+ - pip install coveralls
+ - pip install Cython>=0.22
+ - pip install h2o>=3.8.2.9
+ - pip install matplotlib
+ - pip install nose-cov
+ - pip install numpy>=1.6
+ - pip install pandas>=0.18
+ - pip install python-coveralls
+ - pip install scipy>=0.17
+ - pip install seaborn
 
 before_script:
   - "export DISPLAY=:99.0"
@@ -38,6 +38,7 @@ before_script:
 
 script:
   - tox -e $TOX_ENV #set scikit-learn and python version dynamically
+  - python setup.py develop
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
     else
