@@ -49,6 +49,25 @@ class H2OLabelEncoder(BaseH2OTransformer):
        2
        2
     [5 rows x 1 column]
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    Attributes
+    ----------
+
+    classes_ : np.ndarray
+        The unique class levels
     """
     _min_version = '3.8.2.9'
     _max_version = None
@@ -105,6 +124,39 @@ class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
 
 
 class H2OSelectiveImputer(_H2OBaseImputer):
+    """The selective imputer provides extreme flexibility and simplicity
+    in imputation tasks. Rather than imposing one strategy across an entire
+    frame, different strategies can be mapped to respective features.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+    def_fill : str, int or iterable, optional (default='mean')
+        The fill strategy. If an int, the int value will be applied
+        to all missing values in the H2OFrame. If a string, must be one of
+        ('mean', 'median', 'mode') - note that 'mode' is still under
+        development. If an iterable (list, tuple, array, etc.), the length must
+        match the column dimensions. However, if a dict, the strategies
+        will be applied to the mapped columns.
+
+    Attributes
+    ----------
+
+    fill_val_ : int, float or iterable
+        The fill value(s) provided or 
+        derived in the ``fit`` method.
+    """
+
     _min_version = '3.8.2.9'
     _max_version = None
 
@@ -117,6 +169,19 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                                                   def_fill=def_fill)
 
     def fit(self, X):
+        """Fit the imputer.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The H2OFrame to fit
+
+        Returns
+        -------
+
+        self
+        """
         frame = _check_is_frame(X)
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
 
@@ -197,10 +262,14 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : pandas DataFrame
+        X : H2OFrame
             The frame to fit
-        """
 
+        Returns
+        -------
+        X : H2OFrame
+            The transformed (imputed) H2OFrame
+        """
         check_is_fitted(self, 'fill_val_')
         X = _check_is_frame(X)
 
@@ -385,6 +454,13 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     only_return_interactions : bool, optional (default=False)
         If set to True, will only return features in feature_names
         and their respective generated interaction terms.
+
+    Attributes
+    ----------
+
+    fun_ : callable
+        The interaction term function assigned 
+        in the ``fit`` method.
     """
 
     _min_version = '3.8.2.9'
@@ -409,8 +485,13 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
         
-        frame : H2OFrame, shape [n_samples, n_features]
+        frame : H2OFrame, shape=[n_samples, n_features]
             The data to transform
+
+        Returns
+        -------
+
+        self
         """
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
         self.cols = [str(u) for u in frame.columns]  # the cols we'll ultimately operate on
@@ -432,8 +513,14 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
 
-        frame : H2OFrame, shape [n_samples, n_features]
+        frame : H2OFrame, shape=[n_samples, n_features]
             The data to transform
+
+        Returns
+        -------
+
+        frame : H2OFrame
+            The expanded H2OFrame
         """
         check_is_fitted(self, 'fun_')
         _check_is_frame(frame)

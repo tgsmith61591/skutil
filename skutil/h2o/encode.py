@@ -19,8 +19,24 @@ def _val_vec(y):
 
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     """Safely one-hot encodes an H2OVec into an H2OFrame of
-    one-hot encoded dummies. Skips previously unseen levels
-    in the transform section.
+    one-hot encoded dummies. Whereas H2O's default behavior for
+    previously-unseen factor levels is to error, the 
+    ``_H2OVecSafeOneHotEncoder`` skips previously-unseen levels
+    in the ``transform`` section, returning 'nan' (which H2O
+    interprets as ``NA``).
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
     """
 
     _min_version = '3.8.2.9'
@@ -34,6 +50,19 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
                                                        max_version=self._max_version)
 
     def fit(self, y):
+        """Fit the encoder.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The frame to fit
+
+        Returns
+        -------
+
+        self
+        """
         # validate y
         y = _val_vec(y)
 
@@ -52,6 +81,20 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         return self
 
     def transform(self, y):
+        """Transform a new 1d frame after fit.
+
+        Parameters
+        ----------
+
+        X : H2OFrame, 1d
+            The 1d frame to transform
+
+        Returns
+        -------
+
+        output : H2OFrame, 1d
+            The transformed H2OFrame
+        """
         # make sure is fitted, validate y
         check_is_fitted(self, 'classes_')
         y = _val_vec(y)
@@ -157,7 +200,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Returns
         -------
 
-        X_transform : H2OFrame
+        X : H2OFrame
             The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')

@@ -211,6 +211,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
+
+        Returns
+        -------
+
+        self
         """
         self._reset()  # reset if needed
 
@@ -241,14 +246,25 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         return self
 
     @overrides(VizMixin)
+    @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
-        # should be confident final step is an H2OEstimator
         self._final_estimator._plot(timestep=timestep, metric=metric)
 
     @overrides(BaseEstimator)
     def set_params(self, **params):
         """Set the parameters for this pipeline. Will revalidate the
-        steps in the estimator prior to setting the parameters.
+        steps in the estimator prior to setting the parameters. Parameters
+        is a **kwargs-style dictionary whose keys should be prefixed by the
+        name of the step targeted and a double underscore:
+
+            >>> pipeline = H2OPipeline([
+            ...     ('mcf', H2OMulticollinearityFilterer()),
+            ...     ('rf',  H2ORandomForestEstimator())
+            ... ])
+            >>> pipe.set_params(**{
+            ...     'rf__ntrees':     100, 
+            ...     'mcf__threshold': 0.75
+            ... })
 
         Returns
         -------

@@ -32,7 +32,7 @@ def _validate_x_y_ratio(X, y, ratio):
     X : H2OFrame
         The frame from which to sample
 
-    y_name : str
+    y : str
         The name of the column that is the response class
 
     Returns
@@ -89,7 +89,8 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 
     target_feature : str
         The name of the response column. The response column must be
-        bi-class, no more or less.
+        more than a single class and less than 
+        ``skutil.preprocessing.balance.BalancerMixin._max_classes``
 
     ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
@@ -114,8 +115,14 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
-            The data to balance
+        X : H2OFrame, shape=[n_samples, n_features]
+            The imbalanced dataset.
+
+        Returns
+        -------
+
+        Xb : H2OFrame
+            The balanced H2OFrame
         """
         # check on state of X
         frame = _check_is_frame(X)
@@ -129,7 +136,8 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         # since H2O won't allow us to resample (it's considered rearranging)
         # we need to rbind at each point of duplication... this can be pretty
         # inefficient, so we might need to get clever about this...
-        return reorder_h2o_frame(frame, sample_idcs)
+        Xb = reorder_h2o_frame(frame, sample_idcs)
+        return Xb
 
 
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
@@ -153,7 +161,8 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 
     target_feature : str
         The name of the response column. The response column must be
-        biclass, no more or less.
+        more than a single class and less than 
+        ``skutil.preprocessing.balance.BalancerMixin._max_classes``
 
     ratio : float, optional (default=0.2)
         The target ratio of the minority records to the majority records. If the
@@ -181,8 +190,14 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
-            The data to balance
+        X : H2OFrame, shape=[n_samples, n_features]
+            The imbalanced dataset.
+
+        Returns
+        -------
+
+        Xb : H2OFrame
+            The balanced H2OFrame
         """
 
         # check on state of X
@@ -196,4 +211,5 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
         idcs = partitioner.get_indices(self.shuffle)
-        return frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, idcs)
+        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, idcs)
+        return Xb
