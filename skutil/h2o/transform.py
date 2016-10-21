@@ -427,8 +427,9 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
     :math:`In = (x_i * x_j)`
 
-    Note that the H2OInteractionTermTransformer will only operate on the feature_names,
-    and at the transform point will return ALL features plus the newly generated ones.
+    Note that the ``H2OInteractionTermTransformer`` will only operate on the feature_names,
+    and at the transform point will return ALL features plus the newly generated ones
+    unless otherwise specified in the ``only_return_interactions`` parameter.
 
     Parameters
     ----------
