@@ -89,7 +89,7 @@ def test_delegate_decorator():
         @if_delegate_has_method(delegate='c', method='do_something')
         def do_something_new(self):
             # this won't exist because c doesn't have the method
-            pass
+            return False
 
         @if_delegate_has_method('a')
         def do_something(self):
@@ -114,6 +114,10 @@ def test_delegate_decorator():
         @if_delegate_isinstance(('e','d'), instance_type=(int, float))
         def yet_another_instance_method(self):
             return True
+
+
+    # purely for coverage...
+    A().foo()
 
 
     c = C()
@@ -142,6 +146,10 @@ def test_delegate_decorator():
         pass
     else:
         raise AssertionError('should have failed')
+
+    # now this will work:
+    c.c = A()
+    assert not c.do_something_new()
 
 
 def test_safe_log_exp():
