@@ -489,7 +489,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         ----------
 
         path : string, optional (default="")
-            Where to save the POJO.
+            Path to folder in which to save the POJO.
 
         get_jar : bool, optional (default=True)
             Whether to get the jar from the POJO.

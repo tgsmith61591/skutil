@@ -2,6 +2,7 @@ from __future__ import print_function, division
 import warnings
 import numpy as np
 import pandas as pd
+import shutil
 import time
 import os
 
@@ -663,12 +664,15 @@ def test_h2o_with_conn():
 
             grid.fit(frame)
 
-            # test pojo
+            # test pojo no save
             assert not grid.download_pojo()
-            pth = 'model.jar'
+
+            # test pojo with save
+            pth = 'model_pojo'
+            os.mkdir(pth)
             grid.download_pojo(path=pth)
-            assert os.path.exists(pth)
-            os.unlink(pth)
+            assert os.path.exists(os.path.join(pth, "h2o-genmodel.jar"))
+            shutil.rmtree(pth)
 
             # also, can we make it fail for non-permitted minimizer?
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
