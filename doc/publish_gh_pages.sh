@@ -33,6 +33,7 @@ if test $# -eq 1; then
 
     echo "\n\nSee note A.3) git checkout gh-pages\n\n"
     git checkout gh-pages
+    git pull origin gh-pages
 
     echo "\n\nSee note A.4) cp -R ../gh-pages/html/* ../\n\n"
     cp -R ../gh-pages/html/* ../
