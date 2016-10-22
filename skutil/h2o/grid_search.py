@@ -22,7 +22,7 @@ from .frame import _check_is_1d_frame
 from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from skutil.base import overrides
 from ..utils import report_grid_score_detail
-from ..utils.metaestimators import if_delegate_has_method
+from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 from skutil.grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .split import *
@@ -631,6 +631,32 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             The frame to fit
         """
         return self.fit(frame).predict(frame)
+
+    @if_delegate_isinstance(delegate='best_estimator_', instance_type=(H2OEstimator, H2OPipeline))
+    def download_pojo(self, path="", get_jar=True):
+        """This method is injected at runtime if the ``best_estimator_``
+        is an instance of an ``H2OEstimator``. This method downloads the POJO
+        from a fit estimator.
+
+        Parameters
+        ----------
+
+        path : string, optional (default="")
+            Where to save the POJO.
+
+        get_jar : bool, optional (default=True)
+            Whether to get the jar from the POJO.
+
+        Returns
+        -------
+
+        None or string
+            Returns None if ``path`` is "" else, the filepath
+            where the POJO was saved.
+        """
+        is_h2o = isinstance(self.best_estimator_, H2OEstimator)
+        return h2o.download_pojo(self.best_estimator_ if is_h2o else self.best_estimator_._final_estimator, 
+                                 path=path, get_jar=get_jar)
 
     @overrides(VizMixin)
     def plot(self, timestep, metric):

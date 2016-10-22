@@ -88,15 +88,15 @@ def _type_of_target(y):
     y : H2OFrame
         the y variable
 
-        Returns
-        -------
+    Returns
+    -------
 
-    target_type : string
-        One of:
-        * 'continuous'
-        * 'binary'
-        * 'multiclass'
-        * 'unknown'
+    string
+        The target type. One of:
+            * 'continuous'
+            * 'binary'
+            * 'multiclass'
+            * 'unknown'
     """
     _check_is_1d_frame(y)
     if _get_bool(y.isfactor()) or is_integer(y):
@@ -115,7 +115,31 @@ def _check_targets(y_true, y_pred, y_type=None):
     Parameters
     ----------
 
-    y_true, y_pred : both H2OFrames
+    y_true : H2OFrame
+        A 1d H2OFrame of the ground truth.
+
+    y_pred : H2OFrame
+        A 1d H2OFrame of the predictions.
+
+    y_type : string, optional (default=None)
+        If provided, will not test for type.
+        If None, this method will determine the type
+        of column (for ``y_true``). Note that this can
+        be expensive. Thus, the ``make_h2o_scorer`` function
+        caches this variable in the scoring instance.
+
+    Returns
+    -------
+
+    y_type : string
+        The type of frame. One of: 
+        ('multiclass', 'continuous', 'binary', 'unknown')
+
+    y_true : H2OFrame
+        A 1d H2OFrame of the ground truth.
+
+    y_pred : H2OFrame
+        A 1d H2OFrame of the predictions.
     """
     frms = [_check_is_1d_frame(arg) for arg in (y_true, y_pred)]
     shape = frms[0].shape
@@ -154,6 +178,17 @@ def _weighted_sum(sample_score, sample_weight, normalize):
     sample_weight : H2OFrame
         A frame of weights and of matching dims as
         the sample_score frame.
+
+    normalize : bool
+        Whether or not to normalize the sum by
+        the number of observations (equivalent to
+        an average).
+
+    Returns
+    -------
+
+    float
+        The weighted sum
     """
     if normalize:
         return _average(sample_score, weights=sample_weight)
@@ -251,7 +286,8 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     Returns
     -------
 
-    float
+    f : float
+        The F-1 score
     """
     return h2o_fbeta_score(y_actual, y_predict, 1.0, labels=labels,
                            pos_label=pos_label, average=average,
@@ -314,7 +350,8 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     Returns
     -------
 
-    float
+    f : float
+        The F-beta score
     """
     _, _, f, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
                                                      beta=beta,
@@ -380,7 +417,8 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
     Returns
     -------
 
-    float
+    p : float
+        The precision score
     """
 
     p, _, _, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
@@ -446,10 +484,11 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
     sample_weight : H2OFrame, optional (default=None)
         The sample weights
 
-        Returns
-        -------
+    Returns
+    -------
 
-    float
+    r : float
+        The recall score
     """
 
     _, r, _, _ = h2o_precision_recall_fscore_support(y_actual, y_predict,
@@ -638,7 +677,8 @@ def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
 
 
 def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
-    """MAE score for H2O frames
+    """Mean absolute error score for H2O frames. Provides fast computation
+    in a distributed fashion without loading all of the data into memory.
 
     Parameters
     ----------
@@ -660,12 +700,15 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     -------
 
     score : float
+        The mean absolute error
     """
-    return _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
+    score = _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
+    return score
 
 
 def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
-    """Median abs error score for H2O frames
+    """Median absolute error score for H2O frames. Provides fast computation
+    in a distributed fashion without loading all of the data into memory.
 
     Parameters
     ----------
@@ -687,12 +730,15 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     -------
 
     score : float
+        The median absolute error score
     """
-    return flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
+    score = flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
+    return score
 
 
 def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
-    """R^2 score for H2O frames
+    """R^2 score for H2O frames. Provides fast computation
+    in a distributed fashion without loading all of the data into memory.
 
     Parameters
     ----------
@@ -714,6 +760,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     -------
 
     score : float
+        The R^2 score
     """
 
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
@@ -738,11 +785,13 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     valid_score = nonzero_numer & nonzero_denom
 
     # generate output
-    return 1 - (numerator / denominator)
+    score = 1 - (numerator / denominator)
+    return score
 
 
 def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None):
-    """MSE score for H2O frames
+    """Mean squared error score for H2O frames. Provides fast computation
+    in a distributed fashion without loading all of the data into memory.
 
     Parameters
     ----------
@@ -777,7 +826,8 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     if sample_weight is not None:
         diff *= sample_weight
 
-    return flatten_all(diff.mean())[0]
+    score = flatten_all(diff.mean())[0]
+    return score
 
 
 def make_h2o_scorer(score_function, y_true):
@@ -796,6 +846,13 @@ def make_h2o_scorer(score_function, y_true):
         An H2O frame (the ground truth). This is
         used to determine before hand whether the
         type is binary or multiclass.
+
+    Returns
+    -------
+    score_class : ``_H2OScorer``
+        An instance of ``_H2OScorer`` whose ``score`` method
+        will be used for scoring in the ``skutil.h2o.grid_search`` 
+        module.
     """
     score_class = _H2OScorer(score_function, y_true)
     return score_class

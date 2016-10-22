@@ -128,7 +128,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
 
     feature_names
         These are the features that will be dropped by 
-        the `FeatureDropper`
+        the ``FeatureDropper``
     """
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None):
@@ -136,7 +136,20 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
                                                 target_feature=target_feature,
                                                 exclude_features=exclude_features)
 
-    def fit(self, X, y=None):
+    def fit(self, X):
+        """Fit the H2OTransformer.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The H2OFrame that will be fit.
+
+        Returns
+        -------
+
+        return self
+        """
         fn = self.feature_names
         if fn is None:
             fn = []
@@ -192,13 +205,18 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         self.threshold = threshold
 
     def fit(self, X):
-        """Fit the sparsity filterer.
+        """Fit the H2OTransformer.
 
         Parameters
         ----------
 
         X : H2OFrame
-            The frame to fit
+            The H2OFrame that will be fit.
+
+        Returns
+        -------
+
+        return self
         """
         frame, thresh = _check_is_frame(X), self.threshold
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
@@ -279,15 +297,19 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         self.use = use
 
     def fit(self, X):
-        """Fit the multicollinearity filterer.
+        """Fit the H2OTransformer.
 
         Parameters
         ----------
 
         X : H2OFrame
-            The frame to fit
-        """
+            The H2OFrame that will be fit.
 
+        Returns
+        -------
+
+        return self
+        """
         self.fit_transform(X)
         return self
 
@@ -300,6 +322,12 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
         X : H2OFrame
             The frame to fit
+
+        Returns
+        -------
+
+        X : H2OFrame
+            The transformed frame
         """
         frame, thresh = _check_is_frame(X), self.threshold
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
@@ -377,6 +405,11 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
         X : H2OFrame
             The frame to fit
+
+        Returns
+        -------
+
+        self
         """
         self.fit_transform(X)
         return self
@@ -389,6 +422,12 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
         X : H2OFrame
             The frame to fit
+
+        Returns
+        -------
+
+        X : H2OFrame
+            The transformed frame
         """
         frame, thresh = _check_is_frame(X), self.threshold
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)

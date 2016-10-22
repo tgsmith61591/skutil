@@ -13,13 +13,20 @@ __all__ = [
 
 def _check_is_1d_frame(X):
     """Check whether X is an H2OFrame
-    and that it's a 1d column.
+    and that it's a 1d column. If not, will
+    raise an ``AssertionError``
 
     Parameters
     ----------
 
     X : H2OFrame
         The H2OFrame
+
+    Raises
+    ------
+
+    ``AssertionError`` if the ``X`` variable
+    is not a 1-dimensional H2OFrame.
 
     Returns
     -------

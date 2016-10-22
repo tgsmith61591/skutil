@@ -16,7 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
-from skutil.utils.metaestimators import if_delegate_has_method
+from skutil.utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 
 from matplotlib.testing.decorators import cleanup
 
@@ -80,6 +80,7 @@ def test_delegate_decorator():
             self.a = A()
             self.b = B()
             self.c = Other()
+            self.d = 4
 
         @if_delegate_has_method(delegate=['a','b'])
         def foo(self):
@@ -88,7 +89,7 @@ def test_delegate_decorator():
         @if_delegate_has_method(delegate='c', method='do_something')
         def do_something_new(self):
             # this won't exist because c doesn't have the method
-            pass
+            return False
 
         @if_delegate_has_method('a')
         def do_something(self):
@@ -97,6 +98,26 @@ def test_delegate_decorator():
         @if_delegate_has_method('b')
         def do_something_else(self):
             return self.b.do_something_else()
+
+        @if_delegate_has_method('something_that_does_not_exist')
+        def wont_work(self):
+            pass
+
+        @if_delegate_isinstance('a', instance_type=int)
+        def some_instance_method(self):
+            pass
+
+        @if_delegate_isinstance('d', instance_type=int)
+        def some_other_instance_method(self):
+            return True
+
+        @if_delegate_isinstance(('e','d'), instance_type=(int, float))
+        def yet_another_instance_method(self):
+            return True
+
+
+    # purely for coverage...
+    A().foo()
 
 
     c = C()
@@ -107,6 +128,28 @@ def test_delegate_decorator():
     assert not hasattr(c, 'do_something_new')
     assert c.do_something() == c.a.do_something()
     assert c.do_something_else() == c.b.do_something_else()
+    assert c.some_other_instance_method()
+    assert c.yet_another_instance_method()
+
+
+    # these don't work with assert_fails
+    try:
+        c.wont_work()
+    except AttributeError:
+        pass
+    else:
+        raise AssertionError('should have failed')
+
+    try:
+        c.some_instance_method()
+    except TypeError as t:
+        pass
+    else:
+        raise AssertionError('should have failed')
+
+    # now this will work:
+    c.c = A()
+    assert not c.do_something_new()
 
 
 def test_safe_log_exp():

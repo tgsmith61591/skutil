@@ -21,7 +21,13 @@ __all__ = [
 def _validate_all_numeric(X):
     """Validate that all columns in X
     are numeric types. If not, raises a
-    ValueError
+    ``ValueError``
+
+    Parameters
+    ----------
+
+    X : pd.DataFrame
+        The dataframe to validate
 
     Raises
     ------
