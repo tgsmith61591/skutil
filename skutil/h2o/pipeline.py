@@ -248,6 +248,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     @overrides(VizMixin)
     @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
+        """If the ``_final_estimator`` is an ``H2OEstimator``,
+        this method is injected at runtime. This method generates
+        a plot of the estimator's scoring over a provided timestep.
+
+        Parameters
+        ----------
+
+        timestep : string
+            Might be one of ('epochs', 'number_of_trees') and
+            provides the x-axis of the plot.
+
+        metric : string
+            Might be one of ('MSE', 'logloss') and provides
+            the y-axis of the plot.
+        """
         self._final_estimator._plot(timestep=timestep, metric=metric)
 
     @overrides(BaseEstimator)
