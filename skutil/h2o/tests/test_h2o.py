@@ -6,6 +6,7 @@ import time
 import os
 
 import h2o
+import getpass
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
                             H2OGeneralizedLinearEstimator,
@@ -664,6 +665,10 @@ def test_h2o_with_conn():
 
             # test pojo
             assert not grid.download_pojo()
+            pth = 'model.jar'
+            grid.download_pojo(path=pth)
+            assert os.path.exists(pth)
+            os.unlink(pth)
 
             # also, can we make it fail for non-permitted minimizer?
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
