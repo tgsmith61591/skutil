@@ -325,6 +325,9 @@ def test_h2o_with_conn():
                 fe = pipe._final_estimator
                 ns = pipe.named_steps
 
+                # test pojo
+                assert not pipe.download_pojo()
+
             # test with all transformers and no estimator
             pipe = H2OPipeline([
                 ('nzv', H2ONearZeroVarianceFilterer()),
@@ -658,6 +661,9 @@ def test_h2o_with_conn():
                                          validation_frame=frame)
 
             grid.fit(frame)
+
+            # test pojo
+            assert not grid.download_pojo()
 
             # also, can we make it fail for non-permitted minimizer?
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,

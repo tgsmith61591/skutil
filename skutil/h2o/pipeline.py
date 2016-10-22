@@ -14,7 +14,7 @@ from skutil.base import overrides
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
-from ..utils.metaestimators import if_delegate_has_method
+from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 from ..utils import flatten_all
 
 try:
@@ -146,13 +146,16 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             raise TypeError("Last step of chain should be an H2OEstimator or BaseH2OTransformer, "
                             "not of type %s" % type(estimator))
 
+
     @property
     def named_steps(self):
         return dict(self.steps)
 
+
     @property
     def _final_estimator(self):
         return self.steps[-1][1]
+
 
     def _pre_transform(self, frame=None):
         frame_t = frame
@@ -193,6 +196,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         # this will have y re-combined in the matrix
         return frame_t, next_feature_names
 
+
     def _reset(self):
         """Each individual step should handle its own
         state resets, but this method will reset any Pipeline
@@ -200,6 +204,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         if hasattr(self, 'training_cols_'):
             del self.training_cols_
+
 
     def fit(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -245,6 +250,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
+
     @overrides(VizMixin)
     @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
@@ -264,6 +270,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             the y-axis of the plot.
         """
         self._final_estimator._plot(timestep=timestep, metric=metric)
+
 
     @overrides(BaseEstimator)
     def set_params(self, **params):
@@ -329,6 +336,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
+
     @staticmethod
     def load(location):
         with open(location) as f:
@@ -355,12 +363,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
             model.steps[-1] = (model.est_name_, the_h2o_model)
 
-            # no longer delete these attributes!! What if we
-            # are interested in loading twice in a row?
-            # del model.model_loc_
-            # del model.est_name_
-
         return model
+
 
     def _save_internal(self, **kwargs):
         loc = kwargs.pop('location')
@@ -389,6 +393,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if ends_in_h2o:
             self.steps[-1] = last_step_
 
+
     @if_delegate_has_method(delegate='_final_estimator')
     def predict(self, frame):
         """Applies transforms to the data, and the predict method of the
@@ -408,6 +413,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self.steps[-1][-1].predict(Xt)
 
+
     @if_delegate_has_method(delegate='_final_estimator', method='predict')
     def fit_predict(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -422,6 +428,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             pipeline.
         """
         return self.fit(frame).predict(frame)
+
 
     @if_delegate_has_method(delegate='_final_estimator')
     def transform(self, frame):
@@ -441,6 +448,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return Xt
 
+
     @if_delegate_has_method(delegate='_final_estimator', method='transform')
     def fit_transform(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -456,6 +464,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         return self.fit(frame).transform(frame)
 
+
     @if_delegate_has_method(delegate='_final_estimator')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -468,3 +477,28 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Whether to return a pandas dataframe
         """
         return self._final_estimator.varimp(use_pandas=use_pandas)
+
+
+    @if_delegate_isinstance(delegate='_final_estimator', instance_type=H2OEstimator)
+    def download_pojo(self, path="", get_jar=True):
+        """This method is injected at runtime if the ``_final_estimator``
+        is an instance of an ``H2OEstimator``. This method downloads the POJO
+        from a fit estimator.
+
+        Parameters
+        ----------
+
+        path : string, optional (default="")
+            Where to save the POJO.
+
+        get_jar : bool, optional (default=True)
+            Whether to get the jar from the POJO.
+
+        Returns
+        -------
+
+        None or string
+            Returns None if ``path`` is "" else, the filepath
+            where the POJO was saved.
+        """
+        return h2o.download_pojo(self._final_estimator, path=path, get_jar=get_jar)
