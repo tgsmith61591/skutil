@@ -16,6 +16,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
+from skutil.utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
+
+from matplotlib.testing.decorators import cleanup
 
 # Def data for testing
 iris = load_iris()
@@ -42,6 +45,111 @@ def test_suppress():
         warnings.simplefilter("always")
         raise_warning()  # should be caught
         assert len(w) == 0, 'expected no warning to be thrown'
+
+
+def test_delegate_decorator():
+    # some anonymous classes
+    class A(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            return 'A'
+
+        def do_something(self):
+            return 'something'
+
+
+    class B(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            return 'B'
+
+        def do_something_else(self):
+            return 'something else'
+
+    class Other(object):
+        def __init__(self):
+            pass
+
+
+    class C(object):
+        def __init__(self):
+            self.a = A()
+            self.b = B()
+            self.c = Other()
+            self.d = 4
+
+        @if_delegate_has_method(delegate=['a','b'])
+        def foo(self):
+            return self.b.foo()
+
+        @if_delegate_has_method(delegate='c', method='do_something')
+        def do_something_new(self):
+            # this won't exist because c doesn't have the method
+            return False
+
+        @if_delegate_has_method('a')
+        def do_something(self):
+            return self.a.do_something()
+
+        @if_delegate_has_method('b')
+        def do_something_else(self):
+            return self.b.do_something_else()
+
+        @if_delegate_has_method('something_that_does_not_exist')
+        def wont_work(self):
+            pass
+
+        @if_delegate_isinstance('a', instance_type=int)
+        def some_instance_method(self):
+            pass
+
+        @if_delegate_isinstance('d', instance_type=int)
+        def some_other_instance_method(self):
+            return True
+
+        @if_delegate_isinstance(('e','d'), instance_type=(int, float))
+        def yet_another_instance_method(self):
+            return True
+
+
+    # purely for coverage...
+    A().foo()
+
+
+    c = C()
+    assert hasattr(c, 'foo')
+    assert hasattr(c, 'do_something')
+    assert hasattr(c, 'do_something_else')
+    assert c.foo() == c.b.foo()
+    assert not hasattr(c, 'do_something_new')
+    assert c.do_something() == c.a.do_something()
+    assert c.do_something_else() == c.b.do_something_else()
+    assert c.some_other_instance_method()
+    assert c.yet_another_instance_method()
+
+
+    # these don't work with assert_fails
+    try:
+        c.wont_work()
+    except AttributeError:
+        pass
+    else:
+        raise AssertionError('should have failed')
+
+    try:
+        c.some_instance_method()
+    except TypeError as t:
+        pass
+    else:
+        raise AssertionError('should have failed')
+
+    # now this will work:
+    c.c = A()
+    assert not c.do_something_new()
 
 
 def test_safe_log_exp():
@@ -87,13 +195,27 @@ def test_grid_search_fix():
 
         # try with just a transformer
         grid3 = _SK17GridSearchCV(estimator=pipe2, param_grid=hyp2, cv=2)
-        grid3.fit_transform(df, None)
+        X_trans = grid3.fit_transform(df, None)
+
+        # test inverse transform
+        grid3.inverse_transform(X_trans)
 
         # __repr__ coverage
         grid3.grid_scores_[0]
 
         # test fail with mismatched dims
         assert_fails(grid3.fit, ValueError, X, np.array([1,2,3]))
+
+        # test value error on missing scorer_
+        sco = grid2.scorer_
+        grid2.scorer_ = None
+        assert_fails(grid2.score, ValueError, df, y)
+        grid2.scorer_ = sco
+
+        # test predict proba
+        grid2.predict_proba(df)
+        grid2.predict_log_proba(df)
+
 
 
 def test_fixes():
@@ -160,16 +282,17 @@ def test_pd_stats():
     assert_fails(pd_stats, ValueError, Y, 'bad_type')
 
 
+@cleanup
 def test_corr():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
+        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
+        corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
+        corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
+        corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
 
-        pass
-        # we'll lose coverage, but it'll save the windows from tying things up...
-        # corr_plot(X_no_targ)
-        # corr_plot(X_no_targ, kde=True, n_levels=3)
+        assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
 
 
 def test_bytes():
@@ -199,6 +322,7 @@ def test_is_numeric():
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)
     assert not is_numeric('a')
+    assert not is_numeric(True)
 
 
 def test_get_numeric():

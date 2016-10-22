@@ -24,13 +24,28 @@ __all__ = [
     'load_iris_h2o',
     'load_boston_h2o',
     'load_breast_cancer_h2o',
+    'rbind_all',
     'reorder_h2o_frame',
     'shuffle_h2o_frame'
 ]
 
 
 def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
-    """Load the iris dataset into an H2OFrame"""
+    """Load the iris dataset into an H2OFrame
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="Species")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+    """
+
     X = from_pandas(load_iris_df(include_tgt, tgt_name, shuffle))
     if include_tgt:
         X[tgt_name] = X[tgt_name].asfactor()
@@ -39,7 +54,21 @@ def load_iris_h2o(include_tgt=True, tgt_name="Species", shuffle=False):
 
 
 def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
-    """Load the breast cancer dataset into an H2OFrame"""
+    """Load the breast cancer dataset into an H2OFrame
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+
+    """
     X = from_pandas(load_breast_cancer_df(include_tgt, tgt_name, shuffle))
     if include_tgt:
         X[tgt_name] = X[tgt_name].asfactor()
@@ -48,7 +77,22 @@ def load_breast_cancer_h2o(include_tgt=True, tgt_name="target", shuffle=False):
 
 
 def load_boston_h2o(include_tgt=True, tgt_name="target", shuffle=False):
-    """Load the boston housing dataset into an H2OFrame"""
+    """Load the boston housing dataset into an H2OFrame
+
+
+    Parameters
+    ----------
+
+    include_tgt : bool, optional (default=True)
+        Whether or not to include the target
+
+    tgt_name : str, optional (default="target")
+        The name of the target column.
+
+    shuffle : bool, optional (default=False)
+        Whether or not to shuffle the data
+
+    """
     X = from_pandas(load_boston_df(include_tgt, tgt_name, shuffle))
     return X
 
@@ -56,6 +100,12 @@ def load_boston_h2o(include_tgt=True, tgt_name="target", shuffle=False):
 def h2o_col_to_numpy(column):
     """Return a 1d numpy array from a
     single H2OFrame column.
+
+    Parameters
+    ----------
+
+    column : H2OFrame column
+        A column from an H2OFrame
 
     Returns
     -------
@@ -307,6 +357,38 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     n_bytes = n_bits // 8
 
     return human_bytes(n_bytes, unit)
+
+
+def rbind_all(*args):
+    """Given a variable set of H2OFrames,
+    rbind all of them into a single H2OFrame.
+
+    Parameters
+    ----------
+
+    array1, array2, ... : H2OFrame, shape=(n_samples, n_features)
+        The H2OFrames to rbind. All should match in column
+        dimensionality.
+
+    Returns
+    -------
+
+    f : H2OFrame
+        The rbound H2OFrame
+    """
+    # check all are H2OFrames
+    for x in args:
+        _check_is_frame(x)
+
+    # check col dim
+    if np.unique([x.shape[1] for x in args]).shape[0] != 1:
+        raise ValueError('inconsistent column dimensions')
+
+    f = None
+    for x in args:
+        f = x if f is None else f.rbind(x)
+
+    return f
 
 
 def reorder_h2o_frame(X, idcs):

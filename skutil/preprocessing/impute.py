@@ -21,7 +21,13 @@ __all__ = [
 def _validate_all_numeric(X):
     """Validate that all columns in X
     are numeric types. If not, raises a
-    ValueError
+    ``ValueError``
+
+    Parameters
+    ----------
+
+    X : pd.DataFrame
+        The dataframe to validate
 
     Raises
     ------
@@ -58,11 +64,9 @@ def _val_values(vals):
     in valid values.
     """
     if not all([
-                   (is_numeric(i) or \
-                                (isinstance(i, six.string_types)) and \
-                                        i in ('mode', 'mean', 'median')) \
+                   (is_numeric(i) or (isinstance(i, six.string_types)) and i in ('mode', 'mean', 'median'))
                    for i in vals
-                   ]):
+            ]):
         raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
                         'Got: %s' % ', '.join(vals))
 
@@ -80,8 +84,8 @@ class ImputerMixin:
     _def_fill = -999999
 
 
-class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                      SelectiveMixin, TransformerMixin, 
+class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator,
+                                      SelectiveMixin, TransformerMixin,
                                       ImputerMixin)):
     """A base class for all imputers. Handles assignment of the fill value.
 
@@ -171,7 +175,7 @@ class SelectiveImputer(_BaseImputer):
 
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
-        cols = self.cols if not self.cols is None else X.columns.values
+        cols = self.cols if self.cols is not None else X.columns.values
 
         # validate the fill, do fit
         fill = self.fill_
@@ -260,7 +264,7 @@ class SelectiveImputer(_BaseImputer):
         check_is_fitted(self, 'modes_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
-        cols = self.cols if not self.cols is None else X.columns.values
+        cols = self.cols if self.cols is not None else X.columns.values
 
         # get the fills
         modes = self.modes_
@@ -348,7 +352,7 @@ class _BaseBaggedImputer(_BaseImputer):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
-        cols = self.cols if not self.cols is None else X.columns.values
+        cols = self.cols if self.cols is not None else X.columns.values
 
         # subset, validate
         # we have to validate that all of the columns we're going to impute
@@ -469,7 +473,7 @@ class _BaseBaggedImputer(_BaseImputer):
             X_test = X[features]  # we need another copy
 
             # if col is in the features, there's something wrong internally
-            assert not col in features, 'predictive column should not be in fit features (%s)' % col
+            assert col not in features, 'predictive column should not be in fit features (%s)' % col
 
             # since this is a copy, we can add the missing vals where needed
             X_test = X_test.fillna(self.fill_)

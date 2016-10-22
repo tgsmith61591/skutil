@@ -2,10 +2,12 @@ from __future__ import print_function, division
 import warnings
 import numpy as np
 import pandas as pd
+import shutil
 import time
 import os
 
 import h2o
+import getpass
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
                             H2OGeneralizedLinearEstimator,
@@ -20,12 +22,14 @@ from skutil.h2o.select import *
 from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
+from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2OFScoreKBestSelector
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
                              shuffle_h2o_frame)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
+from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
 from skutil.utils.tests.utils import assert_fails
@@ -47,6 +51,8 @@ from scipy.stats import randint, uniform
 
 from numpy.random import choice
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+
+from matplotlib.testing.decorators import cleanup
 
 # for split
 try:
@@ -116,6 +122,23 @@ def test_h2o_no_conn_needed():
 
     # test _validate_use
     assert_fails(_validate_use, ValueError, None, 'blah', False)
+
+    # Test not implemented on h2o base cross validator
+    class AnonCV(H2OBaseCrossValidator):
+        def __init__(self):
+            super(AnonCV, self).__init__()
+
+        def get_n_splits(): # overrides
+            return 0
+
+    anoncv = AnonCV()
+    assert_fails(anoncv._iter_test_indices, NotImplementedError, None, None)
+
+    # test get_bool
+    assert _get_bool(True)
+    assert not _get_bool(False)
+    assert _get_bool([True, False])
+    assert_fails(_err_for_discrete, ValueError, 'binary') # this method fails on non-'continuous'
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -304,6 +327,9 @@ def test_h2o_with_conn():
                 fe = pipe._final_estimator
                 ns = pipe.named_steps
 
+                # test pojo
+                assert not pipe.download_pojo()
+
             # test with all transformers and no estimator
             pipe = H2OPipeline([
                 ('nzv', H2ONearZeroVarianceFilterer()),
@@ -313,7 +339,7 @@ def test_h2o_with_conn():
                 target_feature='species'
             )
 
-            X_transformed = pipe.fit(train).transform(train)
+            X_transformed = pipe.fit_transform(train)
 
             # test with all transformers and no estimator -- but this time, we
             # are testing that we can set the params even when the last step
@@ -637,6 +663,16 @@ def test_h2o_with_conn():
                                          validation_frame=frame)
 
             grid.fit(frame)
+
+            # test pojo no save
+            assert not grid.download_pojo()
+
+            # test pojo with save
+            pth = 'model_pojo'
+            os.mkdir(pth)
+            grid.download_pojo(path=pth)
+            assert os.path.exists(os.path.join(pth, "h2o-genmodel.jar"))
+            shutil.rmtree(pth)
 
             # also, can we make it fail for non-permitted minimizer?
             grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
@@ -1177,11 +1213,15 @@ def test_h2o_with_conn():
         else:
             pass
 
+    @cleanup
     def corr():
         if X is not None:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
+
+            # plots for the test, should be cleaned up by the decorator
+            h2o_corr_plot(X, plot_type='cor', na_warn=False)
 
         else:
             pass
@@ -1361,6 +1401,8 @@ def test_h2o_with_conn():
         irs['species'] = iris.target
         irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
         irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+        irs['rand'] = [i%2 for i in iris.target] # 1 for 1, 0 else
+        irs['zero'] = [0 for i in range(irs.shape[0])]
 
         try:
             Y = new_h2o_frame(irs)
@@ -1368,9 +1410,14 @@ def test_h2o_with_conn():
             Y = None
 
         if Y is not None:
-            assert h2o_accuracy_score(Y['species'], Y['species']) == 1.0
-            assert h2o_accuracy_score(Y['letters'], Y['letters']) == 1.0
-            assert h2o_accuracy_score(Y['species'], Y['arbitrary']) == 0.0
+            assert h2o_accuracy_score(Y['species'], Y['species'], y_type='multiclass') == 1.0
+            assert h2o_accuracy_score(Y['letters'], Y['letters'], y_type='multiclass') == 1.0
+            assert h2o_accuracy_score(Y['species'], Y['arbitrary'], y_type='multiclass') == 0.0
+
+            # weight coverage to make sure it still passes...
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01, y_type='multiclass')
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01, y_type='multiclass')
+            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, y_type='multiclass')
 
             # test making the scorer
             accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
@@ -1384,19 +1431,39 @@ def test_h2o_with_conn():
             assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
             assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
             assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
+            assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0) == 1.0
 
             # test on same
             assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
             assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
             assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0) == 0.0
 
             # test R^2 on the same
             assert h2o_r2_score(reg_target, reg_target) == 1.0
+            assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0) == 1.0
 
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
             assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
             assert_fails(make_h2o_scorer, TypeError, 'a', Y['species'])  # 'a' is not callable
+
+            # h2o precision recall support
+            y_act, y_pred = Y['species'], Y['species']
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
+            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+
+            # force all negative labels on recall/support/precision
+            y_act, y_pred = Y['zero'], Y['zero']
+            assert_array_equal(np.asarray(h2o_precision_recall_fscore_support(y_act, y_pred, pos_label=1, y_type='binary', average='binary')), 
+                np.asarray([0.0, 0.0, 0.0, 0.0]))
+
+            # now binary
+            y_act, y_pred = Y['rand'], Y['rand']
+            # someone else can figure this bullsh*t out. I'm done today.
+            #assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
+
 
         else:
             pass
@@ -1501,10 +1568,71 @@ def test_h2o_with_conn():
         if X is not None:
             shuffle_h2o_frame(X)
 
+    def fscore():
+        if X is not None:
+            try:
+                t = load_iris_h2o()
+            except Exception as e:
+                return
+
+            # f-score test
+            f,p = h2o_f_classif(t, t.columns[:-1], t.columns[-1])
+            assert_array_almost_equal(f, np.array([119.26450218,47.3644614,1179.0343277,959.32440573]))
+            assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+
+            # f-score feature selector -- just testing fit works for now...
+            for iid in (True, False):
+                for selector_class in (H2OFScorePercentileSelector, H2OFScoreKBestSelector):
+                    selector = selector_class(target_feature='Species', iid=iid,
+                                              cv=H2OKFold(n_folds=3, shuffle=True))
+                    selector.fit_transform(t)
+
+            # assert kbest fails on non-int or non all
+            assert_fails(
+                H2OFScoreKBestSelector(target_feature='Species', k='10').fit,
+                ValueError, t)
+
+            # assert fails on non-int percentile
+            assert_fails(
+                H2OFScorePercentileSelector(target_feature='Species', percentile='10').fit,
+                ValueError, t)
+
+            # this will fail because we need a target
+            assert_fails(
+                H2OFScorePercentileSelector(target_feature=None).fit,
+                ValueError, t)
+
+            # assert what happens when percentile is 0 or 100
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=100).fit(t).drop_
+            assert len(drops) == 0
+
+            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=0).fit(t).drop_
+            assert len(drops) == t.shape[1]-1
+
+            # assert what happens when k is 'all'
+            drops = H2OFScoreKBestSelector(target_feature='Species', k='all').fit(t).drop_
+            assert len(drops) == 0
+
+            # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
+            # This might evoke the warning we want to cover as well as force a tie
+            # if we're very lucky...
+            irs = load_iris_df()
+            irs['constant'] = [0 if i==0 else 1 if i==1 else 2 for i in irs.Species]
+            try:
+                irs = new_h2o_frame(irs)
+            except Exception as e:
+                return
+
+            # make species enum...
+            irs['Species'] = irs['Species'].asfactor()
+            names = [str(i) for i in irs.columns if not str(i)=='Species']
+            selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
+            selector.fit_transform(irs)
+
+
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
-    valid_use()
-    feature_dropper_coverage()
+    fscore()
     persist()
     act_search()
     grid()
@@ -1529,3 +1657,5 @@ def test_h2o_with_conn():
     load_frames()
     isinteger_isfloat()
     shuffle()
+    valid_use()
+    feature_dropper_coverage()

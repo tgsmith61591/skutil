@@ -62,6 +62,25 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator,
         """
         raise NotImplementedError('this should be implemented by a subclass')
 
+    def inverse_transform(self, X):
+        """Given a transformed dataframe, inverse the transformation.
+
+        Parameters
+        ----------
+
+        X : pd.DataFrame
+            The transformed dataframe
+
+        Returns
+        -------
+
+        Xi : pd.DataFrame
+            The inverse-transformed dataframe
+        """
+        X, _ = validate_is_pd(X, None)
+        Xi = self.get_decomposition().inverse_transform(X)
+        return Xi
+
 
 class SelectivePCA(_BaseSelectiveDecomposer):
     """A class that will apply PCA only to a select group
@@ -185,7 +204,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in cols]
+        other_nms = [nm for nm in X.columns if nm not in cols]
         transform = self.pca_.transform(X[cols])
 
         # do weighting if necessary
@@ -351,7 +370,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        other_nms = [nm for nm in X.columns if not nm in cols]
+        other_nms = [nm for nm in X.columns if nm not in cols]
         transform = self.svd_.transform(X[cols])
         left = pd.DataFrame.from_records(data=transform,
                                          columns=[('Concept%i' % (i + 1)) for i in range(transform.shape[1])])

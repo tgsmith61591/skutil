@@ -145,6 +145,13 @@ def test_selective_imputer():
     assert_fails(SelectiveImputer(def_fill='a').fit, TypeError, a)
     assert_fails(SelectiveImputer(def_fill=[1, 2, 'a']).fit, TypeError, a)
 
+    # generate anonymous class for test...
+    class SomeObject(object):
+        def __init__(self):
+            pass
+
+    assert_fails(SelectiveImputer(def_fill=SomeObject()).fit, TypeError, a)
+
 
 def test_bagged_imputer_errors():
     nms = ['a', 'b', 'c', 'd', 'e']

@@ -19,9 +19,8 @@ try:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        # do actual import
-        # import matplotlib as mpl
-        # mpl.use('TkAgg') # set backend
+        import matplotlib
+        matplotlib.use('Agg')  # set backend
         from matplotlib import pyplot as plt
 
         # log it
@@ -588,7 +587,8 @@ def is_entirely_numeric(X):
 
 
 def is_integer(x):
-    return isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    return (not isinstance(x, (bool, np.bool))) and \
+        isinstance(x, (numbers.Integral, int, long, np.int, np.long))
 
 
 def is_float(x):

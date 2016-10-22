@@ -14,7 +14,7 @@ from skutil.base import overrides
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
-from ..utils.metaestimators import if_delegate_has_method
+from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 from ..utils import flatten_all
 
 try:
@@ -137,7 +137,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         estimator = estimators[-1]
 
         for t in transforms:
-            if (not isinstance(t, BaseH2OTransformer)):
+            if not isinstance(t, BaseH2OTransformer):
                 raise TypeError("All intermediate steps of the chain should "
                                 "be instances of BaseH2OTransformer"
                                 " '%s' (type %s) isn't)" % (t, type(t)))
@@ -146,13 +146,16 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             raise TypeError("Last step of chain should be an H2OEstimator or BaseH2OTransformer, "
                             "not of type %s" % type(estimator))
 
+
     @property
     def named_steps(self):
         return dict(self.steps)
 
+
     @property
     def _final_estimator(self):
         return self.steps[-1][1]
+
 
     def _pre_transform(self, frame=None):
         frame_t = frame
@@ -193,6 +196,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         # this will have y re-combined in the matrix
         return frame_t, next_feature_names
 
+
     def _reset(self):
         """Each individual step should handle its own
         state resets, but this method will reset any Pipeline
@@ -200,6 +204,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         if hasattr(self, 'training_cols_'):
             del self.training_cols_
+
 
     def fit(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -211,6 +216,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         frame : h2o Frame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
+
+        Returns
+        -------
+
+        self
         """
         self._reset()  # reset if needed
 
@@ -222,7 +232,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         # if there are any exclude names, remove them from training_cols_, then assign to self
         if self.exclude_from_fit:
-            training_cols_ = [i for i in training_cols_ if not i in self.exclude_from_fit]
+            training_cols_ = [i for i in training_cols_ if i not in self.exclude_from_fit]
         self.training_cols_ = training_cols_
 
         # if the last step is not an h2o estimator, we need to do things differently...
@@ -240,15 +250,43 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
+
     @overrides(VizMixin)
+    @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
-        # should be confident final step is an H2OEstimator
+        """If the ``_final_estimator`` is an ``H2OEstimator``,
+        this method is injected at runtime. This method generates
+        a plot of the estimator's scoring over a provided timestep.
+
+        Parameters
+        ----------
+
+        timestep : string
+            Might be one of ('epochs', 'number_of_trees') and
+            provides the x-axis of the plot.
+
+        metric : string
+            Might be one of ('MSE', 'logloss') and provides
+            the y-axis of the plot.
+        """
         self._final_estimator._plot(timestep=timestep, metric=metric)
+
 
     @overrides(BaseEstimator)
     def set_params(self, **params):
         """Set the parameters for this pipeline. Will revalidate the
-        steps in the estimator prior to setting the parameters.
+        steps in the estimator prior to setting the parameters. Parameters
+        is a **kwargs-style dictionary whose keys should be prefixed by the
+        name of the step targeted and a double underscore:
+
+            >>> pipeline = H2OPipeline([
+            ...     ('mcf', H2OMulticollinearityFilterer()),
+            ...     ('rf',  H2ORandomForestEstimator())
+            ... ])
+            >>> pipe.set_params(**{
+            ...     'rf__ntrees':     100, 
+            ...     'mcf__threshold': 0.75
+            ... })
 
         Returns
         -------
@@ -262,7 +300,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         parm_dict = {}
         for k, v in six.iteritems(params):
             key, val = k.split('__')
-            if not key in parm_dict:
+            if key not in parm_dict:
                 parm_dict[key] = {}
 
             # step_name : {parm_name : v}
@@ -298,6 +336,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
+
     @staticmethod
     def load(location):
         with open(location) as f:
@@ -324,12 +363,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
             model.steps[-1] = (model.est_name_, the_h2o_model)
 
-            # no longer delete these attributes!! What if we
-            # are interested in loading twice in a row?
-            # del model.model_loc_
-            # del model.est_name_
-
         return model
+
 
     def _save_internal(self, **kwargs):
         loc = kwargs.pop('location')
@@ -358,6 +393,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if ends_in_h2o:
             self.steps[-1] = last_step_
 
+
     @if_delegate_has_method(delegate='_final_estimator')
     def predict(self, frame):
         """Applies transforms to the data, and the predict method of the
@@ -377,6 +413,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self.steps[-1][-1].predict(Xt)
 
+
     @if_delegate_has_method(delegate='_final_estimator', method='predict')
     def fit_predict(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -391,6 +428,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             pipeline.
         """
         return self.fit(frame).predict(frame)
+
 
     @if_delegate_has_method(delegate='_final_estimator')
     def transform(self, frame):
@@ -410,6 +448,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return Xt
 
+
     @if_delegate_has_method(delegate='_final_estimator', method='transform')
     def fit_transform(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -425,6 +464,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         return self.fit(frame).transform(frame)
 
+
     @if_delegate_has_method(delegate='_final_estimator')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -437,3 +477,28 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Whether to return a pandas dataframe
         """
         return self._final_estimator.varimp(use_pandas=use_pandas)
+
+
+    @if_delegate_isinstance(delegate='_final_estimator', instance_type=H2OEstimator)
+    def download_pojo(self, path="", get_jar=True):
+        """This method is injected at runtime if the ``_final_estimator``
+        is an instance of an ``H2OEstimator``. This method downloads the POJO
+        from a fit estimator.
+
+        Parameters
+        ----------
+
+        path : string, optional (default="")
+            Path to folder in which to save the POJO.
+
+        get_jar : bool, optional (default=True)
+            Whether to get the jar from the POJO.
+
+        Returns
+        -------
+
+        None or string
+            Returns None if ``path`` is "" else, the filepath
+            where the POJO was saved.
+        """
+        return h2o.download_pojo(self._final_estimator, path=path, get_jar=get_jar)

@@ -1,32 +1,25 @@
 from __future__ import division, print_function, absolute_import
-
 import numbers
 import warnings
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
-
-try:
-    from h2o import H2OEstimator
-except ImportError as e:
-    from h2o.estimators.estimator_base import H2OEstimator
-
 from .base import _check_is_frame
 from skutil.base import overrides
-
 from sklearn.externals import six
 from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
 from math import ceil, floor
+try:
+    from h2o import H2OEstimator
+except ImportError as e:
+    from h2o.estimators.estimator_base import H2OEstimator
 
 try:
     from sklearn.model_selection import KFold
-
     SK18 = True
 except ImportError as e:
     from sklearn.cross_validation import KFold
-
     SK18 = False
 
 __all__ = [
@@ -230,11 +223,11 @@ def _validate_shuffle_split_init(test_size, train_size):
 
 
 def _validate_shuffle_split(n_samples, test_size, train_size):
-    if test_size is not None and np.asarray(test_size).dtype.kind == 'i'and test_size >= n_samples:
+    if test_size is not None and np.asarray(test_size).dtype.kind == 'i' and test_size >= n_samples:
         raise ValueError('test_size=%d should be smaller '
                          'than the number of samples %d' % (test_size, n_samples))
 
-    if train_size is not None and np.asarray(train_size).dtype.kind == 'i'and train_size >= n_samples:
+    if train_size is not None and np.asarray(train_size).dtype.kind == 'i' and train_size >= n_samples:
         raise ValueError('train_size=%d should be smaller '
                          'than the number of samples %d' % (train_size, n_samples))
 
@@ -465,7 +458,7 @@ class H2OStratifiedKFold(_H2OBaseKFold):
         if np.all(self.n_folds > y_counts):
             raise ValueError(('All the n_labels for individual classes'
                               ' are less than %d folds.'
-                              % (self.n_folds)), Warning)
+                              % self.n_folds), Warning)
         if self.n_folds > min_labels:
             warnings.warn(('The least populated class in y has only %d'
                            ' members, which is too few. The minimum'

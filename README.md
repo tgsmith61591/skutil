@@ -8,13 +8,13 @@
 
 
 # scikit-util
-What began as a succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes and utilities (as well as implementations of preprocessors from R packages like [caret](https://github.com/topepo/caret)) grew to bridge functionality between sklearn and [H2O](https://github.com/h2oai/h2o-3).  Now, scikit-util (skutil) brings the best of both worlds to H2O and sklearn, delivering an easy transition into the world of distributed computing that H2O offers, while providing the same, familiar interface that sklearn users have come to know and love. View the [documentation here](https://tgsmith61591.github.io/skutil)
+What began as a modest, succinct set of [sklearn](https://github.com/scikit-learn/scikit-learn) extension classes and utilities (as well as implementations of preprocessors from R packages like [caret](https://github.com/topepo/caret)) grew to bridge functionality between sklearn and [H2O](https://github.com/h2oai/h2o-3).  Now, scikit-util (skutil) brings the best of both worlds to H2O and sklearn, delivering an easy transition into the world of distributed computing that H2O offers, while providing the same, familiar interface that sklearn users have come to know and love. __View the [documentation here](https://tgsmith61591.github.io/skutil)__
 
 
 
 ### Pre-installation
-Skutil depends on the ability to compile Fortran code. For different platforms, there are different ways to install `gcc`:
-  - Mac OS (__note__: this can take a while):
+Skutil adapts code from several R packages, and thus depends on the ability to compile Fortran code using `gcc`. For different platforms, there are different ways to install `gcc` (the easiest, of course, being [Homebrew](http://brew.sh/)):
+  - __Mac OS__ (__note__: this can take a while):
 ```bash
 brew install gcc
 ```
@@ -24,7 +24,7 @@ There is a bug in some setups that will still cause issues in symlinking the `gc
 brew link --overwrite gcc
 ```
 
-  - Linux:
+  - __Linux__:
 ```bash
 sudo apt-get install gcc
 ```
@@ -36,7 +36,7 @@ sudo apt-get install gcc
 
 ### Installation:
 
-Installation is easy. After cloning the project onto your machine, simply use the `setup.py` file:
+Installation is easy. After cloning the project onto your machine and installing the required dependencies, simply use the `setup.py` file:
 
 ```bash
 git clone https://github.com/tgsmith61591/skutil.git
@@ -45,9 +45,9 @@ python setup.py install
 ```
 
 
-### Contributing:
+### Installing for ongoing development:
 
-If you'd like to fork skutil and will be running some tests, your setup is a bit different. Rather than using the `install` arg, use `develop`. This creates a symlink in the local directory so that as you make changes, they are automatically reflected and you don't have to re-install every time. For more information on `develop` vs. `install`, see [this](http://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install) StackOverflow question. Note that after running setup with `develop`, you may have to uninstall before re-running with `install`. *If you are experiencing the dreaded* `no module named dqrsl` *issue and your GCC is up-to-date, it's likely a* `develop` *vs.* `install` *issue. Try uninstalling, clearing the egg from the local folder (or popping the local path from* `sys.path`*) and running setup with the* `install` *option.*
+If you'd like to fork skutil to contribute to the codebase and intend to run some tests, your setup is a bit different. Rather than using the `install` arg, use `develop`. This creates a symlink in the local directory so that as you make changes, they are automatically reflected and you don't have to re-install every time. For more information on `develop` vs. `install`, see [this](http://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install) StackOverflow question. Note that after running setup with `develop`, you may have to uninstall before re-running with `install`. *If you are experiencing the dreaded* `no module named dqrsl` *issue and your GCC is up-to-date, it's likely a* `develop` *vs.* `install` *issue. Try uninstalling, clearing the egg from the local folder (or popping the local path from* `sys.path`*) and running setup with the* `install` *option.*
 
 ```bash
 git clone https://github.com/tgsmith61591/skutil.git
@@ -58,6 +58,5 @@ nosetests
 
 
 #### Examples:
-  - See the [wiki](https://github.com/tgsmith61591/skutil/wiki)
   - See the [example ipython notebooks](https://github.com/tgsmith61591/skutil/tree/master/doc/examples)
 
