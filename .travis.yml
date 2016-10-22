@@ -46,12 +46,11 @@ install:
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       conda install --yes -c dan_blanchard python-coveralls nose-cov;
     fi
-  - chmod 777 ./.travis/install.sh
-  - ./.travis/install.sh
+  - chmod 777 ./build_tools/travis/install.sh
+  - ./build_tools/travis/install.sh
   - pip install coveralls
   - pip install matplotlib
   - pip install seaborn
-  - pip install tox
   - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
   - python setup.py develop
 
