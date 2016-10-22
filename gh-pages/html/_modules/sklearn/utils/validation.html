@@ -1,0 +1,904 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>sklearn.utils.validation &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>sklearn.utils.validation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for sklearn.utils.validation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utilities for input validation&quot;&quot;&quot;</span>
+
+<span class="c1"># Authors: Olivier Grisel</span>
+<span class="c1">#          Gael Varoquaux</span>
+<span class="c1">#          Andreas Mueller</span>
+<span class="c1">#          Lars Buitinck</span>
+<span class="c1">#          Alexandre Gramfort</span>
+<span class="c1">#          Nicolas Tresegnie</span>
+<span class="c1"># License: BSD 3 clause</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
+
+<span class="kn">from</span> <span class="nn">..externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">signature</span>
+<span class="kn">from</span> <span class="nn">.deprecation</span> <span class="k">import</span> <span class="n">deprecated</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">DataConversionWarning</span> <span class="k">as</span> <span class="n">_DataConversionWarning</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">NonBLASDotWarning</span> <span class="k">as</span> <span class="n">_NonBLASDotWarning</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">NotFittedError</span> <span class="k">as</span> <span class="n">_NotFittedError</span>
+
+
+<span class="nd">@deprecated</span><span class="p">(</span><span class="s2">&quot;DataConversionWarning has been moved into the sklearn.exceptions&quot;</span>
+            <span class="s2">&quot; module. It will not be available here from version 0.19&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DataConversionWarning</span><span class="p">(</span><span class="n">_DataConversionWarning</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@deprecated</span><span class="p">(</span><span class="s2">&quot;NonBLASDotWarning has been moved into the sklearn.exceptions&quot;</span>
+            <span class="s2">&quot; module. It will not be available here from version 0.19&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NonBLASDotWarning</span><span class="p">(</span><span class="n">_NonBLASDotWarning</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="nd">@deprecated</span><span class="p">(</span><span class="s2">&quot;NotFittedError has been moved into the sklearn.exceptions module.&quot;</span>
+            <span class="s2">&quot; It will not be available here from version 0.19&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NotFittedError</span><span class="p">(</span><span class="n">_NotFittedError</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="n">FLOAT_DTYPES</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+
+<span class="c1"># Silenced by default to reduce verbosity. Turn on at runtime for</span>
+<span class="c1"># performance profiling.</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">_NonBLASDotWarning</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_assert_all_finite</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Like assert_all_finite, but only for ndarray.&quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="c1"># First try an O(n) time, O(1) space solution for the common case that</span>
+    <span class="c1"># everything is finite; fall back to O(n) space np.isfinite to prevent</span>
+    <span class="c1"># false positives from overflow in sum method.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">typecodes</span><span class="p">[</span><span class="s1">&#39;AllFloat&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input contains NaN, infinity&quot;</span>
+                         <span class="s2">&quot; or a value too large for </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">X</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">assert_all_finite</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Throw a ValueError if X contains NaN or infinity.</span>
+
+<span class="sd">    Input MUST be an np.ndarray instance or a scipy.sparse matrix.&quot;&quot;&quot;</span>
+    <span class="n">_assert_all_finite</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">as_float_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts an array-like to an array of floats</span>
+
+<span class="sd">    The new dtype will be np.float32 or np.float64, depending on the original</span>
+<span class="sd">    type. The function can create a copy or modify the argument depending</span>
+<span class="sd">    on the argument copy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : {array-like, sparse matrix}</span>
+
+<span class="sd">    copy : bool, optional</span>
+<span class="sd">        If True, a copy of X will be created. If False, a copy may still be</span>
+<span class="sd">        returned if X&#39;s dtype is not a floating point type.</span>
+
+<span class="sd">    force_all_finite : boolean (default=True)</span>
+<span class="sd">        Whether to raise an error on np.inf and np.nan in X.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    XT : {array, sparse matrix}</span>
+<span class="sd">        An array of type np.float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">X</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;csr&#39;</span><span class="p">,</span> <span class="s1">&#39;csc&#39;</span><span class="p">,</span> <span class="s1">&#39;coo&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+                           <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="n">force_all_finite</span><span class="p">,</span>
+                           <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="ow">and</span> <span class="n">X</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">copy</span> <span class="k">else</span> <span class="n">X</span>
+    <span class="k">elif</span> <span class="n">X</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>  <span class="c1"># is numpy array</span>
+        <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="s1">&#39;F&#39;</span> <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">flags</span><span class="p">[</span><span class="s1">&#39;F_CONTIGUOUS&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;C&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">copy</span> <span class="k">else</span> <span class="n">X</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_is_arraylike</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns whether the input is array-like&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__array__&#39;</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_num_samples</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return number of samples in array-like x.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">):</span>
+        <span class="c1"># Don&#39;t get num_samples from an ensembles length!</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Expected sequence or array-like, got &#39;</span>
+                        <span class="s1">&#39;estimator </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__array__&#39;</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expected sequence or array-like, got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                            <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Singleton array </span><span class="si">%r</span><span class="s2"> cannot be considered&quot;</span>
+                            <span class="s2">&quot; a valid collection.&quot;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_shape_repr</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a platform independent representation of an array shape</span>
+
+<span class="sd">    Under Python 2, the `long` type introduces an &#39;L&#39; suffix when using the</span>
+<span class="sd">    default %r format for tuples of integers (typically used to store the shape</span>
+<span class="sd">    of an array).</span>
+
+<span class="sd">    Under Windows 64 bit (and Python 2), the `long` type is used by default</span>
+<span class="sd">    in numpy shapes even when the integer dimensions are well below 32 bit.</span>
+<span class="sd">    The platform specific type causes string messages or doctests to change</span>
+<span class="sd">    from one platform to another which is not desirable.</span>
+
+<span class="sd">    Under Python 3, there is no more `long` type so the `L` suffix is never</span>
+<span class="sd">    introduced in string representation.</span>
+
+<span class="sd">    &gt;&gt;&gt; _shape_repr((1, 2))</span>
+<span class="sd">    &#39;(1, 2)&#39;</span>
+<span class="sd">    &gt;&gt;&gt; one = 2 ** 64 / 2 ** 64  # force an upcast to `long` under Python 2</span>
+<span class="sd">    &gt;&gt;&gt; _shape_repr((one, 2 * one))</span>
+<span class="sd">    &#39;(1, 2)&#39;</span>
+<span class="sd">    &gt;&gt;&gt; _shape_repr((1,))</span>
+<span class="sd">    &#39;(1,)&#39;</span>
+<span class="sd">    &gt;&gt;&gt; _shape_repr(())</span>
+<span class="sd">    &#39;()&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;()&quot;</span>
+    <span class="n">joined</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># special notation for singleton tuples</span>
+        <span class="n">joined</span> <span class="o">+=</span> <span class="s1">&#39;,&#39;</span>
+    <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">joined</span>
+
+
+<span class="k">def</span> <span class="nf">check_consistent_length</span><span class="p">(</span><span class="o">*</span><span class="n">arrays</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check that all arrays have consistent first dimensions.</span>
+
+<span class="sd">    Checks whether all objects in arrays have the same shape or length.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *arrays : list or tuple of input objects.</span>
+<span class="sd">        Objects that will be checked for consistent length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">_num_samples</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">arrays</span> <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">uniques</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniques</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found input variables with inconsistent numbers of&quot;</span>
+                         <span class="s2">&quot; samples: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lengths</span><span class="p">])</span>
+
+
+<span class="k">def</span> <span class="nf">indexable</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make arrays indexable for cross-validation.</span>
+
+<span class="sd">    Checks consistent length, passes through None, and ensures that everything</span>
+<span class="sd">    can be indexed by converting sparse matrices to csr and converting</span>
+<span class="sd">    non-interable objects to arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *iterables : lists, dataframes, arrays, sparse matrices</span>
+<span class="sd">        List of objects to ensure sliceability.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">iterables</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">tocsr</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;__getitem__&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;iloc&quot;</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">X</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="n">check_consistent_length</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_sparse_format</span><span class="p">(</span><span class="n">spmatrix</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span>
+                          <span class="n">force_all_finite</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a sparse matrix to a given format.</span>
+
+<span class="sd">    Checks the sparse format of spmatrix and converts if necessary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spmatrix : scipy sparse matrix</span>
+<span class="sd">        Input to validate and convert.</span>
+
+<span class="sd">    accept_sparse : string, list of string or None (default=None)</span>
+<span class="sd">        String[s] representing allowed sparse matrix formats (&#39;csc&#39;,</span>
+<span class="sd">        &#39;csr&#39;, &#39;coo&#39;, &#39;dok&#39;, &#39;bsr&#39;, &#39;lil&#39;, &#39;dia&#39;). None means that sparse</span>
+<span class="sd">        matrix input will raise an error.  If the input is sparse but not in</span>
+<span class="sd">        the allowed format, it will be converted to the first listed format.</span>
+
+<span class="sd">    dtype : string, type or None (default=none)</span>
+<span class="sd">        Data type of result. If None, the dtype of the input is preserved.</span>
+
+<span class="sd">    copy : boolean (default=False)</span>
+<span class="sd">        Whether a forced copy will be triggered. If copy=False, a copy might</span>
+<span class="sd">        be triggered by a conversion.</span>
+
+<span class="sd">    force_all_finite : boolean (default=True)</span>
+<span class="sd">        Whether to raise an error on np.inf and np.nan in X.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    spmatrix_converted : scipy sparse matrix.</span>
+<span class="sd">        Matrix that is ensured to have an allowed type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">accept_sparse</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;A sparse matrix was passed, but dense &#39;</span>
+                        <span class="s1">&#39;data is required. Use X.toarray() to &#39;</span>
+                        <span class="s1">&#39;convert to a dense numpy array.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">dtype</span>
+
+    <span class="n">changed_format</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">accept_sparse</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+            <span class="ow">and</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accept_sparse</span><span class="p">):</span>
+        <span class="c1"># create new with correct sparse</span>
+        <span class="n">spmatrix</span> <span class="o">=</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">asformat</span><span class="p">(</span><span class="n">accept_sparse</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">changed_format</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="o">!=</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+        <span class="c1"># convert dtype</span>
+        <span class="n">spmatrix</span> <span class="o">=</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">copy</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">changed_format</span><span class="p">:</span>
+        <span class="c1"># force copy</span>
+        <span class="n">spmatrix</span> <span class="o">=</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">force_all_finite</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">spmatrix</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Can&#39;t check </span><span class="si">%s</span><span class="s2"> sparse matrix for nan or inf.&quot;</span>
+                          <span class="o">%</span> <span class="n">spmatrix</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_assert_all_finite</span><span class="p">(</span><span class="n">spmatrix</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">spmatrix</span>
+
+
+<div class="viewcode-block" id="check_array"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.check_array">[docs]</a><span class="k">def</span> <span class="nf">check_array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;numeric&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">allow_nd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_min_samples</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ensure_min_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">warn_on_dtype</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Input validation on an array, list, sparse matrix or similar.</span>
+
+<span class="sd">    By default, the input is converted to an at least 2D numpy array.</span>
+<span class="sd">    If the dtype of the array is object, attempt converting to float,</span>
+<span class="sd">    raising on failure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : object</span>
+<span class="sd">        Input object to check / convert.</span>
+
+<span class="sd">    accept_sparse : string, list of string or None (default=None)</span>
+<span class="sd">        String[s] representing allowed sparse matrix formats, such as &#39;csc&#39;,</span>
+<span class="sd">        &#39;csr&#39;, etc.  None means that sparse matrix input will raise an error.</span>
+<span class="sd">        If the input is sparse but not in the allowed format, it will be</span>
+<span class="sd">        converted to the first listed format.</span>
+
+<span class="sd">    dtype : string, type, list of types or None (default=&quot;numeric&quot;)</span>
+<span class="sd">        Data type of result. If None, the dtype of the input is preserved.</span>
+<span class="sd">        If &quot;numeric&quot;, dtype is preserved unless array.dtype is object.</span>
+<span class="sd">        If dtype is a list of types, conversion on the first type is only</span>
+<span class="sd">        performed if the dtype of the input is not in the list.</span>
+
+<span class="sd">    order : &#39;F&#39;, &#39;C&#39; or None (default=None)</span>
+<span class="sd">        Whether an array will be forced to be fortran or c-style.</span>
+<span class="sd">        When order is None (default), then if copy=False, nothing is ensured</span>
+<span class="sd">        about the memory layout of the output array; otherwise (copy=True)</span>
+<span class="sd">        the memory layout of the returned array is kept as close as possible</span>
+<span class="sd">        to the original array.</span>
+
+<span class="sd">    copy : boolean (default=False)</span>
+<span class="sd">        Whether a forced copy will be triggered. If copy=False, a copy might</span>
+<span class="sd">        be triggered by a conversion.</span>
+
+<span class="sd">    force_all_finite : boolean (default=True)</span>
+<span class="sd">        Whether to raise an error on np.inf and np.nan in X.</span>
+
+<span class="sd">    ensure_2d : boolean (default=True)</span>
+<span class="sd">        Whether to make X at least 2d.</span>
+
+<span class="sd">    allow_nd : boolean (default=False)</span>
+<span class="sd">        Whether to allow X.ndim &gt; 2.</span>
+
+<span class="sd">    ensure_min_samples : int (default=1)</span>
+<span class="sd">        Make sure that the array has a minimum number of samples in its first</span>
+<span class="sd">        axis (rows for a 2D array). Setting to 0 disables this check.</span>
+
+<span class="sd">    ensure_min_features : int (default=1)</span>
+<span class="sd">        Make sure that the 2D array has some minimum number of features</span>
+<span class="sd">        (columns). The default value of 1 rejects empty datasets.</span>
+<span class="sd">        This check is only enforced when the input data has effectively 2</span>
+<span class="sd">        dimensions or is originally 1D and ``ensure_2d`` is True. Setting to 0</span>
+<span class="sd">        disables this check.</span>
+
+<span class="sd">    warn_on_dtype : boolean (default=False)</span>
+<span class="sd">        Raise DataConversionWarning if the dtype of the input data structure</span>
+<span class="sd">        does not match the requested dtype, causing a memory copy.</span>
+
+<span class="sd">    estimator : str or estimator instance (default=None)</span>
+<span class="sd">        If passed, include the name of the estimator in warning messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    X_converted : object</span>
+<span class="sd">        The converted and validated X.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">accept_sparse</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">accept_sparse</span> <span class="o">=</span> <span class="p">[</span><span class="n">accept_sparse</span><span class="p">]</span>
+
+    <span class="c1"># store whether originally we wanted numeric dtype</span>
+    <span class="n">dtype_numeric</span> <span class="o">=</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;numeric&quot;</span>
+
+    <span class="n">dtype_orig</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dtype_orig</span><span class="p">,</span> <span class="s1">&#39;kind&#39;</span><span class="p">):</span>
+        <span class="c1"># not a data type (e.g. a column named dtype in a pandas DataFrame)</span>
+        <span class="n">dtype_orig</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">dtype_numeric</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dtype_orig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dtype_orig</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+            <span class="c1"># if input is object, convert to float.</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">dtype_orig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dtype_orig</span> <span class="ow">in</span> <span class="n">dtype</span><span class="p">:</span>
+            <span class="c1"># no dtype conversion required</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># dtype conversion required. Let&#39;s select the first element of the</span>
+            <span class="c1"># list of accepted types.</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">estimator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="n">estimator_name</span> <span class="o">=</span> <span class="n">estimator</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">estimator_name</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">estimator_name</span> <span class="o">=</span> <span class="s2">&quot;Estimator&quot;</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="s2">&quot; by </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">estimator_name</span> <span class="k">if</span> <span class="n">estimator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">_ensure_sparse_format</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span>
+                                      <span class="n">force_all_finite</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ensure_2d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ensure_min_samples</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> expects at least 2 samples provided &quot;</span>
+                                     <span class="s2">&quot;in a 2 dimensional array-like input&quot;</span>
+                                     <span class="o">%</span> <span class="n">estimator_name</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Passing 1d arrays as data is deprecated in 0.17 and will &quot;</span>
+                    <span class="s2">&quot;raise ValueError in 0.19. Reshape your data either using &quot;</span>
+                    <span class="s2">&quot;X.reshape(-1, 1) if your data has a single feature or &quot;</span>
+                    <span class="s2">&quot;X.reshape(1, -1) if it contains a single sample.&quot;</span><span class="p">,</span>
+                    <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+            <span class="c1"># To ensure that array flags are maintained</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="n">copy</span><span class="p">)</span>
+
+        <span class="c1"># make sure we actually converted to numeric:</span>
+        <span class="k">if</span> <span class="n">dtype_numeric</span> <span class="ow">and</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">allow_nd</span> <span class="ow">and</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found array with dim </span><span class="si">%d</span><span class="s2">. </span><span class="si">%s</span><span class="s2"> expected &lt;= 2.&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">estimator_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">force_all_finite</span><span class="p">:</span>
+            <span class="n">_assert_all_finite</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+
+    <span class="n">shape_repr</span> <span class="o">=</span> <span class="n">_shape_repr</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ensure_min_samples</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="n">_num_samples</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_samples</span> <span class="o">&lt;</span> <span class="n">ensure_min_samples</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found array with </span><span class="si">%d</span><span class="s2"> sample(s) (shape=</span><span class="si">%s</span><span class="s2">) while a&quot;</span>
+                             <span class="s2">&quot; minimum of </span><span class="si">%d</span><span class="s2"> is required</span><span class="si">%s</span><span class="s2">.&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">shape_repr</span><span class="p">,</span> <span class="n">ensure_min_samples</span><span class="p">,</span>
+                                <span class="n">context</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">ensure_min_features</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">n_features</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">n_features</span> <span class="o">&lt;</span> <span class="n">ensure_min_features</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Found array with </span><span class="si">%d</span><span class="s2"> feature(s) (shape=</span><span class="si">%s</span><span class="s2">) while&quot;</span>
+                             <span class="s2">&quot; a minimum of </span><span class="si">%d</span><span class="s2"> is required</span><span class="si">%s</span><span class="s2">.&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="n">n_features</span><span class="p">,</span> <span class="n">shape_repr</span><span class="p">,</span> <span class="n">ensure_min_features</span><span class="p">,</span>
+                                <span class="n">context</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">warn_on_dtype</span> <span class="ow">and</span> <span class="n">dtype_orig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">dtype_orig</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Data with input dtype </span><span class="si">%s</span><span class="s2"> was converted to </span><span class="si">%s%s</span><span class="s2">.&quot;</span>
+               <span class="o">%</span> <span class="p">(</span><span class="n">dtype_orig</span><span class="p">,</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">_DataConversionWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array</span></div>
+
+
+<div class="viewcode-block" id="check_X_y"><a class="viewcode-back" href="../../../rsts/codebase/skutil_metrics.html#skutil.metrics.check_X_y">[docs]</a><span class="k">def</span> <span class="nf">check_X_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;numeric&quot;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">allow_nd</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multi_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ensure_min_samples</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+              <span class="n">ensure_min_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">y_numeric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">warn_on_dtype</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Input validation for standard estimators.</span>
+
+<span class="sd">    Checks X and y for consistent length, enforces X 2d and y 1d.</span>
+<span class="sd">    Standard input checks are only applied to y, such as checking that y</span>
+<span class="sd">    does not have np.nan or np.inf targets. For multi-label y, set</span>
+<span class="sd">    multi_output=True to allow 2d and sparse y.  If the dtype of X is</span>
+<span class="sd">    object, attempt converting to float, raising on failure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : nd-array, list or sparse matrix</span>
+<span class="sd">        Input data.</span>
+
+<span class="sd">    y : nd-array, list or sparse matrix</span>
+<span class="sd">        Labels.</span>
+
+<span class="sd">    accept_sparse : string, list of string or None (default=None)</span>
+<span class="sd">        String[s] representing allowed sparse matrix formats, such as &#39;csc&#39;,</span>
+<span class="sd">        &#39;csr&#39;, etc.  None means that sparse matrix input will raise an error.</span>
+<span class="sd">        If the input is sparse but not in the allowed format, it will be</span>
+<span class="sd">        converted to the first listed format.</span>
+
+<span class="sd">    dtype : string, type, list of types or None (default=&quot;numeric&quot;)</span>
+<span class="sd">        Data type of result. If None, the dtype of the input is preserved.</span>
+<span class="sd">        If &quot;numeric&quot;, dtype is preserved unless array.dtype is object.</span>
+<span class="sd">        If dtype is a list of types, conversion on the first type is only</span>
+<span class="sd">        performed if the dtype of the input is not in the list.</span>
+
+<span class="sd">    order : &#39;F&#39;, &#39;C&#39; or None (default=None)</span>
+<span class="sd">        Whether an array will be forced to be fortran or c-style.</span>
+
+<span class="sd">    copy : boolean (default=False)</span>
+<span class="sd">        Whether a forced copy will be triggered. If copy=False, a copy might</span>
+<span class="sd">        be triggered by a conversion.</span>
+
+<span class="sd">    force_all_finite : boolean (default=True)</span>
+<span class="sd">        Whether to raise an error on np.inf and np.nan in X. This parameter</span>
+<span class="sd">        does not influence whether y can have np.inf or np.nan values.</span>
+
+<span class="sd">    ensure_2d : boolean (default=True)</span>
+<span class="sd">        Whether to make X at least 2d.</span>
+
+<span class="sd">    allow_nd : boolean (default=False)</span>
+<span class="sd">        Whether to allow X.ndim &gt; 2.</span>
+
+<span class="sd">    multi_output : boolean (default=False)</span>
+<span class="sd">        Whether to allow 2-d y (array or sparse matrix). If false, y will be</span>
+<span class="sd">        validated as a vector. y cannot have np.nan or np.inf values if</span>
+<span class="sd">        multi_output=True.</span>
+
+<span class="sd">    ensure_min_samples : int (default=1)</span>
+<span class="sd">        Make sure that X has a minimum number of samples in its first</span>
+<span class="sd">        axis (rows for a 2D array).</span>
+
+<span class="sd">    ensure_min_features : int (default=1)</span>
+<span class="sd">        Make sure that the 2D array has some minimum number of features</span>
+<span class="sd">        (columns). The default value of 1 rejects empty datasets.</span>
+<span class="sd">        This check is only enforced when X has effectively 2 dimensions or</span>
+<span class="sd">        is originally 1D and ``ensure_2d`` is True. Setting to 0 disables</span>
+<span class="sd">        this check.</span>
+
+<span class="sd">    y_numeric : boolean (default=False)</span>
+<span class="sd">        Whether to ensure that y has a numeric type. If dtype of y is object,</span>
+<span class="sd">        it is converted to float64. Should only be used for regression</span>
+<span class="sd">        algorithms.</span>
+
+<span class="sd">    warn_on_dtype : boolean (default=False)</span>
+<span class="sd">        Raise DataConversionWarning if the dtype of the input data structure</span>
+<span class="sd">        does not match the requested dtype, causing a memory copy.</span>
+
+<span class="sd">    estimator : str or estimator instance (default=None)</span>
+<span class="sd">        If passed, include the name of the estimator in warning messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    X_converted : object</span>
+<span class="sd">        The converted and validated X.</span>
+
+<span class="sd">    y_converted : object</span>
+<span class="sd">        The converted and validated y.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">accept_sparse</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="p">,</span>
+                    <span class="n">ensure_2d</span><span class="p">,</span> <span class="n">allow_nd</span><span class="p">,</span> <span class="n">ensure_min_samples</span><span class="p">,</span>
+                    <span class="n">ensure_min_features</span><span class="p">,</span> <span class="n">warn_on_dtype</span><span class="p">,</span> <span class="n">estimator</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">multi_output</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s1">&#39;csr&#39;</span><span class="p">,</span> <span class="n">force_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">column_or_1d</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">_assert_all_finite</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">y_numeric</span> <span class="ow">and</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">check_consistent_length</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+<span class="k">def</span> <span class="nf">column_or_1d</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">warn</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Ravel column or 1d numpy array, else raises an error</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : array-like</span>
+
+<span class="sd">    warn : boolean, default False</span>
+<span class="sd">       To control display of warnings.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    y : array</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">warn</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;A column-vector y was passed when a 1d array was&quot;</span>
+                          <span class="s2">&quot; expected. Please change the shape of y to &quot;</span>
+                          <span class="s2">&quot;(n_samples, ), for example using ravel().&quot;</span><span class="p">,</span>
+                          <span class="n">_DataConversionWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;bad input shape </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">check_random_state</span><span class="p">(</span><span class="n">seed</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Turn seed into a np.random.RandomState instance</span>
+
+<span class="sd">    If seed is None, return the RandomState singleton used by np.random.</span>
+<span class="sd">    If seed is an int, return a new RandomState instance seeded with seed.</span>
+<span class="sd">    If seed is already a RandomState instance, return it.</span>
+<span class="sd">    Otherwise raise ValueError.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">seed</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">mtrand</span><span class="o">.</span><span class="n">_rand</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="p">(</span><span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">seed</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1"> cannot be used to seed a numpy.random.RandomState&#39;</span>
+                     <span class="s1">&#39; instance&#39;</span> <span class="o">%</span> <span class="n">seed</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">has_fit_parameter</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks whether the estimator&#39;s fit method supports the given parameter.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from sklearn.svm import SVC</span>
+<span class="sd">    &gt;&gt;&gt; has_fit_parameter(SVC(), &quot;sample_weight&quot;)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">estimator</span><span class="o">.</span><span class="n">fit</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+
+
+<span class="k">def</span> <span class="nf">check_symmetric</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">1</span><span class="n">E</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="n">raise_warning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">raise_exception</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make sure that array is 2D, square and symmetric.</span>
+
+<span class="sd">    If the array is not symmetric, then a symmetrized version is returned.</span>
+<span class="sd">    Optionally, a warning or exception is raised if the matrix is not</span>
+<span class="sd">    symmetric.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    array : nd-array or sparse matrix</span>
+<span class="sd">        Input object to check / convert. Must be two-dimensional and square,</span>
+<span class="sd">        otherwise a ValueError will be raised.</span>
+<span class="sd">    tol : float</span>
+<span class="sd">        Absolute tolerance for equivalence of arrays. Default = 1E-10.</span>
+<span class="sd">    raise_warning : boolean (default=True)</span>
+<span class="sd">        If True then raise a warning if conversion is required.</span>
+<span class="sd">    raise_exception : boolean (default=False)</span>
+<span class="sd">        If True then raise an exception if array is not symmetric.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    array_sym : ndarray or sparse matrix</span>
+<span class="sd">        Symmetrized version of the input array, i.e. the average of array</span>
+<span class="sd">        and array.transpose(). If sparse, then duplicate entries are first</span>
+<span class="sd">        summed and zeros are eliminated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;array must be 2-dimensional and square. &quot;</span>
+                         <span class="s2">&quot;shape = </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">array</span> <span class="o">-</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span>
+        <span class="c1"># only csr, csc, and coo have `data` attribute</span>
+        <span class="k">if</span> <span class="n">diff</span><span class="o">.</span><span class="n">format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;csr&#39;</span><span class="p">,</span> <span class="s1">&#39;csc&#39;</span><span class="p">,</span> <span class="s1">&#39;coo&#39;</span><span class="p">]:</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">diff</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+        <span class="n">symmetric</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">diff</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">symmetric</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">symmetric</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">raise_exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Array must be symmetric&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raise_warning</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Array is not symmetric, and will be converted &quot;</span>
+                          <span class="s2">&quot;to symmetric by average with its transpose.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
+            <span class="n">conversion</span> <span class="o">=</span> <span class="s1">&#39;to&#39;</span> <span class="o">+</span> <span class="n">array</span><span class="o">.</span><span class="n">format</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">array</span> <span class="o">+</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">conversion</span><span class="p">)()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">array</span> <span class="o">+</span> <span class="n">array</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">array</span>
+
+
+<span class="k">def</span> <span class="nf">check_is_fitted</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">all_or_any</span><span class="o">=</span><span class="nb">all</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform is_fitted validation for estimator.</span>
+
+<span class="sd">    Checks if the estimator is fitted by verifying the presence of</span>
+<span class="sd">    &quot;all_or_any&quot; of the passed attributes and raises a NotFittedError with the</span>
+<span class="sd">    given message.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    estimator : estimator instance.</span>
+<span class="sd">        estimator instance for which the check is performed.</span>
+
+<span class="sd">    attributes : attribute name(s) given as string or a list/tuple of strings</span>
+<span class="sd">        Eg. : [&quot;coef_&quot;, &quot;estimator_&quot;, ...], &quot;coef_&quot;</span>
+
+<span class="sd">    msg : string</span>
+<span class="sd">        The default error message is, &quot;This %(name)s instance is not fitted</span>
+<span class="sd">        yet. Call &#39;fit&#39; with appropriate arguments before using this method.&quot;</span>
+
+<span class="sd">        For custom messages if &quot;%(name)s&quot; is present in the message string,</span>
+<span class="sd">        it is substituted for the estimator name.</span>
+
+<span class="sd">        Eg. : &quot;Estimator, %(name)s, must be fitted before sparsifying&quot;.</span>
+
+<span class="sd">    all_or_any : callable, {all, any}, default all</span>
+<span class="sd">        Specify whether all or any of the given attributes must exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">msg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;This </span><span class="si">%(name)s</span><span class="s2"> instance is not fitted yet. Call &#39;fit&#39; with &quot;</span>
+               <span class="s2">&quot;appropriate arguments before using this method.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not an estimator instance.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">estimator</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">[</span><span class="n">attributes</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">all_or_any</span><span class="p">([</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">]):</span>
+        <span class="c1"># FIXME NotFittedError_ --&gt; NotFittedError in 0.19</span>
+        <span class="k">raise</span> <span class="n">_NotFittedError</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">estimator</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span><span class="p">})</span>
+
+
+<span class="k">def</span> <span class="nf">check_non_negative</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">whom</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if there is any negative value in an array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : array-like or sparse matrix</span>
+<span class="sd">        Input data.</span>
+
+<span class="sd">    whom : string</span>
+<span class="sd">        Who passed X to this function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">data</span> <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">X</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Negative values in data passed to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">whom</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

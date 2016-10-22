@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>H2OPipeline &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Code Examples" href="index.html"/>
+        <link rel="prev" title="Encoders" href="encoders.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codebase/index.html">Codebase</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="transformers.html">    Transformers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">    Encoders</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">    H2OPipeline</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">Code Examples</a> &raquo;</li>
+      
+    <li>H2OPipeline</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/examples/h2opipeline.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="h2opipeline">
+<h1>H2OPipeline<a class="headerlink" href="#h2opipeline" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal"><span class="pre">H2OPipeline</span></code> generates a sklearn-esque pipeline of H2O steps finished with an optional <code class="docutils literal"><span class="pre">H2OEstimator</span></code>. Note that as of version 0.1.0, the behavior of the H2OPipeline has slightly changed, given the inclusion of the <code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and <code class="docutils literal"><span class="pre">exclude_from_fit</span></code> parameters.</p>
+<p>The pipeline, at the core, is comprised of a list of length-two tuples in the form of <code class="docutils literal"><span class="pre">('name',</span> <span class="pre">SomeH2OTransformer())</span></code>, punctuated with an optional <code class="docutils literal"><span class="pre">H2OEstimator</span></code> as the final step. The pipeline will procedurally
+fit each stage, transforming the training data prior to fitting the next stage. When predicting or transforming new (test) data, each stage calls either <cite>transform</cite> or <cite>predict</cite> at the respective step.</p>
+<p><strong>On the topic of exclusions and</strong> <code class="docutils literal"><span class="pre">feature_names</span></code>:</p>
+<p>Prior to version 0.1.0, <code class="docutils literal"><span class="pre">H2OTransformer</span></code> classes did not take the keyword <code class="docutils literal"><span class="pre">exclude_features</span></code>. Its addition necessitated two new keywords in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code>, and a slight change in behavior of <code class="docutils literal"><span class="pre">feature_names</span></code>:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> - If set in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> constructor, these features will be universally omitted from every preprocessing stage. Since <code class="docutils literal"><span class="pre">exclude_features</span></code> can be set individually in each separate transformer, in the case that <code class="docutils literal"><span class="pre">exclude_features</span></code> has been explicitly set, the exclusions in that respective stage will include the union of <code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and <code class="docutils literal"><span class="pre">exclude_features</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">exclude_from_fit</span></code> - If set in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> constructor, these features will be omitted from the <code class="docutils literal"><span class="pre">training_cols_</span></code> fit attribute, which are the columns passed to the final stage in the pipeline.</li>
+<li><code class="docutils literal"><span class="pre">feature_names</span></code> - The former behavior of the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> only used <code class="docutils literal"><span class="pre">feature_names</span></code> in the fit of the first transformer, passing the remaining columns to the next transformer as the <code class="docutils literal"><span class="pre">feature_names</span></code> parameter. The new behavior is more discriminating in the case of explicitly-set attributes. In the case where a transformer&#8217;s <code class="docutils literal"><span class="pre">feature_names</span></code> parameter has been explicitly set, <em>only those names</em> will be used in the fit. This is useful in cases where someone may only want to, for instance, drop one of two multicollinear features using the <code class="docutils literal"><span class="pre">H2OMulticollinearityFilterer</span></code> rather than fitting against the entire dataset. It also adheres to the now expected behavior of the exclusion parameters.</li>
+</ul>
+<p>Here is a demo using sklearn&#8217;s Boston Housing dataset.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">skutil.h2o</span> <span class="kn">import</span> <span class="n">load_boston_h2o</span>
+<span class="kn">from</span> <span class="nn">skutil.h2o</span> <span class="kn">import</span> <span class="n">h2o_train_test_split</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">load_boston_h2o</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span> <span class="o">=</span> <span class="n">h2o_train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">train_size</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span> <span class="c1"># this splits our data</span>
+
+<span class="n">X_train</span><span class="o">.</span><span class="n">head</span><span class="p">()</span> <span class="c1"># it should look like:</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">| CRIM     | ZN | INDUS | CHAS | NOX   |  RM   | AGE  | DIS    | RAD | TAX | PTRATIO | B      | LSTAT | target|</span>
+<span class="sd">|----------|----|-------|------|-------|-------|------|--------|-----|-----|---------|--------|-------|-------|</span>
+<span class="sd">| 0.17783  | 0  | 9.69  | 0    | 0.585 | 5.569 | 73.5 | 2.3999 | 6   | 391 | 19.2    | 395.77 | 15.1  | 17.5  |</span>
+<span class="sd">| 6.80117  | 0  | 18.1  | 0    | 0.713 | 6.081 | 84.4 | 2.7175 | 24  | 666 | 20.2    | 396.9  | 14.7  | 20    |</span>
+<span class="sd">| 0.08707  | 0  | 12.83 | 0    | 0.437 | 6.14  | 45.8 | 4.0905 | 5   | 398 | 18.7    | 386.96 | 10.27 | 20.8  |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">skutil.h2o</span> <span class="kn">import</span> <span class="n">H2OPipeline</span>
+<span class="kn">from</span> <span class="nn">skutil.h2o.transform</span> <span class="kn">import</span> <span class="n">H2OSelectiveScaler</span>
+<span class="kn">from</span> <span class="nn">skutil.h2o.select</span> <span class="kn">import</span> <span class="n">H2OMulticollinearityFilterer</span>
+<span class="kn">from</span> <span class="nn">h2o.estimators</span> <span class="kn">import</span> <span class="n">H2OGradientBoostingEstimator</span>
+
+<span class="c1"># Declare our pipe - this one is intentionally a bit complex in behavior</span>
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">H2OPipeline</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;scl&#39;</span><span class="p">,</span> <span class="n">H2OSelectiveScaler</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="s1">&#39;PTRATIO&#39;</span><span class="p">,</span><span class="s1">&#39;CRIM&#39;</span><span class="p">])),</span> <span class="c1"># will ONLY operate on these features</span>
+        <span class="p">(</span><span class="s1">&#39;mcf&#39;</span><span class="p">,</span> <span class="n">H2OMulticollinearityFilterer</span><span class="p">(</span><span class="n">exclude_features</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CHAS&#39;</span><span class="p">])),</span>  <span class="c1"># will exclude this AS WELL AS &#39;TAX&#39;</span>
+        <span class="p">(</span><span class="s1">&#39;gbm&#39;</span><span class="p">,</span> <span class="n">H2OGradientBoostingEstimator</span><span class="p">())</span>
+    <span class="p">],</span>
+
+    <span class="n">exclude_from_ppc</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;TAX&#39;</span><span class="p">],</span> <span class="c1"># excluded from all preprocessor fits</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>       <span class="c1"># fit the first stage on ALL features (minus exceptions)</span>
+    <span class="n">target_feature</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">)</span>  <span class="c1"># will be excluded from all preprocessor fits, as it&#39;s the target</span>
+
+<span class="c1"># do actual fit:</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="encoders.html" class="btn btn-neutral" title="Encoders" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

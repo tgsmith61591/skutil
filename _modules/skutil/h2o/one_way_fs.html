@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.h2o.one_way_fs &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/setup/index.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/codebase/index.html">Codebase</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../rsts/examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>skutil.h2o.one_way_fs</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for skutil.h2o.one_way_fs</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">special</span><span class="p">,</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">.split</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.select</span> <span class="k">import</span> <span class="n">BaseH2OFeatureSelector</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">_unq_vals_col</span><span class="p">,</span> <span class="n">rbind_all</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_integer</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> 
+                   <span class="n">_retain_features</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> 
+                   <span class="n">validate_x_y</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">overrides</span>
+<span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">as_float_array</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;h2o_f_classif&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_f_oneway&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;H2OFScoreKBestSelector&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;H2OFScorePercentileSelector&#39;</span>
+<span class="p">]</span>
+
+
+<span class="c1"># This function is re-written from sklearn.feature_selection</span>
+<span class="c1"># and is included for compatability for older versions of</span>
+<span class="c1"># sklearn that might raise an ImportError.</span>
+<span class="k">def</span> <span class="nf">_clean_nans</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">as_float_array</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">scores</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">scores</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">scores</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">min</span>
+    <span class="k">return</span> <span class="n">scores</span>
+
+
+<div class="viewcode-block" id="h2o_f_classif"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_f_classif">[docs]</a><span class="k">def</span> <span class="nf">h2o_f_classif</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the ANOVA F-value for the provided sample.</span>
+<span class="sd">    This method is adapted from ``sklearn.feature_selection.f_classif``</span>
+<span class="sd">    to function on H2OFrames.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">        The feature matrix. Each feature will be tested </span>
+<span class="sd">        sequentially.</span>
+
+<span class="sd">    y : H2OFrame, shape=(n_samples,)</span>
+<span class="sd">        The target feature. Should be int or enum, per</span>
+<span class="sd">        the classification objective.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    f : float</span>
+<span class="sd">        The computed F-value of the test.</span>
+
+<span class="sd">    prob : float</span>
+<span class="sd">        The associated p-value from the F-distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="c1"># first, get unique values of y</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">target_feature</span><span class="p">]</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">unq</span> <span class="o">=</span> <span class="n">_unq_vals_col</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># if y is enum, make the unq strings..</span>
+    <span class="n">unq</span> <span class="o">=</span> <span class="n">unq</span><span class="p">[</span><span class="n">_</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">y</span><span class="o">.</span><span class="n">isfactor</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">unq</span><span class="p">[</span><span class="n">_</span><span class="p">]]</span>
+
+    <span class="c1"># get the masks</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="n">y</span><span class="o">==</span><span class="n">k</span><span class="p">,</span> <span class="p">:][</span><span class="n">feature_names</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">unq</span><span class="p">]</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span> <span class="n">h2o_f_oneway</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">prob</span></div>
+
+
+<span class="c1"># The following function is a rewriting (of the sklearn rewriting) of </span>
+<span class="c1"># scipy.stats.f_oneway. Contrary to the scipy.stats.f_oneway implementation </span>
+<span class="c1"># it does not copy the data while keeping the inputs unchanged. Furthermore,</span>
+<span class="c1"># contrary to the sklearn implementation, it does not use np.ndarrays, rather</span>
+<span class="c1"># amending 1d H2OFrames inplace.</span>
+<div class="viewcode-block" id="h2o_f_oneway"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_f_oneway">[docs]</a><span class="k">def</span> <span class="nf">h2o_f_oneway</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs a 1-way ANOVA.</span>
+<span class="sd">    The one-way ANOVA tests the null hypothesis that 2 or more groups have</span>
+<span class="sd">    the same population mean. The test is applied to samples from two or</span>
+<span class="sd">    more groups, possibly with differing sizes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    sample1, sample2, ... : array_like, H2OFrames, shape=(n_classes,)</span>
+<span class="sd">        The sample measurements should be given as varargs (*args).</span>
+<span class="sd">        A slice of the original input frame for each class in the</span>
+<span class="sd">        target feature.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    f : float</span>
+<span class="sd">        The computed F-value of the test.</span>
+
+<span class="sd">    prob : float</span>
+<span class="sd">        The associated p-value from the F-distribution.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+
+<span class="sd">    The ANOVA test has important assumptions that must be satisfied in order</span>
+<span class="sd">    for the associated p-value to be valid.</span>
+
+<span class="sd">    1. The samples are independent</span>
+<span class="sd">    2. Each sample is from a normally distributed population</span>
+<span class="sd">    3. The population standard deviations of the groups are all equal. This</span>
+<span class="sd">       property is known as homoscedasticity.</span>
+
+<span class="sd">    If these assumptions are not true for a given set of data, it may still be</span>
+<span class="sd">    possible to use the Kruskal-Wallis H-test (`scipy.stats.kruskal`_) although</span>
+<span class="sd">    with some loss of power.</span>
+
+<span class="sd">    The algorithm is from Heiman[2], pp.394-7.</span>
+<span class="sd">    See ``scipy.stats.f_oneway`` (that should give the same results while</span>
+<span class="sd">    being less efficient) and ``sklearn.feature_selection.f_oneway``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    .. [1] Lowry, Richard.  &quot;Concepts and Applications of Inferential</span>
+<span class="sd">           Statistics&quot;. Chapter 14.</span>
+<span class="sd">           http://faculty.vassar.edu/lowry/ch14pt1.html</span>
+
+<span class="sd">    .. [2] Heiman, G.W.  Research Methods in Statistics. 2002.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="c1"># sklearn converts everything to float here. Rather than do so,</span>
+    <span class="c1"># we will test for total numericism and fail out if it&#39;s not 100%</span>
+    <span class="c1"># numeric.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">all</span><span class="p">([</span><span class="n">X</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All features must be entirely numeric for F-test&quot;</span><span class="p">)</span>
+
+
+    <span class="n">n_samples_per_class</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">n_samples_per_class</span><span class="p">)</span>
+
+    <span class="c1"># compute the sum of squared values in each column, and then compute the column</span>
+    <span class="c1"># sums of all of those intermittent rows rbound together</span>
+    <span class="n">ss_alldata</span> <span class="o">=</span> <span class="n">rbind_all</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+    <span class="c1"># compute the sum of each column for each X in args, then rbind them all</span>
+    <span class="c1"># and sum them up, finally squaring them. Tantamount to the squared sum</span>
+    <span class="c1"># of each complete column. Note that we need to add a tiny fraction to ensure</span>
+    <span class="c1"># all are real numbers for the rbind...</span>
+    <span class="n">sum_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">asnumeric</span><span class="p">()</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span> <span class="c1"># col sums</span>
+    <span class="n">square_of_sums_alldata</span> <span class="o">=</span> <span class="n">rbind_all</span><span class="p">(</span><span class="o">*</span><span class="n">sum_args</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="n">square_of_sums_alldata</span> <span class="o">*=</span> <span class="n">square_of_sums_alldata</span>
+
+    <span class="n">square_of_sums_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">*</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sum_args</span><span class="p">]</span>
+    <span class="n">sstot</span> <span class="o">=</span> <span class="n">ss_alldata</span> <span class="o">-</span> <span class="n">square_of_sums_alldata</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+
+    <span class="n">ssbn</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># h2o frame</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">square_of_sums_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_samples_per_class</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">ssbn</span> <span class="o">=</span> <span class="n">tmp</span> <span class="k">if</span> <span class="n">ssbn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="n">ssbn</span> <span class="o">+</span> <span class="n">tmp</span><span class="p">)</span>
+
+    <span class="n">ssbn</span> <span class="o">-=</span> <span class="n">square_of_sums_alldata</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+    <span class="n">sswn</span> <span class="o">=</span> <span class="n">sstot</span> <span class="o">-</span> <span class="n">ssbn</span>
+    <span class="n">dfbn</span> <span class="o">=</span> <span class="n">n_classes</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">dfwn</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">-</span> <span class="n">n_classes</span>
+    <span class="n">msb</span> <span class="o">=</span> <span class="n">ssbn</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">dfbn</span><span class="p">)</span>
+    <span class="n">msw</span> <span class="o">=</span> <span class="n">sswn</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">dfwn</span><span class="p">)</span>
+
+    <span class="n">constant_feature_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">msw</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">constant_feature_sum</span> <span class="o">=</span> <span class="n">constant_feature_idx</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="c1"># sum of ones</span>
+    <span class="n">nonzero_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">msb</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">nonzero_size</span> <span class="o">!=</span> <span class="n">msb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">constant_feature_sum</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Features </span><span class="si">%s</span><span class="s2"> are constant.&quot;</span> <span class="o">%</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">msw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="n">constant_feature_idx</span><span class="p">],</span>
+            <span class="ne">UserWarning</span><span class="p">)</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">msb</span> <span class="o">/</span> <span class="n">msw</span><span class="p">)</span>
+
+    <span class="c1"># convert to numpy ndarray for special</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># compute prob</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">special</span><span class="o">.</span><span class="n">fdtrc</span><span class="p">(</span><span class="n">dfbn</span><span class="p">,</span> <span class="n">dfwn</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">prob</span></div>
+
+
+<span class="k">class</span> <span class="nc">_H2OBaseUnivariateSelector</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> 
+                                                    <span class="n">BaseH2OFeatureSelector</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;The base class for all univariate feature selectors in H2O.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">        The list of names on which to fit the transformer.</span>
+
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">        for the estimator.</span>
+
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">        Any names that should be excluded from ``feature_names``</span>
+
+<span class="sd">    cv : int or ``H2OBaseCrossValidator``, optional (default=3)</span>
+<span class="sd">        Univariate feature selection can very easily remove</span>
+<span class="sd">        features erroneously or cause overfitting. Using cross</span>
+<span class="sd">        validation, we can more confidently select the features </span>
+<span class="sd">        to drop.</span>
+
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold</span>
+
+<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_H2OBaseUnivariateSelector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
+            <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
+            <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
+
+        <span class="c1"># validate CV</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cv</span> <span class="o">=</span> <span class="n">cv</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iid</span> <span class="o">=</span> <span class="n">iid</span>
+
+
+<span class="k">def</span> <span class="nf">_repack_tuple</span><span class="p">(</span><span class="n">two</span><span class="p">,</span> <span class="n">one</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Utility for ``_test_and_score``.</span>
+<span class="sd">    Packs the scores, p-values and train-fold length</span>
+<span class="sd">    into a single, flat tuple.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    two : tuple, shape=(2,)</span>
+<span class="sd">        The scores &amp; p-values tuple</span>
+
+<span class="sd">    one : int</span>
+<span class="sd">        The train fold length</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    out : tuple, shape=(3,)</span>
+<span class="sd">        The flattened tuple: (F-scores, p-values, </span>
+<span class="sd">        train-fold size)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">two</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">two</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">one</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_test_and_score</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">iid</span><span class="p">,</span> <span class="n">select_fun</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fit all the folds of some provided function, repack the scores</span>
+<span class="sd">    tuple and adjust the fold score if ``iid`` is True.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    frame : H2OFrame</span>
+<span class="sd">            The frame to fit</span>
+
+<span class="sd">    fun : callable</span>
+<span class="sd">        The function to call</span>
+
+<span class="sd">    cv : ``H2OBaseCrossValidator``</span>
+<span class="sd">        The cross validation class</span>
+
+<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">        The list of names on which to fit the transformer.</span>
+
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">        for the estimator.</span>
+
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold</span>
+
+<span class="sd">    select_fun : callable</span>
+<span class="sd">        The function used for feature selection</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    all_scores : np.ndarray</span>
+<span class="sd">        The normalized scores</span>
+
+<span class="sd">    all_pvalues : np.ndarray</span>
+<span class="sd">        The normalized p-values</span>
+
+<span class="sd">    list : The column names to drop</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fn</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span>
+    <span class="k">if</span> <span class="n">tf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;target_feature must be a string&#39;</span><span class="p">)</span>
+
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">_repack_tuple</span><span class="p">(</span><span class="n">fun</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="n">train</span><span class="p">,:],</span> 
+                          <span class="n">feature_names</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> 
+                          <span class="n">target_feature</span><span class="o">=</span><span class="n">tf</span><span class="p">),</span> 
+                      <span class="nb">len</span><span class="p">(</span><span class="n">train</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">train</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">cv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">tf</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="c1"># compute the mean F-score, p-value, adjust with IID</span>
+    <span class="n">n_folds</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">get_n_splits</span><span class="p">()</span>
+    <span class="n">all_scores</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">all_pvalues</span> <span class="o">=</span> <span class="mf">0.</span>
+
+    <span class="c1"># adjust the fold scores</span>
+    <span class="k">for</span> <span class="n">these_scores</span><span class="p">,</span> <span class="n">p_vals</span><span class="p">,</span> <span class="n">fold_size</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">iid</span><span class="p">:</span>
+            <span class="n">these_scores</span> <span class="o">*=</span> <span class="n">fold_size</span>
+            <span class="n">p_vals</span> <span class="o">*=</span> <span class="n">fold_size</span>
+        <span class="n">all_scores</span> <span class="o">+=</span> <span class="n">these_scores</span>
+        <span class="n">all_pvalues</span> <span class="o">+=</span> <span class="n">p_vals</span>
+
+    <span class="k">if</span> <span class="n">iid</span><span class="p">:</span>
+        <span class="n">all_scores</span> <span class="o">/=</span> <span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">all_pvalues</span> <span class="o">/=</span> <span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">all_scores</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span>
+        <span class="n">all_pvalues</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span>
+
+
+    <span class="c1"># return tuple</span>
+    <span class="k">return</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">all_pvalues</span><span class="p">,</span> <span class="n">select_fun</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">all_pvalues</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_BaseH2OFScoreSelector</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> 
+                                                <span class="n">_H2OBaseUnivariateSelector</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Select features based on the F-score, using the </span>
+<span class="sd">    ``h2o_f_classif`` method. Sub-classes will define how the</span>
+<span class="sd">    number of features to retain is selected.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">        The list of names on which to fit the transformer.</span>
+
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">        for the estimator.</span>
+
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">        Any names that should be excluded from ``feature_names``</span>
+
+<span class="sd">    cv : int or ``H2OBaseCrossValidator``, optional (default=3)</span>
+<span class="sd">        Univariate feature selection can very easily remove</span>
+<span class="sd">        features erroneously or cause overfitting. Using cross</span>
+<span class="sd">        validation, we can more confidently select the features </span>
+<span class="sd">        to drop.</span>
+
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold</span>
+
+<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    scores_ : np.ndarray, float</span>
+<span class="sd">        The score array, adjusted for ``n_folds``</span>
+
+<span class="sd">    p_values_ : np.ndarray, float</span>
+<span class="sd">        The p-value array, adjusted for ``n_folds``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_BaseH2OFScoreSelector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
+            <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span>
+            <span class="n">iid</span><span class="o">=</span><span class="n">iid</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span> 
+            <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">_select_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">all_pvalues</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This function should be overridden by subclasses, and</span>
+<span class="sd">        should handle the selection of features given the scores</span>
+<span class="sd">        and pvalues.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        all_scores : np.ndarray, float</span>
+<span class="sd">            The scores</span>
+
+<span class="sd">        all_pvalues : np.ndarray, float</span>
+<span class="sd">            The p-values</span>
+
+<span class="sd">        feature_names : array_like (str)</span>
+<span class="sd">            The list of names that are eligible for drop</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        list : the features to drop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;must be implemented by subclass&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the F-score feature selector.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : H2OFrame</span>
+<span class="sd">            The frame to fit</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># we can use this to extract the feature names to pass...</span>
+        <span class="n">feature_names</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span>
+            <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> 
+            <span class="n">exclude_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">check_cv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">)</span>
+
+        <span class="c1"># use the X frame (full frame) including target</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scores_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_values_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="n">_test_and_score</span><span class="p">(</span>
+            <span class="n">frame</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">fun</span><span class="o">=</span><span class="n">h2o_f_classif</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> 
+            <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span> <span class="c1"># extracted above</span>
+            <span class="n">target_feature</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> 
+            <span class="n">iid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iid</span><span class="p">,</span> <span class="n">select_fun</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_select_features</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="H2OFScorePercentileSelector"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFScorePercentileSelector">[docs]</a><span class="k">class</span> <span class="nc">H2OFScorePercentileSelector</span><span class="p">(</span><span class="n">_BaseH2OFScoreSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Select the top percentile of features based on the F-score, </span>
+<span class="sd">    using the ``h2o_f_classif`` method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">        The list of names on which to fit the transformer.</span>
+
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">        for the estimator.</span>
+
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">        Any names that should be excluded from ``feature_names``</span>
+
+<span class="sd">    cv : int or ``H2OBaseCrossValidator``, optional (default=3)</span>
+<span class="sd">        Univariate feature selection can very easily remove</span>
+<span class="sd">        features erroneously or cause overfitting. Using cross</span>
+<span class="sd">        validation, we can more confidently select the features </span>
+<span class="sd">        to drop.</span>
+
+<span class="sd">    percentile : int, optional (default=10)</span>
+<span class="sd">        The percent of features to keep.</span>
+
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold</span>
+
+<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    scores_ : np.ndarray, float</span>
+<span class="sd">        The score array, adjusted for ``n_folds``</span>
+
+<span class="sd">    p_values_ : np.ndarray, float</span>
+<span class="sd">        The p-value array, adjusted for ``n_folds``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">H2OFScorePercentileSelector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
+            <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="n">iid</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">percentile</span> <span class="o">=</span> <span class="n">percentile</span>
+
+<div class="viewcode-block" id="H2OFScorePercentileSelector.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFScorePercentileSelector.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the F-score feature selector.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : H2OFrame</span>
+<span class="sd">            The frame to fit</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">percentile</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;percentile must be an integer&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+    <span class="nd">@overrides</span><span class="p">(</span><span class="n">_BaseH2OFScoreSelector</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_select_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">all_pvalues</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This function selects the top ``percentile`` of</span>
+<span class="sd">        features from the F-scores.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        all_scores : np.ndarray, float</span>
+<span class="sd">            The scores</span>
+
+<span class="sd">        all_pvalues : np.ndarray, float</span>
+<span class="sd">            The p-values</span>
+
+<span class="sd">        feature_names : array_like (str)</span>
+<span class="sd">            The list of names that are eligible for drop</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        list : the features to drop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">percentile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">percentile</span>
+
+        <span class="c1"># compute which features to keep or drop</span>
+        <span class="k">if</span> <span class="n">percentile</span> <span class="o">==</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">percentile</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">feature_names</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># adapted from sklearn.feature_selection.SelectPercentile</span>
+            <span class="n">all_scores</span> <span class="o">=</span> <span class="n">_clean_nans</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span>
+            <span class="n">thresh</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">scoreatpercentile</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="mi">100</span> <span class="o">-</span> <span class="n">percentile</span><span class="p">)</span>
+
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">all_scores</span> <span class="o">&gt;</span> <span class="n">thresh</span>
+            <span class="n">ties</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">all_scores</span> <span class="o">==</span> <span class="n">thresh</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ties</span><span class="p">):</span>
+                <span class="n">max_feats</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span> <span class="o">*</span> <span class="n">percentile</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+                <span class="n">kept_ties</span> <span class="o">=</span> <span class="n">ties</span><span class="p">[:</span><span class="n">max_feats</span> <span class="o">-</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()]</span>
+                <span class="n">mask</span><span class="p">[</span><span class="n">kept_ties</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># inverse, since we&#39;re recording which features to DROP, not keep</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span>
+
+            <span class="c1"># now se the drop as the inverse mask</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_names</span><span class="p">)[</span><span class="n">mask</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="H2OFScoreKBestSelector"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFScoreKBestSelector">[docs]</a><span class="k">class</span> <span class="nc">H2OFScoreKBestSelector</span><span class="p">(</span><span class="n">_BaseH2OFScoreSelector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Select the top ``k`` features based on the F-score, </span>
+<span class="sd">    using the ``h2o_f_classif`` method.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">        The list of names on which to fit the transformer.</span>
+
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">        for the estimator.</span>
+
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">        Any names that should be excluded from ``feature_names``</span>
+
+<span class="sd">    cv : int or ``H2OBaseCrossValidator``, optional (default=3)</span>
+<span class="sd">        Univariate feature selection can very easily remove</span>
+<span class="sd">        features erroneously or cause overfitting. Using cross</span>
+<span class="sd">        validation, we can more confidently select the features </span>
+<span class="sd">        to drop.</span>
+
+<span class="sd">    k : int, optional (default=10)</span>
+<span class="sd">        The number of features to keep.</span>
+
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold</span>
+
+<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    scores_ : np.ndarray, float</span>
+<span class="sd">        The score array, adjusted for ``n_folds``</span>
+
+<span class="sd">    p_values_ : np.ndarray, float</span>
+<span class="sd">        The p-value array, adjusted for ``n_folds``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">H2OFScoreKBestSelector</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
+            <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="n">target_feature</span><span class="p">,</span>
+            <span class="n">exclude_features</span><span class="o">=</span><span class="n">exclude_features</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="n">iid</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+
+<div class="viewcode-block" id="H2OFScoreKBestSelector.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OFScoreKBestSelector.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the F-score feature selector.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : H2OFrame</span>
+<span class="sd">            The frame to fit</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">is_integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;k must be a non-negative integer or &quot;all&quot;&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></div>
+
+    <span class="nd">@overrides</span><span class="p">(</span><span class="n">_BaseH2OFScoreSelector</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_select_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_scores</span><span class="p">,</span> <span class="n">all_pvalues</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This function selects the top ``k`` features </span>
+<span class="sd">        from the F-scores.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        all_scores : np.ndarray, float</span>
+<span class="sd">            The scores</span>
+
+<span class="sd">        all_pvalues : np.ndarray, float</span>
+<span class="sd">            The p-values</span>
+
+<span class="sd">        feature_names : array_like (str)</span>
+<span class="sd">            The list of names that are eligible for drop</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        list : the features to drop</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span>
+
+        <span class="c1"># compute which features to keep or drop</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># adapted from sklearn.feature_selection.SelectKBest</span>
+            <span class="n">all_scores</span> <span class="o">=</span> <span class="n">_clean_nans</span><span class="p">(</span><span class="n">all_scores</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">all_scores</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;mergesort&quot;</span><span class="p">)[</span><span class="o">-</span><span class="n">k</span><span class="p">:]]</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># we know k &gt; 0</span>
+
+            <span class="c1"># inverse, since we&#39;re recording which features to DROP, not keep</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="c1"># now se the drop as the inverse mask</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_names</span><span class="p">)[</span><span class="n">mask</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

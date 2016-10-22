@@ -1,0 +1,262 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>skutil.base &mdash; skutil 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="skutil 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="skutil package" href="index.html"/>
+        <link rel="next" title="skutil.decomposition module" href="skutil_decomposition.html"/>
+        <link rel="prev" title="skutil package" href="index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> skutil
+          
+
+          
+            
+            <img src="../../_static/h2o-sklearn.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../setup/index.html">Setup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Codebase</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">    skutil.base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_decomposition.html">    skutil.decomposition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_feature_selection.html">    skutil.feature_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_grid_search.html">    skutil.grid_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_h2o.html">    skutil.h2o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_linear_model.html">    skutil.linear_model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_metrics.html">    skutil.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_model_selection.html">    skutil.model_selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_odr.html">    skutil.odr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_preprocessing.html">    skutil.preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="skutil_utils.html">    skutil.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">skutil</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="index.html">skutil package</a> &raquo;</li>
+      
+    <li>skutil.base</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/rsts/codebase/skutil_base.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="skutil-base">
+<h1>skutil.base<a class="headerlink" href="#skutil-base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="skutil.base.SamplingWarning">
+<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SamplingWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#SamplingWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SamplingWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<p>Custom warning used to notify the user that sub-optimal sampling behavior
+has occurred. For instance, performing oversampling on a minority class with only
+one instance will cause this warning to be thrown.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.base.SelectiveWarning">
+<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SelectiveWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#SelectiveWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SelectiveWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<p>Custom warning used to notify user when a structure implementing SelectiveMixin
+operates improperly. A common usecase is when the fit method receives a non-DataFrame
+X, and no cols.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.base.ModuleImportWarning">
+<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">ModuleImportWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#ModuleImportWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.ModuleImportWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
+<p>Custom warning used to notify user a non-critical import failed, and to
+suggest the installation of the module for optimal results.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="skutil.base.SelectiveMixin">
+<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SelectiveMixin</code><a class="reference internal" href="../../_modules/skutil/base.html#SelectiveMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SelectiveMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mixin class that all selective transformers
+should implement. All <code class="docutils literal"><span class="pre">SelectiveMixin</span></code> implementers
+should only apply their <code class="docutils literal"><span class="pre">fit</span></code> method on the defined columns.</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="skutil_decomposition.html" class="btn btn-neutral float-right" title="skutil.decomposition module" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="skutil package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Taylor Smith, Charles Drotar.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
