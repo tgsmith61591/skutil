@@ -17,7 +17,7 @@
 # STEPS #
 #########
 
-# This script will check if the number of input arguments are 1
+# This script will check if the number of input arguments are 0
 #   A) If arguments == 0
 #       1) make clean html                   # purge old docs and create new
 #       2) cp -R ../ghpages/html ../         # copy html folder to base directory of master
