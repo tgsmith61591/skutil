@@ -40,11 +40,11 @@ def h2o_f_classif(X, feature_names, target_feature):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The feature matrix. Each feature will be tested 
         sequentially.
 
-    y : H2OFrame, shape=(n_samples,)
+    y : ``H2OFrame``, shape=(n_samples,)
         The target feature. Should be int or enum, per
         the classification objective.
 
@@ -112,12 +112,11 @@ def h2o_f_oneway(*args):
        property is known as homoscedasticity.
 
     If these assumptions are not true for a given set of data, it may still be
-    possible to use the Kruskal-Wallis H-test (`scipy.stats.kruskal`_) although
+    possible to use the Kruskal-Wallis H-test (``scipy.stats.kruskal``) although
     with some loss of power.
 
     The algorithm is from Heiman[2], pp.394-7.
-    See ``scipy.stats.f_oneway`` (that should give the same results while
-    being less efficient) and ``sklearn.feature_selection.f_oneway``.
+    See ``scipy.stats.f_oneway`` and ``sklearn.feature_selection.f_oneway``.
 
     References
     ----------
@@ -212,10 +211,10 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default 'any')
+    min_version : str, float (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str, float (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
     @abstractmethod
@@ -365,10 +364,10 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default 'any')
+    min_version : str, float (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str, float (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -479,10 +478,10 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default 'any')
+    min_version : str, float (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str, float (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -603,10 +602,10 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default 'any')
+    min_version : str, float (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str, float (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -682,7 +681,7 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
             mask[np.argsort(all_scores, kind="mergesort")[-k:]] = 1 # we know k > 0
 
             # inverse, since we're recording which features to DROP, not keep
-            mask = (~mask).tolist()
+            mask = np.asarray(~mask)
 
             # now se the drop as the inverse mask
             return (np.asarray(feature_names)[mask]).tolist()
