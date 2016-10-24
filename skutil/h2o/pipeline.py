@@ -90,13 +90,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         A list of named tuples wherein element 1 of each tuple is
         an instance of a BaseH2OTransformer or an H2OEstimator.
 
-    feature_names : iterable (default=None)
+    feature_names : iterable, optional (default=None)
         The names of features on which to fit the first transformer 
         in the pipeline. The next transformer will be fit with
         ``feature_names`` as the result-set columns from the previous
         transformer, minus any exclusions or target features.
 
-    target_feature : str (default=None)
+    target_feature : str, optional (default=None)
         The name of the target feature
 
     exclude_from_ppc : iterable, optional (default=None)
@@ -108,6 +108,14 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     exclude_from_fit : iterable, optional (default=None)
         Any names to be excluded from the final model fit
+
+    Attributes
+    ----------
+
+    training_cols_ : list (str), shape=(n_features,)
+        The columns that are retained for training purposes
+        after the ``_pre_transform`` operation, which fits
+        the series of transformers but not the final estimator.
     """
 
     _min_version = '3.8.2.9'
@@ -149,12 +157,34 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     @property
     def named_steps(self):
-        return dict(self.steps)
+        """Generates a dictionary of all of the stages
+        where the stage name is the key, and the stage is the
+        value. Note that dictionaries are not guaranteed a
+        specific order!!!
+
+        Returns
+        -------
+
+        d : dict
+            The dictionary of named steps.
+        """
+        d = dict(self.steps)
+        return d
 
 
     @property
     def _final_estimator(self):
-        return self.steps[-1][1]
+        """Returns the last stage in the ``H2OPipeline``,
+        which is either an ``H2OTransformer`` or an ``H2OEstimator``.
+
+        Returns
+        -------
+
+        s : ``H2OTransformer`` or ``H2OEstimator``
+            The last step in the pipeline
+        """
+        s = self.steps[-1][1]
+        return s
 
 
     def _pre_transform(self, frame=None):
@@ -339,6 +369,37 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     @staticmethod
     def load(location):
+        """Loads a persisted state of an instance of ``H2OPipeline``
+        from disk. This method will handle loading ``H2OEstimator`` models separately 
+        and outside of the constraints of the ``pickle`` package. 
+
+        Note that this is a static method and should be called accordingly:
+
+            >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl') # GOOD!
+
+        Also note that since ``H2OPipeline`` can contain an ``H2OEstimator``, it's
+        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``
+        and will not function properly if called at the highest level of abstraction:
+
+            >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl') # BAD!
+
+        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from
+        this method will raise a ``TypeError``:
+
+            >>> mcf = H2OPipeline.load('path/to/some/other/transformer.pkl') # BAD!
+
+        Parameters
+        ----------
+
+        location : str
+            The location where the persisted ``H2OPipeline`` model resides.
+
+        Returns
+        -------
+
+        model : ``H2OPipeline``
+            The unpickled instance of the ``H2OPipeline`` model
+        """
         with open(location) as f:
             model = pickle.load(f)
 
