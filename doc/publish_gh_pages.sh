@@ -17,9 +17,8 @@
 # STEPS #
 #########
 
-# This script will check if the number of input arguments are 0
+# This script will check if the number of input arguments are 1
 #   A) If arguments == 0
-#       0) python setup.py develop           # make sure that package is rebuilt to pull in latest versions number
 #       1) make clean html                   # purge old docs and create new
 #       2) cp -R ../ghpages/html ../         # copy html folder to base directory of master
 #       3) git stash                         # delete unwanted/uncommited changes to master
@@ -42,10 +41,6 @@ if test $# -eq 0; then
     VERSION_NUMBER=`cat ../skutil/__init__.py | grep "version" | tr "=" "\n" | grep -v "version"`
     COMMIT_MESSAGE="Update for version - $VERSION_NUMBER"
     COMMIT_TIME=`date "+%m/%d/%Y %H:%M"`
-
-    echo "\n\nSee note A.0) python setup.py develop\n\n"
-    cd ..
-    python setup.py develop
 
     echo "\n\nSee note A.1) make clean html\n\n"
     cd doc
@@ -85,7 +80,8 @@ if test $# -eq 0; then
 else
     echo "\n>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<"
     echo ">>>>>>>Illegal number of arguments supplied!<<<<<<<"
+    echo ">>>>>>>Please pass commit message to script<<<<<<<<"
     echo "Please invoke script like in the following example:"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<\n"
-    echo "sh publish_gh_pages.sh\n"
+    echo "sh publish_gh_pages.sh 'commit message'\n"
 fi
