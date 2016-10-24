@@ -177,7 +177,6 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     Parameters
     ----------
 
-
     X : H2OFrame
         The frame from which to drop
 
@@ -239,9 +238,6 @@ class VizMixin:
     Any structure that wraps an H2OEstimator's fitting
     functionality should derive from this mixin.
     """
-
-    def __init__(self):
-        pass
 
     def plot(self, timestep, metric):
         """Plot an H2OEstimator's performance over a
@@ -328,13 +324,13 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     Parameters
     ----------
 
-    target_feature : str (default None)
-        The name of the target feature (is excluded from the fit)
+    target_feature : str, optional (default=None)
+        The name of the target feature (is excluded from the fit).
 
-    min_version : str, float (default 'any')
+    min_version : str, float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str, float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -356,37 +352,104 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
     @property
     def max_version(self):
+        """Returns the max version of H2O that is compatible
+        with the ``BaseH2OFunctionWrapper`` instance. Some classes
+        differ in their support for H2O versions, due to changes
+        in the underlying API.
+
+        Returns
+        -------
+
+        mv : string, or None
+            If there is a max version associated with
+            the ``BaseH2OFunctionWrapper``, returns it
+            as a string, otherwise returns None.
+        """
         try:
-            mv = self.__max_version__
+            mv = self._max_version
             return mv if not mv else str(mv)
         except AttributeError as n:
             return None
 
     @property
     def min_version(self):
+        """Returns the min version of H2O that is compatible
+        with the ``BaseH2OFunctionWrapper`` instance. Some classes
+        differ in their support for H2O versions, due to changes
+        in the underlying API.
+
+        Returns
+        -------
+
+        mv : string
+            If there is a min version associated with
+            the ``BaseH2OFunctionWrapper``, returns it
+            as a string, otherwise returns 'any'
+        """
         try:
-            return str(self.__min_version__)
+            mv = str(self._min_version)
         except AttributeError as n:
-            return 'any'
+            mv = 'any'
+        return mv
 
     @staticmethod
     def load(location):
-        with open(location) as f:
-            return pickle.load(f)
+        """Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``
+        from disk. If the instance is of a more complex class, i.e., one that contains
+        an ``H2OEstimator``, this method will handle loading these models separately 
+        and outside of the constraints of the ``pickle`` package. 
 
-    def save(self, location, warn_if_exists=True, **kwargs):
-        """Save the transformer
+        Note that this is a static method and should be called accordingly:
+
+            >>> mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
+            >>> mcf.transform(X)
+
+        Some classes define their own ``load`` functionality, and will not
+        work as expected if called in the following manner:
+
+            >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
+
+        This is because of the aforementioned situation wherein some classes
+        handle saves and loads of ``H2OEstimator`` objects differently. Thus, any
+        class that is being loaded should be statically referenced at the level of
+        lowest abstraction possible:
+
+            >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl')
 
         Parameters
         ----------
 
         location : str
-            The location to save the transformer to
+            The location where the persisted model resides.
+
+        Returns
+        -------
+
+        m : ``BaseH2OFunctionWrapper``
+            The unpickled instance of the model
+        """
+        with open(location) as f:
+            m = pickle.load(f)
+        return m
+
+    def save(self, location, warn_if_exists=True, **kwargs):
+        """Saves the ``BaseH2OFunctionWrapper`` to disk. If the 
+        instance is of a more complex class, i.e., one that contains
+        an ``H2OEstimator``, this method will handle saving these 
+        models separately and outside of the constraints of the 
+        ``pickle`` package. Any key-word arguments will be passed to
+        the ``_save_internal`` method (if it exists).
+
+
+        Parameters
+        ----------
+
+        location : str
+            The absolute path of location where the transformer 
+            should be saved.
 
         warn_if_exists :  bool, optional (default=True)
             Warn the user that ``location`` exists if True.
-
-
         """
         if warn_if_exists and os.path.exists(location):
             warnings.warn('Overwriting existing path: %s' % location, UserWarning)
@@ -428,6 +491,7 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 
     exclude_features : iterable or None
         Any names that should be excluded from ``feature_names``
+        during the fit.
 
     min_version : str, float (default 'any')
         The minimum version of h2o that is compatible with the transformer
@@ -446,4 +510,20 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
         self.exclude_features = exclude_features
 
     def fit_transform(self, frame):
-        return self.fit(frame).transform(frame)
+        """Fit the model and then immediately transform
+        the input (training) frame with the fit parameters.
+
+        Parameters
+        ----------
+
+        frame : ``H2OFrame``
+            The training frame
+
+        Returns
+        -------
+
+        ft : ``H2OFrame``
+            The transformed training frame
+        """
+        ft = self.fit(frame).transform(frame)
+        return ft
