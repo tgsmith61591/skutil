@@ -85,8 +85,7 @@ if test $# -eq 0; then
 else
     echo "\n>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<"
     echo ">>>>>>>Illegal number of arguments supplied!<<<<<<<"
-    echo ">>>>>>>Please pass commit message to script<<<<<<<<"
     echo "Please invoke script like in the following example:"
     echo ">>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<\n"
-    echo "sh publish_gh_pages.sh 'commit message'\n"
+    echo "sh publish_gh_pages.sh\n"
 fi
