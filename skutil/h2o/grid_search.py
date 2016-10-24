@@ -194,12 +194,12 @@ def _new_base_estimator(est, clonable_kwargs):
 def _get_estimator_string(estimator):
     """Looks up the estimator string in the reverse
     dictionary. This way we can regenerate the base 
-    estimator.
+    estimator. This is kind of a hack...
 
     Parameters
     ----------
 
-    estimator : H2OEstimator
+    estimator : ``H2OEstimator``
         The estimator
     """
     if isinstance(estimator, H2ODeepLearningEstimator):
@@ -222,38 +222,10 @@ def _get_estimator_string(estimator):
 
 
 def _score(estimator, frame, target_feature, scorer, is_regression, **kwargs):
-    # this is a bottleneck:
-    # y_truth = _as_numpy(frame[target_feature])
     y_truth = frame[target_feature]
 
     # gen predictions...
-    # pred = _as_numpy(estimator.predict(frame)['predict'])
     pred = estimator.predict(frame)['predict']
-
-    """
-    if not is_regression:
-        # there's a very real chance that the truth or predictions are enums,
-        # as h2o is capable of handling these... we need to explicitly make the
-        # predictions and target numeric.
-        encoder = LabelEncoder()
-
-        try:
-            y_truth = encoder.fit_transform(y_truth)
-            pred = encoder.transform(pred)
-        except ValueError as v:
-            raise ValueError('y contains new labels. '
-                             'Seen: %s\n, New:%s' % (
-                                str(encoder.classes_), 
-                                str(set(pred))))
-    """
-
-    # This shouldn't matter: ** args are copies
-    # pop all of the kwargs into the parms
-    # for k,v in six.iteritems(kwargs):
-    # we could warn, but parms is affected in place, so we won't...
-    # if k in parms:
-    #   warnings.warn('parm %s already exists in score parameters, but is contained in kwargs' % (k))
-    #   parms[k] = v
 
     # it's calling and h2o scorer at this point
     return scorer.score(y_truth, pred, **kwargs)
@@ -268,10 +240,10 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         Parameters
         ----------
 
-        estimator : H2OPipeline or H2OEstimator
+        estimator : ``H2OPipeline`` or ``H2OEstimator``
             The estimator to fit
 
-        frame : H2OFrame
+        frame : ``H2OFrame``
             The training frame
 
         feature_names : iterable (str)
@@ -280,7 +252,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         target_feature : str
             The name of the target feature
 
-        scorer : H2OScorer
+        scorer : ``H2OScorer``
             The scoring function
 
         parameters : dict
@@ -302,12 +274,13 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
             Whether we are fitting a continuous target
 
         act_args : dict
-            GainsReport args if called from a Gains search
+            ``GainsStatisticalReport`` args if called from a 
+            ``H2OGainsRandomizedSearchCV``
 
         cv_fold : int
             The fold number for reporting
 
-        iteration : int
+        iteration : int``
             The iteration number for reporting
 
         Returns
@@ -718,6 +691,37 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     @staticmethod
     def load(location):
+        """Loads a persisted state of an instance of ``BaseH2OSearchCV``
+        from disk. This method will handle loading ``H2OEstimator`` models separately 
+        and outside of the constraints of the ``pickle`` package. 
+
+        Note that this is a static method and should be called accordingly:
+
+            >>> search = BaseH2OSearchCV.load('path/to/h2o/search.pkl') # GOOD!
+
+        Also note that since ``BaseH2OSearchCV`` will contain an ``H2OEstimator``, it's
+        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``
+        and will not function properly if called at the highest level of abstraction:
+
+            >>> search = BaseH2OFunctionWrapper.load('path/to/h2o/search.pkl') # BAD!
+
+        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from
+        this method will raise a ``TypeError``:
+
+            >>> mcf = BaseH2OSearchCV.load('path/to/some/other/transformer.pkl') # BAD!
+
+        Parameters
+        ----------
+
+        location : str
+            The location where the persisted ``BaseH2OSearchCV`` model resides.
+
+        Returns
+        -------
+
+        model : ``BaseH2OSearchCV``
+            The unpickled instance of the ``BaseH2OSearchCV`` model
+        """
         with open(location) as f:
             model = pickle.load(f)
 

@@ -68,7 +68,6 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         Whether to return the sanitized ``x``, ``y`` variables.
         If False, will only return ``X``.
 
-
     Returns
     -------
 
@@ -172,7 +171,7 @@ def validate_x(x):
 
 def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     """Validate the feature_names and target_feature arguments
-    passed to an H2OTransformer.
+    passed to an ``H2OTransformer``.
 
     Parameters
     ----------
