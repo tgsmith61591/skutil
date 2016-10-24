@@ -199,16 +199,16 @@ for the estimator.</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -234,15 +234,15 @@ for the estimator.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target_feature</strong> : str (default None)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target_feature</strong> : str, optional (default=None)</p>
 <blockquote>
-<div><p>The name of the target feature (is excluded from the fit)</p>
+<div><p>The name of the target feature (is excluded from the fit).</p>
 </div></blockquote>
-<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<p><strong>min_version</strong> : str, float, optional (default=&#8217;any&#8217;)</p>
 <blockquote>
 <div><p>The minimum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
-<p><strong>max_version</strong> : str, float (default None)</p>
+<p><strong>max_version</strong> : str, float, optional (default=None)</p>
 <blockquote class="last">
 <div><p>The maximum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
@@ -261,10 +261,10 @@ for the estimator.</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFunctionWrapper.load" title="skutil.h2o.BaseH2OFunctionWrapper.load"><code class="xref py py-obj docutils literal"><span class="pre">load</span></code></a>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="skutil.h2o.BaseH2OFunctionWrapper.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -274,29 +274,110 @@ for the estimator.</p>
 <dl class="staticmethod">
 <dt id="skutil.h2o.BaseH2OFunctionWrapper.load">
 <em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.load" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="skutil.h2o.BaseH2OFunctionWrapper.max_version">
-<code class="descname">max_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.max_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="skutil.h2o.BaseH2OFunctionWrapper.min_version">
-<code class="descname">min_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.min_version" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="skutil.h2o.BaseH2OFunctionWrapper.save">
-<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>warn_if_exists=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save the transformer</p>
+<dd><p>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code>
+from disk. If the instance is of a more complex class, i.e., one that contains
+an <code class="docutils literal"><span class="pre">H2OEstimator</span></code>, this method will handle loading these models separately 
+and outside of the constraints of the <code class="docutils literal"><span class="pre">pickle</span></code> package.</p>
+<p>Note that this is a static method and should be called accordingly:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mcf</span> <span class="o">=</span> <span class="n">H2OMulticollinearityFilterer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="s1">&#39;example/path.pkl&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mcf</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some classes define their own <code class="docutils literal"><span class="pre">load</span></code> functionality, and will not
+work as expected if called in the following manner:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">BaseH2OFunctionWrapper</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/h2o/pipeline.pkl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is because of the aforementioned situation wherein some classes
+handle saves and loads of <code class="docutils literal"><span class="pre">H2OEstimator</span></code> objects differently. Thus, any
+class that is being loaded should be statically referenced at the level of
+lowest abstraction possible:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">H2OPipeline</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/h2o/pipeline.pkl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>location</strong> : str</p>
 <blockquote>
-<div><p>The location to save the transformer to</p>
+<div><p>The location where the persisted model resides.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>m</strong> : <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code></p>
+<blockquote class="last">
+<div><p>The unpickled instance of the model</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.max_version">
+<code class="descname">max_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.max_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the max version of H2O that is compatible
+with the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> instance. Some classes
+differ in their support for H2O versions, due to changes
+in the underlying API.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mv</strong> : string, or None</p>
+<blockquote class="last">
+<div><p>If there is a max version associated with
+the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code>, returns it
+as a string, otherwise returns None.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.min_version">
+<code class="descname">min_version</code><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.min_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the min version of H2O that is compatible
+with the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> instance. Some classes
+differ in their support for H2O versions, due to changes
+in the underlying API.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mv</strong> : string</p>
+<blockquote class="last">
+<div><p>If there is a min version associated with
+the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code>, returns it
+as a string, otherwise returns &#8216;any&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="skutil.h2o.BaseH2OFunctionWrapper.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>location</em>, <em>warn_if_exists=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OFunctionWrapper.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFunctionWrapper.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk. If the 
+instance is of a more complex class, i.e., one that contains
+an <code class="docutils literal"><span class="pre">H2OEstimator</span></code>, this method will handle saving these 
+models separately and outside of the constraints of the 
+<code class="docutils literal"><span class="pre">pickle</span></code> package. Any key-word arguments will be passed to
+the <code class="docutils literal"><span class="pre">_save_internal</span></code> method (if it exists).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>location</strong> : str</p>
+<blockquote>
+<div><p>The absolute path of location where the transformer 
+should be saved.</p>
 </div></blockquote>
 <p><strong>warn_if_exists</strong> :  bool, optional (default=True)</p>
 <blockquote class="last">
@@ -330,7 +411,8 @@ for the estimator.</p>
 </div></blockquote>
 <p><strong>exclude_features</strong> : iterable or None</p>
 <blockquote>
-<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code></p>
+<div><p>Any names that should be excluded from <code class="docutils literal"><span class="pre">feature_names</span></code>
+during the fit.</p>
 </div></blockquote>
 <p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
 <blockquote>
@@ -352,16 +434,16 @@ for the estimator.</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.BaseH2OTransformer.fit_transform" title="skutil.h2o.BaseH2OTransformer.fit_transform"><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code></a>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -371,7 +453,27 @@ for the estimator.</p>
 <dl class="method">
 <dt id="skutil.h2o.BaseH2OTransformer.fit_transform">
 <code class="descname">fit_transform</code><span class="sig-paren">(</span><em>frame</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#BaseH2OTransformer.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OTransformer.fit_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Fit the model and then immediately transform
+the input (training) frame with the fit parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code></p>
+<blockquote>
+<div><p>The training frame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ft</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code></p>
+<blockquote class="last">
+<div><p>The transformed training frame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -448,16 +550,16 @@ in each fold</p>
 <td>Fit the F-score feature selector.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -563,16 +665,16 @@ in each fold</p>
 <td>Fit the F-score feature selector.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -658,16 +760,16 @@ the <code class="docutils literal"><span class="pre">FeatureDropper</span></code
 <td>Fit the H2OTransformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -705,14 +807,14 @@ the <code class="docutils literal"><span class="pre">FeatureDropper</span></code
 <em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OGainsRandomizedSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_grid</em>, <em>feature_names</em>, <em>target_feature</em>, <em>exposure_feature</em>, <em>loss_feature</em>, <em>premium_feature=None</em>, <em>n_iter=10</em>, <em>random_state=None</em>, <em>scoring='lift'</em>, <em>scoring_params=None</em>, <em>cv=5</em>, <em>verbose=0</em>, <em>iid=True</em>, <em>validation_frame=None</em>, <em>minimize='bias'</em>, <em>error_score=nan</em>, <em>error_behavior='warn'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/grid_search.html#H2OGainsRandomizedSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OGainsRandomizedSearchCV" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.grid_search.H2ORandomizedSearchCV</span></code></p>
 <p>A grid search that scores based on actuarial metrics
-(See skutil.metrics.GainsStatisticalReport). This is a more
+(See <code class="docutils literal"><span class="pre">skutil.metrics.GainsStatisticalReport</span></code>). This is a more
 customized form of grid search, and must use a gains metric
-provided by the GainsStatisticalReport.</p>
+provided by the <code class="docutils literal"><span class="pre">GainsStatisticalReport</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : <code class="docutils literal"><span class="pre">H2OPipeline</span></code> or <code class="docutils literal"><span class="pre">H2OEstimator</span></code></p>
 <blockquote>
 <div><p>The estimator to fit.</p>
 </div></blockquote>
@@ -761,7 +863,7 @@ scoring metrics.</p>
 <div><p>Any kwargs to be passed to the scoring function for
 scoring at each iteration.</p>
 </div></blockquote>
-<p><strong>cv</strong> : int or H2OCrossValidator, optional (default=5)</p>
+<p><strong>cv</strong> : int or <code class="docutils literal"><span class="pre">H2OCrossValidator</span></code>, optional (default=5)</p>
 <blockquote>
 <div><p>The number of folds to be fit for cross validation.
 Note that <code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
@@ -778,7 +880,7 @@ one) will be fit.</p>
 are normalized at the end by the number of observations
 in each fold.</p>
 </div></blockquote>
-<p><strong>validation_frame</strong> : H2OFrame, optional (default=None)</p>
+<p><strong>validation_frame</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, optional (default=None)</p>
 <blockquote>
 <div><p>Whether to score on the full validation frame at the
 end of all of the model fits. Note that this will NOT be
@@ -820,25 +922,25 @@ the standard deviations between cross validation scores.</p>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
-<td>Fit the grid search on the given frame, and then generate predictions.</td>
+<td>First, fits the grid search and then generates predictions  on the training frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OSearchCV</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
-<td></td>
+<td>After the grid search is fit, generates predictions  on the test frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.report_scores" title="skutil.h2o.H2OGainsRandomizedSearchCV.report_scores"><code class="xref py py-obj docutils literal"><span class="pre">report_scores</span></code></a>()</td>
 <td>Create a dataframe report for the fitting and scoring of the gains search.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OGainsRandomizedSearchCV.score" title="skutil.h2o.H2OGainsRandomizedSearchCV.score"><code class="xref py py-obj docutils literal"><span class="pre">score</span></code></a>(frame)</td>
 <td>Predict and score on a new frame.</td>
@@ -886,9 +988,15 @@ generates.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : H2OFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frame</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code></p>
+<blockquote>
+<div><p>The test frame on which to predict and score performance.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>scor</strong> : float</p>
 <blockquote class="last">
-<div><p>The frame on which to predict and score performance.</p>
+<div><p>The score on the testing frame</p>
 </div></blockquote>
 </td>
 </tr>
@@ -908,7 +1016,7 @@ entire hyperparameter grid provided.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : <code class="docutils literal"><span class="pre">H2OPipeline</span></code> or <code class="docutils literal"><span class="pre">H2OEstimator</span></code></p>
 <blockquote class="last">
 <div><blockquote>
 <div><p>The estimator to fit.</p>
@@ -932,7 +1040,7 @@ entire hyperparameter grid provided.</p>
 scoring at each iteration.</p>
 </dd>
 <dt>cv</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">int or H2OCrossValidator, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.</p>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or <code class="docutils literal"><span class="pre">H2OCrossValidator</span></code>, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.</p>
 </dd>
 <dt>verbose</dt>
  <span class="classifier-delimiter">:</span> <span class="classifier">int, optional (default=0)</span><dd><p class="first last">The level of verbosity. 1,2 or greater.</p>
@@ -943,7 +1051,7 @@ are normalized at the end by the number of observations
 in each fold.</p>
 </dd>
 <dt>validation_frame</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">H2OFrame, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">H2OFrame</span></code>, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
 end of all of the model fits. Note that this will NOT be
 used in the actual model selection process.</p>
 </dd>
@@ -975,25 +1083,25 @@ the standard deviations between cross validation scores.</p>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
-<td>Fit the grid search on the given frame, and then generate predictions.</td>
+<td>First, fits the grid search and then generates predictions  on the training frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OSearchCV</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
-<td></td>
+<td>After the grid search is fit, generates predictions  on the test frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
-<td></td>
+<td>After the grid search is fit, generates and scores  the predictions of the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1075,16 +1183,16 @@ in the <code class="docutils literal"><span class="pre">fit</span></code> method
 <td>Fit the transformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1230,16 +1338,16 @@ for the estimator.</p>
 <td></td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1338,10 +1446,10 @@ the mean absolute correlation of the dropped feature.</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1465,10 +1573,10 @@ for the estimator.</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1570,10 +1678,10 @@ a copy of the input frame</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -1671,14 +1779,14 @@ behavior of the exclusion parameters.</p>
 <div><p>A list of named tuples wherein element 1 of each tuple is
 an instance of a BaseH2OTransformer or an H2OEstimator.</p>
 </div></blockquote>
-<p><strong>feature_names</strong> : iterable (default=None)</p>
+<p><strong>feature_names</strong> : iterable, optional (default=None)</p>
 <blockquote>
 <div><p>The names of features on which to fit the first transformer 
 in the pipeline. The next transformer will be fit with
 <code class="docutils literal"><span class="pre">feature_names</span></code> as the result-set columns from the previous
 transformer, minus any exclusions or target features.</p>
 </div></blockquote>
-<p><strong>target_feature</strong> : str (default=None)</p>
+<p><strong>target_feature</strong> : str, optional (default=None)</p>
 <blockquote>
 <div><p>The name of the target feature</p>
 </div></blockquote>
@@ -1691,8 +1799,16 @@ as global exclusions and will be appended to any individually
 set exclusion features.</p>
 </div></blockquote>
 <p><strong>exclude_from_fit</strong> : iterable, optional (default=None)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Any names to be excluded from the final model fit</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>training_cols_</strong> : list (str), shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>The columns that are retained for training purposes
+after the <code class="docutils literal"><span class="pre">_pre_transform</span></code> operation, which fits
+the series of transformers but not the final estimator.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1721,7 +1837,7 @@ set exclusion features.</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.load" title="skutil.h2o.H2OPipeline.load"><code class="xref py py-obj docutils literal"><span class="pre">load</span></code></a>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">H2OPipeline</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.plot" title="skutil.h2o.H2OPipeline.plot"><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code></a>(\*args,&nbsp;\*\*kwargs)</td>
 <td>If the <code class="docutils literal"><span class="pre">_final_estimator</span></code> is an <code class="docutils literal"><span class="pre">H2OEstimator</span></code>, this method is injected at runtime.</td>
@@ -1730,7 +1846,7 @@ set exclusion features.</p>
 <td>Applies transforms to the data, and the predict method of the final estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.H2OPipeline.set_params" title="skutil.h2o.H2OPipeline.set_params"><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code></a>(\*\*params)</td>
 <td>Set the parameters for this pipeline.</td>
@@ -1842,12 +1958,64 @@ pipeline.</p>
 <dl class="staticmethod">
 <dt id="skutil.h2o.H2OPipeline.load">
 <em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.load" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">H2OPipeline</span></code>
+from disk. This method will handle loading <code class="docutils literal"><span class="pre">H2OEstimator</span></code> models separately 
+and outside of the constraints of the <code class="docutils literal"><span class="pre">pickle</span></code> package.</p>
+<p>Note that this is a static method and should be called accordingly:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">H2OPipeline</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/h2o/pipeline.pkl&#39;</span><span class="p">)</span> <span class="c1"># GOOD!</span>
+</pre></div>
+</div>
+<p>Also note that since <code class="docutils literal"><span class="pre">H2OPipeline</span></code> can contain an <code class="docutils literal"><span class="pre">H2OEstimator</span></code>, it&#8217;s
+<code class="docutils literal"><span class="pre">load</span></code> functionality differs from that of its superclass, <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code>
+and will not function properly if called at the highest level of abstraction:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">BaseH2OFunctionWrapper</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/h2o/pipeline.pkl&#39;</span><span class="p">)</span> <span class="c1"># BAD!</span>
+</pre></div>
+</div>
+<p>Furthermore, trying to load a different type of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from
+this method will raise a <code class="docutils literal"><span class="pre">TypeError</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mcf</span> <span class="o">=</span> <span class="n">H2OPipeline</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/some/other/transformer.pkl&#39;</span><span class="p">)</span> <span class="c1"># BAD!</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>location</strong> : str</p>
+<blockquote>
+<div><p>The location where the persisted <code class="docutils literal"><span class="pre">H2OPipeline</span></code> model resides.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>model</strong> : <code class="docutils literal"><span class="pre">H2OPipeline</span></code></p>
+<blockquote class="last">
+<div><p>The unpickled instance of the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> model</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="skutil.h2o.H2OPipeline.named_steps">
 <code class="descname">named_steps</code><a class="headerlink" href="#skutil.h2o.H2OPipeline.named_steps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generates a dictionary of all of the stages
+where the stage name is the key, and the stage is the
+value. Note that dictionaries are not guaranteed a
+specific order!!!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>d</strong> : dict</p>
+<blockquote class="last">
+<div><p>The dictionary of named steps.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="skutil.h2o.H2OPipeline.plot">
@@ -1974,7 +2142,7 @@ at each iteration.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : H2OPipeline or H2OEstimator</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : <code class="docutils literal"><span class="pre">H2OPipeline</span></code> or <code class="docutils literal"><span class="pre">H2OEstimator</span></code></p>
 <blockquote class="last">
 <div><blockquote>
 <div><p>The estimator to fit.</p>
@@ -2007,7 +2175,7 @@ one) will be fit.</p>
 scoring at each iteration.</p>
 </dd>
 <dt>cv</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">int or H2OCrossValidator, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.
+ <span class="classifier-delimiter">:</span> <span class="classifier">int or <code class="docutils literal"><span class="pre">H2OCrossValidator</span></code>, optional (default=5)</span><dd><p class="first last">The number of folds to be fit for cross validation.
 Note that <code class="docutils literal"><span class="pre">n_iter</span> <span class="pre">*</span> <span class="pre">cv.get_n_splits</span></code> will be fit. If there
 are 10 folds and 10 iterations, 100 models (plus
 one) will be fit.</p>
@@ -2021,7 +2189,7 @@ are normalized at the end by the number of observations
 in each fold.</p>
 </dd>
 <dt>validation_frame</dt>
- <span class="classifier-delimiter">:</span> <span class="classifier">H2OFrame, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
+ <span class="classifier-delimiter">:</span> <span class="classifier"><code class="docutils literal"><span class="pre">H2OFrame</span></code>, optional (default=None)</span><dd><p class="first last">Whether to score on the full validation frame at the
 end of all of the model fits. Note that this will NOT be
 used in the actual model selection process.</p>
 </dd>
@@ -2053,25 +2221,25 @@ the standard deviations between cross validation scores.</p>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_predict</span></code>(frame)</td>
-<td>Fit the grid search on the given frame, and then generate predictions.</td>
+<td>First, fits the grid search and then generates predictions  on the training frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OSearchCV</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">plot</span></code>(timestep,&nbsp;metric)</td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">predict</span></code>(frame)</td>
-<td></td>
+<td>After the grid search is fit, generates predictions  on the test frame using the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">score</span></code>(frame)</td>
-<td></td>
+<td>After the grid search is fit, generates and scores  the predictions of the <code class="docutils literal"><span class="pre">best_estimator_</span></code>.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -2132,16 +2300,16 @@ for the estimator.</p>
 <td>Fit the one hot encoder.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -2253,16 +2421,16 @@ derived in the <code class="docutils literal"><span class="pre">fit</span></code
 <td>Fit the imputer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -2374,16 +2542,16 @@ for the estimator.</p>
 <td>Fit the transformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -2504,16 +2672,16 @@ for the estimator.</p>
 <td>Fit the H2OTransformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(frame)</td>
-<td></td>
+<td>Fit the model and then immediately transform the input (training) frame with the fit parameters.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -2651,10 +2819,10 @@ a copy of the input frame</p>
 <td>Get parameters for this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">load</span></code>(location)</td>
-<td></td>
+<td>Loads a persisted state of an instance of <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> from disk.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>(location[,&nbsp;warn_if_exists])</td>
-<td>Save the transformer</td>
+<td>Saves the <code class="docutils literal"><span class="pre">BaseH2OFunctionWrapper</span></code> to disk.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
@@ -3889,7 +4057,7 @@ it is an iterable, it only contains string types.</p>
 <dt id="skutil.h2o.validate_x_y">
 <code class="descclassname">skutil.h2o.</code><code class="descname">validate_x_y</code><span class="sig-paren">(</span><em>X</em>, <em>feature_names</em>, <em>target_feature</em>, <em>exclude_features=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/base.html#validate_x_y"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.validate_x_y" title="Permalink to this definition">¶</a></dt>
 <dd><p>Validate the feature_names and target_feature arguments
-passed to an H2OTransformer.</p>
+passed to an <code class="docutils literal"><span class="pre">H2OTransformer</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

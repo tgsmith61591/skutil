@@ -329,12 +329,12 @@
 <span class="k">def</span> <span class="nf">_get_estimator_string</span><span class="p">(</span><span class="n">estimator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Looks up the estimator string in the reverse</span>
 <span class="sd">    dictionary. This way we can regenerate the base </span>
-<span class="sd">    estimator.</span>
+<span class="sd">    estimator. This is kind of a hack...</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    estimator : H2OEstimator</span>
+<span class="sd">    estimator : ``H2OEstimator``</span>
 <span class="sd">        The estimator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">H2ODeepLearningEstimator</span><span class="p">):</span>
@@ -357,38 +357,10 @@
 
 
 <span class="k">def</span> <span class="nf">_score</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">scorer</span><span class="p">,</span> <span class="n">is_regression</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="c1"># this is a bottleneck:</span>
-    <span class="c1"># y_truth = _as_numpy(frame[target_feature])</span>
     <span class="n">y_truth</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">target_feature</span><span class="p">]</span>
 
     <span class="c1"># gen predictions...</span>
-    <span class="c1"># pred = _as_numpy(estimator.predict(frame)[&#39;predict&#39;])</span>
     <span class="n">pred</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)[</span><span class="s1">&#39;predict&#39;</span><span class="p">]</span>
-
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    if not is_regression:</span>
-<span class="sd">        # there&#39;s a very real chance that the truth or predictions are enums,</span>
-<span class="sd">        # as h2o is capable of handling these... we need to explicitly make the</span>
-<span class="sd">        # predictions and target numeric.</span>
-<span class="sd">        encoder = LabelEncoder()</span>
-
-<span class="sd">        try:</span>
-<span class="sd">            y_truth = encoder.fit_transform(y_truth)</span>
-<span class="sd">            pred = encoder.transform(pred)</span>
-<span class="sd">        except ValueError as v:</span>
-<span class="sd">            raise ValueError(&#39;y contains new labels. &#39;</span>
-<span class="sd">                             &#39;Seen: %s\n, New:%s&#39; % (</span>
-<span class="sd">                                str(encoder.classes_), </span>
-<span class="sd">                                str(set(pred))))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># This shouldn&#39;t matter: ** args are copies</span>
-    <span class="c1"># pop all of the kwargs into the parms</span>
-    <span class="c1"># for k,v in six.iteritems(kwargs):</span>
-    <span class="c1"># we could warn, but parms is affected in place, so we won&#39;t...</span>
-    <span class="c1"># if k in parms:</span>
-    <span class="c1">#   warnings.warn(&#39;parm %s already exists in score parameters, but is contained in kwargs&#39; % (k))</span>
-    <span class="c1">#   parms[k] = v</span>
 
     <span class="c1"># it&#39;s calling and h2o scorer at this point</span>
     <span class="k">return</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">y_truth</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -403,10 +375,10 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
 <span class="sd">            The estimator to fit</span>
 
-<span class="sd">        frame : H2OFrame</span>
+<span class="sd">        frame : ``H2OFrame``</span>
 <span class="sd">            The training frame</span>
 
 <span class="sd">        feature_names : iterable (str)</span>
@@ -415,7 +387,7 @@
 <span class="sd">        target_feature : str</span>
 <span class="sd">            The name of the target feature</span>
 
-<span class="sd">        scorer : H2OScorer</span>
+<span class="sd">        scorer : ``H2OScorer``</span>
 <span class="sd">            The scoring function</span>
 
 <span class="sd">        parameters : dict</span>
@@ -437,12 +409,13 @@
 <span class="sd">            Whether we are fitting a continuous target</span>
 
 <span class="sd">        act_args : dict</span>
-<span class="sd">            GainsReport args if called from a Gains search</span>
+<span class="sd">            ``GainsStatisticalReport`` args if called from a </span>
+<span class="sd">            ``H2OGainsRandomizedSearchCV``</span>
 
 <span class="sd">        cv_fold : int</span>
 <span class="sd">            The fold number for reporting</span>
 
-<span class="sd">        iteration : int</span>
+<span class="sd">        iteration : int``</span>
 <span class="sd">            The iteration number for reporting</span>
 
 <span class="sd">        Returns</span>
@@ -553,6 +526,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">iid</span> <span class="o">=</span> <span class="n">iid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">validation_frame</span> <span class="o">=</span> <span class="n">validation_frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">minimize</span> <span class="o">=</span> <span class="n">minimize</span>
+
 
     <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">parameter_iterable</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Actual fitting,  performing the search over parameters.&quot;&quot;&quot;</span>
@@ -744,28 +718,72 @@
 
         <span class="k">return</span> <span class="bp">self</span>
 
+
     <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span>
-                      <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_regression_</span><span class="p">,</span>
-                      <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring_params</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit the grid search on the given frame,</span>
-<span class="sd">        and then generate predictions.</span>
+        <span class="sd">&quot;&quot;&quot;After the grid search is fit, generates and scores </span>
+<span class="sd">        the predictions of the ``best_estimator_``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : H2OFrame</span>
-<span class="sd">            The frame to fit</span>
+<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">            The test frame on which to predict</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        scor : float</span>
+<span class="sd">            The score of the test predictions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">scor</span> <span class="o">=</span> <span class="n">_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_regression_</span><span class="p">,</span>
+                      <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scor</span>
+
+
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;After the grid search is fit, generates predictions </span>
+<span class="sd">        on the test frame using the ``best_estimator_``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">            The test frame on which to predict</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        p : ``H2OFrame``</span>
+<span class="sd">            The test predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p</span>
+
+
+    <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;First, fits the grid search and then generates predictions </span>
+<span class="sd">        on the training frame using the ``best_estimator_``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">            The training frame on which to predict</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        p : ``H2OFrame``</span>
+<span class="sd">            The training predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">p</span>
+
 
     <span class="nd">@if_delegate_isinstance</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;best_estimator_&#39;</span><span class="p">,</span> <span class="n">instance_type</span><span class="o">=</span><span class="p">(</span><span class="n">H2OEstimator</span><span class="p">,</span> <span class="n">H2OPipeline</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">download_pojo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -790,8 +808,10 @@
 <span class="sd">            where the POJO was saved.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">is_h2o</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">H2OEstimator</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">h2o</span><span class="o">.</span><span class="n">download_pojo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span> <span class="k">if</span> <span class="n">is_h2o</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">_final_estimator</span><span class="p">,</span> 
-                                 <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="n">get_jar</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_h2o</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h2o</span><span class="o">.</span><span class="n">download_pojo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="n">get_jar</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">download_pojo</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="n">get_jar</span><span class="p">)</span>
 
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">VizMixin</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
@@ -806,6 +826,37 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``BaseH2OSearchCV``</span>
+<span class="sd">        from disk. This method will handle loading ``H2OEstimator`` models separately </span>
+<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
+
+<span class="sd">        Note that this is a static method and should be called accordingly:</span>
+
+<span class="sd">            &gt;&gt;&gt; search = BaseH2OSearchCV.load(&#39;path/to/h2o/search.pkl&#39;) # GOOD!</span>
+
+<span class="sd">        Also note that since ``BaseH2OSearchCV`` will contain an ``H2OEstimator``, it&#39;s</span>
+<span class="sd">        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        and will not function properly if called at the highest level of abstraction:</span>
+
+<span class="sd">            &gt;&gt;&gt; search = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/search.pkl&#39;) # BAD!</span>
+
+<span class="sd">        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from</span>
+<span class="sd">        this method will raise a ``TypeError``:</span>
+
+<span class="sd">            &gt;&gt;&gt; mcf = BaseH2OSearchCV.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        location : str</span>
+<span class="sd">            The location where the persisted ``BaseH2OSearchCV`` model resides.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        model : ``BaseH2OSearchCV``</span>
+<span class="sd">            The unpickled instance of the ``BaseH2OSearchCV`` model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
@@ -828,10 +879,6 @@
                     <span class="c1"># break if successfully loaded</span>
             <span class="k">if</span> <span class="n">the_h2o_est</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">break</span>
-
-                <span class="c1"># we no longer delete this attribute! What if you want to load it twice?</span>
-        <span class="c1"># delete the model path attr</span>
-        <span class="c1"># del model.model_loc_</span>
 
         <span class="c1"># if self.estimator is None, then it&#39;s simply the H2OEstimator,</span>
         <span class="c1"># otherwise it&#39;s going to be the H2OPipeline</span>
@@ -925,7 +972,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
 <span class="sd">            The estimator to fit.</span>
 
 <span class="sd">        param_grid : dict</span>
@@ -945,7 +992,7 @@
 <span class="sd">            Any kwargs to be passed to the scoring function for</span>
 <span class="sd">            scoring at each iteration.</span>
 
-<span class="sd">        cv : int or H2OCrossValidator, optional (default=5)</span>
+<span class="sd">        cv : int or ``H2OCrossValidator``, optional (default=5)</span>
 <span class="sd">            The number of folds to be fit for cross validation.</span>
 
 <span class="sd">        verbose : int, optional (default=0)</span>
@@ -956,7 +1003,7 @@
 <span class="sd">            are normalized at the end by the number of observations</span>
 <span class="sd">            in each fold.</span>
 
-<span class="sd">        validation_frame : H2OFrame, optional (default=None)</span>
+<span class="sd">        validation_frame : ``H2OFrame``, optional (default=None)</span>
 <span class="sd">            Whether to score on the full validation frame at the</span>
 <span class="sd">            end of all of the model fits. Note that this will NOT be</span>
 <span class="sd">            used in the actual model selection process.</span>
@@ -1000,7 +1047,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
 <span class="sd">            The estimator to fit.</span>
 
 <span class="sd">        param_grid : dict</span>
@@ -1029,7 +1076,7 @@
 <span class="sd">            Any kwargs to be passed to the scoring function for</span>
 <span class="sd">            scoring at each iteration.</span>
 
-<span class="sd">        cv : int or H2OCrossValidator, optional (default=5)</span>
+<span class="sd">        cv : int or ``H2OCrossValidator``, optional (default=5)</span>
 <span class="sd">            The number of folds to be fit for cross validation.</span>
 <span class="sd">            Note that ``n_iter * cv.get_n_splits`` will be fit. If there</span>
 <span class="sd">            are 10 folds and 10 iterations, 100 models (plus</span>
@@ -1043,7 +1090,7 @@
 <span class="sd">            are normalized at the end by the number of observations</span>
 <span class="sd">            in each fold.</span>
 
-<span class="sd">        validation_frame : H2OFrame, optional (default=None)</span>
+<span class="sd">        validation_frame : ``H2OFrame``, optional (default=None)</span>
 <span class="sd">            Whether to score on the full validation frame at the</span>
 <span class="sd">            end of all of the model fits. Note that this will NOT be</span>
 <span class="sd">            used in the actual model selection process.</span>
@@ -1120,14 +1167,14 @@
 
 <div class="viewcode-block" id="H2OGainsRandomizedSearchCV"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OGainsRandomizedSearchCV">[docs]</a><span class="k">class</span> <span class="nc">H2OGainsRandomizedSearchCV</span><span class="p">(</span><span class="n">H2ORandomizedSearchCV</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A grid search that scores based on actuarial metrics</span>
-<span class="sd">    (See skutil.metrics.GainsStatisticalReport). This is a more</span>
+<span class="sd">    (See ``skutil.metrics.GainsStatisticalReport``). This is a more</span>
 <span class="sd">    customized form of grid search, and must use a gains metric</span>
-<span class="sd">    provided by the GainsStatisticalReport.</span>
+<span class="sd">    provided by the ``GainsStatisticalReport``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">    estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
 <span class="sd">        The estimator to fit.</span>
 
 <span class="sd">    param_grid : dict</span>
@@ -1165,7 +1212,7 @@
 <span class="sd">        Any kwargs to be passed to the scoring function for</span>
 <span class="sd">        scoring at each iteration.</span>
 
-<span class="sd">    cv : int or H2OCrossValidator, optional (default=5)</span>
+<span class="sd">    cv : int or ``H2OCrossValidator``, optional (default=5)</span>
 <span class="sd">        The number of folds to be fit for cross validation.</span>
 <span class="sd">        Note that ``n_iter * cv.get_n_splits`` will be fit. If there</span>
 <span class="sd">        are 10 folds and 10 iterations, 100 models (plus</span>
@@ -1179,7 +1226,7 @@
 <span class="sd">        are normalized at the end by the number of observations</span>
 <span class="sd">        in each fold.</span>
 
-<span class="sd">    validation_frame : H2OFrame, optional (default=None)</span>
+<span class="sd">    validation_frame : ``H2OFrame``, optional (default=None)</span>
 <span class="sd">        Whether to score on the full validation frame at the</span>
 <span class="sd">        end of all of the model fits. Note that this will NOT be</span>
 <span class="sd">        used in the actual model selection process.</span>
@@ -1319,8 +1366,14 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : H2OFrame</span>
-<span class="sd">            The frame on which to predict and score performance.</span>
+<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">            The test frame on which to predict and score performance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        scor : float</span>
+<span class="sd">            The score on the testing frame</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
         <span class="n">e</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_names_</span><span class="p">[</span><span class="s1">&#39;expo&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_names_</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">extra_names_</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]</span>
@@ -1333,7 +1386,9 @@
 
         <span class="n">y_truth</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">]</span>
         <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)[</span><span class="s1">&#39;predict&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span><span class="o">.</span><span class="n">score_no_store</span><span class="p">(</span><span class="n">y_truth</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+        <span class="n">scor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span><span class="o">.</span><span class="n">score_no_store</span><span class="p">(</span><span class="n">y_truth</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">scor</span></div></div>
 </pre></div>
 
            </div>

@@ -225,13 +225,13 @@
 <span class="sd">        A list of named tuples wherein element 1 of each tuple is</span>
 <span class="sd">        an instance of a BaseH2OTransformer or an H2OEstimator.</span>
 
-<span class="sd">    feature_names : iterable (default=None)</span>
+<span class="sd">    feature_names : iterable, optional (default=None)</span>
 <span class="sd">        The names of features on which to fit the first transformer </span>
 <span class="sd">        in the pipeline. The next transformer will be fit with</span>
 <span class="sd">        ``feature_names`` as the result-set columns from the previous</span>
 <span class="sd">        transformer, minus any exclusions or target features.</span>
 
-<span class="sd">    target_feature : str (default=None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature</span>
 
 <span class="sd">    exclude_from_ppc : iterable, optional (default=None)</span>
@@ -243,6 +243,14 @@
 
 <span class="sd">    exclude_from_fit : iterable, optional (default=None)</span>
 <span class="sd">        Any names to be excluded from the final model fit</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    training_cols_ : list (str), shape=(n_features,)</span>
+<span class="sd">        The columns that are retained for training purposes</span>
+<span class="sd">        after the ``_pre_transform`` operation, which fits</span>
+<span class="sd">        the series of transformers but not the final estimator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -284,12 +292,34 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">named_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Generates a dictionary of all of the stages</span>
+<span class="sd">        where the stage name is the key, and the stage is the</span>
+<span class="sd">        value. Note that dictionaries are not guaranteed a</span>
+<span class="sd">        specific order!!!</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        d : dict</span>
+<span class="sd">            The dictionary of named steps.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_final_estimator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="sd">&quot;&quot;&quot;Returns the last stage in the ``H2OPipeline``,</span>
+<span class="sd">        which is either an ``H2OTransformer`` or an ``H2OEstimator``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        s : ``H2OTransformer`` or ``H2OEstimator``</span>
+<span class="sd">            The last step in the pipeline</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">s</span>
 
 
     <span class="k">def</span> <span class="nf">_pre_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -474,6 +504,37 @@
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="H2OPipeline.load"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``H2OPipeline``</span>
+<span class="sd">        from disk. This method will handle loading ``H2OEstimator`` models separately </span>
+<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
+
+<span class="sd">        Note that this is a static method and should be called accordingly:</span>
+
+<span class="sd">            &gt;&gt;&gt; pipeline = H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;) # GOOD!</span>
+
+<span class="sd">        Also note that since ``H2OPipeline`` can contain an ``H2OEstimator``, it&#39;s</span>
+<span class="sd">        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        and will not function properly if called at the highest level of abstraction:</span>
+
+<span class="sd">            &gt;&gt;&gt; pipeline = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;) # BAD!</span>
+
+<span class="sd">        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from</span>
+<span class="sd">        this method will raise a ``TypeError``:</span>
+
+<span class="sd">            &gt;&gt;&gt; mcf = H2OPipeline.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        location : str</span>
+<span class="sd">            The location where the persisted ``H2OPipeline`` model resides.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        model : ``H2OPipeline``</span>
+<span class="sd">            The unpickled instance of the ``H2OPipeline`` model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 

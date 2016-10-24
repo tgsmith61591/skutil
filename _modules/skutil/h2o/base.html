@@ -203,7 +203,6 @@
 <span class="sd">        Whether to return the sanitized ``x``, ``y`` variables.</span>
 <span class="sd">        If False, will only return ``X``.</span>
 
-
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -307,11 +306,10 @@
 
 <div class="viewcode-block" id="validate_x_y"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.validate_x_y">[docs]</a><span class="k">def</span> <span class="nf">validate_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Validate the feature_names and target_feature arguments</span>
-<span class="sd">    passed to an H2OTransformer.</span>
+<span class="sd">    passed to an ``H2OTransformer``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-
 
 <span class="sd">    X : H2OFrame</span>
 <span class="sd">        The frame from which to drop</span>
@@ -374,9 +372,6 @@
 <span class="sd">    Any structure that wraps an H2OEstimator&#39;s fitting</span>
 <span class="sd">    functionality should derive from this mixin.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
 
 <div class="viewcode-block" id="VizMixin.plot"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.VizMixin.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot an H2OEstimator&#39;s performance over a</span>
@@ -463,13 +458,13 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    target_feature : str (default None)</span>
-<span class="sd">        The name of the target feature (is excluded from the fit)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
+<span class="sd">        The name of the target feature (is excluded from the fit).</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str, float, optional (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str, float, optional (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -491,37 +486,104 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">max_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the max version of H2O that is compatible</span>
+<span class="sd">        with the ``BaseH2OFunctionWrapper`` instance. Some classes</span>
+<span class="sd">        differ in their support for H2O versions, due to changes</span>
+<span class="sd">        in the underlying API.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        mv : string, or None</span>
+<span class="sd">            If there is a max version associated with</span>
+<span class="sd">            the ``BaseH2OFunctionWrapper``, returns it</span>
+<span class="sd">            as a string, otherwise returns None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">mv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__max_version__</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span>
             <span class="k">return</span> <span class="n">mv</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">mv</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">mv</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">n</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">min_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the min version of H2O that is compatible</span>
+<span class="sd">        with the ``BaseH2OFunctionWrapper`` instance. Some classes</span>
+<span class="sd">        differ in their support for H2O versions, due to changes</span>
+<span class="sd">        in the underlying API.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        mv : string</span>
+<span class="sd">            If there is a min version associated with</span>
+<span class="sd">            the ``BaseH2OFunctionWrapper``, returns it</span>
+<span class="sd">            as a string, otherwise returns &#39;any&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__min_version__</span><span class="p">)</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">n</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;any&#39;</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="s1">&#39;any&#39;</span>
+        <span class="k">return</span> <span class="n">mv</span>
 
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="BaseH2OFunctionWrapper.load"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OFunctionWrapper.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        from disk. If the instance is of a more complex class, i.e., one that contains</span>
+<span class="sd">        an ``H2OEstimator``, this method will handle loading these models separately </span>
+<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
 
-<div class="viewcode-block" id="BaseH2OFunctionWrapper.save"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OFunctionWrapper.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">warn_if_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save the transformer</span>
+<span class="sd">        Note that this is a static method and should be called accordingly:</span>
+
+<span class="sd">            &gt;&gt;&gt; mcf = H2OMulticollinearityFilterer.load(location=&#39;example/path.pkl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; mcf.transform(X)</span>
+
+<span class="sd">        Some classes define their own ``load`` functionality, and will not</span>
+<span class="sd">        work as expected if called in the following manner:</span>
+
+<span class="sd">            &gt;&gt;&gt; pipeline = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
+
+<span class="sd">        This is because of the aforementioned situation wherein some classes</span>
+<span class="sd">        handle saves and loads of ``H2OEstimator`` objects differently. Thus, any</span>
+<span class="sd">        class that is being loaded should be statically referenced at the level of</span>
+<span class="sd">        lowest abstraction possible:</span>
+
+<span class="sd">            &gt;&gt;&gt; pipeline = H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        location : str</span>
-<span class="sd">            The location to save the transformer to</span>
+<span class="sd">            The location where the persisted model resides.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        m : ``BaseH2OFunctionWrapper``</span>
+<span class="sd">            The unpickled instance of the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">m</span></div>
+
+<div class="viewcode-block" id="BaseH2OFunctionWrapper.save"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OFunctionWrapper.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">warn_if_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Saves the ``BaseH2OFunctionWrapper`` to disk. If the </span>
+<span class="sd">        instance is of a more complex class, i.e., one that contains</span>
+<span class="sd">        an ``H2OEstimator``, this method will handle saving these </span>
+<span class="sd">        models separately and outside of the constraints of the </span>
+<span class="sd">        ``pickle`` package. Any key-word arguments will be passed to</span>
+<span class="sd">        the ``_save_internal`` method (if it exists).</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        location : str</span>
+<span class="sd">            The absolute path of location where the transformer </span>
+<span class="sd">            should be saved.</span>
 
 <span class="sd">        warn_if_exists :  bool, optional (default=True)</span>
 <span class="sd">            Warn the user that ``location`` exists if True.</span>
-
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">warn_if_exists</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Overwriting existing path: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">location</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
@@ -563,6 +625,7 @@
 
 <span class="sd">    exclude_features : iterable or None</span>
 <span class="sd">        Any names that should be excluded from ``feature_names``</span>
+<span class="sd">        during the fit.</span>
 
 <span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
@@ -581,7 +644,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span> <span class="o">=</span> <span class="n">exclude_features</span>
 
 <div class="viewcode-block" id="BaseH2OTransformer.fit_transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OTransformer.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div></div>
+        <span class="sd">&quot;&quot;&quot;Fit the model and then immediately transform</span>
+<span class="sd">        the input (training) frame with the fit parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">            The training frame</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        ft : ``H2OFrame``</span>
+<span class="sd">            The transformed training frame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ft</span></div></div>
 </pre></div>
 
            </div>
