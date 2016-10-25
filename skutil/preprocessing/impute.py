@@ -7,7 +7,7 @@ from sklearn.ensemble import BaggingRegressor, BaggingClassifier
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 from abc import ABCMeta
-from skutil.base import SelectiveMixin
+from skutil.base import SelectiveMixin, BaseSkutil
 from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
 
 __all__ = [
@@ -84,9 +84,7 @@ class ImputerMixin:
     _def_fill = -999999
 
 
-class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator,
-                                      SelectiveMixin, TransformerMixin,
-                                      ImputerMixin)):
+class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, ImputerMixin)):
     """A base class for all imputers. Handles assignment of the fill value.
 
     Parameters
@@ -116,9 +114,8 @@ class _BaseImputer(six.with_metaclass(ABCMeta, BaseEstimator,
     """
 
     def __init__(self, cols=None, as_df=True, def_fill=None):
-        self.cols = cols
-        self.as_df = as_df
-        self.fill_ = self._def_fill if def_fill is None else def_fill
+        super(_BaseImputer, self).__init__(cols=cols, as_df=as_df)
+        self.fill_ = def_fill if def_fill is not None else self._def_fill
 
 
 class SelectiveImputer(_BaseImputer):
@@ -249,10 +246,6 @@ class SelectiveImputer(_BaseImputer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -440,7 +433,7 @@ class _BaseBaggedImputer(_BaseImputer):
         self.models_ = models
         return X if self.as_df else X.as_matrix()
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Impute the test data after fit.
 
         Parameters
@@ -448,10 +441,6 @@ class _BaseBaggedImputer(_BaseImputer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------

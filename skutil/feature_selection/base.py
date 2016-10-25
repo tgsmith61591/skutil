@@ -1,20 +1,17 @@
-from __future__ import print_function
-import warnings
+from __future__ import print_function, division, absolute_import
 from abc import ABCMeta, abstractmethod
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
-from skutil.base import SelectiveMixin
+from skutil.base import BaseSkutil
 from ..utils import validate_is_pd
+import warnings
 
 __all__ = [
     '_BaseFeatureSelector'
 ]
 
 
-class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                              TransformerMixin, 
-                                              SelectiveMixin)):
+class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
     """The base class for all skutil feature selectors, the _BaseFeatureSelector
     should adhere to the following behavior:
 
@@ -52,10 +49,24 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseEstimator,
 
     @abstractmethod
     def __init__(self, cols=None, as_df=True, **kwargs):
-        self.cols = cols
-        self.as_df = as_df
+        super(_BaseFeatureSelector, self).__init__(cols=cols, as_df=as_df)
 
-    def transform(self, X, y=None):
+
+    def transform(self, X):
+        """Transform a test matrix given the already-fit transformer.
+
+        Parameters
+        ----------
+
+        X : pd.DataFrame
+            The test frame
+
+        Returns
+        -------
+
+        dropped : pd.DataFrame
+            The transformed matrix
+        """
         check_is_fitted(self, 'drop_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)

@@ -1,7 +1,11 @@
 from __future__ import absolute_import, division, print_function
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.externals import six
+from abc import ABCMeta
 import warnings
 
 __all__ = [
+    'BaseSkutil',
     'ModuleImportWarning',
     'overrides',
     'SamplingWarning',
@@ -93,3 +97,28 @@ class SelectiveMixin:
     """
     # at one time, this contained methods. But They've since
     # been weeded out one-by-one... do we want to keep it?
+
+
+class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, 
+                                    TransformerMixin, SelectiveMixin)):
+    """Provides the base class for all non-h2o skutil transformers.
+    Implements both ``TransformerMixin`` and ``SelectiveMixin``.
+
+    Parameters
+    ----------
+
+    cols : array_like, optional (default=None)
+        The columns on which the transformer will be ``fit``. In
+        the case that ``cols`` is None, the transformer will be fit
+        on all columns.
+
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas DataFrame in the ``transform``
+        method. If False, will return a NumPy ndarray instead. 
+        Since most skutil transformers depend on explicitly-named
+        DataFrame features, the ``as_df`` parameter is True by default.
+    """
+    
+    def __init__(self, cols=None, as_df=True):
+        self.cols = cols
+        self.as_df = as_df

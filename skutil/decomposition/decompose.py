@@ -19,9 +19,7 @@ __all__ = [
 ]
 
 
-class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                                  TransformerMixin, 
-                                                  SelectiveMixin)):
+class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil)):
     """Base class for selective decompositional transformers.
     Each of these transformers should adhere to the :class:`skutil.base.SelectiveMixin`
     standard of accepting a ``cols`` parameter in the ``__init__`` method, and
@@ -48,9 +46,8 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator,
     """
 
     def __init__(self, cols=None, n_components=None, as_df=True):
-        self.cols = cols
+        super(_BaseSelectiveDecomposer, self).__init__(cols=cols, as_df=as_df)
         self.n_components = n_components
-        self.as_df = as_df
 
     @abstractmethod
     def get_decomposition(self):
@@ -179,7 +176,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Transform the given dataset, provided the transformer
         has already been fit.
 
@@ -188,9 +185,6 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
         X: pd.DataFrame, shape(n_samples, n_features)
             The data to fit.
-
-        y: None
-            Pass through for grid search and pipeline.
 
         Returns
         -------
@@ -345,7 +339,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Transform the given dataset, provided the transformer
         has already been fit.
 
@@ -354,9 +348,6 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
         X: pd.DataFrame, shape(n_samples, n_features)
             The data to fit.
-
-        y: None
-            Pass through for grid search and pipeline.
 
         Returns
         -------

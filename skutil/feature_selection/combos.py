@@ -132,7 +132,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 
         return dropped if self.as_df else dropped.as_matrix()
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Drops the linear combination features from the new
         input frame.
 
@@ -141,10 +141,6 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
