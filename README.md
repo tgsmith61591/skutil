@@ -16,17 +16,17 @@ What began as a modest, succinct set of [sklearn](https://github.com/scikit-lear
 Skutil adapts code from several R packages, and thus depends on the ability to compile Fortran code using `gcc`. For different platforms, there are different ways to install `gcc` (the easiest, of course, being [Homebrew](http://brew.sh/)):
   - __Mac OS__ (__note__: this can take a while):
 ```bash
-brew install gcc
+$ brew install gcc
 ```
 
 There is a bug in some setups that will still cause issues in symlinking the `gcc` files via homebrew. If this is the case, the following line should clear things up:
 ```bash
-brew link --overwrite gcc
+$ brew link --overwrite gcc
 ```
 
   - __Linux__:
 ```bash
-sudo apt-get install gcc
+$ sudo apt-get install gcc
 ```
 
   - For Windows, follow [this tutorial](http://www.preshing.com/20141108/how-to-install-the-latest-gcc-on-windows/)
