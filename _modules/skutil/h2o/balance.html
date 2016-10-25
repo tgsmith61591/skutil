@@ -217,7 +217,23 @@
 
 <div class="viewcode-block" id="H2OOversamplingClassBalancer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OOversamplingClassBalancer">[docs]</a><span class="k">class</span> <span class="nc">H2OOversamplingClassBalancer</span><span class="p">(</span><span class="n">_BaseH2OBalancer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Oversample the minority classes until they are represented</span>
-<span class="sd">    at the target proportion to the majority class.</span>
+<span class="sd">    at the target proportion to the majority class. For example, </span>
+<span class="sd">    consider the following pd.Series, ``a_counts``, (index = class, </span>
+<span class="sd">    and values = counts):</span>
+
+<span class="sd">        &gt;&gt;&gt; a_counts</span>
+<span class="sd">        0  100</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  25</span>
+
+<span class="sd">    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled </span>
+<span class="sd">    until they are represented at a ratio of at least 0.5 * the prevalence of</span>
+<span class="sd">    the majority class (0):</span>
+
+<span class="sd">        &gt;&gt;&gt; a_counts_undersampled</span>
+<span class="sd">        0  100</span>
+<span class="sd">        1  50</span>
+<span class="sd">        2  50</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -278,18 +294,21 @@
 <div class="viewcode-block" id="H2OUndersamplingClassBalancer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OUndersamplingClassBalancer">[docs]</a><span class="k">class</span> <span class="nc">H2OUndersamplingClassBalancer</span><span class="p">(</span><span class="n">_BaseH2OBalancer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Undersample the majority class until it is represented</span>
 <span class="sd">    at the target proportion to the most-represented minority class.</span>
-<span class="sd">    For example, given the follow pd.Series (index = class, and values = counts):</span>
+<span class="sd">    For example, consider the following pd.Series, ``a_counts``, </span>
+<span class="sd">    (index = class, and values = counts):</span>
 
-<span class="sd">    0  150</span>
-<span class="sd">    1  30</span>
-<span class="sd">    2  10</span>
+<span class="sd">        &gt;&gt;&gt; a_counts</span>
+<span class="sd">        0  150</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  10</span>
 
-<span class="sd">    and the ratio 0.5, the majority class (0) will be undersampled until</span>
+<span class="sd">    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until</span>
 <span class="sd">    the second most-populous class (1) is represented at a ratio of 0.5:</span>
 
-<span class="sd">    0  60</span>
-<span class="sd">    1  30</span>
-<span class="sd">    2  10</span>
+<span class="sd">        &gt;&gt;&gt; a_counts_undersampled</span>
+<span class="sd">        0  60</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  10</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

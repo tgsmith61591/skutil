@@ -183,38 +183,38 @@
 <span class="sd">    ``exclude_from_ppc`` and ``exclude_from_fit`` parameters.</span>
 
 <span class="sd">    The pipeline, at the core, is comprised of a list of length-two tuples</span>
-<span class="sd">    in the form of `(&#39;name&#39;, SomeH2OTransformer())`, punctuated with an</span>
+<span class="sd">    in the form of ``(&#39;name&#39;, SomeH2OTransformer())``, punctuated with an</span>
 <span class="sd">    optional `H2OEstimator` as the final step. The pipeline will procedurally </span>
 <span class="sd">    fit each stage, transforming the training data prior to fitting the next stage.</span>
 <span class="sd">    When predicting or transforming new (test) data, each stage calls either</span>
-<span class="sd">    `transform` or `predict` at the respective step.</span>
+<span class="sd">    ``transform`` or ``predict`` at the respective step.</span>
 
-<span class="sd">    **On the topic of exclusions and `feature_names`:**</span>
+<span class="sd">    **On the topic of exclusions and ``feature_names``:**</span>
 
-<span class="sd">    Prior to version 0.1.0, `H2OTransformer`s did not take the keyword `exclude_features`.</span>
-<span class="sd">    Its addition necessitated two new keywords in the `H2OPipeline`, and a slight change</span>
+<span class="sd">    Prior to version 0.1.0, ``H2OTransformer``s did not take the keyword ``exclude_features``.</span>
+<span class="sd">    Its addition necessitated two new keywords in the ``H2OPipeline``, and a slight change</span>
 <span class="sd">    in behavior of ``feature_names``:</span>
 
-<span class="sd">        * ``exclude_from_ppc`` - If set in the `H2OPipeline` constructor, these features</span>
+<span class="sd">        * ``exclude_from_ppc`` - If set in the ``H2OPipeline`` constructor, these features</span>
 <span class="sd">                                 will be universally omitted from every preprocessing stage.</span>
-<span class="sd">                                 Since `exclude_features` can be set individually in each</span>
-<span class="sd">                                 separate transformer, in the case that `exclude_features` has</span>
+<span class="sd">                                 Since ``exclude_features`` can be set individually in each</span>
+<span class="sd">                                 separate transformer, in the case that ``exclude_features`` has</span>
 <span class="sd">                                 been explicitly set, the exclusions in that respective stage</span>
 <span class="sd">                                 will include the union of ``exclude_from_ppc`` and </span>
-<span class="sd">                                 `exclude_features`.</span>
+<span class="sd">                                 ``exclude_features``.</span>
 
-<span class="sd">        * ``exclude_from_fit`` - If set in the `H2OPipeline` constructor, these features</span>
+<span class="sd">        * ``exclude_from_fit`` - If set in the ``H2OPipeline`` constructor, these features</span>
 <span class="sd">                                 will be omitted from the ``training_cols_`` fit attribute,</span>
 <span class="sd">                                 which are the columns passed to the final stage in the pipeline.</span>
 
-<span class="sd">        * ``feature_names`` - The former behavior of the `H2OPipeline` only used ``feature_names``</span>
+<span class="sd">        * ``feature_names`` - The former behavior of the ``H2OPipeline`` only used ``feature_names``</span>
 <span class="sd">                              in the fit of the first transformer, passing the remaining columns to</span>
 <span class="sd">                              the next transformer as the ``feature_names`` parameter. The new</span>
 <span class="sd">                              behavior is more discriminating in the case of explicitly-set attributes.</span>
 <span class="sd">                              In the case where a transformer&#39;s ``feature_names`` parameter has been</span>
 <span class="sd">                              explicitly set, *only those names* will be used in the fit. This is useful</span>
 <span class="sd">                              in cases where someone may only want to, for instance, drop one of two</span>
-<span class="sd">                              multicollinear features using the `H2OMulticollinearityFilterer` rather than</span>
+<span class="sd">                              multicollinear features using the ``H2OMulticollinearityFilterer`` rather than</span>
 <span class="sd">                              fitting against the entire dataset. It also adheres to the now expected</span>
 <span class="sd">                              behavior of the exclusion parameters.</span>
 
@@ -614,7 +614,7 @@
 <div class="viewcode-block" id="H2OPipeline.fit_predict"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.fit_predict">[docs]</a>    <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit all the transforms one after the other and transform the</span>
 <span class="sd">        data, then fit the transformed data using the final estimator. Finally,</span>
-<span class="sd">        either predict on the final step.</span>
+<span class="sd">        predict on the final step.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -649,7 +649,7 @@
 <div class="viewcode-block" id="H2OPipeline.fit_transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit all the transforms one after the other and transform the</span>
 <span class="sd">        data, then fit the transformed data using the final estimator. Finally,</span>
-<span class="sd">        either transform on the final step.</span>
+<span class="sd">        transform on the final step.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

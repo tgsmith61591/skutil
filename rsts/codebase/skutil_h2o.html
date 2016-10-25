@@ -214,14 +214,34 @@ for the estimator.</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.h2o.BaseH2OFeatureSelector.transform" title="skutil.h2o.BaseH2OFeatureSelector.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="skutil.h2o.BaseH2OFeatureSelector.transform">
 <code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/select.html#BaseH2OFeatureSelector.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.BaseH2OFeatureSelector.transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Transform the test frame, after fitting
+the transformer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote>
+<div><p>The test frame</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame</p>
+<blockquote class="last">
+<div><p>The transformed frame</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -517,11 +537,11 @@ to drop.</p>
 are normalized at the end by the number of observations
 in each fold</p>
 </div></blockquote>
-<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<p><strong>min_version</strong> : str, float (default=&#8217;any&#8217;)</p>
 <blockquote>
 <div><p>The minimum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
-<p><strong>max_version</strong> : str, float (default None)</p>
+<p><strong>max_version</strong> : str, float (default=None)</p>
 <blockquote>
 <div><p>The maximum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
@@ -565,7 +585,7 @@ in each fold</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -632,11 +652,11 @@ to drop.</p>
 are normalized at the end by the number of observations
 in each fold</p>
 </div></blockquote>
-<p><strong>min_version</strong> : str, float (default &#8216;any&#8217;)</p>
+<p><strong>min_version</strong> : str, float (default=&#8217;any&#8217;)</p>
 <blockquote>
 <div><p>The minimum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
-<p><strong>max_version</strong> : str, float (default None)</p>
+<p><strong>max_version</strong> : str, float (default=None)</p>
 <blockquote>
 <div><p>The maximum version of h2o that is compatible with the transformer</p>
 </div></blockquote>
@@ -680,7 +700,7 @@ in each fold</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -775,7 +795,7 @@ the <code class="docutils literal"><span class="pre">FeatureDropper</span></code
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -1455,7 +1475,7 @@ the mean absolute correlation of the dropped feature.</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -1582,7 +1602,7 @@ for the estimator.</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -1639,7 +1659,24 @@ return the transformed X frame.</p>
 <em class="property">class </em><code class="descclassname">skutil.h2o.</code><code class="descname">H2OOversamplingClassBalancer</code><span class="sig-paren">(</span><em>target_feature</em>, <em>ratio=0.2</em>, <em>shuffle=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/balance.html#H2OOversamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OOversamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.balance._BaseH2OBalancer</span></code></p>
 <p>Oversample the minority classes until they are represented
-at the target proportion to the majority class.</p>
+at the target proportion to the majority class. For example, 
+consider the following pd.Series, <code class="docutils literal"><span class="pre">a_counts</span></code>, (index = class, 
+and values = counts):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts</span>
+<span class="go">0  100</span>
+<span class="go">1  30</span>
+<span class="go">2  25</span>
+</pre></div>
+</div>
+<p>and a <code class="docutils literal"><span class="pre">ratio</span></code> of 0.5, the minority classes (1, 2) will be oversampled 
+until they are represented at a ratio of at least 0.5 * the prevalence of
+the majority class (0):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts_undersampled</span>
+<span class="go">0  100</span>
+<span class="go">1  50</span>
+<span class="go">2  50</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1725,44 +1762,44 @@ optional <cite>H2OEstimator</cite>. Note that as of version 0.1.0, the behavior
 of the H2OPipeline has slightly changed, given the inclusion of the
 <code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and <code class="docutils literal"><span class="pre">exclude_from_fit</span></code> parameters.</p>
 <p>The pipeline, at the core, is comprised of a list of length-two tuples
-in the form of <cite>(&#8216;name&#8217;, SomeH2OTransformer())</cite>, punctuated with an
+in the form of <code class="docutils literal"><span class="pre">('name',</span> <span class="pre">SomeH2OTransformer())</span></code>, punctuated with an
 optional <cite>H2OEstimator</cite> as the final step. The pipeline will procedurally 
 fit each stage, transforming the training data prior to fitting the next stage.
 When predicting or transforming new (test) data, each stage calls either
-<cite>transform</cite> or <cite>predict</cite> at the respective step.</p>
-<p><strong>On the topic of exclusions and `feature_names`:</strong></p>
-<p>Prior to version 0.1.0, <cite>H2OTransformer`s did not take the keyword `exclude_features</cite>.
-Its addition necessitated two new keywords in the <cite>H2OPipeline</cite>, and a slight change
+<code class="docutils literal"><span class="pre">transform</span></code> or <code class="docutils literal"><span class="pre">predict</span></code> at the respective step.</p>
+<p><strong>On the topic of exclusions and ``feature_names``:</strong></p>
+<p>Prior to version 0.1.0, <code class="docutils literal"><span class="pre">H2OTransformer``s</span> <span class="pre">did</span> <span class="pre">not</span> <span class="pre">take</span> <span class="pre">the</span> <span class="pre">keyword</span> <span class="pre">``exclude_features</span></code>.
+Its addition necessitated two new keywords in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code>, and a slight change
 in behavior of <code class="docutils literal"><span class="pre">feature_names</span></code>:</p>
 <blockquote>
 <div><ul>
 <li><dl class="first docutils">
-<dt><code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> - If set in the <cite>H2OPipeline</cite> constructor, these features</dt>
+<dt><code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> - If set in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> constructor, these features</dt>
 <dd><p class="first last">will be universally omitted from every preprocessing stage.
-Since <cite>exclude_features</cite> can be set individually in each
-separate transformer, in the case that <cite>exclude_features</cite> has
+Since <code class="docutils literal"><span class="pre">exclude_features</span></code> can be set individually in each
+separate transformer, in the case that <code class="docutils literal"><span class="pre">exclude_features</span></code> has
 been explicitly set, the exclusions in that respective stage
 will include the union of <code class="docutils literal"><span class="pre">exclude_from_ppc</span></code> and 
-<cite>exclude_features</cite>.</p>
+<code class="docutils literal"><span class="pre">exclude_features</span></code>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt><code class="docutils literal"><span class="pre">exclude_from_fit</span></code> - If set in the <cite>H2OPipeline</cite> constructor, these features</dt>
+<dt><code class="docutils literal"><span class="pre">exclude_from_fit</span></code> - If set in the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> constructor, these features</dt>
 <dd><p class="first last">will be omitted from the <code class="docutils literal"><span class="pre">training_cols_</span></code> fit attribute,
 which are the columns passed to the final stage in the pipeline.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt><code class="docutils literal"><span class="pre">feature_names</span></code> - The former behavior of the <cite>H2OPipeline</cite> only used <code class="docutils literal"><span class="pre">feature_names</span></code></dt>
+<dt><code class="docutils literal"><span class="pre">feature_names</span></code> - The former behavior of the <code class="docutils literal"><span class="pre">H2OPipeline</span></code> only used <code class="docutils literal"><span class="pre">feature_names</span></code></dt>
 <dd><p class="first last">in the fit of the first transformer, passing the remaining columns to
 the next transformer as the <code class="docutils literal"><span class="pre">feature_names</span></code> parameter. The new
 behavior is more discriminating in the case of explicitly-set attributes.
 In the case where a transformer&#8217;s <code class="docutils literal"><span class="pre">feature_names</span></code> parameter has been
 explicitly set, <em>only those names</em> will be used in the fit. This is useful
 in cases where someone may only want to, for instance, drop one of two
-multicollinear features using the <cite>H2OMulticollinearityFilterer</cite> rather than
+multicollinear features using the <code class="docutils literal"><span class="pre">H2OMulticollinearityFilterer</span></code> rather than
 fitting against the entire dataset. It also adheres to the now expected
 behavior of the exclusion parameters.</p>
 </dd>
@@ -1918,7 +1955,7 @@ pipeline.</p>
 <code class="descname">fit_predict</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.fit_predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.fit_predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit all the transforms one after the other and transform the
 data, then fit the transformed data using the final estimator. Finally,
-either predict on the final step.</p>
+predict on the final step.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1939,7 +1976,7 @@ pipeline.</p>
 <code class="descname">fit_transform</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/pipeline.html#H2OPipeline.fit_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.H2OPipeline.fit_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit all the transforms one after the other and transform the
 data, then fit the transformed data using the final estimator. Finally,
-either transform on the final step.</p>
+transform on the final step.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2687,7 +2724,7 @@ for the estimator.</p>
 <td>Set the parameters of this estimator.</td>
 </tr>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code>(X)</td>
-<td></td>
+<td>Transform the test frame, after fitting the transformer.</td>
 </tr>
 </tbody>
 </table>
@@ -2772,15 +2809,22 @@ for the estimator.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.h2o.balance._BaseH2OBalancer</span></code></p>
 <p>Undersample the majority class until it is represented
 at the target proportion to the most-represented minority class.
-For example, given the follow pd.Series (index = class, and values = counts):</p>
-<p>0  150
-1  30
-2  10</p>
-<p>and the ratio 0.5, the majority class (0) will be undersampled until
+For example, consider the following pd.Series, <code class="docutils literal"><span class="pre">a_counts</span></code>, 
+(index = class, and values = counts):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts</span>
+<span class="go">0  150</span>
+<span class="go">1  30</span>
+<span class="go">2  10</span>
+</pre></div>
+</div>
+<p>and a <code class="docutils literal"><span class="pre">ratio</span></code> of 0.5, the majority class (0) will be undersampled until
 the second most-populous class (1) is represented at a ratio of 0.5:</p>
-<p>0  60
-1  30
-2  10</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts_undersampled</span>
+<span class="go">0  60</span>
+<span class="go">1  30</span>
+<span class="go">2  10</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3236,12 +3280,12 @@ to function on H2OFrames.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : H2OFrame, shape=(n_samples, n_features)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
 <div><p>The feature matrix. Each feature will be tested 
 sequentially.</p>
 </div></blockquote>
-<p><strong>y</strong> : H2OFrame, shape=(n_samples,)</p>
+<p><strong>y</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples,)</p>
 <blockquote>
 <div><p>The target feature. Should be int or enum, per
 the classification objective.</p>
@@ -3303,11 +3347,10 @@ for the associated p-value to be valid.</p>
 property is known as homoscedasticity.</li>
 </ol>
 <p>If these assumptions are not true for a given set of data, it may still be
-possible to use the Kruskal-Wallis H-test (<a href="#id9"><span class="problematic" id="id10">`scipy.stats.kruskal`_</span></a>) although
+possible to use the Kruskal-Wallis H-test (<code class="docutils literal"><span class="pre">scipy.stats.kruskal</span></code>) although
 with some loss of power.</p>
 <p>The algorithm is from Heiman[2], pp.394-7.
-See <code class="docutils literal"><span class="pre">scipy.stats.f_oneway</span></code> (that should give the same results while
-being less efficient) and <code class="docutils literal"><span class="pre">sklearn.feature_selection.f_oneway</span></code>.</p>
+See <code class="docutils literal"><span class="pre">scipy.stats.f_oneway</span></code> and <code class="docutils literal"><span class="pre">sklearn.feature_selection.f_oneway</span></code>.</p>
 <p class="rubric">References</p>
 <table class="docutils citation" frame="void" id="r1" rules="none">
 <colgroup><col class="label" /><col /></colgroup>

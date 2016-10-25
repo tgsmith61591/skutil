@@ -133,14 +133,14 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.odr.dqrutl</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">dqrsl</span>
+<span class="kn">from</span> <span class="nn">skutil.odr</span> <span class="k">import</span> <span class="n">dqrsl</span> <span class="c1"># what happens if we make this absolute?</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_array</span>
 <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">matrix_rank</span>
 
 <span class="c1"># WARNING: there is little-to-no validation of input in these functions,</span>
-<span class="c1"># and crashes may be caused by inappropriate usage. Use with care.</span>
+<span class="c1"># and crashes may be caused by inappropriate usage. Use with care...</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;qr_decomposition&#39;</span><span class="p">,</span>
@@ -157,11 +157,6 @@
     <span class="sd">&quot;&quot;&quot;A method to call a LAPACK or LINPACK subroutine internally&quot;&quot;&quot;</span>
     <span class="n">ret</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="c1"># since we&#39;re operating on arrays in place, we don&#39;t need this</span>
-    <span class="c1"># if ret[-1] &lt; 0:</span>
-    <span class="c1">#   raise ValueError(&quot;illegal value in %d-th argument of internal %s&quot;</span>
-    <span class="c1">#       % (-ret[-1], name))</span>
-
 
 <div class="viewcode-block" id="qr_decomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.qr_decomposition">[docs]</a><span class="k">def</span> <span class="nf">qr_decomposition</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Performs the QR decomposition using LINPACK, BLAS and LAPACK</span>
@@ -176,6 +171,22 @@
 <span class="sd">    job : int, optional (default=1)</span>
 <span class="sd">        Whether to perform pivoting. 0 is False, any other value</span>
 <span class="sd">        will be coerced to 1 (True).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    X : np.ndarray, shape=(n_samples, n_features)</span>
+<span class="sd">        The matrix</span>
+
+<span class="sd">    rank : int</span>
+<span class="sd">        The rank of the matrix</span>
+
+<span class="sd">    qraux : np.ndarray, shape=(n_features,)</span>
+<span class="sd">        Contains further information required to recover</span>
+<span class="sd">        the orthogonal part of the decomposition.</span>
+
+<span class="sd">    pivot : np.ndarray, shape=(n_features,)</span>
+<span class="sd">        The pivot array, or None if not ``job``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">X</span> <span class="o">=</span> <span class="n">check_array</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;numeric&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -236,7 +247,7 @@
 <span class="sd">        The decomposed matrix</span>
 
 <span class="sd">    qraux : array_like, shape (n_features,)</span>
-<span class="sd">        qraux contains further information required to recover</span>
+<span class="sd">        Contains further information required to recover</span>
 <span class="sd">        the orthogonal part of the decomposition.</span>
 
 <span class="sd">    pivot : array_like, shape (n_features,)</span>
@@ -296,15 +307,37 @@
         <span class="k">return</span> <span class="n">coef</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">p</span> <span class="k">else</span> <span class="n">coef</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pivot</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">k</span><span class="p">)],</span> <span class="p">:]</span></div>
 
 <div class="viewcode-block" id="QRDecomposition.get_rank"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the rank of the decomposition&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get the rank of the decomposition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        self.rank : int</span>
+<span class="sd">            The rank of the decomposition</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span></div>
 
 <div class="viewcode-block" id="QRDecomposition.get_R"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_R">[docs]</a>    <span class="k">def</span> <span class="nf">get_R</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the R matrix from the decomposition&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">_qr_R</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qr</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;Get the R matrix from the decomposition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        r : np.ndarray</span>
+<span class="sd">            The R portion of the decomposed matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">_qr_R</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span></div>
 
 <div class="viewcode-block" id="QRDecomposition.get_R_rank"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition.get_R_rank">[docs]</a>    <span class="k">def</span> <span class="nf">get_R_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the rank of the R matrix&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get the rank of the R matrix.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        rank : int</span>
+<span class="sd">            The rank of the R matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">matrix_rank</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_R</span><span class="p">())</span></div></div>
 </pre></div>
 

@@ -274,7 +274,22 @@ assumes each cell is a signed 32-bit float</p>
 <dl class="function">
 <dt id="skutil.utils.exp">
 <code class="descclassname">skutil.utils.</code><code class="descname">exp</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.exp" title="Permalink to this definition">¶</a></dt>
-<dd><p>A safe mechanism for computing the exponential function</p>
+<dd><p>A safe mechanism for computing the exponential function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : float, number</p>
+<blockquote>
+<div><p>The number for which to compute the exp</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>exp(x)</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -282,7 +297,28 @@ assumes each cell is a signed 32-bit float</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">flatten_all</code><span class="sig-paren">(</span><em>container</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#flatten_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.flatten_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively flattens an arbitrarily nested iterable.
 WARNING: this function may produce a list of mixed types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : iterable, object</p>
+<blockquote>
+<div><p>The iterable to flatten. If the <code class="docutils literal"><span class="pre">container</span></code> is
+not iterable, it will be returned in a list as 
+<code class="docutils literal"><span class="pre">[container]</span></code></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>l</strong> : list</p>
+<blockquote class="last">
+<div><p>The flattened list</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Examples</p>
+<p>The example below produces a list of mixed results:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
@@ -295,10 +331,23 @@ WARNING: this function may produce a list of mixed types.</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">flatten_all_generator</code><span class="sig-paren">(</span><em>container</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#flatten_all_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.flatten_all_generator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursively flattens an arbitrarily nested iterable.
 WARNING: this function may produce a list of mixed types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : iterable, object</p>
+<blockquote class="last">
+<div><p>The iterable to flatten.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Examples</p>
+<p>The example below produces a list of mixed results:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # returns a generator for this iterable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # yields a generator for this iterable</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -312,8 +361,14 @@ WARNING: this function may produce a list of mixed types.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF</p>
-<blockquote class="last">
+<blockquote>
 <div><p>The dataframe</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>list, int</strong> :</p>
+<blockquote class="last">
+<div><p>The list of indices which are numeric.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -359,8 +414,15 @@ is numeric in dtypes.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd DataFrame</p>
-<blockquote class="last">
+<blockquote>
 <div><p>The dataframe to test</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>True if the entire pd.DataFrame 
+is numeric else False</p>
 </div></blockquote>
 </td>
 </tr>
@@ -371,22 +433,73 @@ is numeric in dtypes.</p>
 <dl class="function">
 <dt id="skutil.utils.is_float">
 <code class="descclassname">skutil.utils.</code><code class="descname">is_float</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_float"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_float" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="skutil.utils.is_integer">
-<code class="descclassname">skutil.utils.</code><code class="descname">is_integer</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_integer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="skutil.utils.is_numeric">
-<code class="descclassname">skutil.utils.</code><code class="descname">is_numeric</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_numeric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determines whether the arg is numeric</p>
+<dd><p>Determine whether some object <code class="docutils literal"><span class="pre">x</span></code> is a
+float type (float, np.float, etc).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> : anytype</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : object</p>
+<blockquote>
+<div><p>The item to assess</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>True if <code class="docutils literal"><span class="pre">x</span></code> is a float type</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.is_integer">
+<code class="descclassname">skutil.utils.</code><code class="descname">is_integer</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether some object <code class="docutils literal"><span class="pre">x</span></code> is an
+integer type (int, long, etc).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : object</p>
+<blockquote>
+<div><p>The item to assess</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>True if <code class="docutils literal"><span class="pre">x</span></code> is an integer type</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.is_numeric">
+<code class="descclassname">skutil.utils.</code><code class="descname">is_numeric</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_numeric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether some object <code class="docutils literal"><span class="pre">x</span></code> is a
+numeric type (float, int, etc).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : object</p>
+<blockquote>
+<div><p>The item to assess</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>True if <code class="docutils literal"><span class="pre">x</span></code> is a float or integer type</p>
+</div></blockquote>
+</td>
 </tr>
 </tbody>
 </table>
@@ -397,7 +510,7 @@ is numeric in dtypes.</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">load_boston_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_boston_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_boston_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the boston housing dataset into a dataframe with the
 target set as the &#8220;target&#8221; feature or whatever name
-is specified.</p>
+is specified in <code class="docutils literal"><span class="pre">tgt_name</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -411,8 +524,14 @@ is specified.</p>
 <div><p>The name of the target feature</p>
 </div></blockquote>
 <p><strong>shuffle</strong> : bool, optional (default=False)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Whether to shuffle the rows</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<blockquote class="last">
+<div><p>The loaded dataset</p>
 </div></blockquote>
 </td>
 </tr>
@@ -425,7 +544,7 @@ is specified.</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">load_breast_cancer_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='target'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_breast_cancer_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_breast_cancer_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the breast cancer dataset into a dataframe with the
 target set as the &#8220;target&#8221; feature or whatever name
-is specified.</p>
+is specified in <code class="docutils literal"><span class="pre">tgt_name</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -439,8 +558,14 @@ is specified.</p>
 <div><p>The name of the target feature</p>
 </div></blockquote>
 <p><strong>shuffle</strong> : bool, optional (default=False)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Whether to shuffle the rows</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<blockquote class="last">
+<div><p>The loaded dataset</p>
 </div></blockquote>
 </td>
 </tr>
@@ -453,7 +578,7 @@ is specified.</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">load_iris_df</code><span class="sig-paren">(</span><em>include_tgt=True</em>, <em>tgt_name='Species'</em>, <em>shuffle=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#load_iris_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.load_iris_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the iris dataset into a dataframe with the
 target set as the &#8220;Species&#8221; feature or whatever name
-is specified.</p>
+is specified in <code class="docutils literal"><span class="pre">tgt_name</span></code>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -467,8 +592,14 @@ is specified.</p>
 <div><p>The name of the target feature</p>
 </div></blockquote>
 <p><strong>shuffle</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>Whether to shuffle the rows on return</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
 <blockquote class="last">
-<div><p>Whether to shuffle the rows</p>
+<div><p>The loaded dataset</p>
 </div></blockquote>
 </td>
 </tr>
@@ -479,12 +610,27 @@ is specified.</p>
 <dl class="function">
 <dt id="skutil.utils.log">
 <code class="descclassname">skutil.utils.</code><code class="descname">log</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.log" title="Permalink to this definition">¶</a></dt>
-<dd><p>A safe mechanism for computing a log</p>
+<dd><p>A safe mechanism for computing a log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : float, number</p>
+<blockquote>
+<div><p>The number for which to compute the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>log(x)</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="skutil.utils.pd_stats">
-<code class="descclassname">skutil.utils.</code><code class="descname">pd_stats</code><span class="sig-paren">(</span><em>X</em>, <em>col_type='all'</em>, <em>na_str='--'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#pd_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.pd_stats" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.utils.</code><code class="descname">pd_stats</code><span class="sig-paren">(</span><em>X</em>, <em>col_type='all'</em>, <em>na_str='--'</em>, <em>hi_skew_thresh=1.0</em>, <em>mod_skew_thresh=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#pd_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.pd_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a descriptive report of the elements in the data frame.
 Builds on existing pandas <cite>describe</cite> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -496,10 +642,27 @@ Builds on existing pandas <cite>describe</cite> method.</p>
 <div><p>The DataFrame</p>
 </div></blockquote>
 <p><strong>col_type</strong> : str, optional (default=&#8217;all&#8217;)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>The types of columns to analyze. One of (&#8216;all&#8217;,
 &#8216;numeric&#8217;, &#8216;object&#8217;). If not all, will only return
 corresponding typed columns.</p>
+</div></blockquote>
+<p><strong>hi_skew_thresh</strong> : float, optional (default=1.0)</p>
+<blockquote>
+<div><p>The threshold above which a skewness rating will
+be deemed &#8220;high.&#8221;</p>
+</div></blockquote>
+<p><strong>mod_skew_thresh</strong> : float, optional (default=0.5)</p>
+<blockquote>
+<div><p>The threshold above which a skewness rating will 
+be deemed &#8220;moderate,&#8221; so long as it does not exceed
+<code class="docutils literal"><span class="pre">hi_skew_thresh</span></code></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pd.DataFrame</strong> :</p>
+<blockquote class="last">
+<div><p>The stats dataframe.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -512,6 +675,36 @@ corresponding typed columns.</p>
 <code class="descclassname">skutil.utils.</code><code class="descname">report_confusion_matrix</code><span class="sig-paren">(</span><em>actual</em>, <em>pred</em>, <em>return_metrics=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#report_confusion_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.report_confusion_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dataframe with the confusion matrix, and a series
 with the classification performance metrics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>actual</strong> : np.ndarray, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The array of actual values</p>
+</div></blockquote>
+<p><strong>pred</strong> : np.ndarray, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The array of predicted values</p>
+</div></blockquote>
+<p><strong>return_metrics</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>Whether to return the metrics in a pd.Series</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>conf</strong> : pd.DataFrame</p>
+<blockquote>
+<div><p>The confusion matrix</p>
+</div></blockquote>
+<p><strong>ser</strong> : pd.Series or None</p>
+<blockquote class="last">
+<div><p>The metrics if <code class="docutils literal"><span class="pre">return_metrics</span></code> else None</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -556,10 +749,16 @@ by the cross validation score standard deviations.</p>
 the user wants to sort by a parameter column.</p>
 </div></blockquote>
 <p><strong>highlight_best</strong> : bool, optional (default=True)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>If set to True, charts is True, and sort_results is 
 also True, then highlights the point in the top
 position of the model DF.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>results_df</strong> : pd.DataFrame</p>
+<blockquote class="last">
+<div><p>The grid search results</p>
 </div></blockquote>
 </td>
 </tr>
@@ -570,7 +769,22 @@ position of the model DF.</p>
 <dl class="function">
 <dt id="skutil.utils.shuffle_dataframe">
 <code class="descclassname">skutil.utils.</code><code class="descname">shuffle_dataframe</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#shuffle_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.shuffle_dataframe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffle the rows in a data frame without replacement.
+The random state used for shuffling is controlled by
+numpy&#8217;s random state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<blockquote class="last">
+<div><p>The dataframe to shuffle</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="skutil.utils.validate_is_pd">

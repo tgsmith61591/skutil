@@ -230,8 +230,8 @@
 
 
 <div class="viewcode-block" id="BalancerMixin"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BalancerMixin">[docs]</a><span class="k">class</span> <span class="nc">BalancerMixin</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Mixin class for balancers that provides interface for `balance`</span>
-<span class="sd">    and the constant _max_classes (default=20). Used in h2o module as well.</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class for balancers that provides interface for ``balance``</span>
+<span class="sd">    and the constant ``_max_classes`` (default=20). Used in h2o module as well.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># the max classes handled by class balancers</span>
@@ -247,7 +247,6 @@
 
 <span class="sd">        X : pd.DataFrame</span>
 <span class="sd">            The frame from which to balance</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;this method must be implemented by a subclass&#39;</span><span class="p">)</span></div></div>
 
@@ -303,11 +302,7 @@
 
 
 <span class="k">class</span> <span class="nc">_OversamplingBalancePartitioner</span><span class="p">(</span><span class="n">_BaseBalancePartitioner</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Balance partitioner for oversampling the minority classes.</span>
-<span class="sd">    Currently, this can&#39;t be used with H2O, since H2O doesn&#39;t allow</span>
-<span class="sd">    &#39;re-ordering&#39; rows, or in this case resampling them. Thus, for H2OFrames,</span>
-<span class="sd">    use _UndersamplingBalancePartitioner.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Balance partitioner for oversampling the minority classes.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">validation_function</span><span class="o">=</span><span class="n">_validate_x_y_ratio</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">_OversamplingBalancePartitioner</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span>
@@ -352,15 +347,6 @@
 
             <span class="n">minority_recs</span> <span class="o">=</span> <span class="n">all_indices</span><span class="p">[</span><span class="n">target_col</span> <span class="o">==</span> <span class="n">minority</span><span class="p">]</span>
             <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">minority_recs</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="c1"># old style where all were pd:</span>
-            <span class="c1"># minority_recs = X[X[y] == minority]</span>
-            <span class="c1"># idcs = choice(minority_recs.index, n_samples, replace=True)</span>
-            <span class="c1"># pts = X.iloc[idcs]</span>
-
-            <span class="c1"># append to X</span>
-            <span class="c1"># X = pd.concat([X, pts])</span>
-
             <span class="n">sample_indices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">idcs</span><span class="p">))</span>
 
         <span class="c1"># make list</span>
@@ -404,18 +390,6 @@
         <span class="n">target_col</span> <span class="o">=</span> <span class="n">_pd_frame_to_np</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">])</span>
         <span class="n">majority_recs</span> <span class="o">=</span> <span class="n">all_indices</span><span class="p">[</span><span class="n">target_col</span> <span class="o">==</span> <span class="n">majority</span><span class="p">]</span>
         <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">majority_recs</span><span class="p">,</span> <span class="n">n_required</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-        <span class="c1"># Old style (when everything was PD):</span>
-        <span class="c1"># majority_recs = X[X[self.y_] == majority]</span>
-        <span class="c1"># idcs = choice(majority_recs.index, n_required, replace=False)</span>
-
-        <span class="c1"># get the rows that were not included in the keep sample</span>
-        <span class="c1"># x_drop_rows = majority_recs.drop(idcs, axis=0).index</span>
-
-        <span class="c1"># now the only rows remaining in x_drop_rows are the ones</span>
-        <span class="c1"># that were not selected in the random choice.</span>
-        <span class="c1"># drop all those rows (from the copy)</span>
-        <span class="c1"># dropped = X.drop(x_drop_rows, axis=0)</span>
 
         <span class="c1"># get all the &quot;minority&quot; observation idcs, append the sampled</span>
         <span class="c1"># majority idcs, then sort and return</span>
@@ -481,8 +455,24 @@
 
 
 <div class="viewcode-block" id="OversamplingClassBalancer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OversamplingClassBalancer">[docs]</a><span class="k">class</span> <span class="nc">OversamplingClassBalancer</span><span class="p">(</span><span class="n">_BaseBalancer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Oversample the minority classes until they are represented</span>
-<span class="sd">    at the target proportion to the majority class.</span>
+    <span class="sd">&quot;&quot;&quot;Oversample all of the minority classes until they are </span>
+<span class="sd">    represented at the target proportion to the majority class.</span>
+<span class="sd">    For example, given the following pd.Series, ``a_counts``, </span>
+<span class="sd">    (index = class, and values = counts):</span>
+
+<span class="sd">        &gt;&gt;&gt; a_counts</span>
+<span class="sd">        0  100</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  25</span>
+
+<span class="sd">    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled </span>
+<span class="sd">    until they are represented at a ratio of at least 0.5 * the prevalence of</span>
+<span class="sd">    the majority class (0):</span>
+
+<span class="sd">        &gt;&gt;&gt; a_counts_undersampled</span>
+<span class="sd">        0  100</span>
+<span class="sd">        1  50</span>
+<span class="sd">        2  50</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -664,22 +654,24 @@
         <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
 
 
-<span class="c1">###############################################################################</span>
 <div class="viewcode-block" id="UndersamplingClassBalancer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.UndersamplingClassBalancer">[docs]</a><span class="k">class</span> <span class="nc">UndersamplingClassBalancer</span><span class="p">(</span><span class="n">_BaseBalancer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Undersample the majority class until it is represented</span>
-<span class="sd">    at the target proportion to the most-represented minority class.</span>
-<span class="sd">    For example, given the follow pd.Series (index = class, and values = counts):</span>
+<span class="sd">    at the target proportion to the most-represented minority class (i.e., the</span>
+<span class="sd">    second-most populous class). For example, given the following pd.Series, </span>
+<span class="sd">    ``a_counts``, (index = class, and values = counts):</span>
 
-<span class="sd">    0  150</span>
-<span class="sd">    1  30</span>
-<span class="sd">    2  10</span>
+<span class="sd">        &gt;&gt;&gt; a_counts</span>
+<span class="sd">        0  150</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  10</span>
 
-<span class="sd">    and the ratio 0.5, the majority class (0) will be undersampled until</span>
+<span class="sd">    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until</span>
 <span class="sd">    the second most-populous class (1) is represented at a ratio of 0.5:</span>
 
-<span class="sd">    0  60</span>
-<span class="sd">    1  30</span>
-<span class="sd">    2  10</span>
+<span class="sd">        &gt;&gt;&gt; a_counts_undersampled</span>
+<span class="sd">        0  60</span>
+<span class="sd">        1  30</span>
+<span class="sd">        2  10</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

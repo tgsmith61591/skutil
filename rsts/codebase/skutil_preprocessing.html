@@ -338,8 +338,8 @@ bagged estimator.</p>
 <dl class="class">
 <dt id="skutil.preprocessing.BalancerMixin">
 <em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">BalancerMixin</code><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#BalancerMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.BalancerMixin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixin class for balancers that provides interface for <cite>balance</cite>
-and the constant _max_classes (default=20). Used in h2o module as well.</p>
+<dd><p>Mixin class for balancers that provides interface for <code class="docutils literal"><span class="pre">balance</span></code>
+and the constant <code class="docutils literal"><span class="pre">_max_classes</span></code> (default=20). Used in h2o module as well.</p>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -883,8 +883,25 @@ re-appending them to the end.</p>
 <dt id="skutil.preprocessing.OversamplingClassBalancer">
 <em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">OversamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>shuffle=True</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#OversamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.OversamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
-<p>Oversample the minority classes until they are represented
-at the target proportion to the majority class.</p>
+<p>Oversample all of the minority classes until they are 
+represented at the target proportion to the majority class.
+For example, given the following pd.Series, <code class="docutils literal"><span class="pre">a_counts</span></code>, 
+(index = class, and values = counts):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts</span>
+<span class="go">0  100</span>
+<span class="go">1  30</span>
+<span class="go">2  25</span>
+</pre></div>
+</div>
+<p>and a <code class="docutils literal"><span class="pre">ratio</span></code> of 0.5, the minority classes (1, 2) will be oversampled 
+until they are represented at a ratio of at least 0.5 * the prevalence of
+the majority class (0):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts_undersampled</span>
+<span class="go">0  100</span>
+<span class="go">1  50</span>
+<span class="go">2  50</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1482,16 +1499,23 @@ if explicitly set, will not change behavior of <code class="docutils literal"><s
 <em class="property">class </em><code class="descclassname">skutil.preprocessing.</code><code class="descname">UndersamplingClassBalancer</code><span class="sig-paren">(</span><em>y</em>, <em>ratio=0.2</em>, <em>shuffle=True</em>, <em>as_df=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/preprocessing/balance.html#UndersamplingClassBalancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.preprocessing.UndersamplingClassBalancer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">skutil.preprocessing.balance._BaseBalancer</span></code></p>
 <p>Undersample the majority class until it is represented
-at the target proportion to the most-represented minority class.
-For example, given the follow pd.Series (index = class, and values = counts):</p>
-<p>0  150
-1  30
-2  10</p>
-<p>and the ratio 0.5, the majority class (0) will be undersampled until
+at the target proportion to the most-represented minority class (i.e., the
+second-most populous class). For example, given the following pd.Series, 
+<code class="docutils literal"><span class="pre">a_counts</span></code>, (index = class, and values = counts):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts</span>
+<span class="go">0  150</span>
+<span class="go">1  30</span>
+<span class="go">2  10</span>
+</pre></div>
+</div>
+<p>and a <code class="docutils literal"><span class="pre">ratio</span></code> of 0.5, the majority class (0) will be undersampled until
 the second most-populous class (1) is represented at a ratio of 0.5:</p>
-<p>0  60
-1  30
-2  10</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a_counts_undersampled</span>
+<span class="go">0  60</span>
+<span class="go">1  30</span>
+<span class="go">2  10</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

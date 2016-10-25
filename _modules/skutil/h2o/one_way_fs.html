@@ -175,11 +175,11 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    X : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">        The feature matrix. Each feature will be tested </span>
 <span class="sd">        sequentially.</span>
 
-<span class="sd">    y : H2OFrame, shape=(n_samples,)</span>
+<span class="sd">    y : ``H2OFrame``, shape=(n_samples,)</span>
 <span class="sd">        The target feature. Should be int or enum, per</span>
 <span class="sd">        the classification objective.</span>
 
@@ -247,12 +247,11 @@
 <span class="sd">       property is known as homoscedasticity.</span>
 
 <span class="sd">    If these assumptions are not true for a given set of data, it may still be</span>
-<span class="sd">    possible to use the Kruskal-Wallis H-test (`scipy.stats.kruskal`_) although</span>
+<span class="sd">    possible to use the Kruskal-Wallis H-test (``scipy.stats.kruskal``) although</span>
 <span class="sd">    with some loss of power.</span>
 
 <span class="sd">    The algorithm is from Heiman[2], pp.394-7.</span>
-<span class="sd">    See ``scipy.stats.f_oneway`` (that should give the same results while</span>
-<span class="sd">    being less efficient) and ``sklearn.feature_selection.f_oneway``.</span>
+<span class="sd">    See ``scipy.stats.f_oneway`` and ``sklearn.feature_selection.f_oneway``.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -347,10 +346,10 @@
 <span class="sd">        are normalized at the end by the number of observations</span>
 <span class="sd">        in each fold</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str, float (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str, float (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nd">@abstractmethod</span>
@@ -500,10 +499,10 @@
 <span class="sd">        are normalized at the end by the number of observations</span>
 <span class="sd">        in each fold</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str, float (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str, float (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 
 <span class="sd">    Attributes</span>
@@ -614,10 +613,10 @@
 <span class="sd">        are normalized at the end by the number of observations</span>
 <span class="sd">        in each fold</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str, float (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str, float (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 
 <span class="sd">    Attributes</span>
@@ -738,10 +737,10 @@
 <span class="sd">        are normalized at the end by the number of observations</span>
 <span class="sd">        in each fold</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str, float (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str, float (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
 
 <span class="sd">    Attributes</span>
@@ -817,7 +816,7 @@
             <span class="n">mask</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">all_scores</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;mergesort&quot;</span><span class="p">)[</span><span class="o">-</span><span class="n">k</span><span class="p">:]]</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># we know k &gt; 0</span>
 
             <span class="c1"># inverse, since we&#39;re recording which features to DROP, not keep</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span>
 
             <span class="c1"># now se the drop as the inverse mask</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">feature_names</span><span class="p">)[</span><span class="n">mask</span><span class="p">])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>

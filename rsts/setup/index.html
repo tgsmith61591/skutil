@@ -88,7 +88,7 @@
                 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting-installation-issues">Troubleshooting Installation Issues</a></li>
 </ul>
 </li>
@@ -143,19 +143,16 @@
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>Installation is easy. After cloning the project onto your machine, simply use the setup.py file:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/tgsmith61591/skutil.git
-<span class="nb">cd</span> skutil
-python setup.py install
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ git clone https://github.com/tgsmith61591/skutil.git
+$ <span class="nb">cd</span> skutil
+$ python setup.py install
 </pre></div>
 </div>
 </div>
-<div class="section" id="contributing">
-<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
-<p>If you&#8217;d like to fork skutil, continue development and will be running some tests, your setup is a bit different. Rather than using the <code class="docutils literal"><span class="pre">install</span></code> arg, use <code class="docutils literal"><span class="pre">develop</span></code>. This creates a symlink in the local directory so that as you make changes, they are automatically reflected and you don&#8217;t have to re-install every time. For more information on <code class="docutils literal"><span class="pre">develop</span></code> vs. <code class="docutils literal"><span class="pre">install</span></code>, see <a class="reference external" href="http://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install/">this StackOverflow question</a>. Note that after running setup with <code class="docutils literal"><span class="pre">develop</span></code>, you may have to uninstall before re-running with <code class="docutils literal"><span class="pre">install</span></code>. <em>If you are experiencing the dreaded</em> <code class="docutils literal"><span class="pre">no</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">dqrsl</span></code> <em>issue and your GCC is up-to-date, it&#8217;s likely a</em> <code class="docutils literal"><span class="pre">develop</span></code> <em>vs.</em> <code class="docutils literal"><span class="pre">install</span></code> <em>issue. Try uninstalling, clearing the egg from the local folder (or popping the local path from</em> <code class="docutils literal"><span class="pre">sys.path</span></code> <em>) and running setup with the</em> <code class="docutils literal"><span class="pre">install</span></code> <em>option.</em></p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/tgsmith61591/skutil.git
-<span class="nb">cd</span> skutil
-python setup.py develop
-nosetests
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>After installation, you can launch the test suite from outside the source directory (you will need to have the <cite>nose</cite> package installed):</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ nosetests -v skutil
 </pre></div>
 </div>
 </div>

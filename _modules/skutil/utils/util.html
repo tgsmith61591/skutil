@@ -247,7 +247,19 @@
 
 
 <div class="viewcode-block" id="exp"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.exp">[docs]</a><span class="k">def</span> <span class="nf">exp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing the exponential function&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing the exponential function.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    x : float, number</span>
+<span class="sd">        The number for which to compute the exp</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    exp(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check on single exp</span>
     <span class="k">if</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_exp_single</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -260,7 +272,19 @@
 
 
 <div class="viewcode-block" id="log"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.log">[docs]</a><span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing a log&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;A safe mechanism for computing a log.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    x : float, number</span>
+<span class="sd">        The number for which to compute the log</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    log(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check on single log</span>
     <span class="k">if</span> <span class="n">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_log_single</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -395,26 +419,51 @@
     <span class="sd">&quot;&quot;&quot;Recursively flattens an arbitrarily nested iterable.</span>
 <span class="sd">    WARNING: this function may produce a list of mixed types.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    container : iterable, object</span>
+<span class="sd">        The iterable to flatten. If the ``container`` is</span>
+<span class="sd">        not iterable, it will be returned in a list as </span>
+<span class="sd">        ``[container]``</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 
-<span class="sd">    &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
-<span class="sd">    &gt;&gt;&gt; flatten_all(a)</span>
-<span class="sd">    [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
+<span class="sd">    The example below produces a list of mixed results:</span>
+
+<span class="sd">        &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
+<span class="sd">        &gt;&gt;&gt; flatten_all(a)</span>
+<span class="sd">        [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    l : list</span>
+<span class="sd">        The flattened list</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">container</span><span class="p">)]</span></div>
+    <span class="n">l</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">flatten_all_generator</span><span class="p">(</span><span class="n">container</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">l</span></div>
 
 
 <div class="viewcode-block" id="flatten_all_generator"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.flatten_all_generator">[docs]</a><span class="k">def</span> <span class="nf">flatten_all_generator</span><span class="p">(</span><span class="n">container</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Recursively flattens an arbitrarily nested iterable.</span>
 <span class="sd">    WARNING: this function may produce a list of mixed types.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    container : iterable, object</span>
+<span class="sd">        The iterable to flatten.</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 
-<span class="sd">    &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
-<span class="sd">    &gt;&gt;&gt; flatten_all_generator(a)</span>
-<span class="sd">    [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # returns a generator for this iterable</span>
+<span class="sd">    The example below produces a list of mixed results:</span>
+
+<span class="sd">        &gt;&gt;&gt; a = [[[],3,4],[&#39;1&#39;,&#39;a&#39;],[[[1]]],1,2]</span>
+<span class="sd">        &gt;&gt;&gt; flatten_all(a)</span>
+<span class="sd">        [3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # yields a generator for this iterable</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">container</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
         <span class="k">yield</span> <span class="n">container</span>
@@ -428,6 +477,16 @@
 
 
 <div class="viewcode-block" id="shuffle_dataframe"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.shuffle_dataframe">[docs]</a><span class="k">def</span> <span class="nf">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Shuffle the rows in a data frame without replacement.</span>
+<span class="sd">    The random state used for shuffling is controlled by</span>
+<span class="sd">    numpy&#39;s random state.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The dataframe to shuffle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span></div>
 
@@ -558,7 +617,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
 
 
-<div class="viewcode-block" id="pd_stats"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.pd_stats">[docs]</a><span class="k">def</span> <span class="nf">pd_stats</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">col_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">na_str</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="pd_stats"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.pd_stats">[docs]</a><span class="k">def</span> <span class="nf">pd_stats</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">col_type</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">na_str</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">hi_skew_thresh</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mod_skew_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Get a descriptive report of the elements in the data frame.</span>
 <span class="sd">    Builds on existing pandas `describe` method.</span>
 
@@ -572,6 +631,21 @@
 <span class="sd">        The types of columns to analyze. One of (&#39;all&#39;,</span>
 <span class="sd">        &#39;numeric&#39;, &#39;object&#39;). If not all, will only return</span>
 <span class="sd">        corresponding typed columns.</span>
+
+<span class="sd">    hi_skew_thresh : float, optional (default=1.0)</span>
+<span class="sd">        The threshold above which a skewness rating will</span>
+<span class="sd">        be deemed &quot;high.&quot;</span>
+
+<span class="sd">    mod_skew_thresh : float, optional (default=0.5)</span>
+<span class="sd">        The threshold above which a skewness rating will </span>
+<span class="sd">        be deemed &quot;moderate,&quot; so long as it does not exceed</span>
+<span class="sd">        ``hi_skew_thresh``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        The stats dataframe.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">raw_stats</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
@@ -641,7 +715,8 @@
         <span class="k">if</span> <span class="n">is_numer</span><span class="p">:</span>
             <span class="n">_skew</span><span class="p">,</span> <span class="n">_kurt</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">skew</span><span class="p">(),</span> <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">()</span>
             <span class="n">abs_skew</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">_skew</span><span class="p">)</span>
-            <span class="n">_skew_risk</span> <span class="o">=</span> <span class="s1">&#39;high skew&#39;</span> <span class="k">if</span> <span class="n">abs_skew</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;mod. skew&#39;</span> <span class="k">if</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">&lt;</span> <span class="n">abs_skew</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;symmetric&#39;</span>
+            <span class="n">hs</span><span class="p">,</span> <span class="n">ms</span> <span class="o">=</span> <span class="n">hi_skew_thresh</span><span class="p">,</span> <span class="n">mod_skew_thresh</span>
+            <span class="n">_skew_risk</span> <span class="o">=</span> <span class="s1">&#39;high skew&#39;</span> <span class="k">if</span> <span class="n">abs_skew</span> <span class="o">&gt;</span> <span class="n">hs</span> <span class="k">else</span> <span class="s1">&#39;mod. skew&#39;</span> <span class="k">if</span> <span class="p">(</span><span class="n">ms</span> <span class="o">&lt;</span> <span class="n">abs_skew</span> <span class="o">&lt;</span> <span class="n">hs</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;symmetric&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_skew</span> <span class="o">=</span> <span class="n">_kurt</span> <span class="o">=</span> <span class="n">_skew_risk</span> <span class="o">=</span> <span class="n">_nastr</span>
 
@@ -670,6 +745,12 @@
 
 <span class="sd">    X : pandas DF</span>
 <span class="sd">        The dataframe</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    list, int</span>
+<span class="sd">        The list of indices which are numeric.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># don&#39;t want warning</span>
     <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">)))]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
@@ -717,26 +798,71 @@
 
 <span class="sd">    X : pd DataFrame</span>
 <span class="sd">        The dataframe to test</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    bool</span>
+<span class="sd">        True if the entire pd.DataFrame </span>
+<span class="sd">        is numeric else False</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">get_numeric</span><span class="p">(</span><span class="n">X</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="is_integer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_integer">[docs]</a><span class="k">def</span> <span class="nf">is_integer</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether some object ``x`` is an</span>
+<span class="sd">    integer type (int, long, etc).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    x : object</span>
+<span class="sd">        The item to assess</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    bool</span>
+<span class="sd">        True if ``x`` is an integer type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)))</span> <span class="ow">and</span> \
         <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="is_float"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_float">[docs]</a><span class="k">def</span> <span class="nf">is_float</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="is_numeric"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_numeric">[docs]</a><span class="k">def</span> <span class="nf">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Determines whether the arg is numeric</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether some object ``x`` is a</span>
+<span class="sd">    float type (float, np.float, etc).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    x : anytype</span>
+<span class="sd">    x : object</span>
+<span class="sd">        The item to assess</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    bool</span>
+<span class="sd">        True if ``x`` is a float type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="is_numeric"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.is_numeric">[docs]</a><span class="k">def</span> <span class="nf">is_numeric</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether some object ``x`` is a</span>
+<span class="sd">    numeric type (float, int, etc).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    x : object</span>
+<span class="sd">        The item to assess</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    bool</span>
+<span class="sd">        True if ``x`` is a float or integer type</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">is_float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_integer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
@@ -744,7 +870,7 @@
 <div class="viewcode-block" id="load_iris_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_iris_df">[docs]</a><span class="k">def</span> <span class="nf">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;Species&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Loads the iris dataset into a dataframe with the</span>
 <span class="sd">    target set as the &quot;Species&quot; feature or whatever name</span>
-<span class="sd">    is specified.</span>
+<span class="sd">    is specified in ``tgt_name``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -756,7 +882,13 @@
 <span class="sd">        The name of the target feature</span>
 
 <span class="sd">    shuffle : bool, optional (default=False)</span>
-<span class="sd">        Whether to shuffle the rows</span>
+<span class="sd">        Whether to shuffle the rows on return</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The loaded dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">iris</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
@@ -770,7 +902,7 @@
 <div class="viewcode-block" id="load_breast_cancer_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_breast_cancer_df">[docs]</a><span class="k">def</span> <span class="nf">load_breast_cancer_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Loads the breast cancer dataset into a dataframe with the</span>
 <span class="sd">    target set as the &quot;target&quot; feature or whatever name</span>
-<span class="sd">    is specified.</span>
+<span class="sd">    is specified in ``tgt_name``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -783,6 +915,12 @@
 
 <span class="sd">    shuffle : bool, optional (default=False)</span>
 <span class="sd">        Whether to shuffle the rows</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The loaded dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">bc</span> <span class="o">=</span> <span class="n">load_breast_cancer</span><span class="p">()</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">bc</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bc</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
@@ -796,7 +934,7 @@
 <div class="viewcode-block" id="load_boston_df"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.load_boston_df">[docs]</a><span class="k">def</span> <span class="nf">load_boston_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tgt_name</span><span class="o">=</span><span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Loads the boston housing dataset into a dataframe with the</span>
 <span class="sd">    target set as the &quot;target&quot; feature or whatever name</span>
-<span class="sd">    is specified.</span>
+<span class="sd">    is specified in ``tgt_name``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -809,6 +947,12 @@
 
 <span class="sd">    shuffle : bool, optional (default=False)</span>
 <span class="sd">        Whether to shuffle the rows</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    X : pd.DataFrame</span>
+<span class="sd">        The loaded dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">bo</span> <span class="o">=</span> <span class="n">load_boston</span><span class="p">()</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">bo</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">bo</span><span class="o">.</span><span class="n">feature_names</span><span class="p">)</span>
@@ -857,6 +1001,12 @@
 <span class="sd">        If set to True, charts is True, and sort_results is </span>
 <span class="sd">        also True, then highlights the point in the top</span>
 <span class="sd">        position of the model DF.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    results_df : pd.DataFrame</span>
+<span class="sd">        The grid search results</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">valid_axes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;std&#39;</span><span class="p">)</span>
 
@@ -923,6 +1073,27 @@
 <div class="viewcode-block" id="report_confusion_matrix"><a class="viewcode-back" href="../../../rsts/codebase/skutil_utils.html#skutil.utils.report_confusion_matrix">[docs]</a><span class="k">def</span> <span class="nf">report_confusion_matrix</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">return_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a dataframe with the confusion matrix, and a series</span>
 <span class="sd">    with the classification performance metrics.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    actual : np.ndarray, shape=(n_samples,)</span>
+<span class="sd">        The array of actual values</span>
+
+<span class="sd">    pred : np.ndarray, shape=(n_samples,)</span>
+<span class="sd">        The array of predicted values</span>
+
+<span class="sd">    return_metrics : bool, optional (default=True)</span>
+<span class="sd">        Whether to return the metrics in a pd.Series</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    conf : pd.DataFrame</span>
+<span class="sd">        The confusion matrix</span>
+
+<span class="sd">    ser : pd.Series or None</span>
+<span class="sd">        The metrics if ``return_metrics`` else None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># ensure only two classes in each</span>

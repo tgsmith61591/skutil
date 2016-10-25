@@ -182,7 +182,7 @@ will be coerced to 1 (True).</p>
 </div></blockquote>
 <p><strong>qraux</strong> : array_like, shape (n_features,)</p>
 <blockquote>
-<div><p>qraux contains further information required to recover
+<div><p>Contains further information required to recover
 the orthogonal part of the decomposition.</p>
 </div></blockquote>
 <p><strong>pivot</strong> : array_like, shape (n_features,)</p>
@@ -205,29 +205,53 @@ the orthogonal part of the decomposition.</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.odr.QRDecomposition.get_R" title="skutil.odr.QRDecomposition.get_R"><code class="xref py py-obj docutils literal"><span class="pre">get_R</span></code></a>()</td>
-<td>Get the R matrix from the decomposition</td>
+<td>Get the R matrix from the decomposition.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.odr.QRDecomposition.get_R_rank" title="skutil.odr.QRDecomposition.get_R_rank"><code class="xref py py-obj docutils literal"><span class="pre">get_R_rank</span></code></a>()</td>
-<td>Get the rank of the R matrix</td>
+<td>Get the rank of the R matrix.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.odr.QRDecomposition.get_coef" title="skutil.odr.QRDecomposition.get_coef"><code class="xref py py-obj docutils literal"><span class="pre">get_coef</span></code></a>(X)</td>
 <td></td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#skutil.odr.QRDecomposition.get_rank" title="skutil.odr.QRDecomposition.get_rank"><code class="xref py py-obj docutils literal"><span class="pre">get_rank</span></code></a>()</td>
-<td>Get the rank of the decomposition</td>
+<td>Get the rank of the decomposition.</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="skutil.odr.QRDecomposition.get_R">
 <code class="descname">get_R</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_R"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_R" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the R matrix from the decomposition</p>
+<dd><p>Get the R matrix from the decomposition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>r</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>The R portion of the decomposed matrix.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="skutil.odr.QRDecomposition.get_R_rank">
 <code class="descname">get_R_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_R_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_R_rank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the rank of the R matrix</p>
+<dd><p>Get the rank of the R matrix.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>rank</strong> : int</p>
+<blockquote class="last">
+<div><p>The rank of the R matrix</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -238,7 +262,19 @@ the orthogonal part of the decomposition.</p>
 <dl class="method">
 <dt id="skutil.odr.QRDecomposition.get_rank">
 <code class="descname">get_rank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/odr/dqrutl.html#QRDecomposition.get_rank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.odr.QRDecomposition.get_rank" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the rank of the decomposition</p>
+<dd><p>Get the rank of the decomposition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.rank</strong> : int</p>
+<blockquote class="last">
+<div><p>The rank of the decomposition</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -257,9 +293,28 @@ Fortran subroutines.</p>
 <div><p>The matrix to decompose</p>
 </div></blockquote>
 <p><strong>job</strong> : int, optional (default=1)</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Whether to perform pivoting. 0 is False, any other value
 will be coerced to 1 (True).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : np.ndarray, shape=(n_samples, n_features)</p>
+<blockquote>
+<div><p>The matrix</p>
+</div></blockquote>
+<p><strong>rank</strong> : int</p>
+<blockquote>
+<div><p>The rank of the matrix</p>
+</div></blockquote>
+<p><strong>qraux</strong> : np.ndarray, shape=(n_features,)</p>
+<blockquote>
+<div><p>Contains further information required to recover
+the orthogonal part of the decomposition.</p>
+</div></blockquote>
+<p><strong>pivot</strong> : np.ndarray, shape=(n_features,)</p>
+<blockquote class="last">
+<div><p>The pivot array, or None if not <code class="docutils literal"><span class="pre">job</span></code></p>
 </div></blockquote>
 </td>
 </tr>

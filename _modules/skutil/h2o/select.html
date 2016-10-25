@@ -227,6 +227,21 @@
                                                      <span class="n">max_version</span><span class="o">=</span><span class="n">max_version</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseH2OFeatureSelector.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OFeatureSelector.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform the test frame, after fitting</span>
+<span class="sd">        the transformer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        X : H2OFrame</span>
+<span class="sd">            The test frame</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        X : H2OFrame</span>
+<span class="sd">            The transformed frame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># validate state, frame</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;drop_&#39;</span><span class="p">)</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>

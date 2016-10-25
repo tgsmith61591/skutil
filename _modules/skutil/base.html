@@ -147,8 +147,34 @@
 
 
 <span class="k">def</span> <span class="nf">overrides</span><span class="p">(</span><span class="n">interface_class</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Decorator for methods that override super methods.</span>
-<span class="sd">    Nice syntactic sugar and easy to follow OOP on sources like Git.</span>
+    <span class="sd">&quot;&quot;&quot;Decorator for methods that override super methods. Provides</span>
+<span class="sd">    runtime validation that the method is, in fact, inherited from the</span>
+<span class="sd">    superclass. If not, will raise an ``AssertionError``.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    </span>
+<span class="sd">    The following is valid use:</span>
+
+<span class="sd">        &gt;&gt;&gt; class A():</span>
+<span class="sd">        ...     def a(self):</span>
+<span class="sd">        ...         return 1</span>
+
+<span class="sd">        &gt;&gt;&gt; class B(A):</span>
+<span class="sd">        ...     @overrides(A)</span>
+<span class="sd">        ...     def a(self):</span>
+<span class="sd">        ...         return 2</span>
+<span class="sd">        ...</span>
+<span class="sd">        ...     def b(self):</span>
+<span class="sd">        ...         return 0</span>
+
+<span class="sd">    The following would be an invalid ``overrides`` statement, since</span>
+<span class="sd">    ``A`` does not have a ``b`` method to override.</span>
+
+<span class="sd">        &gt;&gt;&gt; class C(B):</span>
+<span class="sd">        ...     @overrides(A) # should override B, not A</span>
+<span class="sd">        ...     def b(self):</span>
+<span class="sd">        ...         return 1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">overrider</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
@@ -160,8 +186,11 @@
 
 
 <span class="k">def</span> <span class="nf">suppress_warnings</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Decorator to force a method to suppress</span>
-<span class="sd">    all warnings it may raise.</span>
+    <span class="sd">&quot;&quot;&quot;Decorator that forces a method to suppress</span>
+<span class="sd">    all warnings it may raise. This should be used with caution,</span>
+<span class="sd">    as it may complicate debugging. For internal purposes, this is</span>
+<span class="sd">    used for imports that cause consistent warnings (like pandas or</span>
+<span class="sd">    matplotlib)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">suppressor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -196,9 +225,9 @@
     <span class="sd">&quot;&quot;&quot;A mixin class that all selective transformers</span>
 <span class="sd">    should implement. All ``SelectiveMixin`` implementers</span>
 <span class="sd">    should only apply their ``fit`` method on the defined columns.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></div>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+    <span class="c1"># at one time, this contained methods. But They&#39;ve since</span>
+    <span class="c1"># been weeded out one-by-one... do we want to keep it?</span>
 </pre></div>
 
            </div>
