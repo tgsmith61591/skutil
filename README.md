@@ -16,17 +16,17 @@ What began as a modest, succinct set of [sklearn](https://github.com/scikit-lear
 Skutil adapts code from several R packages, and thus depends on the ability to compile Fortran code using `gcc`. For different platforms, there are different ways to install `gcc` (the easiest, of course, being [Homebrew](http://brew.sh/)):
   - __Mac OS__ (__note__: this can take a while):
 ```bash
-brew install gcc
+$ brew install gcc
 ```
 
 There is a bug in some setups that will still cause issues in symlinking the `gcc` files via homebrew. If this is the case, the following line should clear things up:
 ```bash
-brew link --overwrite gcc
+$ brew link --overwrite gcc
 ```
 
   - __Linux__:
 ```bash
-sudo apt-get install gcc
+$ sudo apt-get install gcc
 ```
 
   - For Windows, follow [this tutorial](http://www.preshing.com/20141108/how-to-install-the-latest-gcc-on-windows/)
@@ -39,23 +39,18 @@ sudo apt-get install gcc
 Installation is easy. After cloning the project onto your machine and installing the required dependencies, simply use the `setup.py` file:
 
 ```bash
-git clone https://github.com/tgsmith61591/skutil.git
-cd skutil
-python setup.py install
+$ git clone https://github.com/tgsmith61591/skutil.git
+$ cd skutil
+$ python setup.py install
 ```
 
+### Testing
 
-### Installing for ongoing development:
-
-If you'd like to fork skutil to contribute to the codebase and intend to run some tests, your setup is a bit different. Rather than using the `install` arg, use `develop`. This creates a symlink in the local directory so that as you make changes, they are automatically reflected and you don't have to re-install every time. For more information on `develop` vs. `install`, see [this](http://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install) StackOverflow question. Note that after running setup with `develop`, you may have to uninstall before re-running with `install`. *If you are experiencing the dreaded* `no module named dqrsl` *issue and your GCC is up-to-date, it's likely a* `develop` *vs.* `install` *issue. Try uninstalling, clearing the egg from the local folder (or popping the local path from* `sys.path`*) and running setup with the* `install` *option.*
+After installation, you can launch the test suite from outside the source directory (you will need to have the `nose` package installed):
 
 ```bash
-git clone https://github.com/tgsmith61591/skutil.git
-cd skutil
-python setup.py develop
-nosetests
+$ nosetests -v skutil
 ```
-
 
 #### Examples:
   - See the [example ipython notebooks](https://github.com/tgsmith61591/skutil/tree/master/doc/examples)

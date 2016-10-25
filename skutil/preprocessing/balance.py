@@ -95,8 +95,8 @@ def _pd_frame_to_np(x):
 
 
 class BalancerMixin:
-    """Mixin class for balancers that provides interface for `balance`
-    and the constant _max_classes (default=20). Used in h2o module as well.
+    """Mixin class for balancers that provides interface for ``balance``
+    and the constant ``_max_classes`` (default=20). Used in h2o module as well.
     """
 
     # the max classes handled by class balancers
@@ -112,7 +112,6 @@ class BalancerMixin:
 
         X : pd.DataFrame
             The frame from which to balance
-
         """
         raise NotImplementedError('this method must be implemented by a subclass')
 
@@ -168,11 +167,7 @@ class _BaseBalancePartitioner(six.with_metaclass(abc.ABCMeta, object)):
 
 
 class _OversamplingBalancePartitioner(_BaseBalancePartitioner):
-    """Balance partitioner for oversampling the minority classes.
-    Currently, this can't be used with H2O, since H2O doesn't allow
-    're-ordering' rows, or in this case resampling them. Thus, for H2OFrames,
-    use _UndersamplingBalancePartitioner.
-    """
+    """Balance partitioner for oversampling the minority classes."""
 
     def __init__(self, X, y_name, ratio, validation_function=_validate_x_y_ratio):
         super(_OversamplingBalancePartitioner, self).__init__(
@@ -217,15 +212,6 @@ class _OversamplingBalancePartitioner(_BaseBalancePartitioner):
 
             minority_recs = all_indices[target_col == minority]
             idcs = choice(minority_recs, n_samples, replace=True)
-
-            # old style where all were pd:
-            # minority_recs = X[X[y] == minority]
-            # idcs = choice(minority_recs.index, n_samples, replace=True)
-            # pts = X.iloc[idcs]
-
-            # append to X
-            # X = pd.concat([X, pts])
-
             sample_indices.extend(list(idcs))
 
         # make list
@@ -269,18 +255,6 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
         target_col = _pd_frame_to_np(X[y])
         majority_recs = all_indices[target_col == majority]
         idcs = choice(majority_recs, n_required, replace=False)
-
-        # Old style (when everything was PD):
-        # majority_recs = X[X[self.y_] == majority]
-        # idcs = choice(majority_recs.index, n_required, replace=False)
-
-        # get the rows that were not included in the keep sample
-        # x_drop_rows = majority_recs.drop(idcs, axis=0).index
-
-        # now the only rows remaining in x_drop_rows are the ones
-        # that were not selected in the random choice.
-        # drop all those rows (from the copy)
-        # dropped = X.drop(x_drop_rows, axis=0)
 
         # get all the "minority" observation idcs, append the sampled
         # majority idcs, then sort and return
@@ -346,8 +320,24 @@ def _over_under_balance(X, y, ratio, as_df, shuffle, partitioner_class):
 
 
 class OversamplingClassBalancer(_BaseBalancer):
-    """Oversample the minority classes until they are represented
-    at the target proportion to the majority class.
+    """Oversample all of the minority classes until they are 
+    represented at the target proportion to the majority class.
+    For example, given the following pd.Series, ``a_counts``, 
+    (index = class, and values = counts):
+
+        >>> a_counts
+        0  100
+        1  30
+        2  25
+
+    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled 
+    until they are represented at a ratio of at least 0.5 * the prevalence of
+    the majority class (0):
+
+        >>> a_counts_undersampled
+        0  100
+        1  50
+        2  50
 
     Parameters
     ----------
@@ -529,22 +519,24 @@ class SMOTEClassBalancer(_BaseBalancer):
         return X if self.as_df else X.as_matrix()
 
 
-###############################################################################
 class UndersamplingClassBalancer(_BaseBalancer):
     """Undersample the majority class until it is represented
-    at the target proportion to the most-represented minority class.
-    For example, given the follow pd.Series (index = class, and values = counts):
+    at the target proportion to the most-represented minority class (i.e., the
+    second-most populous class). For example, given the following pd.Series, 
+    ``a_counts``, (index = class, and values = counts):
 
-    0  150
-    1  30
-    2  10
+        >>> a_counts
+        0  150
+        1  30
+        2  10
 
-    and the ratio 0.5, the majority class (0) will be undersampled until
+    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until
     the second most-populous class (1) is represented at a ratio of 0.5:
 
-    0  60
-    1  30
-    2  10
+        >>> a_counts_undersampled
+        0  60
+        1  30
+        2  10
 
     Parameters
     ----------

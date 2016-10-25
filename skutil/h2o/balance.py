@@ -82,7 +82,23 @@ class _BaseH2OBalancer(six.with_metaclass(ABCMeta,
 
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     """Oversample the minority classes until they are represented
-    at the target proportion to the majority class.
+    at the target proportion to the majority class. For example, 
+    consider the following pd.Series, ``a_counts``, (index = class, 
+    and values = counts):
+
+        >>> a_counts
+        0  100
+        1  30
+        2  25
+
+    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled 
+    until they are represented at a ratio of at least 0.5 * the prevalence of
+    the majority class (0):
+
+        >>> a_counts_undersampled
+        0  100
+        1  50
+        2  50
 
     Parameters
     ----------
@@ -143,18 +159,21 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     """Undersample the majority class until it is represented
     at the target proportion to the most-represented minority class.
-    For example, given the follow pd.Series (index = class, and values = counts):
+    For example, consider the following pd.Series, ``a_counts``, 
+    (index = class, and values = counts):
 
-    0  150
-    1  30
-    2  10
+        >>> a_counts
+        0  150
+        1  30
+        2  10
 
-    and the ratio 0.5, the majority class (0) will be undersampled until
+    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until
     the second most-populous class (1) is represented at a ratio of 0.5:
 
-    0  60
-    1  30
-    2  10
+        >>> a_counts_undersampled
+        0  60
+        1  30
+        2  10
 
     Parameters
     ----------

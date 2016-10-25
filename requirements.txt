@@ -1,6 +1,6 @@
 numpy>=1.6
 scipy>=0.17
-scikit-learn>=0.16
+scikit-learn>=0.17
 pandas>=0.18
 cython>=0.22
 h2o>=3.8.2.9

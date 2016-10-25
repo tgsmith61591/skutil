@@ -92,6 +92,21 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
                                                      max_version=max_version)
 
     def transform(self, X):
+        """Transform the test frame, after fitting
+        the transformer.
+
+        Parameters
+        ----------
+
+        X : H2OFrame
+            The test frame
+
+        Returns
+        -------
+
+        X : H2OFrame
+            The transformed frame
+        """
         # validate state, frame
         check_is_fitted(self, 'drop_')
         X = _check_is_frame(X)

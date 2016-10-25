@@ -112,7 +112,19 @@ def _vectorize(fun, x):
 
 
 def exp(x):
-    """A safe mechanism for computing the exponential function"""
+    """A safe mechanism for computing the exponential function.
+    
+    Parameters
+    ----------
+
+    x : float, number
+        The number for which to compute the exp
+
+    Returns
+    -------
+
+    exp(x)
+    """
     # check on single exp
     if is_numeric(x):
         return _exp_single(x)
@@ -125,7 +137,19 @@ def exp(x):
 
 
 def log(x):
-    """A safe mechanism for computing a log"""
+    """A safe mechanism for computing a log.
+
+    Parameters
+    ----------
+
+    x : float, number
+        The number for which to compute the log
+
+    Returns
+    -------
+
+    log(x)
+    """
     # check on single log
     if is_numeric(x):
         return _log_single(x)
@@ -260,26 +284,51 @@ def flatten_all(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
+    Parameters
+    ----------
+
+    container : iterable, object
+        The iterable to flatten. If the ``container`` is
+        not iterable, it will be returned in a list as 
+        ``[container]``
+
     Examples
     --------
 
-    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
-    >>> flatten_all(a)
-    [3,4,'1','a',1,1,2]
+    The example below produces a list of mixed results:
+
+        >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
+        >>> flatten_all(a)
+        [3,4,'1','a',1,1,2]
+
+    Returns
+    -------
+
+    l : list
+        The flattened list
     """
-    return [x for x in flatten_all_generator(container)]
+    l = [x for x in flatten_all_generator(container)]
+    return l
 
 
 def flatten_all_generator(container):
     """Recursively flattens an arbitrarily nested iterable.
     WARNING: this function may produce a list of mixed types.
 
+    Parameters
+    ----------
+
+    container : iterable, object
+        The iterable to flatten.
+
     Examples
     --------
 
-    >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
-    >>> flatten_all_generator(a)
-    [3,4,'1','a',1,1,2] # returns a generator for this iterable
+    The example below produces a list of mixed results:
+
+        >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
+        >>> flatten_all(a)
+        [3,4,'1','a',1,1,2] # yields a generator for this iterable
     """
     if not hasattr(container, '__iter__'):
         yield container
@@ -293,6 +342,16 @@ def flatten_all_generator(container):
 
 
 def shuffle_dataframe(X):
+    """Shuffle the rows in a data frame without replacement.
+    The random state used for shuffling is controlled by
+    numpy's random state.
+
+    Parameters
+    ----------
+
+    X : pd.DataFrame
+        The dataframe to shuffle
+    """
     X, _ = validate_is_pd(X, None, False)
     return X.iloc[np.random.permutation(np.arange(X.shape[0]))]
 
@@ -423,7 +482,7 @@ def _is_int(x, tp):
     return (x - x.astype('int')).abs().sum() == 0
 
 
-def pd_stats(X, col_type='all', na_str='--'):
+def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh=0.5):
     """Get a descriptive report of the elements in the data frame.
     Builds on existing pandas `describe` method.
 
@@ -437,6 +496,21 @@ def pd_stats(X, col_type='all', na_str='--'):
         The types of columns to analyze. One of ('all',
         'numeric', 'object'). If not all, will only return
         corresponding typed columns.
+
+    hi_skew_thresh : float, optional (default=1.0)
+        The threshold above which a skewness rating will
+        be deemed "high."
+
+    mod_skew_thresh : float, optional (default=0.5)
+        The threshold above which a skewness rating will 
+        be deemed "moderate," so long as it does not exceed
+        ``hi_skew_thresh``
+
+    Returns
+    -------
+
+    pd.DataFrame
+        The stats dataframe.
     """
     X, _ = validate_is_pd(X, None, False)
     raw_stats = X.describe()
@@ -506,7 +580,8 @@ def pd_stats(X, col_type='all', na_str='--'):
         if is_numer:
             _skew, _kurt = X[col].skew(), X[col].kurtosis()
             abs_skew = abs(_skew)
-            _skew_risk = 'high skew' if abs_skew > 1 else 'mod. skew' if (0.5 < abs_skew < 1) else 'symmetric'
+            hs, ms = hi_skew_thresh, mod_skew_thresh
+            _skew_risk = 'high skew' if abs_skew > hs else 'mod. skew' if (ms < abs_skew < hs) else 'symmetric'
         else:
             _skew = _kurt = _skew_risk = _nastr
 
@@ -535,6 +610,12 @@ def get_numeric(X):
 
     X : pandas DF
         The dataframe
+
+    Returns
+    -------
+
+    list, int
+        The list of indices which are numeric.
     """
     validate_is_pd(X, None)  # don't want warning
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
@@ -582,26 +663,71 @@ def is_entirely_numeric(X):
 
     X : pd DataFrame
         The dataframe to test
+
+    Returns
+    -------
+
+    bool
+        True if the entire pd.DataFrame 
+        is numeric else False
     """
     return X.shape[1] == len(get_numeric(X))
 
 
 def is_integer(x):
+    """Determine whether some object ``x`` is an
+    integer type (int, long, etc).
+
+    Parameters
+    ----------
+
+    x : object
+        The item to assess
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an integer type
+    """
     return (not isinstance(x, (bool, np.bool))) and \
         isinstance(x, (numbers.Integral, int, long, np.int, np.long))
 
 
 def is_float(x):
-    return isinstance(x, (float, np.float))
-
-
-def is_numeric(x):
-    """Determines whether the arg is numeric
+    """Determine whether some object ``x`` is a
+    float type (float, np.float, etc).
 
     Parameters
     ----------
 
-    x : anytype
+    x : object
+        The item to assess
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is a float type
+    """
+    return isinstance(x, (float, np.float))
+
+
+def is_numeric(x):
+    """Determine whether some object ``x`` is a
+    numeric type (float, int, etc).
+
+    Parameters
+    ----------
+
+    x : object
+        The item to assess
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is a float or integer type
     """
     return is_float(x) or is_integer(x)
 
@@ -609,7 +735,7 @@ def is_numeric(x):
 def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
     """Loads the iris dataset into a dataframe with the
     target set as the "Species" feature or whatever name
-    is specified.
+    is specified in ``tgt_name``.
 
     Parameters
     ----------
@@ -621,7 +747,13 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
         The name of the target feature
 
     shuffle : bool, optional (default=False)
-        Whether to shuffle the rows
+        Whether to shuffle the rows on return
+
+    Returns
+    -------
+
+    X : pd.DataFrame
+        The loaded dataset
     """
     iris = load_iris()
     X = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
@@ -635,7 +767,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
     """Loads the breast cancer dataset into a dataframe with the
     target set as the "target" feature or whatever name
-    is specified.
+    is specified in ``tgt_name``.
 
     Parameters
     ----------
@@ -648,6 +780,12 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
+
+    Returns
+    -------
+
+    X : pd.DataFrame
+        The loaded dataset
     """
     bc = load_breast_cancer()
     X = pd.DataFrame.from_records(data=bc.data, columns=bc.feature_names)
@@ -661,7 +799,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
 def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
     """Loads the boston housing dataset into a dataframe with the
     target set as the "target" feature or whatever name
-    is specified.
+    is specified in ``tgt_name``.
 
     Parameters
     ----------
@@ -674,6 +812,12 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
+
+    Returns
+    -------
+
+    X : pd.DataFrame
+        The loaded dataset
     """
     bo = load_boston()
     X = pd.DataFrame.from_records(data=bo.data, columns=bo.feature_names)
@@ -722,6 +866,12 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         If set to True, charts is True, and sort_results is 
         also True, then highlights the point in the top
         position of the model DF.
+
+    Returns
+    -------
+
+    results_df : pd.DataFrame
+        The grid search results
     """
     valid_axes = ('score', 'std')
 
@@ -788,6 +938,27 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
 def report_confusion_matrix(actual, pred, return_metrics=True):
     """Return a dataframe with the confusion matrix, and a series
     with the classification performance metrics.
+
+    Parameters
+    ----------
+
+    actual : np.ndarray, shape=(n_samples,)
+        The array of actual values
+
+    pred : np.ndarray, shape=(n_samples,)
+        The array of predicted values
+
+    return_metrics : bool, optional (default=True)
+        Whether to return the metrics in a pd.Series
+
+    Returns
+    -------
+
+    conf : pd.DataFrame
+        The confusion matrix
+
+    ser : pd.Series or None
+        The metrics if ``return_metrics`` else None
     """
 
     # ensure only two classes in each

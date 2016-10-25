@@ -12,8 +12,34 @@ __all__ = [
 
 
 def overrides(interface_class):
-    """Decorator for methods that override super methods.
-    Nice syntactic sugar and easy to follow OOP on sources like Git.
+    """Decorator for methods that override super methods. Provides
+    runtime validation that the method is, in fact, inherited from the
+    superclass. If not, will raise an ``AssertionError``.
+
+    Examples
+    --------
+    
+    The following is valid use:
+
+        >>> class A():
+        ...     def a(self):
+        ...         return 1
+
+        >>> class B(A):
+        ...     @overrides(A)
+        ...     def a(self):
+        ...         return 2
+        ...
+        ...     def b(self):
+        ...         return 0
+
+    The following would be an invalid ``overrides`` statement, since
+    ``A`` does not have a ``b`` method to override.
+
+        >>> class C(B):
+        ...     @overrides(A) # should override B, not A
+        ...     def b(self):
+        ...         return 1
     """
 
     def overrider(method):
@@ -25,8 +51,11 @@ def overrides(interface_class):
 
 
 def suppress_warnings(func):
-    """Decorator to force a method to suppress
-    all warnings it may raise.
+    """Decorator that forces a method to suppress
+    all warnings it may raise. This should be used with caution,
+    as it may complicate debugging. For internal purposes, this is
+    used for imports that cause consistent warnings (like pandas or
+    matplotlib)
     """
 
     def suppressor(*args, **kwargs):
@@ -62,5 +91,5 @@ class SelectiveMixin:
     should implement. All ``SelectiveMixin`` implementers
     should only apply their ``fit`` method on the defined columns.
     """
-    def __init__(self):
-        pass
+    # at one time, this contained methods. But They've since
+    # been weeded out one-by-one... do we want to keep it?

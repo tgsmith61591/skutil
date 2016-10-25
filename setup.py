@@ -39,7 +39,7 @@ VERSION = skutil.__version__
 
 # Version requirements
 pandas_min_version = '0.18'
-sklearn_min_version = '0.16'
+sklearn_min_version = '0.17'
 numpy_min_version = '1.6'
 scipy_min_version = '0.17'
 h2o_min_version = '3.8.2.9'
