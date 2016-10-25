@@ -1,6 +1,6 @@
-from __future__ import print_function, division #,absolute_import
+from __future__ import print_function, division, absolute_import
 import numpy as np
-import dqrsl
+from skutil.odr import dqrsl # what happens if we make this absolute?
 from sklearn.utils import check_array
 from numpy.linalg import matrix_rank
 
