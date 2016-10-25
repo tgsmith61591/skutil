@@ -1,11 +1,11 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import numpy as np
 import dqrsl
 from sklearn.utils import check_array
 from numpy.linalg import matrix_rank
 
 # WARNING: there is little-to-no validation of input in these functions,
-# and crashes may be caused by inappropriate usage. Use with care.
+# and crashes may be caused by inappropriate usage. Use with care...
 
 __all__ = [
     'qr_decomposition',
@@ -41,6 +41,22 @@ def qr_decomposition(X, job=1):
     job : int, optional (default=1)
         Whether to perform pivoting. 0 is False, any other value
         will be coerced to 1 (True).
+
+    Returns
+    -------
+
+    X : np.ndarray, shape=(n_samples, n_features)
+        The matrix
+
+    rank : int
+        The rank of the matrix
+
+    qraux : np.ndarray, shape=(n_features,)
+        Contains further information required to recover
+        the orthogonal part of the decomposition.
+
+    pivot : np.ndarray, shape=(n_features,)
+        The pivot array, or None if not ``job``
     """
 
     X = check_array(X, dtype='numeric', order='F', copy=True)
@@ -101,7 +117,7 @@ class QRDecomposition():
         The decomposed matrix
 
     qraux : array_like, shape (n_features,)
-        qraux contains further information required to recover
+        Contains further information required to recover
         the orthogonal part of the decomposition.
 
     pivot : array_like, shape (n_features,)
@@ -161,13 +177,35 @@ class QRDecomposition():
         return coef if not k < p else coef[self.pivot[np.arange(k)], :]
 
     def get_rank(self):
-        """Get the rank of the decomposition"""
+        """Get the rank of the decomposition.
+
+        Returns
+        -------
+
+        self.rank : int
+            The rank of the decomposition
+        """
         return self.rank
 
     def get_R(self):
-        """Get the R matrix from the decomposition"""
-        return _qr_R(self.qr)
+        """Get the R matrix from the decomposition.
+
+        Returns
+        -------
+
+        r : np.ndarray
+            The R portion of the decomposed matrix.
+        """
+        r = _qr_R(self.qr)
+        return r
 
     def get_R_rank(self):
-        """Get the rank of the R matrix"""
+        """Get the rank of the R matrix.
+
+        Returns
+        -------
+
+        rank : int
+            The rank of the R matrix
+        """
         return matrix_rank(self.get_R())
