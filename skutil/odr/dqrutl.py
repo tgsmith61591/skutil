@@ -22,11 +22,6 @@ def _safecall(fun, name, *args, **kwargs):
     """A method to call a LAPACK or LINPACK subroutine internally"""
     ret = fun(*args, **kwargs)
 
-    # since we're operating on arrays in place, we don't need this
-    # if ret[-1] < 0:
-    #   raise ValueError("illegal value in %d-th argument of internal %s"
-    #       % (-ret[-1], name))
-
 
 def qr_decomposition(X, job=1):
     """Performs the QR decomposition using LINPACK, BLAS and LAPACK
