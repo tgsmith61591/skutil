@@ -973,7 +973,7 @@ def test_h2o_with_conn():
 
         def _basic_scenario(X, fill):
             imputer = H2OSelectiveImputer(def_fill=fill)
-            imputer.fit_transform(X)
+            X = imputer.fit_transform(X)
             na_cnt = sum(X.nacnt())
             assert not na_cnt, 'expected no NAs, but found %d' % na_cnt
 
