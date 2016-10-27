@@ -987,7 +987,7 @@ def test_h2o_with_conn():
 
         def scenario_3(X):
             """Assert fails (for now) with 'mode' -- unimplemented"""
-            assert_fails(_basic_scenario, NotImplementedError, X, 'mode')
+            _basic_scenario(X, 'mode')
 
         def scenario_4(X):
             """Assert fails with unknown string arg"""
@@ -1003,7 +1003,7 @@ def test_h2o_with_conn():
 
         def scenario_7(X):
             """Assert fails with 'mode' in the list -- unimplemented"""
-            assert_fails(_basic_scenario, NotImplementedError, X, ['mode', 1.5, 'median', 'median'])
+            _basic_scenario(X, ['mode', 1.5, 'median', 'median'])
 
         def scenario_8(X):
             """Assert fails with len != ncols"""
@@ -1058,17 +1058,9 @@ def test_h2o_with_conn():
             scenario_13
         ]
 
-        # since the imputer works in place, we have to do this for each scenario...
+        # loop scenarios
         for scenario in scenarios:
-            try:
-                M = new_h2o_frame(f.copy())
-            except Exception as e:
-                M = None
-
-            if M is not None:
-                scenario(M)
-            else:
-                pass
+            scenario(M)
 
     def persist():
         f = F.copy()
