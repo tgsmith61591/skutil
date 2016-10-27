@@ -527,13 +527,13 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
         return self
 
-    def transform(self, frame):
+    def transform(self, X):
         """Perform the interaction term expansion
         
         Parameters
         ----------
 
-        frame : H2OFrame, shape=[n_samples, n_features]
+        X : H2OFrame, shape=[n_samples, n_features]
             The data to transform
 
         Returns
@@ -543,10 +543,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
             The expanded H2OFrame
         """
         check_is_fitted(self, 'fun_')
-        _check_is_frame(frame)
-
-        # this creates a copy...
-        frame = frame[frame.columns]
+        frame = check_frame(X, copy=True) # get a copy
+        
         cols, fun, suff = self.cols, self.fun_, self.name_suffix
         n_features = len(cols)
 
