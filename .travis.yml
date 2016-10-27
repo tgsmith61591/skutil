@@ -51,6 +51,7 @@ install:
   - pip install coveralls
   - pip install matplotlib
   - pip install seaborn
+  - pip install jinja2
   - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
   - python setup.py develop
 
