@@ -28,7 +28,7 @@ except ImportError as e:
     import pickle
 
 __all__ = [
-    'check_frame'
+    'check_frame',
     'check_version',
     'NAWarning',
     'BaseH2OFunctionWrapper',
