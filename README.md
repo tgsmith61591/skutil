@@ -4,6 +4,7 @@
 [![Release](https://img.shields.io/github/release/tgsmith61591/skutil.svg)](https://img.shields.io/github/release/tgsmith61591/skutil)
 [![Issues](https://img.shields.io/github/issues-raw/tgsmith61591/skutil.svg)](https://img.shields.io/github/issues-raw/badges/shields)
 [![Pull Requests](https://img.shields.io/github/issues-pr-raw/tgsmith61591/skutil.svg)](https://img.shields.io/github/issues-pr-raw/tgsmith61591/skutil)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Twitter](https://img.shields.io/twitter/follow/TayGriffinSmith.svg?style=social)](https://twitter.com/TayGriffinSmith)
 
 
