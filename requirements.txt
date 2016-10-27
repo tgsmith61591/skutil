@@ -4,3 +4,4 @@ scikit-learn>=0.17
 pandas>=0.18
 cython>=0.22
 h2o>=3.8.2.9
+jinja2>=2.8
