@@ -41,17 +41,7 @@ def _validate_rows(X):
         raise ValueError('n_samples should be at least two, but got %i' % m)
 
 
-class _BaseSelectiveTransformer(six.with_metaclass(ABCMeta, BaseEstimator,
-                                                   TransformerMixin,
-                                                   SelectiveMixin)):
-    """Base class for skutil transformers"""
-
-    def __init__(self, cols=None, as_df=True):
-        self.cols = cols
-        self.as_df = as_df
-
-
-class FunctionMapper(_BaseSelectiveTransformer):
+class FunctionMapper(BaseSkutil):
     """Apply a function to a column or set of columns.
 
     Parameters
@@ -106,7 +96,7 @@ class FunctionMapper(_BaseSelectiveTransformer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Apply the transformation to test data.
 
         Parameters
@@ -114,10 +104,6 @@ class FunctionMapper(_BaseSelectiveTransformer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -151,7 +137,7 @@ def _mul(a, b):
     return (a * b).values
 
 
-class InteractionTermTransformer(_BaseSelectiveTransformer):
+class InteractionTermTransformer(BaseSkutil):
     """A class that will generate interaction terms between selected columns.
     An interaction captures some relationship between two independent variables
     in the form of In = (xi * xj).
@@ -276,7 +262,7 @@ class InteractionTermTransformer(_BaseSelectiveTransformer):
         return X if self.as_df else X.as_matrix()
 
 
-class SelectiveScaler(_BaseSelectiveTransformer):
+class SelectiveScaler(BaseSkutil):
     """A class that will apply scaling only to a select group
     of columns. Useful for data that contains categorical features
     that have not yet been dummied, for dummied features that we
@@ -336,7 +322,7 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         self.scaler.fit(X[cols])
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Apply the transformation to test data.
 
         Parameters
@@ -344,10 +330,6 @@ class SelectiveScaler(_BaseSelectiveTransformer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -364,7 +346,7 @@ class SelectiveScaler(_BaseSelectiveTransformer):
         return X if self.as_df else X.as_matrix()
 
 
-class BoxCoxTransformer(_BaseSelectiveTransformer):
+class BoxCoxTransformer(BaseSkutil):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Box-Cox transformation. By default, will ignore sparse
@@ -454,7 +436,7 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Apply the transformation to test data.
 
         Parameters
@@ -462,10 +444,6 @@ class BoxCoxTransformer(_BaseSelectiveTransformer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -541,7 +519,7 @@ def _estimate_lambda_single_y(y):
     return b[1]
 
 
-class YeoJohnsonTransformer(_BaseSelectiveTransformer):
+class YeoJohnsonTransformer(BaseSkutil):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Yeo-Johnson transformation.
@@ -618,7 +596,7 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Apply the transformation to test data.
 
         Parameters
@@ -626,10 +604,6 @@ class YeoJohnsonTransformer(_BaseSelectiveTransformer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -777,7 +751,7 @@ def _yj_llf(data, lmb):
     return llf
 
 
-class SpatialSignTransformer(_BaseSelectiveTransformer):
+class SpatialSignTransformer(BaseSkutil):
     """Project the feature space of a matrix into a multi-dimensional sphere
     by dividing each feature by its squared norm.
        
@@ -850,7 +824,7 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Apply the transformation to test data.
 
         Parameters
@@ -858,10 +832,6 @@ class SpatialSignTransformer(_BaseSelectiveTransformer):
 
         X : Pandas DataFrame
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------

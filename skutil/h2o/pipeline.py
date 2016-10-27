@@ -195,16 +195,16 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         next_feature_names = self.feature_names
         for name, transform in self.steps[:-1]:
             # for each transformer in the steps sequence, we need
-            # to ensure the target_feature has been set... we do
+            # to ensure the ``target_feature`` has been set... we do
             # this in the fit method and not the init because we've
-            # now validated the y/target_feature. Also this way if
-            # target_feature is ever changed, this will be updated...
+            # now validated the ``target_feature``. Also this way if
+            # ``target_feature`` is ever changed, this will be updated...
             transform.target_feature = self.target_feature
 
             # if the feature names are explicitly set in this estimator,
-            # we won't set them to the `next_feature_names`, however,
+            # we won't set them to the ``next_feature_names``, however,
             # if the names are *not* explicitly set, we will set the 
-            # estimator's `feature_names` to the `next_feature_names`
+            # estimator's ``feature_names`` to the ``next_feature_names``
             # variable set...
             if transform.feature_names is None:
                 transform.feature_names = next_feature_names

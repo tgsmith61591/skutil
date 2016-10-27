@@ -5,6 +5,7 @@ from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
+import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
@@ -123,6 +124,24 @@ class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
         self.fill_ = self._def_fill if def_fill is None else def_fill
 
 
+def _mode(x, def_fill=ImputerMixin._def_fill):
+    """Get the most common value in a 1d
+    H2OFrame. Ties will be handled in a non-specified
+    manner.
+
+    Parameters
+    ----------
+
+    x : H2OFrame, shape=(n_samples, 1)
+        The frame
+    """
+    idx = x.as_data_frame(use_pandas=True)[x.columns[0]].value_counts().index
+
+    # if the most common is null, then return the next most common.
+    # if there is no next common (i.e., 100% null) then we return the def_fill
+    return idx[0] if not pd.isnull(idx[0]) else idx[1] if idx.shape[0] > 1 else def_fill
+
+
 class H2OSelectiveImputer(_H2OBaseImputer):
     """The selective imputer provides extreme flexibility and simplicity
     in imputation tasks. Rather than imposing one strategy across an entire
@@ -199,7 +218,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             if fill == 'mode':
                 # for each column to impute, we go through and get the value counts
                 # of each, sorting by the max...
-                raise NotImplementedError('h2o has not yet implemented "mode" functionality')
+                self.fill_val_ = dict(zip(cols, [_mode(X[c]) for c in cols]))
 
             elif fill == 'median':
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].median(na_rm=True) for c in cols])))
@@ -235,7 +254,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                 else:
                     the_col = X[c]
                     if f == 'mode':
-                        raise NotImplementedError('h2o has not yet implemented "mode" functionality')
+                        d[c] = _mode(the_col)
                         # d[c] = _col_mode(the_col)
                     elif f == 'median':
                         d[c] = _flatten_one(the_col.median(na_rm=True))
@@ -272,6 +291,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         """
         check_is_fitted(self, 'fill_val_')
         X = _check_is_frame(X)
+        X = X[X.columns] # make a copy
 
         # get the fills
         fill_val = self.fill_val_
@@ -306,7 +326,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-        # this is going to impact it in place...
+        # this is going to impact the copy
         return X
 
 
