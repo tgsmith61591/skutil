@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 from h2o.frame import H2OFrame
-from .base import _check_is_frame
+from .base import check_frame
 from ..utils import flatten_all
 
 __all__ = [
@@ -33,7 +33,7 @@ def _check_is_1d_frame(X):
 
     X : H2OFrame
     """
-    X = _check_is_frame(X)
+    X = check_frame(X, copy=False)
     assert X.shape[1] == 1, 'expected 1d H2OFrame'
 
     return X

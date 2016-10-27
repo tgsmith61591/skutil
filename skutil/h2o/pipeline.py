@@ -1,21 +1,18 @@
 from __future__ import print_function, division, absolute_import
-
 import h2o
-
-try:
-    from h2o import H2OEstimator
-except ImportError as e:
-    from h2o.estimators.estimator_base import H2OEstimator
-
-from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper,
-                   validate_x_y, validate_x, VizMixin)
 from skutil.base import overrides
-
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 from ..utils import flatten_all
+from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper,
+                   validate_x_y, validate_x, VizMixin, check_frame)
+
+try:
+    from h2o import H2OEstimator
+except ImportError as e:
+    from h2o.estimators.estimator_base import H2OEstimator
 
 try:
     import cPickle as pickle
@@ -252,6 +249,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         self
         """
+        frame = check_frame(frame, copy=False) # copied in each transformer
         self._reset()  # reset if needed
 
         # reset to the cleaned ones, if necessary...
@@ -468,7 +466,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
-        Xt = frame
+        Xt = check_frame(frame, copy=False) # copied in each transformer
         for name, transform in self.steps[:-1]:
             Xt = transform.transform(Xt)
 
@@ -503,7 +501,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
-        Xt = frame
+        Xt = check_frame(frame, copy=False) # copied in each transformer
         for name, transform in self.steps:
             Xt = transform.transform(Xt)
 

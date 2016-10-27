@@ -9,7 +9,7 @@ from .split import *
 from .select import BaseH2OFeatureSelector
 from .util import _unq_vals_col, rbind_all
 from ..utils import is_integer
-from .base import (BaseH2OTransformer, _check_is_frame, 
+from .base import (BaseH2OTransformer, check_frame, 
                    _retain_features, _frame_from_x_y, 
                    validate_x_y)
 from ..base import overrides
@@ -57,7 +57,7 @@ def h2o_f_classif(X, feature_names, target_feature):
     prob : float
         The associated p-value from the F-distribution.
     """
-    frame = _check_is_frame(X)
+    frame = check_frame(X, copy=False)
 
     # first, get unique values of y
     y = X[target_feature]

@@ -5,7 +5,7 @@ from sklearn.utils.validation import check_is_fitted
 from h2o.frame import H2OFrame
 from ..feature_selection import filter_collinearity
 from ..utils import is_numeric
-from .base import (BaseH2OTransformer, _check_is_frame, _retain_features, _frame_from_x_y)
+from .base import (BaseH2OTransformer, check_frame, _retain_features, _frame_from_x_y)
 
 __all__ = [
     'BaseH2OFeatureSelector',
@@ -109,7 +109,8 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         """
         # validate state, frame
         check_is_fitted(self, 'drop_')
-        X = _check_is_frame(X)
+        X = check_frame(X, copy=False) # copied on next line
+
         return X[_retain_features(X, self.drop_)]
 
 
@@ -233,8 +234,13 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 
         return self
         """
-        frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        X = check_frame(X, copy=False) # gets copied below
+        thresh = self.threshold
+
+        # do copy
+        frame = _frame_from_x_y(X, self.feature_names, 
+                                self.target_feature, 
+                                self.exclude_features)
 
         # validate the threshold
         if not (is_numeric(thresh) and (0.0 <= thresh < 1.0)):
@@ -344,8 +350,8 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         X : H2OFrame
             The transformed frame
         """
-        frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        X = check_frame(X, copy=False) # copy below
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
@@ -444,8 +450,8 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         X : H2OFrame
             The transformed frame
         """
-        frame, thresh = _check_is_frame(X), self.threshold
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        X = check_frame(X, copy=False) # copy in next line
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
@@ -455,7 +461,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         diag = np.diagonal(frame.var(na_rm=self.na_rm, use=use).as_data_frame(use_pandas=True).as_matrix())
 
         # create mask
-        var_mask = diag < thresh
+        var_mask = diag < self.threshold
 
         self.drop_ = cols[var_mask].tolist()  # make list
         self.var_ = dict(zip(self.drop_, diag[var_mask]))
