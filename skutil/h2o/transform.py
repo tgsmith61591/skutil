@@ -5,6 +5,7 @@ from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
+import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
