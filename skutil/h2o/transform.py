@@ -219,7 +219,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                 # for each column to impute, we go through and get the value counts
                 # of each, sorting by the max...
                 self.fill_val_ = dict(zip(cols, [_mode(X[c]) for c in cols]))
-                raise NotImplementedError('h2o has not yet implemented "mode" functionality')
 
             elif fill == 'median':
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].median(na_rm=True) for c in cols])))
