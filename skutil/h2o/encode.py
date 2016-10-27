@@ -5,7 +5,7 @@ from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_is_fitted
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
-from .base import (BaseH2OTransformer, _check_is_frame, _frame_from_x_y)
+from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
 
 __all__ = [
     'H2OSafeOneHotEncoder'
@@ -174,11 +174,10 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
         self
         """
-
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=False)
 
         # these are just the features to encode
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # do fit
         self.encoders_ = {
@@ -204,12 +203,12 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
             The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=True)
         enc = self.encoders_
 
         # these are just the features to encode. (we will return the 
         # entire frame unless told not to...)
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         output = None
         for name in cat.columns:

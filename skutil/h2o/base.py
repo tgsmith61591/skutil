@@ -28,6 +28,7 @@ except ImportError as e:
     import pickle
 
 __all__ = [
+    'check_frame'
     'check_version',
     'NAWarning',
     'BaseH2OFunctionWrapper',
@@ -75,13 +76,16 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         The sanitized dataframe
     """
     x, y = validate_x_y(X, x, y, exclude_features)
-    X = _check_is_frame(X)[x]  # make a copy
+    X = check_frame(X, copy=False) # don't copy here
+    X = X[x] # make a copy of only the x features
 
     return X if not return_x_y else (X, x, y)
 
 
-def _check_is_frame(X):
-    """Returns X if X is a frame else throws a TypeError
+def check_frame(X, copy=False):
+    """Returns ``X`` if ``X`` is an ``H2OFrame`` 
+    else raises a ``TypeError``. If ``copy`` is True,
+    will return a copy of ``X`` instead.
 
     Parameters
     ----------
@@ -89,15 +93,18 @@ def _check_is_frame(X):
     X : H2OFrame
         The frame to evaluate
 
+    copy : bool, optional (default=False)
+        Whether to return a copy of the H2OFrame.
+
     Returns
     -------
 
-    X
+    X : H2OFrame
+        The frame or the copy
     """
-
     if not isinstance(X, H2OFrame):
         raise TypeError('expected H2OFrame but got %s' % type(X))
-    return X
+    return X if not copy else X[X.columns]
 
 
 def _retain_features(X, exclude):
@@ -201,7 +208,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
         # validate feature_names
         feature_names = validate_x(feature_names)
     else:
-        X = _check_is_frame(X)
+        X = check_frame(X, copy=False)
         feature_names = X.columns
 
     # validate exclude_features
@@ -224,9 +231,9 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     # the target_feature from the feature_names
     return (
         _retain_from_list([
-                              str(i) for i in feature_names
-                              if not str(i) == target_feature
-                              ], exclude_features),
+              str(i) for i in feature_names
+              if not str(i) == target_feature
+        ], exclude_features),
         target_feature
     )
 

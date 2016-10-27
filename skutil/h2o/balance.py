@@ -4,7 +4,7 @@ from abc import ABCMeta
 from sklearn.externals import six
 from skutil.base import overrides
 from .util import reorder_h2o_frame
-from .base import _check_is_frame, BaseH2OFunctionWrapper
+from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing import BalancerMixin
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner)
@@ -141,7 +141,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
             The balanced H2OFrame
         """
         # check on state of X
-        frame = _check_is_frame(X)
+        frame = check_frame(X, copy=False)
 
         # get the partitioner
         partitioner = _OversamplingBalancePartitioner(
@@ -220,7 +220,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         """
 
         # check on state of X
-        frame = _check_is_frame(X)
+        frame = check_frame(X, copy=False)
 
         # get the partitioner
         partitioner = _UndersamplingBalancePartitioner(

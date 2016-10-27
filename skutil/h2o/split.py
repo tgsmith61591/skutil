@@ -3,13 +3,14 @@ import numbers
 import warnings
 from abc import ABCMeta, abstractmethod
 import numpy as np
-from .base import _check_is_frame
+from .base import check_frame
 from skutil.base import overrides
 from sklearn.externals import six
 from sklearn.base import _pprint
 from sklearn.utils.fixes import signature, bincount
 from sklearn.utils import check_random_state
 from math import ceil, floor
+
 try:
     from h2o import H2OEstimator
 except ImportError as e:
@@ -104,7 +105,7 @@ def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=No
     stratify : str or None (default=None)
         The name of the target on which to stratify the sampling
     """
-    _check_is_frame(frame)
+    frame = check_frame(frame, copy=False)
     if test_size is None and train_size is None:
         test_size = 0.25
 
@@ -166,7 +167,7 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
             The testing set indices for that split
         """
 
-        _check_is_frame(frame)
+        frame = check_frame(frame, copy=False)
         indices = np.arange(frame.shape[0])
         for test_index in self._iter_test_masks(frame, y):
             train_index = indices[np.logical_not(test_index)]
@@ -389,7 +390,7 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
 
     @overrides(H2OBaseCrossValidator)
     def split(self, frame, y=None):
-        _check_is_frame(frame)
+        frame = check_frame(frame, copy=False)
         n_obs = frame.shape[0]
 
         if self.n_folds > n_obs:

@@ -19,7 +19,7 @@ except ImportError as e:
 
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
-from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
+from .base import check_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from skutil.base import overrides
 from ..utils import report_grid_score_detail
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
@@ -395,7 +395,8 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     def _fit(self, X, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
-        X = _check_is_frame(X)  # if it's a frame, will be turned into a matrix
+        X = check_frame(X, copy=True)  # copy because who knows what people do inside of score...
+
         self.feature_names, self.target_feature = validate_x_y(X, self.feature_names, self.target_feature)
         self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
@@ -601,7 +602,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             The score of the test predictions
         """
         check_is_fitted(self, 'best_estimator_')
-        frame = _check_is_frame(frame)
+        frame = check_frame(frame, copy=True) # copy because who knows what people do inside of score...
         scor = _score(self.best_estimator_, frame, self.target_feature,
                       self.scoring_class_, self.is_regression_,
                       **self.scoring_params)
@@ -625,7 +626,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             The test predictions
         """
         check_is_fitted(self, 'best_estimator_')
-        frame = _check_is_frame(frame)
+        frame = check_frame(frame, copy=False) # don't copy because predict doesn't need it
         p = self.best_estimator_.predict(frame)
         return p
 

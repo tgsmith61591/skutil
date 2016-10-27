@@ -1,5 +1,5 @@
 from __future__ import print_function, division, absolute_import
-from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
+from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
@@ -201,8 +201,8 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
         self
         """
-        frame = _check_is_frame(X)
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        X = check_frame(X, copy=False)
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # at this point, the entirety of frame can be operated on...
         cols = [str(u) for u in frame.columns]  # convert to string...
@@ -290,8 +290,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             The transformed (imputed) H2OFrame
         """
         check_is_fitted(self, 'fill_val_')
-        X = _check_is_frame(X)
-        X = X[X.columns] # make a copy
+        X = check_frame(X, copy=True) # make a copy
 
         # get the fills
         fill_val = self.fill_val_
@@ -385,8 +384,8 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         X : H2OFrame, shape [n_samples, n_features]
             The data to transform
         """
-        frame = _check_is_frame(X)
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        X = check_frame(X, copy=False)
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature)
         self.cols_ = [str(i) for i in frame.columns]
 
         # get and std
@@ -408,7 +407,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
             The data to transform
         """
         check_is_fitted(self, 'cols_')
-        frame = _check_is_frame(X)[X.columns]  # get a copy...
+        frame = check_frame(X, copy=True) # get a copy...
 
         if (not self.with_mean) and (not self.with_std):
             return frame  # nothing to change...
