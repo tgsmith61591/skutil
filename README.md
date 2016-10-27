@@ -1,6 +1,10 @@
 [![Build status](https://travis-ci.org/tgsmith61591/skutil.svg?branch=master)](https://travis-ci.org/tgsmith61591/skutil)
 [![Coverage Status](https://coveralls.io/repos/github/tgsmith61591/skutil/badge.svg?branch=master)](https://coveralls.io/github/tgsmith61591/skutil?branch=master)
 ![Supported versions](https://img.shields.io/badge/python-2.7-blue.svg) 
+[![Release](https://img.shields.io/github/release/tgsmith61591/skutil.svg)](https://img.shields.io/github/release/tgsmith61591/skutil)
+[![Issues](https://img.shields.io/github/issues-raw/tgsmith61591/skutil.svg)](https://img.shields.io/github/issues-raw/badges/shields)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/tgsmith61591/skutil.svg)](https://img.shields.io/github/issues-pr-raw/tgsmith61591/skutil)
+[![Twitter](https://img.shields.io/twitter/follow/TayGriffinSmith.svg?style=social)](https://twitter.com/TayGriffinSmith)
 
 
 <br/><br/>
