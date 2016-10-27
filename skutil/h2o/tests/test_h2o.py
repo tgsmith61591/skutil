@@ -1058,9 +1058,15 @@ def test_h2o_with_conn():
             scenario_13
         ]
 
-        # loop scenarios
-        for scenario in scenarios:
-            scenario(M)
+        try:
+            M = new_h2o_frame(f.copy())
+        except Exception as e:
+            M = None
+
+        if M is not None:
+            # loop scenarios
+            for scenario in scenarios:
+                scenario(M)
 
     def persist():
         f = F.copy()
