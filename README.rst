@@ -31,6 +31,7 @@ Pre-installation:
 -----------------
 
 Skutil adapts code from several R packages, and thus depends on the ability to compile Fortran code using `gcc`. For different platforms, there are different ways to install `gcc` (the easiest, of course, being `Homebrew <http://brew.sh/>`_):
+  
   - **Mac OS** (**note**: this can take a while):
   
 ``$ brew install gcc``
