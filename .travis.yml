@@ -14,10 +14,11 @@ addons:
     - gfortran
 
 env:
- - COMBINATION=python-2-7-sklearn-0-17
- - COMBINATION=python-2-7-sklearn-0-18
- # - COMBINATION=python-3-5-sklearn-0-17
- # - COMBINATION=python-3-5-sklearn-0-18
+ - COMBINATION=sklearn-0-17-matplotlib-seaborn
+ - COMBINATION=sklearn-0-17-without-matplotlib-seaborn
+ - COMBINATION=sklearn-0-18-matplotlib-seaborn
+ - COMBINATION=sklearn-0-18-without-matplotlib-seaborn
+
 
 ## Install the packages
 install:
@@ -49,8 +50,6 @@ install:
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
   - pip install coveralls
-  - pip install matplotlib
-  - pip install seaborn
   - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
   - python setup.py develop
 
