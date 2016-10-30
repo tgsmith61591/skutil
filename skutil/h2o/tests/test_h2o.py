@@ -1655,7 +1655,8 @@ def test_h2o_with_conn():
     sparse()
     impute()
     mem_est()
-    corr()
+    if CAN_CHART_MPL:
+        corr()
     interactions()
     balance()
     encode()
