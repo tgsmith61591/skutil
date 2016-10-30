@@ -1460,6 +1460,7 @@ def test_h2o_with_conn():
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+            h2o_precision_recall_fscore_support(y_act, y_pred, average="weighted")
 
             # force all negative labels on recall/support/precision
             y_act, y_pred = Y['zero'], Y['zero']
