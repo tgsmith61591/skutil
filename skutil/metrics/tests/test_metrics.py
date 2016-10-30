@@ -144,7 +144,6 @@ def test_act_stats():
     expo = [1.0, 0.5, 1.0]
 
     a = GainsStatisticalReport().fit_fold(pred=pred, expo=expo, loss=loss)
-
     # now see if we can get one to fail...
     assert_fails(a.fit_fold, TypeError, **{'pred': pred, 'expo': expo, 'loss': loss, 'prem': 12})
 
@@ -156,6 +155,17 @@ def test_act_stats():
 
     # purposefully set n_folds and not set n_iter
     assert_fails(GainsStatisticalReport, ValueError, **{'n_folds': 10})
+
+    # purposefully set wrong error_behavior
+    assert_fails(GainsStatisticalReport(error_behavior='').fit_fold,
+                 ValueError,
+                 **{ 'pred': pred, 'expo': expo, 'loss': loss})
+
+    # purposefully set n_folds so that n_obs is not be divisible by n_folds and n_iter
+    assert_fails(GainsStatisticalReport(n_folds=121, n_iter=111).as_data_frame, ValueError)
+
+    # set iid to false
+    GainsStatisticalReport(iid=False).as_data_frame()
 
     # assert this is two in length...
     d = a.as_data_frame()

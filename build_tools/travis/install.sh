@@ -1,10 +1,20 @@
 #!/bin/bash
 
 case "${COMBINATION}" in
-    "python-2-7-sklearn-0-17" | "python-3-5-sklearn-0-17")
+    "sklearn-0-17-matplotlib-seaborn")
+        pip install scikit-learn==0.17.1
+        pip install matplotlib
+        pip install seaborn
+        ;;
+    "sklearn-0-17-without-matplotlib-seaborn")
         pip install scikit-learn==0.17.1
         ;;
-    "python-2-7-sklearn-0-18" | "python-3-5-sklearn-0-18")
+    "sklearn-0-18-matplotlib-seaborn")
+        pip install scikit-learn==0.18
+        pip install matplotlib
+        pip install seaborn
+        ;;
+    "sklearn-0-18-without-matplotlib-seaborn")
         pip install scikit-learn==0.18
         ;;
 esac

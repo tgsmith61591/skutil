@@ -7,7 +7,6 @@ import time
 import os
 
 import h2o
-import getpass
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
                             H2OGeneralizedLinearEstimator,
@@ -52,13 +51,22 @@ from scipy.stats import randint, uniform
 from numpy.random import choice
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
-from matplotlib.testing.decorators import cleanup
 
 # for split
 try:
     from sklearn.model_selection import train_test_split
 except ImportError as i:
     from sklearn.cross_validation import train_test_split
+
+try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from matplotlib.testing.decorators import cleanup
+        # log it
+        CAN_CHART_MPL = True
+except ImportError as ie:
+    CAN_CHART_MPL = False
 
 
 def new_h2o_frame(X):
@@ -128,7 +136,7 @@ def test_h2o_no_conn_needed():
         def __init__(self):
             super(AnonCV, self).__init__()
 
-        def get_n_splits(): # overrides
+        def get_n_splits(self): # overrides
             return 0
 
     anoncv = AnonCV()
@@ -1211,18 +1219,19 @@ def test_h2o_with_conn():
         else:
             pass
 
-    @cleanup
-    def corr():
-        if X is not None:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
+    if CAN_CHART_MPL:
+        @cleanup
+        def corr():
+            if X is not None:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
 
-            # plots for the test, should be cleaned up by the decorator
-            h2o_corr_plot(X, plot_type='cor', na_warn=False)
+                # plots for the test, should be cleaned up by the decorator
+                h2o_corr_plot(X, plot_type='cor', na_warn=False)
 
-        else:
-            pass
+            else:
+                pass
 
     def interactions():
         x_dict = {
@@ -1451,6 +1460,7 @@ def test_h2o_with_conn():
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+            h2o_precision_recall_fscore_support(y_act, y_pred, y_type="binary", average="weighted")
 
             # force all negative labels on recall/support/precision
             y_act, y_pred = Y['zero'], Y['zero']
@@ -1646,7 +1656,8 @@ def test_h2o_with_conn():
     sparse()
     impute()
     mem_est()
-    corr()
+    if CAN_CHART_MPL:
+        corr()
     interactions()
     balance()
     encode()
