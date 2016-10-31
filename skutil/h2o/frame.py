@@ -19,8 +19,8 @@ def _check_is_1d_frame(X):
     Parameters
     ----------
 
-    X : H2OFrame
-        The H2OFrame
+    X : H2OFrame, shape=(n_samples, 1)
+        The H2OFrame to check
 
     Raises
     ------
@@ -31,7 +31,8 @@ def _check_is_1d_frame(X):
     Returns
     -------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, 1)
+        The frame if is 1d
     """
     X = check_frame(X, copy=False)
     assert X.shape[1] == 1, 'expected 1d H2OFrame'

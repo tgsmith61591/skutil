@@ -243,7 +243,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         estimator : H2OPipeline or H2OEstimator
             The estimator to fit
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The training frame
 
         feature_names : iterable (str)
@@ -264,10 +264,10 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         scoring_params : dict
             The parameters to pass as kwargs to the scoring function
 
-        train : iterable
+        train : iterable, shape=(n_train_samples,)
             The train fold indices
 
-        test : iterable
+        test : iterable, shape=(n_test_samples,)
             The test fold indices
 
         is_regression : bool
@@ -608,7 +608,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict
 
         Returns
@@ -633,13 +633,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict
 
         Returns
         -------
 
-        p : H2OFrame
+        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)
             The test predictions
         """
         frame = check_frame(frame, copy=False) # don't copy because predict doesn't need it
@@ -654,13 +654,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The training frame on which to predict
 
         Returns
         -------
 
-        p : H2OFrame
+        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)
             The training predictions
         """
         p = self.fit(frame).predict(frame)
@@ -938,6 +938,14 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         _check_param_grid(param_grid)
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         return self._fit(frame, ParameterGrid(self.param_grid))
 
 
@@ -1027,6 +1035,14 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         self.random_state = random_state
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         sampled_params = ParameterSampler(self.param_grid,
                                           self.n_iter,
                                           random_state=self.random_state)
@@ -1196,6 +1212,14 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         self.scoring = None
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         sampled_params = ParameterSampler(self.param_grid,
                                           self.n_iter,
                                           random_state=self.random_state)
@@ -1237,7 +1261,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         Returns
         -------
 
-        rdf : pd.DataFrame
+        rdf : pd.DataFrame, shape=(n_iter, n_params)
             The grid search report
         """
         check_is_fitted(self, 'best_estimator_')
@@ -1275,7 +1299,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict and score performance.
 
         Returns

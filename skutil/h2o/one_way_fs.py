@@ -262,7 +262,7 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, select_f
     Parameters
     ----------
 
-    frame : H2OFrame
+    frame : H2OFrame, shape=(n_samples, n_features)
             The frame to fit
 
     fun : callable
@@ -422,8 +422,8 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------
@@ -511,8 +511,8 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------
@@ -635,8 +635,8 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------

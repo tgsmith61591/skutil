@@ -29,7 +29,7 @@ def _validate_x_y_ratio(X, y, ratio):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame from which to sample
 
     y : str
@@ -137,7 +137,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         Returns
         -------
 
-        Xb : H2OFrame
+        Xb : H2OFrame, shape=(n_samples, n_features)
             The balanced H2OFrame
         """
         # check on state of X
@@ -209,13 +209,13 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=[n_samples, n_features]
+        X : H2OFrame, shape=(n_samples, n_features)
             The imbalanced dataset.
 
         Returns
         -------
 
-        Xb : H2OFrame
+        Xb : H2OFrame, shape=(n_samples, n_features)
             The balanced H2OFrame
         """
 

@@ -24,7 +24,7 @@ def _validate_use(X, use, na_warn):
     Parameters
     ----------
 
-    X : ``H2OFrame``
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame to evaluate. Since this is an internal method,
         no validation is done to ensure it is, in fact, an ``H2OFrame``
 
@@ -98,13 +98,13 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : ``H2OFrame``
+        X : H2OFrame, shape=(n_samples, n_features)
             The test frame to transform
 
         Returns
         -------
 
-        X : ``H2OFrame``
+        X : H2OFrame, shape=(n_samples, n_features)
             The transformed frame
         """
         # validate state, frame
@@ -158,8 +158,8 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : ``H2OFrame``
-            The ``H2OFrame`` that will be fit.
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -226,8 +226,8 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The H2OFrame that will be fit.
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -324,8 +324,8 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The H2OFrame that will be fit.
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -342,14 +342,14 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit
 
         Returns
         -------
 
-        X : H2OFrame
-            The transformed frame
+        X : H2OFrame, shape=(n_samples, n_features)
+            The transformed training data
         """
         X = check_frame(X, copy=False) # copy below
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
@@ -426,8 +426,8 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -443,14 +443,14 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
 
-        X : H2OFrame
-            The transformed frame
+        X : H2OFrame, shape=(n_samples, n_features)
+            The transformed training data
         """
         X = check_frame(X, copy=False) # copy in next line
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)

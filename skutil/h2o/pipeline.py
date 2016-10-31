@@ -156,8 +156,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     def named_steps(self):
         """Generates a dictionary of all of the stages
         where the stage name is the key, and the stage is the
-        value. Note that dictionaries are not guaranteed a
-        specific order!!!
+        value. *Note that dictionaries are not guaranteed a
+        specific order!!!*
 
         Returns
         -------
@@ -240,9 +240,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
-            Training data. Must fulfill input requirements of first 
-            step of the pipeline.
+        frame : H2OFrame, shape=(n_samples, n_features)
+            Training data on which to fit. Must fulfill input requirements 
+            of first step of the pipeline.
 
         Returns
         -------
@@ -463,7 +463,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : an H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
@@ -483,7 +483,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             Training data. Must fulfill input requirements of first step of the
             pipeline.
         """
@@ -498,9 +498,15 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : an H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
+
+        Returns
+        -------
+
+        Xt : H2OFrame, shape=(n_samples, n_features)
+            The transformed test data
         """
         Xt = check_frame(frame, copy=False) # copied in each transformer
         for name, transform in self.steps:
@@ -518,11 +524,18 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             Training data. Must fulfill input requirements of first step of the
             pipeline.
+
+        Returns
+        -------
+
+        Xt : H2OFrame, shape=(n_samples, n_features)
+            The transformed training data
         """
-        return self.fit(frame).transform(frame)
+        Xt = self.fit(frame).transform(frame)
+        return Xt
 
 
     @if_delegate_has_method(delegate='_final_estimator')

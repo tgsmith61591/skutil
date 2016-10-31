@@ -53,7 +53,7 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame from which to drop
 
     x : array_like
@@ -72,8 +72,8 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     Returns
     -------
 
-    X : pd.DataFrame
-        The sanitized dataframe
+    X : H2OFrame, shape=(n_samples, n_features)
+        The sanitized H2OFrame
     """
     x, y = validate_x_y(X, x, y, exclude_features)
     X = check_frame(X, copy=False) # don't copy here
@@ -90,7 +90,7 @@ def check_frame(X, copy=False):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame to evaluate
 
     copy : bool, optional (default=False)
@@ -99,7 +99,7 @@ def check_frame(X, copy=False):
     Returns
     -------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame or the copy
     """
     if not isinstance(X, H2OFrame):
@@ -115,7 +115,7 @@ def _retain_features(X, exclude):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame from which to drop
 
     exclude : array_like
@@ -183,7 +183,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : H2OFrame, shape=(n_samples, n_features)
         The frame from which to drop
 
     feature_names : iterable or None
@@ -202,7 +202,12 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     Returns
     -------
 
-    (feature_names, target_feature)
+    feature_names : list, str
+        A list of the ``feature_names`` as strings
+
+    target_feature : str or None
+        The ``target_feature`` as a string if it is not 
+        None, else None
     """
     if feature_names is not None:
         # validate feature_names
@@ -490,7 +495,7 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     Parameters
     ----------
 
-    feature_names : array_like (str)
+    feature_names : array_like, str
         The list of names on which to fit the feature selector.
 
     target_feature : str, optional (default=None)
@@ -524,13 +529,13 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
             The training frame
 
         Returns
         -------
 
-        ft : H2OFrame
+        ft : H2OFrame, shape=(n_samples, n_features)
             The transformed training frame
         """
         ft = self.fit(frame).transform(frame)

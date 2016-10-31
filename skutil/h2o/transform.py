@@ -133,7 +133,7 @@ def _mode(x, def_fill=ImputerMixin._def_fill):
     ----------
 
     x : H2OFrame, shape=(n_samples, 1)
-        The frame
+        The 1d frame from which to derive the mode
     """
     idx = x.as_data_frame(use_pandas=True)[x.columns[0]].value_counts().index
 
@@ -193,8 +193,8 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The H2OFrame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -281,13 +281,13 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The test data to transform.
 
         Returns
         -------
-        X : H2OFrame
-            The transformed (imputed) H2OFrame
+        X : H2OFrame, shape=(n_samples, n_features)
+            The transformed (imputed) test data.
         """
         check_is_fitted(self, 'fill_val_')
         X = check_frame(X, copy=True) # make a copy
@@ -381,8 +381,8 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features(
-            The training data
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit
         """
         X = check_frame(X, copy=False)
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature)
@@ -404,7 +404,13 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         ----------
 
         X : H2OFrame, shape=(n_samples, n_features)
-            The data to transform
+            The test data to transform
+
+        Returns
+        -------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The transformed test data.
         """
         check_is_fitted(self, 'cols_')
         frame = check_frame(X, copy=True) # get a copy...
@@ -510,7 +516,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         ----------
         
         frame : H2OFrame, shape=(n_samples, n_features)
-            The training data to fit
+            The training data on which to fit.
 
         Returns
         -------
@@ -532,19 +538,19 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         return self
 
     def transform(self, X):
-        """Perform the interaction term expansion
+        """Perform the interaction term expansion.
         
         Parameters
         ----------
 
         X : H2OFrame, shape=(n_samples, n_features)
-            The data to transform
+            The test data to transform.
 
         Returns
         -------
 
-        frame : H2OFrame
-            The expanded H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The expanded (interacted) test data.
         """
         check_is_fitted(self, 'fun_')
         frame = check_frame(X, copy=True) # get a copy

@@ -55,8 +55,9 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, 1)
+            The training frame on which to fit. Should
+            be a single column H2OFrame
 
         Returns
         -------
@@ -87,12 +88,12 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         ----------
 
         X : H2OFrame, shape=(n_samples, 1)
-            The 1d frame to transform
+            The 1d H2OFrame to transform
 
         Returns
         -------
 
-        output : H2OFrame, 1d
+        output : H2OFrame, shape=(n_samples, 1)
             The transformed H2OFrame
         """
         # make sure is fitted, validate y
@@ -166,8 +167,8 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame to fit
 
         Returns
         -------
@@ -193,13 +194,13 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
+        X : H2OFrame, shape=(n_samples, n_features)
             The frame to transform
 
         Returns
         -------
 
-        X : H2OFrame
+        X : H2OFrame, shape=(n_samples, n_features)
             The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')
