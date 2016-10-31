@@ -131,7 +131,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=[n_samples, n_features]
+        X : H2OFrame, shape=(n_samples, n_features)
             The imbalanced dataset.
 
         Returns

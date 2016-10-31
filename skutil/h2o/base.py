@@ -83,8 +83,8 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
 
 
 def check_frame(X, copy=False):
-    """Returns ``X`` if ``X`` is an ``H2OFrame`` 
-    else raises a ``TypeError``. If ``copy`` is True,
+    """Returns ``X`` if ``X`` is an H2OFrame
+    else raises a TypeError. If ``copy`` is True,
     will return a copy of ``X`` instead.
 
     Parameters
@@ -178,7 +178,7 @@ def validate_x(x):
 
 def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     """Validate the feature_names and target_feature arguments
-    passed to an ``H2OTransformer``.
+    passed to an H2OTransformer.
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
         The target name to exclude from the transformer analysis. If None,
         unsupervised is assumed, otherwise must be string or unicode.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``x``
 
     Returns
@@ -247,17 +247,19 @@ class VizMixin:
 
     def plot(self, timestep, metric):
         """Plot an H2OEstimator's performance over a
-        given timestep.
+        given ``timestep`` (x-axis) against a provided 
+        ``metric`` (y-axis).
 
         Parameters
         ----------
 
         timestep : str
-            A timestep as defined in the H2O API. Examples
-            include number_of_trees, epochs
+            A timestep as defined in the H2O API. One of
+            ("AUTO", "duration", "number_of_trees").
 
         metric : str
-            The performance metric to evaluate, i.e., MSE
+            The performance metric to evaluate. One of
+            ("log_likelihood", "objective", "MSE", "AUTO")
         """
 
         # Initially were raising but now want to just return NI.
@@ -333,10 +335,10 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit).
 
-    min_version : str, float, optional (default='any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float, optional (default=None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -359,7 +361,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     @property
     def max_version(self):
         """Returns the max version of H2O that is compatible
-        with the ``BaseH2OFunctionWrapper`` instance. Some classes
+        with the BaseH2OFunctionWrapper instance. Some classes
         differ in their support for H2O versions, due to changes
         in the underlying API.
 
@@ -368,7 +370,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         mv : string, or None
             If there is a max version associated with
-            the ``BaseH2OFunctionWrapper``, returns it
+            the BaseH2OFunctionWrapper, returns it
             as a string, otherwise returns None.
         """
         try:
@@ -380,7 +382,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     @property
     def min_version(self):
         """Returns the min version of H2O that is compatible
-        with the ``BaseH2OFunctionWrapper`` instance. Some classes
+        with the BaseH2OFunctionWrapper instance. Some classes
         differ in their support for H2O versions, due to changes
         in the underlying API.
 
@@ -389,7 +391,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         mv : string
             If there is a min version associated with
-            the ``BaseH2OFunctionWrapper``, returns it
+            the BaseH2OFunctionWrapper, returns it
             as a string, otherwise returns 'any'
         """
         try:
@@ -400,23 +402,23 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
     @staticmethod
     def load(location):
-        """Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``
+        """Loads a persisted state of an instance of BaseH2OFunctionWrapper
         from disk. If the instance is of a more complex class, i.e., one that contains
-        an ``H2OEstimator``, this method will handle loading these models separately 
-        and outside of the constraints of the ``pickle`` package. 
+        an H2OEstimator, this method will handle loading these models separately 
+        and outside of the constraints of the pickle package. 
 
         Note that this is a static method and should be called accordingly:
 
             >>> mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
             >>> mcf.transform(X)
 
-        Some classes define their own ``load`` functionality, and will not
+        Some classes define their own load functionality, and will not
         work as expected if called in the following manner:
 
             >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
 
         This is because of the aforementioned situation wherein some classes
-        handle saves and loads of ``H2OEstimator`` objects differently. Thus, any
+        handle saves and loads of H2OEstimator objects differently. Thus, any
         class that is being loaded should be statically referenced at the level of
         lowest abstraction possible:
 
@@ -431,7 +433,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         Returns
         -------
 
-        m : ``BaseH2OFunctionWrapper``
+        m : BaseH2OFunctionWrapper
             The unpickled instance of the model
         """
         with open(location) as f:
@@ -439,12 +441,12 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         return m
 
     def save(self, location, warn_if_exists=True, **kwargs):
-        """Saves the ``BaseH2OFunctionWrapper`` to disk. If the 
+        """Saves the BaseH2OFunctionWrapper to disk. If the 
         instance is of a more complex class, i.e., one that contains
-        an ``H2OEstimator``, this method will handle saving these 
+        an H2OEstimator, this method will handle saving these 
         models separately and outside of the constraints of the 
-        ``pickle`` package. Any key-word arguments will be passed to
-        the ``_save_internal`` method (if it exists).
+        pickle package. Any key-word arguments will be passed to
+        the _save_internal method (if it exists).
 
 
         Parameters
@@ -491,18 +493,18 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     feature_names : array_like (str)
         The list of names on which to fit the feature selector.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
         during the fit.
 
-    min_version : str, float (default 'any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -522,13 +524,13 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : H2OFrame
             The training frame
 
         Returns
         -------
 
-        ft : ``H2OFrame``
+        ft : H2OFrame
             The transformed training frame
         """
         ft = self.fit(frame).transform(frame)

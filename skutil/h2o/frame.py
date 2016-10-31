@@ -14,7 +14,7 @@ __all__ = [
 def _check_is_1d_frame(X):
     """Check whether X is an H2OFrame
     and that it's a 1d column. If not, will
-    raise an ``AssertionError``
+    raise an AssertionError
 
     Parameters
     ----------
@@ -25,7 +25,7 @@ def _check_is_1d_frame(X):
     Raises
     ------
 
-    ``AssertionError`` if the ``X`` variable
+    AssertionError if the ``X`` variable
     is not a 1-dimensional H2OFrame.
 
     Returns
@@ -45,7 +45,7 @@ def is_numeric(x):
     Parameters
     ----------
 
-    x : H2OFrame, 1d
+    x : H2OFrame, shape=(n_samples, 1)
         The H2OFrame
 
     Returns
@@ -64,7 +64,7 @@ def is_integer(x):
     Parameters
     ----------
 
-    x : H2OFrame, 1d
+    x : H2OFrame, shape=(n_samples, 1)
         The H2OFrame
 
     Returns
@@ -85,7 +85,7 @@ def is_float(x):
     Parameters
     ----------
 
-    x : H2OFrame, 1d
+    x : H2OFrame, shape=(n_samples, 1)
         The H2OFrame
 
     Returns

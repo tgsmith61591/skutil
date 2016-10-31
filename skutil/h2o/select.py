@@ -24,12 +24,12 @@ def _validate_use(X, use, na_warn):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : ``H2OFrame``
         The frame to evaluate. Since this is an internal method,
-        no validation is done to ensure it is, in fact, an H2OFrame
+        no validation is done to ensure it is, in fact, an ``H2OFrame``
 
     use : str, one of ('complete.obs', 'all.obs', 'everything')
-        The 'use' argument passed to the transformer
+        The ``use`` argument passed to the transformer
 
     na_warn : bool
         Whether to warn if there are NAs present in the frame. If there are,
@@ -69,17 +69,17 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    min_version : str, float (default 'any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -98,13 +98,13 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The test frame
+        X : ``H2OFrame``
+            The test frame to transform
 
         Returns
         -------
 
-        X : H2OFrame
+        X : ``H2OFrame``
             The transformed frame
         """
         # validate state, frame
@@ -129,20 +129,20 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     Attributes
     ----------
 
-    feature_names
+    drop_ : list (str)
         These are the features that will be dropped by 
         the ``FeatureDropper``
     """
@@ -158,8 +158,8 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The H2OFrame that will be fit.
+        X : ``H2OFrame``
+            The ``H2OFrame`` that will be fit.
 
         Returns
         -------
@@ -189,14 +189,14 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    threshold : float (default=0.5)
+    threshold : float, optional (default=0.5)
         The threshold of sparsity above which to drop
 
     Attributes
@@ -268,23 +268,24 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    threshold : float, (default=0.85)
+    threshold : float, optional (default=0.85)
         The threshold above which to filter correlated features
 
-    na_warn : bool (default True)
+    na_warn : bool, optional (default=True)
         Whether to warn if any NAs are present
 
-    na_rm : bool (default False)
+    na_rm : bool, optional (default=False)
         Whether to remove NA values
 
-    use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
+    use : str, optional (default "complete.obs")
+        One of {'complete.obs','all.obs','everything'}.
         A string indicating how to handle missing values.
 
     Attributes
@@ -376,23 +377,24 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    threshold : float, default 1e-6
+    threshold : float, optional (default=1e-6)
         The threshold below which to declare "zero variance"
 
-    na_warn : bool (default True)
+    na_warn : bool, optional (default=True)
         Whether to warn if any NAs are present
 
-    na_rm : bool (default False)
+    na_rm : bool, optional (default=False)
         Whether to remove NA values
 
-    use : str (default "complete.obs"), one of {'complete.obs','all.obs','everything'}
+    use : str, optional (default "complete.obs")
+        One of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
     Attributes

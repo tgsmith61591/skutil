@@ -40,24 +40,24 @@ def _union_exclusions(a, b):
 
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     """Create a sklearn-esque pipeline of H2O steps finished with an 
-    optional `H2OEstimator`. Note that as of version 0.1.0, the behavior
+    optional H2OEstimator. Note that as of version 0.1.0, the behavior
     of the H2OPipeline has slightly changed, given the inclusion of the
     ``exclude_from_ppc`` and ``exclude_from_fit`` parameters.
 
     The pipeline, at the core, is comprised of a list of length-two tuples
     in the form of ``('name', SomeH2OTransformer())``, punctuated with an
-    optional `H2OEstimator` as the final step. The pipeline will procedurally 
+    optional H2OEstimator as the final step. The pipeline will procedurally 
     fit each stage, transforming the training data prior to fitting the next stage.
     When predicting or transforming new (test) data, each stage calls either
     ``transform`` or ``predict`` at the respective step.
 
     **On the topic of exclusions and ``feature_names``:**
 
-    Prior to version 0.1.0, ``H2OTransformer``s did not take the keyword ``exclude_features``.
-    Its addition necessitated two new keywords in the ``H2OPipeline``, and a slight change
+    Prior to version 0.1.0, H2OTransformers did not take the keyword ``exclude_features``.
+    Its addition necessitated two new keywords in the H2OPipeline, and a slight change
     in behavior of ``feature_names``:
 
-        * ``exclude_from_ppc`` - If set in the ``H2OPipeline`` constructor, these features
+        * ``exclude_from_ppc`` - If set in the H2OPipeline constructor, these features
                                  will be universally omitted from every preprocessing stage.
                                  Since ``exclude_features`` can be set individually in each
                                  separate transformer, in the case that ``exclude_features`` has
@@ -65,18 +65,18 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                                  will include the union of ``exclude_from_ppc`` and 
                                  ``exclude_features``.
 
-        * ``exclude_from_fit`` - If set in the ``H2OPipeline`` constructor, these features
+        * ``exclude_from_fit`` - If set in the H2OPipeline constructor, these features
                                  will be omitted from the ``training_cols_`` fit attribute,
                                  which are the columns passed to the final stage in the pipeline.
 
-        * ``feature_names`` - The former behavior of the ``H2OPipeline`` only used ``feature_names``
+        * ``feature_names`` - The former behavior of the H2OPipeline only used ``feature_names``
                               in the fit of the first transformer, passing the remaining columns to
                               the next transformer as the ``feature_names`` parameter. The new
                               behavior is more discriminating in the case of explicitly-set attributes.
                               In the case where a transformer's ``feature_names`` parameter has been
                               explicitly set, *only those names* will be used in the fit. This is useful
                               in cases where someone may only want to, for instance, drop one of two
-                              multicollinear features using the ``H2OMulticollinearityFilterer`` rather than
+                              multicollinear features using the H2OMulticollinearityFilterer rather than
                               fitting against the entire dataset. It also adheres to the now expected
                               behavior of the exclusion parameters.
 
@@ -171,13 +171,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     @property
     def _final_estimator(self):
-        """Returns the last stage in the ``H2OPipeline``,
-        which is either an ``H2OTransformer`` or an ``H2OEstimator``.
+        """Returns the last stage in the H2OPipeline,
+        which is either an H2OTransformer or an H2OEstimator.
 
         Returns
         -------
 
-        s : ``H2OTransformer`` or ``H2OEstimator``
+        s : H2OTransformer or H2OEstimator
             The last step in the pipeline
         """
         s = self.steps[-1][1]
@@ -240,9 +240,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : h2o Frame
-            Training data. Must fulfill input requirements of first step of the
-            pipeline.
+        frame : H2OFrame
+            Training data. Must fulfill input requirements of first 
+            step of the pipeline.
 
         Returns
         -------
@@ -282,20 +282,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     @overrides(VizMixin)
     @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
-        """If the ``_final_estimator`` is an ``H2OEstimator``,
-        this method is injected at runtime. This method generates
-        a plot of the estimator's scoring over a provided timestep.
+        """If the ``_final_estimator`` is an H2OEstimator,
+        this method is injected at runtime. This method plots an 
+        H2OEstimator's performance over a given ``timestep`` (x-axis) 
+        against a provided ``metric`` (y-axis).
 
         Parameters
         ----------
 
-        timestep : string
-            Might be one of ('epochs', 'number_of_trees') and
-            provides the x-axis of the plot.
+        timestep : str
+            A timestep as defined in the H2O API. One of
+            ("AUTO", "duration", "number_of_trees").
 
-        metric : string
-            Might be one of ('MSE', 'logloss') and provides
-            the y-axis of the plot.
+        metric : str
+            The performance metric to evaluate. One of
+            ("log_likelihood", "objective", "MSE", "AUTO")
         """
         self._final_estimator._plot(timestep=timestep, metric=metric)
 
@@ -367,22 +368,22 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     @staticmethod
     def load(location):
-        """Loads a persisted state of an instance of ``H2OPipeline``
-        from disk. This method will handle loading ``H2OEstimator`` models separately 
-        and outside of the constraints of the ``pickle`` package. 
+        """Loads a persisted state of an instance of H2OPipeline
+        from disk. This method will handle loading H2OEstimator models separately 
+        and outside of the constraints of the pickle package. 
 
         Note that this is a static method and should be called accordingly:
 
             >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl') # GOOD!
 
-        Also note that since ``H2OPipeline`` can contain an ``H2OEstimator``, it's
-        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``
+        Also note that since H2OPipeline can contain an H2OEstimator, it's
+        ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper
         and will not function properly if called at the highest level of abstraction:
 
             >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl') # BAD!
 
-        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from
-        this method will raise a ``TypeError``:
+        Furthermore, trying to load a different type of BaseH2OFunctionWrapper from
+        this method will raise a TypeError:
 
             >>> mcf = H2OPipeline.load('path/to/some/other/transformer.pkl') # BAD!
 
@@ -390,13 +391,13 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         ----------
 
         location : str
-            The location where the persisted ``H2OPipeline`` model resides.
+            The location where the persisted H2OPipeline model resides.
 
         Returns
         -------
 
-        model : ``H2OPipeline``
-            The unpickled instance of the ``H2OPipeline`` model
+        model : H2OPipeline
+            The unpickled instance of the H2OPipeline model
         """
         with open(location) as f:
             model = pickle.load(f)
@@ -462,7 +463,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : an h2o Frame
+        frame : an H2OFrame
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
@@ -482,7 +483,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : h2o Frame
+        frame : H2OFrame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
         """
@@ -497,7 +498,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : an h2o Frame
+        frame : an H2OFrame
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
@@ -517,7 +518,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : h2o Frame
+        frame : H2OFrame
             Training data. Must fulfill input requirements of first step of the
             pipeline.
         """

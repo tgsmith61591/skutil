@@ -63,6 +63,22 @@ def _build_repr(self):
 
 
 def check_cv(cv=3):
+    """Checks the ``cv`` parameter to determine
+    whether it's a valid int or H2OBaseCrossValidator.
+
+    Parameters
+    ----------
+
+    cv : int or H2OBaseCrossValidator, optional (default=3)
+        The number of folds or the H2OBaseCrossValidator
+        instance.
+
+    Returns
+    -------
+
+    cv : H2OBaseCrossValidator
+        The instance of H2OBaseCrossValidator
+    """
     if cv is None:
         cv = 3
 
@@ -104,6 +120,16 @@ def h2o_train_test_split(frame, test_size=None, train_size=None, random_state=No
 
     stratify : str or None (default=None)
         The name of the target on which to stratify the sampling
+
+    Returns
+    -------
+
+    out : tuple, shape=(2,)
+        training_frame : H2OFrame
+            The training fold split
+
+        testing_frame : H2OFrame
+            The testing fold split
     """
     frame = check_frame(frame, copy=False)
     if test_size is None and train_size is None:
@@ -145,6 +171,11 @@ def _val_y(y):
 
 
 class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
+    """Base class for H2O cross validation operations.
+    All implementing subclasses should override ``get_n_splits``
+    and ``_iter_test_indices``.
+    """
+
     def __init__(self):
         pass
 
@@ -177,7 +208,23 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
             yield list(train_index), list(test_index)
 
     def _iter_test_masks(self, frame, y=None):
-        """Generates boolean masks corresponding to the tests set."""
+        """Generates boolean masks corresponding to the tests set.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The h2o frame to split
+
+        y : string, optional (default=None)
+            The column to stratify.
+
+        Returns
+        -------
+
+        test_mask : np.ndarray, shape=(n_samples,)
+            The indices for the test split
+        """
         for test_index in self._iter_test_indices(frame, y):
             test_mask = np.zeros(frame.shape[0], dtype=np.bool)
             test_mask[test_index] = True
@@ -188,6 +235,9 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
 
     @abstractmethod
     def get_n_splits(self):
+        """Get the number of splits or folds for
+        this instance of the cross validator.
+        """
         pass
 
     def __repr__(self):
@@ -257,7 +307,25 @@ def _validate_shuffle_split(n_samples, test_size, train_size):
 
 
 class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
-    """Base class for H2OShuffleSplit and H2OStratifiedShuffleSplit"""
+    """Base class for H2OShuffleSplit and H2OStratifiedShuffleSplit. This
+    is used for ``h2o_train_test_split`` in strategic train/test splits of
+    H2OFrames. Implementing subclasses should override ``_iter_indices``.
+
+    Parameters
+    ----------
+
+    n_splits : int, optional (default=2)
+        The number of folds or splits in the split
+
+    test_size : float or int, optional (default=0.1)
+        The ratio of observations for the test fold
+
+    train_size : float or int, optional (default=None)
+        The ratio of observations for the train fold   
+
+    random_state : int or RandomState, optional (default=None)
+        The random state for duplicative purposes. 
+    """
 
     def __init__(self, n_splits=2, test_size=0.1, train_size=None, random_state=None):
         _validate_shuffle_split_init(test_size, train_size)
@@ -267,14 +335,39 @@ class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
         self.random_state = random_state
 
     def split(self, frame, y=None):
+        """Split the frame.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string, optional (default=None)
+            The column to stratify.
+        """
         for train, test in self._iter_indices(frame, y):
             yield train, test
 
     @abstractmethod
     def _iter_indices(self, frame, y):
+        """Abstract method for iterating the indices.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string, optional (default=None)
+            The column to stratify.
+        """
         pass
 
-    def get_n_splits(self, frame=None, y=None):
+    def get_n_splits(self):
+        """Get the number of splits or folds for
+        this instance of the shuffle split.
+        """
         return self.n_splits
 
     def __repr__(self):
@@ -282,7 +375,34 @@ class H2OBaseShuffleSplit(six.with_metaclass(ABCMeta)):
 
 
 class H2OShuffleSplit(H2OBaseShuffleSplit):
+    """Default shuffle splitter used for ``h2o_train_test_split``.
+    This shuffle split class will not perform any stratification, and
+    will simply shuffle indices and split into the number of specified
+    sub-frames.
+    """
+
     def _iter_indices(self, frame, y=None):
+        """Iterate the indices.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string, optional (default=None)
+            The column to stratify. Since this class does
+            not perform stratification, ``y`` is unused.
+
+        Returns
+        -------
+
+        ind_train : np.ndarray, shape=(n_samples,)
+            The train indices
+
+        ind_test : np.ndarray, shape=(n_samples,)
+            The test indices
+        """
         n_samples = frame.shape[0]
         n_train, n_test = _validate_shuffle_split(n_samples, self.test_size, self.train_size)
 
@@ -295,14 +415,31 @@ class H2OShuffleSplit(H2OBaseShuffleSplit):
 
 
 class H2OStratifiedShuffleSplit(H2OBaseShuffleSplit):
-    def __init__(self, n_splits=2, test_size=0.1, train_size=None, random_state=None):
-        super(H2OStratifiedShuffleSplit, self).__init__(
-            n_splits=n_splits,
-            test_size=test_size,
-            train_size=train_size,
-            random_state=random_state)
+    """Shuffle splitter used for ``h2o_train_test_split`` when stratified
+    option is specified. This shuffle split class will perform stratification.
+    """
 
     def _iter_indices(self, frame, y):
+        """Iterate the indices with stratification.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string
+            The column to stratify.
+
+        Returns
+        -------
+
+        train : np.ndarray, shape=(n_samples,)
+            The train indices
+
+        test : np.ndarray, shape=(n_samples,)
+            The test indices
+        """
         n_samples = frame.shape[0]
         n_train, n_test = _validate_shuffle_split(n_samples,
                                                   self.test_size, self.train_size)
@@ -363,11 +500,35 @@ class H2OStratifiedShuffleSplit(H2OBaseShuffleSplit):
             yield train, test
 
     def split(self, frame, y):
+        """Split the frame with stratification.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string
+            The column to stratify.
+        """
         return super(H2OStratifiedShuffleSplit, self).split(frame, y)
 
 
 class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
-    """Base class for KFold and Stratified KFold"""
+    """Base class for KFold and Stratified KFold.
+    
+    Parameters
+    ----------
+
+    n_folds : int
+        The number of splits
+
+    shuffle : bool
+        Whether to shuffle indices
+
+    random_state : int or RandomState
+        The random state for the split
+    """
 
     @abstractmethod
     def __init__(self, n_folds, shuffle, random_state):
@@ -390,6 +551,17 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
 
     @overrides(H2OBaseCrossValidator)
     def split(self, frame, y=None):
+        """Split the frame.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string, optional (default=None)
+            The column to stratify.
+        """
         frame = check_frame(frame, copy=False)
         n_obs = frame.shape[0]
 
@@ -401,11 +573,32 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
 
     @overrides(H2OBaseCrossValidator)
     def get_n_splits(self):
+        """Get the number of splits or folds.
+
+        Returns
+        -------
+
+        n_folds : int
+            The number of folds
+        """
         return self.n_folds
 
 
 class H2OKFold(_H2OBaseKFold):
-    """K-folds cross-validator for an H2OFrame"""
+    """K-folds cross-validator for an H2OFrame.
+    
+    Parameters
+    ----------
+
+    n_folds : int, optional (default=3)
+        The number of splits
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle indices
+
+    random_state : int or RandomState, optional (default=None)
+        The random state for the split
+    """
 
     def __init__(self, n_folds=3, shuffle=False, random_state=None):
         super(H2OKFold, self).__init__(n_folds, shuffle, random_state)
@@ -428,10 +621,36 @@ class H2OKFold(_H2OBaseKFold):
 
 
 class H2OStratifiedKFold(_H2OBaseKFold):
+    """K-folds cross-validator for an H2OFrame with
+    stratified splits.
+    
+    Parameters
+    ----------
+
+    n_folds : int, optional (default=3)
+        The number of splits
+
+    shuffle : bool, optional (default=False)
+        Whether to shuffle indices
+
+    random_state : int or RandomState, optional (default=None)
+        The random state for the split
+    """
     def __init__(self, n_folds=3, shuffle=False, random_state=None):
         super(H2OStratifiedKFold, self).__init__(n_folds, shuffle, random_state)
 
     def split(self, frame, y):
+        """Split the frame with stratification.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame
+            The frame to split
+
+        y : string
+            The column to stratify.
+        """
         return super(H2OStratifiedKFold, self).split(frame, y)
 
     def _iter_test_masks(self, frame, y):

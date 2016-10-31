@@ -21,7 +21,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     """Safely one-hot encodes an H2OVec into an H2OFrame of
     one-hot encoded dummies. Whereas H2O's default behavior for
     previously-unseen factor levels is to error, the 
-    ``_H2OVecSafeOneHotEncoder`` skips previously-unseen levels
+    _H2OVecSafeOneHotEncoder skips previously-unseen levels
     in the ``transform`` section, returning 'nan' (which H2O
     interprets as ``NA``).
 
@@ -86,7 +86,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, 1d
+        X : H2OFrame, shape=(n_samples, 1)
             The 1d frame to transform
 
         Returns
@@ -183,7 +183,7 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         self.encoders_ = {
             str(k): _H2OVecSafeOneHotEncoder().fit(cat[str(k)])
             for k in cat.columns
-            }
+        }
 
         return self
 
