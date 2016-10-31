@@ -338,7 +338,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
@@ -381,8 +381,8 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
-            The data to transform
+        X : H2OFrame, shape=(n_samples, n_features(
+            The training data
         """
         X = check_frame(X, copy=False)
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature)
@@ -403,7 +403,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
+        X : H2OFrame, shape=(n_samples, n_features)
             The data to transform
         """
         check_is_fitted(self, 'cols_')
@@ -428,13 +428,17 @@ def _mul(a, b):
     Parameters
     ----------
 
-    a : H2OFrame
-    b : H2OFrame
+    a : H2OFrame, shape=(n_samples, 1)
+        The first feature
+
+    b : H2OFrame, shape=(n_samples, 1)
+        The second feature
 
     Returns
     -------
 
-    product H2OFrame
+    ``a`` * ``b`` : H2OFrame
+        The product of ``a`` and ``b``
     """
     return a * b
 
@@ -456,7 +460,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
@@ -505,8 +509,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
         
-        frame : H2OFrame, shape=[n_samples, n_features]
-            The data to transform
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training data to fit
 
         Returns
         -------
@@ -533,7 +537,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=[n_samples, n_features]
+        X : H2OFrame, shape=(n_samples, n_features)
             The data to transform
 
         Returns

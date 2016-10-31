@@ -104,13 +104,13 @@ def h2o_col_to_numpy(column):
     Parameters
     ----------
 
-    column : H2OFrame column
+    column : H2OFrame column, shape=(n_samples, 1)
         A column from an H2OFrame
 
     Returns
     -------
 
-    np.ndarray (1d)
+    np.ndarray, shape=(n_samples,)
     """
     x = _check_is_1d_frame(column)
     _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
@@ -256,8 +256,8 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
     Parameters
     ----------
 
-    X : pd.DataFrame
-        The pandas DataFrame
+    X : H2OFrame, shape=(n_samples, n_features)
+        The H2OFrame
 
     plot_type : str, optional (default='cor')
         The type of plot, one of ('cor', 'kde', 'pair')
