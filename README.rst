@@ -14,9 +14,9 @@
    :target: https://twitter.com/TayGriffinSmith
 
 
-.. |br| raw:: html
+.. raw:: html
+   <br/><br/>
 
-   <br />
 
 .. image:: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
    :target: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
