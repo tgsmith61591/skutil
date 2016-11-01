@@ -10,8 +10,6 @@
    :target: https://img.shields.io/github/release/tgsmith61591/skutil
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/tgsmith61591/skutil/blob/master/LICENSEl
-.. image:: https://img.shields.io/twitter/follow/TayGriffinSmith.svg?style=social
-   :target: https://twitter.com/TayGriffinSmith
 
 ================
 
