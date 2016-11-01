@@ -2,6 +2,7 @@ from __future__ import print_function
 import os, sys, shutil, glob
 import warnings
 import subprocess
+import traceback
 from pkg_resources import parse_version
 
 # For cleaning build artifacts
