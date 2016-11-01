@@ -6,7 +6,6 @@ import warnings
 
 __all__ = [
     'BaseSkutil',
-    'ModuleImportWarning',
     'overrides',
     'SamplingWarning',
     'SelectiveMixin',
@@ -54,6 +53,7 @@ def overrides(interface_class):
     return overrider
 
 
+
 def suppress_warnings(func):
     """Decorator that forces a method to suppress
     all warnings it may raise. This should be used with caution,
@@ -69,11 +69,6 @@ def suppress_warnings(func):
 
     return suppressor
 
-
-class ModuleImportWarning(UserWarning):
-    """Custom warning used to notify user a non-critical import failed, and to
-    suggest the installation of the module for optimal results.
-    """
 
 
 class SamplingWarning(UserWarning):

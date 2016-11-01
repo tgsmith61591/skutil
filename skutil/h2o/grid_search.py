@@ -274,8 +274,9 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
             Whether we are fitting a continuous target
 
         act_args : dict
-            GainsStatisticalReport args if called from a 
-            H2OGainsRandomizedSearchCV
+            :class:``skutil.metrics.GainsStatisticalReport`` args if called 
+            from a :class:``skutil.h2o.H2OGainsRandomizedSearchCV``. Otherwise,
+            these are unused.
 
         cv_fold : int
             The fold number for reporting
@@ -874,10 +875,17 @@ class H2OGridSearchCV(BaseH2OSearchCV):
     ----------
 
     estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
     param_grid : dict
-        The hyper parameter grid over which to search.
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
     feature_names : iterable (str)
         The list of feature names on which to fit
@@ -897,12 +905,18 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         The number of folds to be fit for cross validation.
 
     verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
-        in each fold.
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
     validation_frame : H2OFrame, optional (default=None)
         Whether to score on the full validation frame at the
@@ -957,10 +971,17 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
     ----------
 
     estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
     param_grid : dict
-        The hyper parameter grid over which to search.
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
     feature_names : iterable (str)
         The list of feature names on which to fit
@@ -992,12 +1013,18 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         one) will be fit.
 
     verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
-        in each fold.
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
     validation_frame : H2OFrame, optional (default=None)
         Whether to score on the full validation frame at the
@@ -1100,10 +1127,17 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     ----------
 
     estimator : H2OPipeline or H2OEstimator
-        The estimator to fit.
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
     param_grid : dict
-        The hyper parameter grid over which to search.
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
     feature_names : iterable (str)
         The list of feature names on which to fit
@@ -1144,12 +1178,18 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         one) will be fit.
 
     verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
-        in each fold.
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
     validation_frame : H2OFrame, optional (default=None)
         Whether to score on the full validation frame at the

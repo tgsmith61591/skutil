@@ -260,7 +260,9 @@ def setup_package():
             if not mpl_uptodate:
                 warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
         except ImportError as i:
-            pass  # not required, doesn't matter
+            # not required, doesn't matter really
+            warnings.warn('Matplotlib is not installed. Some functions may not work as expected.',
+                          ImportWarning)
 
         pandas_status = get_pandas_status()
         sklearn_status = get_sklearn_status()
