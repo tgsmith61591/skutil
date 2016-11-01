@@ -9,6 +9,8 @@ import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
+from ..base import suppress_warnings
+from .fixes import _grid_detail
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -61,8 +63,15 @@ __all__ = [
 ]
 
 
+@suppress_warnings
 def _log_single(x):
     """Sanitized log function for a single element.
+    Since this method internally calls np.log and carries
+    the (very likely) possibility to overflow, the method
+    suppresses all warnings.
+
+    #XXX: at some point we might want to let ``suppress_warnings``
+    # specify exactly which types of warnings it should filter.
 
     Parameters
     ----------
@@ -81,14 +90,22 @@ def _log_single(x):
     return val
 
 
+@suppress_warnings
 def _exp_single(x):
     """Sanitized exponential function.
+    Since this method internally calls np.exp and carries
+    the (very likely) possibility to overflow, the method
+    suppresses all warnings.
+
+    #XXX: at some point we might want to let ``suppress_warnings``
+    # specify exactly which types of warnings it should filter.
 
     Parameters
     ----------
 
     x : float
         The number to exp
+
 
     Returns
     -------
@@ -115,6 +132,7 @@ def exp(x):
     x : float, number
         The number for which to compute the exp
 
+
     Returns
     -------
 
@@ -139,6 +157,7 @@ def log(x):
 
     x : float, number
         The number for which to compute the log
+
 
     Returns
     -------
@@ -290,6 +309,7 @@ def flatten_all(container):
         not iterable, it will be returned in a list as 
         ``[container]``
 
+
     Examples
     --------
 
@@ -298,6 +318,7 @@ def flatten_all(container):
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
         >>> flatten_all(a)
         [3,4,'1','a',1,1,2]
+
 
     Returns
     -------
@@ -318,6 +339,7 @@ def flatten_all_generator(container):
 
     container : iterable, object
         The iterable to flatten.
+
 
     Examples
     --------
@@ -393,6 +415,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     assert_all_finite : bool, optional (default=False)
         If True, will raise an AssertionError if any np.nan or np.inf
         values reside in ``X``.
+
 
     Returns
     -------
@@ -481,6 +504,7 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
 
+
     Returns
     -------
 
@@ -527,6 +551,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
         The threshold above which a skewness rating will 
         be deemed "moderate," so long as it does not exceed
         ``hi_skew_thresh``
+
 
     Returns
     -------
@@ -634,6 +659,7 @@ def get_numeric(X):
     X : pandas DF
         The dataframe
 
+
     Returns
     -------
 
@@ -655,6 +681,7 @@ def human_bytes(b, unit='MB'):
 
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
 
     Returns
     -------
@@ -687,6 +714,7 @@ def is_entirely_numeric(X):
     X : pd DataFrame
         The dataframe to test
 
+
     Returns
     -------
 
@@ -706,6 +734,7 @@ def is_integer(x):
 
     x : object
         The item to assess
+
 
     Returns
     -------
@@ -727,6 +756,7 @@ def is_float(x):
     x : object
         The item to assess
 
+
     Returns
     -------
 
@@ -745,6 +775,7 @@ def is_numeric(x):
 
     x : object
         The item to assess
+
 
     Returns
     -------
@@ -771,6 +802,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows on return
+
 
     Returns
     -------
@@ -804,6 +836,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
 
+
     Returns
     -------
 
@@ -836,6 +869,7 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
 
+
     Returns
     -------
 
@@ -852,8 +886,9 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True,
-                             ascending=True, percentile=0.975, y_axis='score', sort_by='score',
-                             highlight_best=True, highlight_col='red', def_color='blue'):
+                             ascending=True, percentile=0.975, y_axis='mean_test_score', 
+                             sort_by='mean_test_score', highlight_best=True, highlight_col='red', 
+                             def_color='blue', return_drops=False):
     """Return plots and dataframe of results, given a fitted grid search.
     Note that if Matplotlib is not installed, a warning will be thrown
     and no plots will be generated.
@@ -872,16 +907,17 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
 
     ascending : bool, optional (default=True)
         If ``sort_results`` is True, whether to use asc or desc
+        in the sorting process.
 
     percentile : float, optional (default=0.975)
         The percentile point (0 < percentile < 1.0). The
         corresponding z-score will be multiplied
         by the cross validation score standard deviations.
 
-    y_axis : str, optional (default='score')
+    y_axis : str, optional (default='mean_test_score')
         The y-axis of the charts. One of ('score','std')
 
-    sort_by : str, optional (default='score')
+    sort_by : str, optional (default='mean_test_score')
         The column to sort by. This is not validated, in case
         the user wants to sort by a parameter column. If
         not ``sort_results``, this is unused.
@@ -901,13 +937,28 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         This should differ from ``highlight_col``, but no validation
         is performed.
 
+    return_drops : bool, optional (default=False)
+        If True, will return the list of names that can be dropped
+        out (i.e., were generated by sklearn and are not parameters
+        of interest).
+
+
     Returns
     -------
 
-    results_df : pd.DataFrame, shape=(n_iter, n_params)
+    result_df : pd.DataFrame, shape=(n_iter, n_params)
         The grid search results
+
+    drops : list
+        List of sklearn-generated names. Only returned if
+        ``return_drops`` is True.
     """
-    valid_axes = ('score', 'std')
+    valid_axes = ('mean_test_score', 'std_test_score')
+
+    # these are produced in sklearn 0.18 but not 0.17 -- want to skip for now...
+    ignore_axes = ('mean_fit_time', 'mean_score_time', 
+                   'mean_train_score', 'std_fit_time', 
+                   'std_score_time', 'std_train_score')
 
     # validate y-axis
     if not y_axis in valid_axes:
@@ -918,25 +969,20 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         raise ValueError('percentile must be > 0 and < 1, but got %.5f' % percentile)
     z_score = st.norm.ppf(percentile)
 
-    # list of dicts
-    df_list = []
-
-    # convert each score tuple into dicts -- this will eventually be deprecated...
-    for score in random_search.grid_scores_:
-        results_dict = dict(score.parameters)  # the parameter tuple or sampler
-        results_dict["score"] = score.mean_validation_score
-        results_dict["std"] = score.cv_validation_scores.std() * z_score
-        df_list.append(results_dict)
-
-    # make into a data frame
-    result_df = pd.DataFrame(df_list)
-    if sort_results:
-        result_df = result_df.sort_values(sort_by, ascending=ascending)
+    # make into a data frame from search
+    result_df, drops = _grid_detail(random_search, 
+                                    z_score=z_score,
+                                    sort_results=sort_results, 
+                                    sort_by=sort_by, 
+                                    ascending=ascending)
 
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
-            if col not in valid_axes:  # skip score / std
+            if col in ignore_axes:
+                # don't plot these ones
+                continue
+            elif col not in valid_axes:  # skip score / std
                 ser = result_df[col]
                 color = [def_color for i in range(ser.shape[0])]
 
@@ -966,7 +1012,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     elif charts and not CAN_CHART_MPL:
         warnings.warn('no module matplotlib, will not be able to display charts', ImportWarning)
 
-    return result_df
+    return result_df if not return_drops else (result_df, drops)
 
 
 def report_confusion_matrix(actual, pred, return_metrics=True):
@@ -985,6 +1031,7 @@ def report_confusion_matrix(actual, pred, return_metrics=True):
     return_metrics : bool, optional (default=True)
         Whether to return the metrics in a pd.Series. If False,
         index 1 of the returned tuple will be None.
+
 
     Returns
     -------

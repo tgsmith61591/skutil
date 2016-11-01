@@ -60,10 +60,18 @@ def suppress_warnings(func):
     as it may complicate debugging. For internal purposes, this is
     used for imports that cause consistent warnings (like pandas or
     matplotlib)
+
+    Parameters
+    ----------
+
+    func : callable
+        Automatically passed to the decorator. This
+        function is run within the context of the warning
+        filterer.
     """
 
     def suppressor(*args, **kwargs):
-        with warnings.catch_warnings():
+        with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("ignore")
             return func(*args, **kwargs)
 

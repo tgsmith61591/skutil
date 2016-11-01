@@ -1309,7 +1309,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         n_obs, _ = report_res.shape
 
         # Need to cbind the parameters... we don't care about ["score", "std"]
-        rdf = report_grid_score_detail(self, charts=False).drop(["score", "std"], axis=1)
+        rdf, drops = report_grid_score_detail(self, charts=False, return_drops=True)
+        rdf.drop(drops, axis=1)
+
         assert n_obs == rdf.shape[0], 'Internal error: %d!=%d' % (n_obs, rdf.shape[0])
 
         # change the names in the dataframe...

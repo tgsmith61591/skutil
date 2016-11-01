@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils.validation import _num_samples, indexable
+from sklearn.utils.validation import _num_samples, indexable, check_is_fitted
 from sklearn.metrics.scorer import check_scoring
 from collections import namedtuple, Sized
 from .metaestimators import if_delegate_has_method
@@ -18,6 +18,7 @@ __all__ = [
     '_validate_y',
     '_check_param_grid',
     '_CVScoreTuple',
+    '_grid_detail',
     '_SK17GridSearchCV',
     '_SK17RandomizedSearchCV'
 ]
@@ -52,6 +53,7 @@ if sklearn.__version__ >= '0.18':
         # test_score, n_samples, _, parameters
         return [(mod[0], mod[1], None, mod[2]) for mod in out]
 
+
 else:
     SK18 = False
     # catch deprecation warnings
@@ -75,6 +77,91 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):
+    """Create a dataframe of grid search details for either sklearn 0.17,
+    sklearn 0.18 or a BaseH2OSearchCV instance.
+
+    Parameters
+    ----------
+
+    search : sklearn 0.17 grid search
+        The already fitted grid search.
+
+    z_score : float
+        The z-score by which to multiply the cross validation
+        score standard deviations.
+
+    sort_results : bool, optional (default=True)
+        Whether to sort the results based on score
+
+    sort_by : str, optional (default='mean_test_score')
+        The column to sort by. This is not validated, in case
+        the user wants to sort by a parameter column. If
+        not ``sort_results``, this is unused.
+
+    ascending : bool, optional (default=True)
+        If ``sort_results`` is True, whether to use asc or desc
+        in the sorting process.
+
+
+    Returns
+    -------
+    
+    result_df : pd.DataFrame, shape=(n_iter, n_params)
+        The results of the grid search
+    """
+    check_is_fitted(search, 'best_estimator_')
+
+    if not hasattr(search, 'cv_results_'):
+        # if it has the grid_scores_ attribute, it's either
+        # sklearn 0.17 or it's an H2O grid search. This should handle
+        # both cases.
+
+        # list of dicts
+        df_list = []
+
+        # convert each score tuple into dicts
+        for score in search.grid_scores_:
+            results_dict = dict(score.parameters) # the parameter tuple or sampler
+            results_dict["mean_test_score"] = score.mean_validation_score
+            results_dict["std_test_score"] = score.cv_validation_scores.std() * z_score
+            df_list.append(results_dict)
+
+        # make into a data frame
+        result_df = pd.DataFrame(df_list)
+        drops = ['mean_test_score', 'std_test_score']
+
+    else:
+        # sklearn made this a bit easier for our purposes... kinda
+        result_df = pd.DataFrame(search.cv_results_)
+
+        # pop off the splitX cols
+        result_df.drop([x for x in result_df.columns if x.startswith('split')], axis=1, inplace=True)
+        result_df.drop(['rank_test_score', 'params'], axis=1, inplace=True)
+
+        # cols that start with param should not.
+        new_cols = [x if not x.startswith('param_') else x[6:] for x in result_df.columns]
+        result_df.columns = new_cols
+
+        # adjust by z-score
+        for col in result_df.columns:
+            if col in ('std_test_score','std_train_score','std_score_time','std_fit_time'):
+                result_df[col] = result_df[col] * z_score
+
+        # assign drops
+        drops = ('mean_fit_time', 'mean_score_time', 
+                 'mean_train_score', 'std_fit_time', 
+                 'std_score_time', 'std_train_score',
+                 'mean_test_score', 'std_test_score')
+
+    # sort if necessary
+    if sort_results:
+        result_df = result_df.sort_values(sort_by, ascending=ascending)
+
+    # return
+    return result_df, drops
 
 
 def _cv_len(cv, X, y):
