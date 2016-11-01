@@ -30,7 +30,7 @@ echo -e "\nH : `date` \n"
 conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 echo -e "\nI : `date` \n"
 source activate test-environment
-pip install numpy scipy pandas coverage cython
+conda install --yes -c numpy scipy pandas coverage cython
 
 # Coverage packages
 echo -e "\nJ : `date` \n"
