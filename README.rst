@@ -13,10 +13,7 @@
 .. image:: https://img.shields.io/twitter/follow/TayGriffinSmith.svg?style=social
    :target: https://twitter.com/TayGriffinSmith
 
-
-.. raw:: html
-   <br/><br/>
-
+================
 
 .. image:: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
    :target: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
