@@ -8,14 +8,12 @@
    :target: https://img.shields.io/badge/python-2.7-blue.svg
 .. image:: https://img.shields.io/github/release/tgsmith61591/skutil.svg
    :target: https://img.shields.io/github/release/tgsmith61591/skutil
-.. image:: https://img.shields.io/github/issues-raw/tgsmith61591/skutil.svg
-   :target: https://github.com/tgsmith61591/skutil/issues
-.. image:: https://img.shields.io/github/issues-pr-raw/tgsmith61591/skutil.svg
-   :target: https://github.com/tgsmith61591/skutil/pulls
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://github.com/tgsmith61591/skutil/blob/master/LICENSEl
 .. image:: https://img.shields.io/twitter/follow/TayGriffinSmith.svg?style=social
    :target: https://twitter.com/TayGriffinSmith
+
+
 
 .. image:: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
    :target: https://github.com/tgsmith61591/skutil/blob/master/doc/images/h2o-sklearn.png
@@ -52,11 +50,11 @@ Installation:
 
 Installation is easy. After cloning the project onto your machine and installing the required dependencies, simply use the `setup.py` file:
 
-``$ git clone https://github.com/tgsmith61591/skutil.git``
+.. code-block:: bash
 
-``$ cd skutil``
-
-``$ python setup.py install``
+    $ git clone https://github.com/tgsmith61591/skutil.git
+    $ cd skutil
+    $ python setup.py install
 
 Testing:
 --------
