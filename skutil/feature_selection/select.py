@@ -323,7 +323,7 @@ def filter_collinearity(c, threshold):
 class MulticollinearityFilterer(_BaseFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
-    of each feature is considered, and the feature with the highsest MAC is discarded.
+    of each feature is considered, and the feature with the highest MAC is discarded.
 
     Parameters
     ----------

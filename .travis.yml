@@ -55,7 +55,7 @@ install:
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
   - pip install coveralls
-  - pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
+  - conda install --channel http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl h2o
   - python setup.py develop
 
 before_script:
