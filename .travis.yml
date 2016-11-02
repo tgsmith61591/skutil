@@ -15,6 +15,7 @@ env:
 install:
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
+  - conda install --yes -c numpy scipy pandas coverage cython
 
 before_script:
   - "export DISPLAY=:99.0"
