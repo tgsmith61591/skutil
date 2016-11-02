@@ -16,5 +16,22 @@ install:
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
 
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 5 # give xvfb some time to start by sleeping for 5 seconds
+
+## Run tests
 script:
-  - echo -e "\nUNIT TESTS SUCCESSFULLY COMPLETED!"
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
+    else
+      nosetests --logging-level=INFO;
+    fi
+
+# Compute Coverage Using Coveralls
+after_success:
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      coveralls;
+    fi
+
