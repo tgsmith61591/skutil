@@ -4,16 +4,6 @@ python:
   - "2.7"
   - "3.5"
 
-before_install:
-  - sudo apt-get -qq update
-
-addons:
-  apt:
-    packages:
-    - gcc
-    - g++
-    - gfortran
-
 env:
  - COMBINATION=sklearn-0-17-matplotlib-seaborn
  - COMBINATION=sklearn-0-17-without-matplotlib-seaborn

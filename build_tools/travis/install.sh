@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Sudo apt-get installs
+sudo apt-get install -qq update
+sudo apt-get install libblas-dev
+sudo apt-get install liblapack-dev
+sudo apt-get install gcc
+sudo apt-get install g++
+sudo apt-get install gfortran
+
 echo -e "\nA : `date` \n"
 case "${TRAVIS_PYTHON_VERSION}" in
     "2.7")
