@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 import warnings
-
+import sys
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_almost_equal, assert_array_almost_equal)
@@ -326,7 +326,8 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
-    assert is_numeric(1L)
+    if sys.version_info.major == 2: # Run test for long if Python major version == 2
+        assert is_numeric(1L)
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)

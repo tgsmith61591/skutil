@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 import numbers
 import warnings
 import sys
+import traceback
 import numpy as np
 import pandas as pd
 import scipy.stats as st
@@ -714,15 +715,23 @@ def is_integer(x):
     bool
         True if ``x`` is an integer type
     """
-    if sys.version_info.major == 2 :
-        return (not isinstance(x, (bool, np.bool))) and \
-            isinstance(x, (numbers.Integral, int, long, np.int, np.long))
-    elif sys.version_info.major == 3 :
-         return (not isinstance(x, (bool, np.bool))) and \
-            isinstance(x, (numbers.Integral, int, np.int, np.long))
-    else:
-        print("Shame on you for using Python 1.x.y")
-        sys.exit(-1)
+    try:
+        python_major_version = sys.version_info.major
+        assert(python_major_version == 2 or python_major_version == 3)
+        if python_major_version == 2 :
+            return (not isinstance(x, (bool, np.bool))) and \
+                isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+        elif python_major_version == 3 :
+             return (not isinstance(x, (bool, np.bool))) and \
+                isinstance(x, (numbers.Integral, int, np.int, np.long))
+    except AssertionError as e:
+        _, _, tb = sys.exc_info()
+        traceback.print_tb(tb) # Fixed format
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+
+        print('An error occurred on line {} in statement {}'.format(line, text))
+        exit(1)
 
 
 def is_float(x):
