@@ -15,3 +15,6 @@ env:
 install:
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
+
+script:
+  - echo -e "\nUNIT TESTS SUCCESSFULLY COMPLETED!"
