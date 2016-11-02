@@ -5,6 +5,7 @@ from sklearn.utils.validation import check_is_fitted
 from h2o.frame import H2OFrame
 from ..feature_selection import filter_collinearity
 from ..utils import is_numeric
+from ..utils.fixes import is_iterable
 from .base import (BaseH2OTransformer, check_frame, _retain_features, _frame_from_x_y)
 
 __all__ = [
@@ -171,7 +172,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
             fn = []
 
         # We validate the features_names is a list or iterable
-        if hasattr(fn, '__iter__'):
+        if is_iterable(fn):
             self.drop_ = [i for i in fn]
         else:
             raise ValueError('expected iterable for feature_names')

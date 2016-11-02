@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
+from ..utils.fixes import is_iterable
 import pandas as pd
 import numpy as np
 import warnings
@@ -29,7 +30,7 @@ def _as_numpy(*args):
                     raise ValueError('must be 1d column')
                 _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
                 return _1d[_1d.columns[0]].values
-            elif hasattr(x, '__iter__'):
+            elif is_iterable(x):
                 return np.asarray(x)
             else:
                 raise TypeError('cannot create numpy array out of type=%s' % type(x))

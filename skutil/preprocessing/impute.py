@@ -1,5 +1,6 @@
-from __future__ import division, print_function, absolute_import
+# -*- coding: utf-8 -*-
 
+from __future__ import division, print_function, absolute_import
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin, is_classifier
@@ -9,6 +10,7 @@ from sklearn.utils.validation import check_is_fitted
 from abc import ABCMeta
 from skutil.base import SelectiveMixin, BaseSkutil
 from ..utils import is_entirely_numeric, get_numeric, validate_is_pd, is_numeric
+from ..utils.fixes import is_iterable
 
 __all__ = [
     'BaggedImputer',
@@ -194,7 +196,7 @@ class SelectiveImputer(_BaseImputer):
                 self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
 
         # if the fill is an iterable, we have to get a bit more stringent on our validation
-        elif hasattr(fill, '__iter__'):
+        elif is_iterable(fill):
 
             # if fill is a dictionary
             if isinstance(fill, dict):

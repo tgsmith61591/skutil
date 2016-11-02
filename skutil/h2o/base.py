@@ -1,11 +1,10 @@
 from __future__ import print_function, division, absolute_import
 import warnings
+import h2o
 import os
-
+from ..utils.fixes import is_iterable
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
-
-import h2o
 from h2o.frame import H2OFrame
 
 # in different versions, we get different exceptions
@@ -169,7 +168,7 @@ def validate_x(x):
     """
     if x is not None:
         # validate feature_names
-        if not (hasattr(x, '__iter__') and all([isinstance(i, six.string_types) for i in x])):
+        if not (is_iterable(x) and all([isinstance(i, six.string_types) for i in x])):
             raise TypeError('x must be an iterable of strings. '
                             'Got %s' % str(x))
 

@@ -24,7 +24,8 @@ __all__ = [
     '_CVScoreTuple',
     '_grid_detail',
     '_SK17GridSearchCV',
-    '_SK17RandomizedSearchCV'
+    '_SK17RandomizedSearchCV',
+    'is_iterable'
 ]
 
 VERSION_MAJOR = sys.version_info.major
@@ -83,6 +84,32 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def is_iterable(x):
+    """Python 3.x adds the ``__iter__`` attribute
+    to strings. Thus, our previous tests for iterable
+    will fail:
+
+        >>> if hasattr(x, '__iter__'):  ...
+
+    Parameters
+    ----------
+
+    x : object
+        The object or primitive to test whether
+        or not is an iterable.
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an iterable
+    """
+    if isinstance(x, six.string_types):
+        return False
+    return hasattr(x, '__iter__')
 
 
 def _is_integer(x):
@@ -293,7 +320,7 @@ def _as_numpy(y):
         return np.copy(y)
     elif hasattr(y, 'as_matrix'):
         return y.as_matrix()
-    elif hasattr(y, '__iter__'):
+    elif is_iterable(y):
         return np.asarray([i for i in y])
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
 

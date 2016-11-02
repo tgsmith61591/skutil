@@ -9,7 +9,7 @@ from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail, _is_integer
+from .fixes import _grid_detail, _is_integer, is_iterable
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -117,9 +117,9 @@ def _exp_single(x):
 
 
 def _vectorize(fun, x):
-    if hasattr(x, '__iter__'):
+    if is_iterable(x):
         return np.array([fun(p) for p in x])
-    raise ValueError('Type %s does not have attr __iter__' % type(x))
+    raise ValueError('Type %s is not iterable' % type(x))
 
 
 def exp(x):
@@ -182,7 +182,7 @@ def _val_cols(cols):
         return cols
 
     # try to make cols a list
-    if not hasattr(cols, '__iter__'):
+    if not is_iterable(cols):
         if isinstance(cols, six.string_types):
             return [cols]
         else:
@@ -351,11 +351,11 @@ def flatten_all_generator(container):
         >>> flatten_all(a)
         [3,4,'1','a',1,1,2] # yields a generator for this iterable
     """
-    if not hasattr(container, '__iter__'):
+    if not is_iterable(container):
         yield container
     else:
         for i in container:
-            if hasattr(i, '__iter__'):
+            if is_iterable(i):
                 for j in flatten_all_generator(i):
                     yield j
             else:
@@ -446,7 +446,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         is_df = isinstance(X, pd.DataFrame)
 
         # we do want to make sure the X at least is "array-like"
-        if not hasattr(X, '__iter__'):
+        if not is_iterable(X):
             raise TypeError('X (type=%s) cannot be cast to DataFrame' % type(X))
 
         # case 1, we have names but the X is not a frame
@@ -470,7 +470,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
         else:
             # we'll do two tests here... either that it's a np ndarray or a list of lists
-            if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
+            if isinstance(X, np.ndarray) or (is_iterable(X) and all(isinstance(elem, list) for elem in X)):
                 return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
 
             # bail out:

@@ -1,20 +1,19 @@
+# -*- coding: utf-8 -*-
 """Metrics for scoring H2O model predictions"""
 # Author: Taylor Smith
 # adapted from sklearn for use with skutil & H2OFrames
 
 from __future__ import absolute_import, division, print_function
-
 import abc
 import warnings
-
 import numpy as np
 from h2o.frame import H2OFrame
 from sklearn.externals import six
-
 from .frame import _check_is_1d_frame, is_integer
 from .transform import H2OLabelEncoder
 from .util import h2o_bincount, h2o_col_to_numpy
 from ..utils import flatten_all
+from ..utils.fixes import is_iterable
 
 __all__ = [
     'h2o_accuracy_score',
@@ -41,7 +40,7 @@ def _get_bool(x):
     x : bool or iterable
         The boolean to extract
     """
-    if hasattr(x, '__iter__'):
+    if is_iterable(x):
         return flatten_all(x)[0]
     return x
 

@@ -3,6 +3,7 @@ from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
+from ..utils.fixes import is_iterable
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 import pandas as pd
@@ -22,7 +23,7 @@ def _flatten_one(x):
     a list is. This will determine the proper 
     type for each item in the vec.
     """
-    return x[0] if hasattr(x, '__iter__') else x
+    return x[0] if is_iterable(x) else x
 
 
 class H2OLabelEncoder(BaseH2OTransformer):
@@ -226,7 +227,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             else:
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].mean(na_rm=True) for c in cols])))
 
-        elif hasattr(fill, '__iter__'):
+        elif is_iterable(fill):
 
             # if fill is a dictionary
             if isinstance(fill, dict):
