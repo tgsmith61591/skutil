@@ -718,10 +718,10 @@ def is_integer(x):
     try:
         python_major_version = sys.version_info.major
         assert(python_major_version == 2 or python_major_version == 3)
-        if python_major_version == 2 :
+        if python_major_version == 2:
             return (not isinstance(x, (bool, np.bool))) and \
                 isinstance(x, (numbers.Integral, int, long, np.int, np.long))
-        elif python_major_version == 3 :
+        elif python_major_version == 3:
              return (not isinstance(x, (bool, np.bool))) and \
                 isinstance(x, (numbers.Integral, int, np.int, np.long))
     except AssertionError as e:
