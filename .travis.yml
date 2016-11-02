@@ -43,7 +43,7 @@ install:
   # dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
-  - conda install --yes -c numpy scipy pandas coverage cython
+  - conda install --yes numpy scipy pandas coverage cython
 
   # Coverage packages
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
