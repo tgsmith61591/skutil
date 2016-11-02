@@ -73,3 +73,17 @@ echo -e "\nM : `date` \n"
 pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
 echo -e "\nN : `date` \n"
 python setup.py develop
+
+export DISPLAY=:99.0
+sh -e /etc/init.d/xvfb start
+sleep 5 # give xvfb some time to start by sleeping for 5 seconds
+
+if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
+else
+      nosetests --logging-level=INFO;
+fi
+
+if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      coveralls;
+fi
