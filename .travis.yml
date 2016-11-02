@@ -48,6 +48,8 @@ install:
   # Coverage packages
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       conda install --yes -c dan_blanchard python-coveralls nose-cov;
+    else
+      pip install numpy scipy pandas coverage cython;
     fi
   - chmod 777 ./build_tools/travis/install.sh
   - ./build_tools/travis/install.sh
