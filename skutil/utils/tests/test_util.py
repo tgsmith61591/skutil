@@ -329,7 +329,7 @@ def test_is_numeric():
     python_major_version = sys.version_info.major
     print("MAJOR PYTHON VERSION: {}".format(python_major_version))
     if python_major_version == 2: # Run test for long if Python major version == 2
-        assert is_numeric(1L)
+        assert is_numeric(np.long(1))
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)
