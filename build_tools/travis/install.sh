@@ -7,6 +7,9 @@ sudo apt-get install liblapack-dev
 sudo apt-get install gcc
 sudo apt-get install g++
 sudo apt-get install gfortran
+sudo apt-get install python-dev
+sudo apt-get install libc6
+sudo apt-get install libatlas-base-dev
 
 echo -e "\nA : `date` \n"
 case "${TRAVIS_PYTHON_VERSION}" in
