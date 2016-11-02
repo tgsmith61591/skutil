@@ -1,7 +1,11 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import division
+import numbers
 import numpy as np
 import pandas as pd
 import sklearn
+import sys
 from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
@@ -22,6 +26,8 @@ __all__ = [
     '_SK17GridSearchCV',
     '_SK17RandomizedSearchCV'
 ]
+
+VERSION_MAJOR = sys.version_info.major
 
 # deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
@@ -77,6 +83,30 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def _is_integer(x):
+    """Determine whether some object ``x`` is an
+    integer type (int, long, etc). This is part of the 
+    ``fixes`` module, since Python 3 removes the long
+    datatype, we have to check the version major.
+
+    Parameters
+    ----------
+
+    x : object
+        The item to assess
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an integer type
+    """
+    return (not isinstance(x, (bool, np.bool))) and \
+        (isinstance(x, (numbers.Integral, int, np.int, np.long)) or\
+         (VERSION_MAJOR==2 and isinstance(x, long))) # no long type in python 3
 
 
 def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):

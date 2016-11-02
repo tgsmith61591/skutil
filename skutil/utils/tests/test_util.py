@@ -326,7 +326,7 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
-    assert is_numeric(1L)
+    assert is_numeric(np.long(1))
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)

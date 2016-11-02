@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division, absolute_import
-import numbers
 import warnings
 import numpy as np
 import pandas as pd
@@ -10,7 +9,7 @@ from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail
+from .fixes import _grid_detail, _is_integer
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -124,7 +123,8 @@ def _vectorize(fun, x):
 
 
 def exp(x):
-    """A safe mechanism for computing the exponential function.
+    """A safe mechanism for computing the exponential function
+    while avoiding overflows.
     
     Parameters
     ----------
@@ -150,7 +150,8 @@ def exp(x):
 
 
 def log(x):
-    """A safe mechanism for computing a log.
+    """A safe mechanism for computing a log while
+    avoiding NaNs or exceptions.
 
     Parameters
     ----------
@@ -742,8 +743,7 @@ def is_integer(x):
     bool
         True if ``x`` is an integer type
     """
-    return (not isinstance(x, (bool, np.bool))) and \
-        isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    return _is_integer(x)
 
 
 def is_float(x):
