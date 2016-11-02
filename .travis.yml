@@ -65,7 +65,9 @@ before_script:
 
 ## Run tests
 script:
-  - echo "$PATH"
+  - which pip
+  - which conda
+  - which python
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
     else
