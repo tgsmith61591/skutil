@@ -326,6 +326,7 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
+    print("MAJOR PYTHON VERSION: {}".format(sys.version_info.major))
     if sys.version_info.major == 2: # Run test for long if Python major version == 2
         assert is_numeric(1L)
     assert is_numeric(np.int(1.0))
