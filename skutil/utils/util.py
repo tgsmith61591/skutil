@@ -3,6 +3,7 @@
 from __future__ import print_function, division, absolute_import
 import numbers
 import warnings
+import sys
 import numpy as np
 import pandas as pd
 import scipy.stats as st
@@ -713,8 +714,15 @@ def is_integer(x):
     bool
         True if ``x`` is an integer type
     """
-    return (not isinstance(x, (bool, np.bool))) and \
-        isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    if sys.version_info.major == 2 :
+        return (not isinstance(x, (bool, np.bool))) and \
+            isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    elif sys.version_info.major == 3 :
+         return (not isinstance(x, (bool, np.bool))) and \
+            isinstance(x, (numbers.Integral, int, np.int, np.long))
+    else:
+        print("Shame on you for using Python 1.x.y")
+        sys.exit(-1)
 
 
 def is_float(x):
