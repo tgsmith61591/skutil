@@ -28,9 +28,9 @@ run_tests() {
     cd $TEST_DIR
 
     if [[ "$COVERAGE" == "true" ]]; then
-        nosetests -s --with-coverage --with-timer --timer-top-n 20 skutil
+        nosetests -s --with-coverage --cover-package=skutil --logging-level=INFO --with-timer --timer-top-n 20;
     else
-        nosetests -s --with-timer --timer-top-n 20 skutil
+        nosetests -s --with-timer --timer-top-n 20;
     fi
 
 }
