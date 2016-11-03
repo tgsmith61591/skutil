@@ -4,9 +4,11 @@ import numpy as np
 from sklearn.utils.validation import check_is_fitted
 from h2o.frame import H2OFrame
 from ..feature_selection import filter_collinearity
+from ..feature_selection.select import _near_zero_variance_ratio
 from ..utils import is_numeric
 from ..utils.fixes import is_iterable
 from .base import (BaseH2OTransformer, check_frame, _retain_features, _frame_from_x_y)
+from .frame import as_series
 
 __all__ = [
     'BaseH2OFeatureSelector',
@@ -261,7 +263,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
-    of each feature is considered, and the feature with the highsest MAC is discarded.
+    of each feature is considered, and the feature with the highest MAC is discarded.
 
     Parameters
     ----------
@@ -370,7 +372,16 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
 
 class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     """Identify and remove any features that have a variance below
-    a certain threshold.
+    a certain threshold. There are two possible strategies for near-zero
+    variance feature selection:
+
+      1) Select features on the basis of the actual variance they
+         exhibit. This is only relevant when the features are real
+         numbers.
+
+      2) Remove features where the ratio of the frequency of the most
+         prevalent value to that of the second-most frequent value is
+         large, say 20 or above (Kuhn & Johnson[1]).
 
     Parameters
     ----------
@@ -398,18 +409,40 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         One of {'complete.obs','all.obs','everything'}
         A string indicating how to handle missing values.
 
+    strategy : str, optional (default='variance')
+        The strategy by which feature selection should be performed,
+        one of ('variance', 'ratio'). If ``strategy`` is 'variance',
+        features will be selected based on the amount of variance they
+        exhibit; those that are low-variance (below ``threshold``) will
+        be removed. If ``strategy`` is 'ratio', features are dropped if the
+        most prevalent value is represented at a ratio greater than ``threshold``
+        to the second-most frequent value. **Note** that if ``strategy`` is
+        'ratio', ``threshold`` must be greater than 1.
+
+
     Attributes
     ----------
 
     drop_ : list, string
         The columns to drop
+
+    var_ : array_like, shape=(n_features,)
+        The variances or ratios, depending on the ``strategy``
+
+
+    References
+    ----------
+
+    .. [1] Kuhn, M. & Johnson, K. "Applied Predictive 
+           Modeling" (2013). New York, NY: Springer.
     """
 
     _min_version = '3.8.2.9'
     _max_version = None
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
-                 threshold=1e-6, na_warn=True, na_rm=False, use='complete.obs'):
+                 threshold=1e-6, na_warn=True, na_rm=False, use='complete.obs',
+                 strategy='variance'):
         super(H2ONearZeroVarianceFilterer, self).__init__(feature_names=feature_names,
                                                           target_feature=target_feature,
                                                           exclude_features=exclude_features,
@@ -419,6 +452,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         self.na_warn = na_warn
         self.na_rm = na_rm
         self.use = use
+        self.strategy = strategy
 
     def fit(self, X):
         """Fit the near zero variance filterer,
@@ -458,15 +492,34 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
         # validate use, check NAs
         use = _validate_use(frame, self.use, self.na_warn)
-
-        # get covariance matrix, extract the diagonal
         cols = np.asarray([str(n) for n in frame.columns])
-        diag = np.diagonal(frame.var(na_rm=self.na_rm, use=use).as_data_frame(use_pandas=True).as_matrix())
 
-        # create mask
-        var_mask = diag < self.threshold
+        # validate strategy
+        valid_strategies = ('variance', 'ratio')
+        if not self.strategy in valid_strategies:
+            raise ValueError('strategy must be one of {0}, but got {1}'.format(
+                str(valid_strategies), self.strategy))
 
-        self.drop_ = cols[var_mask].tolist()  # make list
-        self.var_ = dict(zip(self.drop_, diag[var_mask]))
+
+        if self.strategy == 'variance':
+            # get covariance matrix, extract the diagonal
+            diag = np.diagonal(frame.var(na_rm=self.na_rm, use=use).as_data_frame(use_pandas=True).as_matrix())
+
+            # create mask
+            var_mask = diag < self.threshold
+
+            self.drop_ = cols[var_mask].tolist()  # make list
+            self.var_ = dict(zip(self.drop_, diag[var_mask]))
+        else:
+            # validate ratio
+            ratio = self.threshold
+            if not ratio > 1.0:
+                raise ValueError('when strategy=="ratio", threshold must be greater than 1.0')
+
+            # get a np.array mask
+            matrix = np.array([_near_zero_variance_ratio(as_series(frame[col]), ratio) for col in frame.columns])
+            drop_mask = matrix[:,1].astype(np.bool)
+            self.drop_ = np.asarray(frame.columns)[drop_mask].tolist()
+            self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist()))
 
         return self.transform(X)

@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 import warnings
 import numpy as np
 import pandas as pd
+import numbers
 import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
@@ -763,7 +764,8 @@ def is_float(x):
     bool
         True if ``x`` is a float type
     """
-    return isinstance(x, (float, np.float))
+    return isinstance(x, (float, np.float)) or \
+        (not isinstance(x, (bool, np.bool)) and isinstance(x, numbers.Real))
 
 
 def is_numeric(x):

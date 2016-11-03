@@ -1,11 +1,8 @@
 from __future__ import print_function, division, absolute_import
-
 from collections import namedtuple
-
 import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_is_fitted
-
 from .base import _BaseFeatureSelector
 from ..utils import validate_is_pd, is_numeric
 
@@ -323,7 +320,7 @@ def filter_collinearity(c, threshold):
 class MulticollinearityFilterer(_BaseFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
-    of each feature is considered, and the feature with the highsest MAC is discarded.
+    of each feature is considered, and the feature with the highest MAC is discarded.
 
     Parameters
     ----------
@@ -462,9 +459,51 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         return dropped if self.as_df else dropped.as_matrix()
 
 
+def _near_zero_variance_ratio(series, ratio):
+    """Perform NZV filtering based on a ratio of the
+    most common value to the second-most-common value.
+
+    Parameters
+    ----------
+    
+    series : pd.Series, shape=(n_samples,)
+        The series on which to compute ``value_counts``.
+
+    Returns
+    -------
+
+    ratio_ : float
+        The ratio of the most-prevalent value
+        to the second-most-prevalent value.
+
+    drop_ : int
+        Whether to keep the feature or drop it.
+        1 if drop, 0 if keep.
+    """
+    counts = series.value_counts().sort_values(ascending=False)
+
+    # if there's only one value...
+    if counts.shape[0] < 2:
+        return np.nan, 1
+
+    ratio_ = counts.iloc[0] / counts.iloc[1]
+    drop_ = int(ratio_ >= ratio)
+
+    return ratio_, drop_
+
+
 class NearZeroVarianceFilterer(_BaseFeatureSelector):
     """Identify and remove any features that have a variance below
-    a certain threshold.
+    a certain threshold. There are two possible strategies for near-zero
+    variance feature selection:
+
+      1) Select features on the basis of the actual variance they
+         exhibit. This is only relevant when the features are real
+         numbers.
+
+      2) Remove features where the ratio of the frequency of the most
+         prevalent value to that of the second-most frequent value is
+         large, say 20 or above (Kuhn & Johnson[1]).
 
     Parameters
     ----------
@@ -483,6 +522,17 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
+    strategy : str, optional (default='variance')
+        The strategy by which feature selection should be performed,
+        one of ('variance', 'ratio'). If ``strategy`` is 'variance',
+        features will be selected based on the amount of variance they
+        exhibit; those that are low-variance (below ``threshold``) will
+        be removed. If ``strategy`` is 'ratio', features are dropped if the
+        most prevalent value is represented at a ratio greater than or equal to
+        ``threshold`` to the second-most frequent value. **Note** that if 
+        ``strategy`` is 'ratio', ``threshold`` must be greater than 1.
+
+
     Attributes
     ----------
 
@@ -490,26 +540,57 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         Assigned after calling ``fit``. These are the features that
         are designated as "bad" and will be dropped in the ``transform``
         method.
+
+    var_ : array_like, shape=(n_features,)
+        The variances or ratios, depending on the ``strategy``
+
+
+    References
+    ----------
+
+    .. [1] Kuhn, M. & Johnson, K. "Applied Predictive 
+           Modeling" (2013). New York, NY: Springer.
     """
 
-    def __init__(self, cols=None, threshold=1e-6, as_df=True):
+    def __init__(self, cols=None, threshold=1e-6, as_df=True, strategy='variance'):
         super(NearZeroVarianceFilterer, self).__init__(cols=cols, as_df=as_df)
         self.threshold = threshold
+        self.strategy = strategy
 
     def fit(self, X, y=None):
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
         cols = self.cols if self.cols is not None else X.columns
 
-        # if cols is None, applies over everything
-        variances = X[cols].var()
-        mask = (variances < self.threshold).values
-        self.var_ = variances[mask].tolist()
-        self.drop_ = variances.index[mask].tolist()
+        # validate strategy
+        valid_strategies = ('variance', 'ratio')
+        if not self.strategy in valid_strategies:
+            raise ValueError('strategy must be one of {0}, but got {1}'.format(
+                str(valid_strategies), self.strategy))
+
+
+        if self.strategy == 'variance':
+            # if cols is None, applies over everything
+            variances = X[cols].var()
+            mask = (variances < self.threshold).values
+            self.var_ = variances[mask].tolist()
+            self.drop_ = variances.index[mask].tolist()
+        else:
+            # validate ratio
+            ratio = self.threshold
+            if not ratio > 1.0:
+                raise ValueError('when strategy=="ratio", threshold must be greater than 1.0')
+
+            # get a np.array mask
+            matrix = np.array([_near_zero_variance_ratio(X[col], ratio) for col in cols])
+            drop_mask = matrix[:,1].astype(np.bool)
+            self.var_ = matrix[drop_mask, 0].tolist() # just retain the variances
+            self.drop_ = np.asarray(cols)[drop_mask].tolist()
 
         # I don't like making this None; it opens up bugs in pd.drop,
         # but it was the precedent the API set from early on, so don't
-        # want to change it without a warning.
+        # want to change it without a warning. TODO: in future versions,
+        # don't do this...
         if not self.drop_:
             self.drop_ = None
 

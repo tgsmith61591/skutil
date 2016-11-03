@@ -30,7 +30,7 @@ from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
-from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
+from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df, flatten_all
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold,
@@ -39,7 +39,6 @@ from skutil.h2o.split import (check_cv, H2OKFold,
                               _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
-from skutil.utils import flatten_all
 from skutil.h2o.frame import is_integer, is_float
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
@@ -285,6 +284,27 @@ def test_h2o_with_conn():
 
             # h2o throws weird error because it override __contains__, so use the comprehension
             assert tgt in [c for c in y.columns], 'target feature was accidentally dropped...'
+
+        # test with strategy == ratio
+        if X is not None:
+            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
+            assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
+
+            x = np.array([
+                [1, 2, 3],
+                [1, 5, 3],
+                [1, 2, 4],
+                [2, 5, 4]
+            ])
+
+            df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+            DF = new_h2o_frame(df)
+
+            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(DF)
+            assert len(transformer.drop_) == 1
+            assert transformer.drop_[0] == 'a'
+            assert len(transformer.var_) == 1
+            assert transformer.var_['a'] == 3.0
 
         else:
             pass

@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+The purpose of the utils.fixes module is to provide
+fixes to non version-invariant methods or behavior.
+We want to perform as view version-specific checks
+as possible, so anything that requires version-specific
+behavior should be placed in fixes.
+Author: Taylor G Smith
+"""
 
-from __future__ import division
+from __future__ import division, absolute_import, print_function
 import numbers
 import numpy as np
 import pandas as pd
@@ -17,20 +25,12 @@ from .metaestimators import if_delegate_has_method
 import warnings
 
 __all__ = [
-    '_as_numpy',
-    '_validate_X',
-    '_validate_y',
-    '_check_param_grid',
-    '_CVScoreTuple',
-    '_grid_detail',
-    '_SK17GridSearchCV',
-    '_SK17RandomizedSearchCV',
     'is_iterable'
 ]
 
 VERSION_MAJOR = sys.version_info.major
 
-# deprecation in sklearn 0.18
+# grid_search deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     SK18 = True
     from sklearn.model_selection import check_cv
@@ -122,7 +122,7 @@ def _is_integer(x):
     ----------
 
     x : object
-        The item to assess
+        The item to assess whether is an integer.
 
 
     Returns

@@ -253,6 +253,25 @@ def test_nzv_filterer():
     # expect a ValueError
     assert_fails(NearZeroVarianceFilterer().fit, ValueError, a)
 
+    # test with the ratio strategy
+    transformer = NearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
+    assert_fails(transformer.fit, ValueError, y) # will fail because thresh must be greater than 1.0
+
+    x = np.array([
+        [1, 2, 3],
+        [1, 5, 3],
+        [1, 2, 4],
+        [2, 5, 4]
+    ])
+
+    df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+    transformer = NearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(df)
+    assert len(transformer.drop_) == 1
+    assert transformer.drop_[0] == 'a'
+    assert len(transformer.var_) == 1
+    assert transformer.var_[0] == 3.0
+
+
 
 def test_feature_dropper_warning():
     x = np.array([
