@@ -33,7 +33,14 @@ def _validate_x_y_ratio(X, y, ratio):
         The frame from which to sample
 
     y : str
-        The name of the column that is the response class
+        The name of the column that is the response class.
+        This is the column on which ``value_counts`` will be
+        executed to determine imbalance.
+
+    ratio : float
+        The ratio at which the balancing operation will 
+        be performed. Used to determine whether balancing is
+        required.
 
     Returns
     -------
@@ -82,23 +89,7 @@ class _BaseH2OBalancer(six.with_metaclass(ABCMeta,
 
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     """Oversample the minority classes until they are represented
-    at the target proportion to the majority class. For example, 
-    consider the following pd.Series, ``a_counts``, (index = class, 
-    and values = counts):
-
-        >>> a_counts
-        0  100
-        1  30
-        2  25
-
-    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled 
-    until they are represented at a ratio of at least 0.5 * the prevalence of
-    the majority class (0):
-
-        >>> a_counts_undersampled
-        0  100
-        1  50
-        2  50
+    at the target proportion to the majority class.
 
     Parameters
     ----------
@@ -115,6 +106,34 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 
     shuffle : bool, optional (default=True)
         Whether or not to shuffle rows on return
+
+
+    Examples
+    --------
+    Consider the following example: with a ``ratio`` of 0.5, the 
+    minority classes (1, 2) will be oversampled until they are represented 
+    at a ratio of at least 0.5 * the prevalence of the majority class (0)
+
+        >>> import h2o
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.h2o.frame import value_counts
+        >>> from skutil.h2o import from_pandas
+        >>>
+        >>> # initialize
+        >>> h2o.init()
+        >>> 
+        >>> # 100 zeros, 30 ones and 25 twos
+        >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
+        >>> X = from_pandas(x) # upload to H2O cloud
+        >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
+        >>>
+        >>> X_balanced = sampler.balance(X)
+        >>> value_counts(X_balanced)
+        0.0    100
+        1.0     50
+        2.0     50
+        Name A, dtype: int64
     """
 
     def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, shuffle=True):
@@ -159,21 +178,6 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     """Undersample the majority class until it is represented
     at the target proportion to the most-represented minority class.
-    For example, consider the following pd.Series, ``a_counts``, 
-    (index = class, and values = counts):
-
-        >>> a_counts
-        0  150
-        1  30
-        2  10
-
-    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until
-    the second most-populous class (1) is represented at a ratio of 0.5:
-
-        >>> a_counts_undersampled
-        0  60
-        1  30
-        2  10
 
     Parameters
     ----------
@@ -190,6 +194,34 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 
     shuffle : bool, optional (default=True)
         Whether or not to shuffle rows on return
+
+
+    Examples
+    --------
+    Consider the following example: with a ``ratio`` of 0.5, the 
+    majority class (0) will be undersampled until the second most-populous 
+    class (1) is represented at a ratio of 0.5.
+
+        >>> import h2o
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.h2o.frame import value_counts
+        >>> from skutil.h2o import from_pandas
+        >>>
+        >>> # initialize
+        >>> h2o.init()
+        >>> 
+        >>> # 150 zeros, 30 ones and 10 twos
+        >>> x = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
+        >>> X = from_pandas(x) # upload to H2O cloud
+        >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
+        >>>
+        >>> X_balanced = sampler.balance(X)
+        >>> value_counts(X_balanced)
+        0.0   60
+        1.0   30
+        2.0   10
+        Name: A, dtype: int64
     """
 
     _min_version = '3.8.2.9'

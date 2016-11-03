@@ -9,7 +9,8 @@ __all__ = [
     'as_series',
     'is_numeric',
     'is_integer',
-    'is_float'
+    'is_float',
+    'value_counts'
 ]
 
 
@@ -118,3 +119,24 @@ def is_float(x):
     """
     _check_is_1d_frame(x)
     return is_numeric(x) and not is_integer(x)
+
+
+def value_counts(x):
+    """Compute a Pandas-esque ``value_counts``
+    on a 1d H2OFrame.
+
+    Parameters
+    ----------
+
+    x : H2OFrame, shape=(n_samples, 1)
+        The H2OFrame
+
+    Returns
+    -------
+
+    cts : pd.Series, shape=(n_samples,)
+        The pandas series
+    """
+    x = _check_is_1d_frame(x)
+    cts = as_series(x).value_counts()
+    return cts
