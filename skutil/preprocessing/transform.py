@@ -47,12 +47,12 @@ class FunctionMapper(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     fun : function, default None
         The function to apply to the feature(s)
@@ -145,18 +145,20 @@ class InteractionTermTransformer(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     interaction : callable, optional (default=None)
         A callable for interactions. Default None will
@@ -274,20 +276,24 @@ class SelectiveScaler(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
-    scaler : instance of a sklearn Scaler, default StandardScaler
+    scaler : instance of a sklearn Scaler, optional (default=StandardScaler)
+        The scaler to fit against ``cols``. Must be an instance of
+        ``sklearn.preprocessing.BaseScaler``.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, cols=None, scaler=StandardScaler(), as_df=True):
@@ -355,12 +361,14 @@ class BoxCoxTransformer(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -372,10 +380,10 @@ class BoxCoxTransformer(BaseSkutil):
        one are used.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
 
     Attributes
@@ -527,12 +535,14 @@ class YeoJohnsonTransformer(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -544,10 +554,10 @@ class YeoJohnsonTransformer(BaseSkutil):
        one are used.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
 
     Attributes
@@ -758,12 +768,14 @@ class SpatialSignTransformer(BaseSkutil):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
     n_jobs : int, 1 by default
        The number of jobs to use for the computation. This works by
@@ -775,10 +787,10 @@ class SpatialSignTransformer(BaseSkutil):
        one are used.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
 
     Attributes

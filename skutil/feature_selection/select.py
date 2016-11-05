@@ -41,20 +41,22 @@ class SparseFeatureDropper(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     threshold : float, optional (default=0.5)
         The threshold of sparsity above which features will be
         deemed "too sparse" and will be dropped.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     Attributes
     ----------
@@ -126,10 +128,10 @@ class FeatureDropper(_BaseFeatureSelector):
         parameter).
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     Attributes
     ----------
@@ -157,16 +159,18 @@ class FeatureRetainer(_BaseFeatureSelector):
     Parameters
     ----------
     
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     Attributes
     ----------
@@ -325,22 +329,24 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like (string)
-        The features on which to compute the correlation matrix and from which to
-        compute the ``drop_`` attribute. In the case that ``cols`` is None, 
-        the transformer will be fit on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
-    threshold : float, default 0.85
+    threshold : float, optional (default=0.85)
         The threshold above which to filter correlated features
 
     method : str, one of ['pearson','kendall','spearman'], default 'pearson'
         The method used to compute the correlation
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     Attributes
     ----------
@@ -508,19 +514,21 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     threshold : float, optional (default=1e-6)
         The threshold below which to declare "zero variance"
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     strategy : str, optional (default='variance')
         The strategy by which feature selection should be performed,

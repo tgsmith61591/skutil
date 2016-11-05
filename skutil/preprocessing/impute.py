@@ -92,12 +92,14 @@ class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, ImputerMixin)):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns. Note that since this transformer can only operate
-        on numeric columns, not explicitly setting the ``cols`` parameter
-        may result in errors for categorical data.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation. Note that since 
+        this transformer can only operate on numeric columns, not explicitly 
+        setting the ``cols`` parameter may result in errors for categorical data.
 
     as_df : bool, optional (default=True)
         Whether to return a Pandas DataFrame in the ``transform``

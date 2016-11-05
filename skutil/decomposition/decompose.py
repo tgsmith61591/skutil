@@ -30,8 +30,8 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil)):
 
     cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
-        If no column names are provided, the decomposition will be ``fit``
-        on the entire frame. Note that the transormation will also only
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
         apply to the specified columns, and any other non-specified
         columns will still be present after transformation.
 
@@ -40,9 +40,11 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil)):
         being fit, and determines the number of components to extract
         in the transformation.
 
-    as_df : bool, optional (default=None)
-        Whether or not to return a pandas DataFrame object. If
-        False, will return a np.ndarray instead.
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, cols=None, n_components=None, as_df=True):
@@ -89,8 +91,8 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
     cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
-        If no column names are provided, the decomposition will be ``fit``
-        on the entire frame. Note that the transormation will also only
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
         apply to the specified columns, and any other non-specified
         columns will still be present after transformation.
 
@@ -110,9 +112,11 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
         * ``n_components`` cannot be equal to ``n_features`` for ``svd_solver`` == 'arpack'.
 
-    as_df : bool, optional (default=None)
-        Whether or not to return a pandas DataFrame object. If
-        False, will return a np.ndarray instead.
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     whiten : bool, optional (default False)
         When True (False by default) the `components_` vectors are multiplied
@@ -288,8 +292,8 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
     cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
-        If no column names are provided, the decomposition will be ``fit``
-        on the entire frame. Note that the transormation will also only
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
         apply to the specified columns, and any other non-specified
         columns will still be present after transformation.
 
@@ -309,9 +313,11 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         The default is larger than the default in `randomized_svd` to handle
         sparse matrices that may have large slowly decaying spectrum.
 
-    as_df : bool, optional (default=None)
-        Whether or not to return a pandas DataFrame object. If
-        False, will return a np.ndarray instead.
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
 
     Examples

@@ -27,16 +27,18 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     Attributes
     ----------
