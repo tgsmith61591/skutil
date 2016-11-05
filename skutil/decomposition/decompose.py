@@ -28,7 +28,7 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil)):
     Parameters
     ----------
 
-    cols : array_like (string), optional (default=None)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
         If no column names are provided, the decomposition will be ``fit``
         on the entire frame. Note that the transormation will also only
@@ -87,7 +87,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     Parameters
     ----------
 
-    cols : array_like (string), optional (default=None)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
         If no column names are provided, the decomposition will be ``fit``
         on the entire frame. Note that the transormation will also only
@@ -132,12 +132,24 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         (so as not to down sample or upsample everything), then multiply the weights across the
         transformed features.
 
+    
+    Examples
+    --------
+
+        >>> from skutil.decomposition import SelectivePCA
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> SelectivePCA(n_components=2).fit_transform(X).head()
+                PC1       PC2
+        0 -2.684207  0.326607
+        1 -2.715391 -0.169557
+        2 -2.889820 -0.137346
+        3 -2.746437 -0.311124
+        4 -2.728593  0.333925
+
     Attributes
     ----------
-
-    cols : array_like (string)
-        The names of the columns on which to apply 
-        the transformation.
 
     pca_ : the PCA object
     """
@@ -274,34 +286,52 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     Parameters
     ----------
 
-    cols : array_like (string)
-        names of columns on which to apply scaling
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the decomposition will be ``fit``
+        on the entire frame. Note that the transormation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
-    n_components : int, default = 2
+    n_components : int, (default=2)
         Desired dimensionality of output data.
         Must be strictly less than the number of features.
         The default value is useful for visualisation. For LSA, a value of
         100 is recommended.
 
-    algorithm : string, default = "randomized"
+    algorithm : string, (default="randomized")
         SVD solver to use. Either "arpack" for the ARPACK wrapper in SciPy
         (scipy.sparse.linalg.svds), or "randomized" for the randomized
         algorithm due to Halko (2009).
 
-    n_iter : int, optional (default 5)
+    n_iter : int, optional (default=5)
         Number of iterations for randomized SVD solver. Not used by ARPACK.
         The default is larger than the default in `randomized_svd` to handle
         sparse matrices that may have large slowly decaying spectrum.
 
-    as_df : boolean, default True
-        Whether to return a pandas DataFrame
+    as_df : bool, optional (default=None)
+        Whether or not to return a pandas DataFrame object. If
+        False, will return a np.ndarray instead.
+
+
+    Examples
+    --------
+
+        >>> from skutil.decomposition import SelectiveTruncatedSVD
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> SelectiveTruncatedSVD(n_components=2).fit_transform(X).head()
+           Concept1  Concept2
+        0  5.912204  2.303442
+        1  5.572076  1.973831
+        2  5.446485  2.096533
+        3  5.436019  1.871681
+        4  5.875066  2.329348
 
 
     Attributes
     ----------
-
-    cols : array_like (string)
-        the columns
 
     svd_ : the SVD object
     """

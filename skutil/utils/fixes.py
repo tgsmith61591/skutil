@@ -89,9 +89,7 @@ else:
 def is_iterable(x):
     """Python 3.x adds the ``__iter__`` attribute
     to strings. Thus, our previous tests for iterable
-    will fail:
-
-        >>> if hasattr(x, '__iter__'):  ...
+    will fail when using ``hasattr``.
 
     Parameters
     ----------
@@ -294,9 +292,11 @@ def _get_groups(X, y):
     Returns
     -------
 
-    groups
+    groups : indexable
+        The groups
     """
-    return (X, y, None) if not SK18 else indexable(X, y, None)
+    groups = (X, y, None) if not SK18 else indexable(X, y, None)
+    return groups
 
 
 def _as_numpy(y):

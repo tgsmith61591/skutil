@@ -110,6 +110,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
 
     Examples
     --------
+
     Consider the following example: with a ``ratio`` of 0.5, the 
     minority classes (1, 2) will be oversampled until they are represented 
     at a ratio of at least 0.5 * the prevalence of the majority class (0)
@@ -130,9 +131,9 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> value_counts(X_balanced)
-        0.0    100
-        1.0     50
-        2.0     50
+        0    100
+        1     50
+        2     50
         Name A, dtype: int64
     """
 
@@ -198,6 +199,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
 
     Examples
     --------
+    
     Consider the following example: with a ``ratio`` of 0.5, the 
     majority class (0) will be undersampled until the second most-populous 
     class (1) is represented at a ratio of 0.5.
@@ -218,9 +220,9 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> value_counts(X_balanced)
-        0.0   60
-        1.0   30
-        2.0   10
+        0    60
+        1    30
+        2    10
         Name: A, dtype: int64
     """
 

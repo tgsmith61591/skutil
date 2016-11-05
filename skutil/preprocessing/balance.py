@@ -12,7 +12,6 @@ from skutil.base import overrides, BaseSkutil
 from ..utils import *
 
 __all__ = [
-    'BalancerMixin',
     'OversamplingClassBalancer',
     'SMOTEClassBalancer',
     'UndersamplingClassBalancer'
@@ -356,6 +355,7 @@ class OversamplingClassBalancer(_BaseBalancer):
 
     Examples
     --------
+    
     Consider the following example: with a ``ratio`` of 0.5, the 
     minority classes (1, 2) will be oversampled until they are represented 
     at a ratio of at least 0.5 * the prevalence of the majority class (0)
@@ -368,10 +368,10 @@ class OversamplingClassBalancer(_BaseBalancer):
         >>> sampler = OversamplingClassBalancer(y="A", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)
-        >>> X_balanced['A'].value_counts()
-        0.0    100
-        1.0     50
-        2.0     50
+        >>> X_balanced['A'].value_counts().sort_index()
+        0    100
+        1     50
+        2     50
         Name: A, dtype: int64
     """
 
@@ -440,6 +440,7 @@ class SMOTEClassBalancer(_BaseBalancer):
 
     Examples
     --------
+
     Consider the following example: with a ``ratio`` of 0.5, the 
     minority classes (1, 2) will be oversampled until they are represented 
     at a ratio of at least 0.5 * the prevalence of the majority class (0)
@@ -458,10 +459,10 @@ class SMOTEClassBalancer(_BaseBalancer):
         >>> sampler = SMOTEClassBalancer(y="y", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)
-        >>> X_balanced['y'].value_counts()
-        0.0    100
-        2.0     50
-        1.0     50
+        >>> X_balanced['y'].value_counts().sort_index()
+        0    100
+        2     50
+        1     50
         Name: y, dtype: int64
     """
 
@@ -593,6 +594,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
 
     Examples
     --------
+
     Consider the following example: with a ``ratio`` of 0.5, the 
     majority class (0) will be undersampled until the second most-populous 
     class (1) is represented at a ratio of 0.5.
@@ -605,10 +607,10 @@ class UndersamplingClassBalancer(_BaseBalancer):
         >>> sampler = UndersamplingClassBalancer(y="A", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)
-        >>> X_balanced['A'].value_counts()
-        0.0    60
-        1.0    30
-        2.0    10
+        >>> X_balanced['A'].value_counts().sort_index()
+        0    60
+        1    30
+        2    10
         Name: A, dtype: int64
     """
 
