@@ -5,9 +5,9 @@ from sklearn.externals import six
 from skutil.base import overrides
 from .util import reorder_h2o_frame
 from .base import check_frame, BaseH2OFunctionWrapper
-from ..preprocessing import BalancerMixin
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
-                                     _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner)
+                                     _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
+                                     BalancerMixin)
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -121,10 +121,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         >>> from skutil.h2o.frame import value_counts
         >>> from skutil.h2o import from_pandas
         >>>
-        >>> # initialize
         >>> h2o.init()
-        >>> 
-        >>> # 100 zeros, 30 ones and 25 twos
         >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
         >>> X = from_pandas(x) # upload to H2O cloud
         >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
@@ -210,10 +207,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         >>> from skutil.h2o.frame import value_counts
         >>> from skutil.h2o import from_pandas
         >>>
-        >>> # initialize
         >>> h2o.init()
-        >>> 
-        >>> # 150 zeros, 30 ones and 10 twos
         >>> x = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
         >>> X = from_pandas(x) # upload to H2O cloud
         >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
