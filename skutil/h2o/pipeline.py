@@ -308,14 +308,16 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         is a **kwargs-style dictionary whose keys should be prefixed by the
         name of the step targeted and a double underscore:
 
-            >>> pipeline = H2OPipeline([
-            ...     ('mcf', H2OMulticollinearityFilterer()),
-            ...     ('rf',  H2ORandomForestEstimator())
-            ... ])
-            >>> pipe.set_params(**{
-            ...     'rf__ntrees':     100, 
-            ...     'mcf__threshold': 0.75
-            ... })
+        #    >>> from skutil.h2o.select import H2OMulticollinearityFilterer
+        #    >>> from h2o.estimators import H2ORandomForestEstimator
+        #    >>> pipe = H2OPipeline([
+        #    ...     ('mcf', H2OMulticollinearityFilterer()),
+        #    ...     ('rf',  H2ORandomForestEstimator())
+        #    ... ])
+        #    >>> pipe.set_params(**{
+        #    ...     'rf__ntrees':     100,
+        #    ...     'mcf__threshold': 0.75
+        #    ... })
 
         Returns
         -------

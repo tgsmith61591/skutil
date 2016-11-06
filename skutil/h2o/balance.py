@@ -115,27 +115,27 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     minority classes (1, 2) will be oversampled until they are represented 
     at a ratio of at least 0.5 * the prevalence of the majority class (0)
 
-        >>> import h2o
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> from skutil.h2o.frame import value_counts
-        >>> from skutil.h2o import from_pandas
-        >>>
-        >>> h2o.init() # doctest:+ELLIPSIS
-        ...
-        >>>
-        >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
-        >>> X = from_pandas(x) # doctest:+ELLIPSIS
-        ...
-        >>>
-        >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
-        >>>
-        >>> X_balanced = sampler.balance(X)
-        >>> value_counts(X_balanced)
-        0    100
-        1     50
-        2     50
-        Name A, dtype: int64
+    #    >>> import h2o
+    #    >>> import pandas as pd
+    #    >>> import numpy as np
+    #    >>> from skutil.h2o.frame import value_counts
+    #    >>> from skutil.h2o import from_pandas
+    #    >>>
+    #    >>> h2o.init() # doctest:+ELLIPSIS
+    #    ...
+    #    >>>
+    #    >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
+    #    >>> X = from_pandas(x) # doctest:+ELLIPSIS
+    #    ...
+    #    >>>
+    #    >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
+    #    >>>
+    #    >>> X_balanced = sampler.balance(X)
+    #    >>> value_counts(X_balanced)
+    #    0    100
+    #    1     50
+    #    2     50
+    #    Name A, dtype: int64
     """
 
     def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, shuffle=True):
@@ -205,27 +205,27 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     majority class (0) will be undersampled until the second most-populous 
     class (1) is represented at a ratio of 0.5.
 
-        >>> import h2o
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> from skutil.h2o.frame import value_counts
-        >>> from skutil.h2o import from_pandas
-        >>>
-        >>> h2o.init() # doctest:+ELLIPSIS
-        ...
-        >>>
-        >>> x = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
-        >>> X = from_pandas(x) # doctest:+ELLIPSIS
-        ...
-        >>>
-        >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
-        >>>
-        >>> X_balanced = sampler.balance(X)
-        >>> value_counts(X_balanced)
-        0    60
-        1    30
-        2    10
-        Name: A, dtype: int64
+    #    >>> import h2o
+    #    >>> import pandas as pd
+    #    >>> import numpy as np
+    #    >>> from skutil.h2o.frame import value_counts
+    #    >>> from skutil.h2o import from_pandas
+    #    >>>
+    #    >>> h2o.init() # doctest:+ELLIPSIS
+    #    ...
+    #    >>>
+    #    >>> x = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
+    #    >>> X = from_pandas(x) # doctest:+ELLIPSIS
+    #    ...
+    #    >>>
+    #    >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
+    #    >>>
+    #    >>> X_balanced = sampler.balance(X)
+    #    >>> value_counts(X_balanced)
+    #    0    60
+    #    1    30
+    #    2    10
+    #    Name: A, dtype: int64
     """
 
     _min_version = '3.8.2.9'

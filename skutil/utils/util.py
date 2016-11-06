@@ -319,7 +319,7 @@ def flatten_all(container):
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
         >>> flatten_all(a)
-        [3,4,'1','a',1,1,2]
+        [3, 4, '1', 'a', 1, 1, 2]
 
 
     Returns
@@ -349,8 +349,8 @@ def flatten_all_generator(container):
     The example below produces a list of mixed results:
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
-        >>> flatten_all(a)
-        [3,4,'1','a',1,1,2] # yields a generator for this iterable
+        >>> flatten_all(a) # yields a generator for this iterable
+        [3, 4, '1', 'a', 1, 1, 2]
     """
     if not is_iterable(container):
         yield container
