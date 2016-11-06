@@ -38,6 +38,18 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
+
+    Examples
+    --------
+
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> filterer = LinearCombinationFilterer()
+        >>> X_transform = filterer.fit_transform(X)
+        >>> assert X_transform.shape[1] == 4 # no combos
+
+
     Attributes
     ----------
 
@@ -179,9 +191,9 @@ def _enumLC(decomp):
     if not (rank == n_features):
         pivot = decomp.pivot        # the pivot vector
         X = R[:rank, :rank]         # extract the independent cols
-        Y = R[:rank, rank:]  # +1?     # extract the dependent columns
+        Y = R[:rank, rank:]  # +1?  # extract the dependent columns
 
-        new_qr = QRDecomposition(X)  # factor the independent columns
+        new_qr = QRDecomposition(X) # factor the independent columns
         b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
 
         # if b is None, then there were no dependent columns

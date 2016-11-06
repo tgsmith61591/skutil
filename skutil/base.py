@@ -71,6 +71,23 @@ def suppress_warnings(func):
         Automatically passed to the decorator. This
         function is run within the context of the warning
         filterer.
+
+
+    Examples
+    --------
+
+    When any function is decorated with the ``suppress_warnings``
+    decorator, any warnings that are raised will be suppressed.
+
+        >>> import warnings
+        >>>
+        >>> @suppress_warnings
+        ... def fun_that_warns():
+        ...     warnings.warn("This is a warning", UserWarning)
+        ...     return 1
+        >>>
+        >>> fun_that_warns()
+        1
     """
 
     def suppressor(*args, **kwargs):
@@ -103,6 +120,8 @@ class SelectiveMixin:
     """
     # at one time, this contained methods. But They've since
     # been weeded out one-by-one... do we want to keep it?
+    # TODO: in future versions, remove this mixin or add
+    # concrete functionality
 
 
 class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, 

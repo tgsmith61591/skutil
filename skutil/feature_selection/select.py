@@ -36,7 +36,8 @@ def _validate_cols(cols):
 
 class SparseFeatureDropper(_BaseFeatureSelector):
     """Retains features that are less sparse (NaN) than
-    the provided threshold.
+    the provided threshold. Useful in situations where matrices
+    are too sparse to impute reliably.
 
     Parameters
     ----------
@@ -58,10 +59,31 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> nan = np.nan
+        >>> X = np.array([
+        ...     [1.0, 2.0, nan],
+        ...     [2.0, 3.0, nan],
+        ...     [3.0, nan, 1.0],
+        ...     [4.0, 5.0, nan]
+        ... ])
+        >>>
+        >>> X = pd.DataFrame.from_records(data=X, columns=['a','b','c'])
+        >>> dropper = SparseFeatureDropper(threshold=0.5)
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 2 # drop out last column
+
+
     Attributes
     ----------
 
-    sparsity_ : array_like, (n_cols,)
+    sparsity_ : array_like, shape=(n_features,)
         The array of sparsity values
     
     drop_ : array_like, shape=(n_features,)
@@ -80,7 +102,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -119,7 +141,7 @@ class FeatureDropper(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like (string)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The features to drop. Note that ``FeatureDropper`` behaves slightly
         differently from all other ``_BaseFeatureSelector`` classes in the sense
         that it will drop all of the features prescribed in this parameter. However,
@@ -132,6 +154,7 @@ class FeatureDropper(_BaseFeatureSelector):
         method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
 
     Attributes
     ----------
@@ -171,6 +194,7 @@ class FeatureRetainer(_BaseFeatureSelector):
         method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
 
     Attributes
     ----------
@@ -232,7 +256,7 @@ def filter_collinearity(c, threshold):
     Parameters
     ----------
 
-    c : pandas DataFrame
+    c : pandas ``DataFrame``
         The pre-computed correlation matrix. This is expected to be
         a square matrix, and will raise a ``ValueError`` if it's not.
 
@@ -240,12 +264,21 @@ def filter_collinearity(c, threshold):
         The threshold above which to filter features which
         are multicollinear in nature.
 
+
     Returns
     -------
 
-    out_tup: tuple
-        drops, macor, crrz (The drop list, the mean absolute 
-        correlations, and the correlation tuples)
+    drops : list (string), shape=(n_features,)
+        The features that should be dropped
+
+    macor : list (float), shape=(n_features,)
+        The mean absolute correlations between
+        the features.
+
+    crrz : list (_MCFTuple), shape=(n_features,)
+        The tuple containing all information on the
+        collinearity metrics between each pairwise
+        correlation.
     """
     # ensure symmetric
     if c.shape[0] != c.shape[1]:
@@ -348,6 +381,28 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
+
+    Examples
+    --------
+
+    The following demonstrates a simple multicollinearity filterer 
+    applied to the iris dataset.
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> mcf = MulticollinearityFilterer(threshold=0.85)
+        >>> mcf.fit_transform(X).head()
+           sepal length (cm)  sepal width (cm)  petal width (cm)
+        0                5.1               3.5               0.2
+        1                4.9               3.0               0.2
+        2                4.7               3.2               0.2
+        3                4.6               3.1               0.2
+        4                5.0               3.6               0.2
+
+
     Attributes
     ----------
 
@@ -374,7 +429,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -398,7 +453,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -433,19 +488,15 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
 
-    def transform(self, X, y=None):
+    def transform(self, X):
         """Drops the multicollinear features from the new
         input frame.
 
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -472,7 +523,7 @@ def _near_zero_variance_ratio(series, ratio):
     Parameters
     ----------
     
-    series : pd.Series, shape=(n_samples,)
+    series : pandas ``Series``, shape=(n_samples,)
         The series on which to compute ``value_counts``.
 
     Returns
