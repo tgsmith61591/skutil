@@ -144,13 +144,9 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         >>> from skutil.utils import load_iris_df
         >>>
         >>> X = load_iris_df(include_tgt=False)
-        >>> SelectivePCA(n_components=2).fit_transform(X).head()
-                PC1       PC2
-        0 -2.684207  0.326607
-        1 -2.715391 -0.169557
-        2 -2.889820 -0.137346
-        3 -2.746437 -0.311124
-        4 -2.728593  0.333925
+        >>> pca = SelectivePCA(n_components=2)
+        >>> X_transform = pca.fit_transform(X) # pca suffers sign indeterminancy and results will vary
+        >>> assert X_transform.shape[1] == 2
 
     Attributes
     ----------
@@ -327,13 +323,9 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         >>> from skutil.utils import load_iris_df
         >>>
         >>> X = load_iris_df(include_tgt=False)
-        >>> SelectiveTruncatedSVD(n_components=2).fit_transform(X).head()
-           Concept1  Concept2
-        0  5.912204  2.303442
-        1  5.572076  1.973831
-        2  5.446485  2.096533
-        3  5.436019  1.871681
-        4  5.875066  2.329348
+        >>> svd = SelectiveTruncatedSVD(n_components=2)
+        >>> X_transform = svd.fit_transform(X) # svd suffers sign indeterminancy and results will vary
+        >>> assert X_transform.shape[1] == 2
 
 
     Attributes

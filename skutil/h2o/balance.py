@@ -121,9 +121,13 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         >>> from skutil.h2o.frame import value_counts
         >>> from skutil.h2o import from_pandas
         >>>
-        >>> h2o.init()
+        >>> h2o.init() # doctest:+ELLIPSIS
+        ...
+        >>>
         >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
-        >>> X = from_pandas(x) # upload to H2O cloud
+        >>> X = from_pandas(x) # doctest:+ELLIPSIS
+        ...
+        >>>
         >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)
@@ -207,9 +211,13 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         >>> from skutil.h2o.frame import value_counts
         >>> from skutil.h2o import from_pandas
         >>>
-        >>> h2o.init()
+        >>> h2o.init() # doctest:+ELLIPSIS
+        ...
+        >>>
         >>> x = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
-        >>> X = from_pandas(x) # upload to H2O cloud
+        >>> X = from_pandas(x) # doctest:+ELLIPSIS
+        ...
+        >>>
         >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)

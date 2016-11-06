@@ -39,10 +39,13 @@ def overrides(interface_class):
     The following would be an invalid ``overrides`` statement, since
     ``A`` does not have a ``b`` method to override.
 
-        >>> class C(B):
+        >>> class C(B): # doctest: +IGNORE_EXCEPTION_DETAIL
         ...     @overrides(A) # should override B, not A
         ...     def b(self):
         ...         return 1
+        Traceback (most recent call last):  
+        AssertionError: A.b must override a super method!
+
     """
 
     def overrider(method):
