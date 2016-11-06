@@ -460,10 +460,10 @@ class SMOTEClassBalancer(_BaseBalancer):
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> X_balanced['y'].value_counts().sort_index()
-       0.0    100
-       1.0     50
-       2.0     50
-       Name: y, dtype: int64
+        0.0    100
+        1.0     50
+        2.0     50
+        Name: y, dtype: int64
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, k=3, as_df=True):
