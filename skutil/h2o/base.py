@@ -413,6 +413,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         Note that this is a static method and should be called accordingly:
 
+            >>> from skutil.h2o.select import H2OMulticollinearityFilterer
             >>> mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
             >>> mcf.transform(X)
 
@@ -426,6 +427,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         class that is being loaded should be statically referenced at the level of
         lowest abstraction possible:
 
+            >>> from skutil.h2o.pipeline import H2OPipeline
             >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl')
 
         Parameters

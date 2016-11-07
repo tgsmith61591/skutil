@@ -31,26 +31,25 @@ class H2OLabelEncoder(BaseH2OTransformer):
     into ordinal labels 0 - len(column) - 1.
 
     Example (given ``column``):
-        
-    >>> column
-      C1
-    ----
-       5
-       6
-       5
-       7
-       7
-    [5 rows x 1 column]
+    # >>> column
+    #  C1
+    #----
+    #   5
+    #   6
+    #   5
+    #   7
+    #   7
+    #[5 rows x 1 column]
 
-    >>> H2OLabelEncoder().fit_transform(column)
-      C1
-    ----
-       0
-       1
-       0
-       2
-       2
-    [5 rows x 1 column]
+    #>>> H2OLabelEncoder().fit_transform(column)
+    #  C1
+    #----
+    #   0
+    #   1
+    #   0
+    #   2
+    #   2
+    #[5 rows x 1 column]
 
     Parameters
     ----------

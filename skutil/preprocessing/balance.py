@@ -369,9 +369,9 @@ class OversamplingClassBalancer(_BaseBalancer):
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> X_balanced['A'].value_counts().sort_index()
-        0    100
-        1     50
-        2     50
+        0.0    100
+        1.0     50
+        2.0     50
         Name: A, dtype: int64
     """
 
@@ -454,15 +454,15 @@ class SMOTEClassBalancer(_BaseBalancer):
         >>>
         >>> # 100 zeros, 30 ones and 25 twos
         >>> X = pd.DataFrame(np.asarray([prng.rand(155), 
-                                         np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2])]).T, 
-                                         columns=['x', 'y'])
+        ...                              np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2])]).T,
+        ...                              columns=['x', 'y'])
         >>> sampler = SMOTEClassBalancer(y="y", ratio=0.5)
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> X_balanced['y'].value_counts().sort_index()
-        0    100
-        2     50
-        1     50
+        0.0    100
+        1.0     50
+        2.0     50
         Name: y, dtype: int64
     """
 
@@ -608,9 +608,9 @@ class UndersamplingClassBalancer(_BaseBalancer):
         >>>
         >>> X_balanced = sampler.balance(X)
         >>> X_balanced['A'].value_counts().sort_index()
-        0    60
-        1    30
-        2    10
+        0.0    60
+        1.0    30
+        2.0    10
         Name: A, dtype: int64
     """
 
