@@ -6,6 +6,7 @@ from skutil.odr import QRDecomposition
 from .base import _BaseFeatureSelector
 from .select import _validate_cols
 from ..utils import flatten_all, validate_is_pd
+from ..utils.fixes import _cols_if_none
 
 
 __all__ = [
@@ -47,7 +48,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         >>> X = load_iris_df(include_tgt=False)
         >>> filterer = LinearCombinationFilterer()
         >>> X_transform = filterer.fit_transform(X)
-        >>> assert X_transform.shape[1] == 4 # no combos
+        >>> assert X_transform.shape[1] == 4 # no combos in iris...
 
 
     Attributes
@@ -63,15 +64,16 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         super(LinearCombinationFilterer, self).__init__(cols=cols, as_df=as_df)
 
     def fit(self, X, y=None):
-        """Fit the linear combination filterer.
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -86,16 +88,17 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         return self
 
     def fit_transform(self, X, y=None):
-        """Fit the linear combination filterer and return
-        the transformed matrix or DataFrame.
+        """Fit the transformer and return the transformed
+        training array.
 
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -104,19 +107,18 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         Returns
         -------
 
-        dropped : Pandas DataFrame or NumPy ndarray
-            The training frame sans "bad" columns
+        self
         """
 
         # check on state of X and cols
-        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
+        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True) # must all be finite for fortran
         _validate_cols(self.cols)
 
         # init drops list
         drops = []
 
         # Generate sub matrix for qr decomposition
-        cols = [n for n in (self.cols if self.cols is not None else X.columns)]  # get a copy of the cols
+        cols = _cols_if_none(X, self.cols) # get a copy of the cols
         x = X[cols].as_matrix()
         cols = np.array(cols)  # so we can do boolean indexing
 
@@ -145,29 +147,6 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         self.drop_ = [p for p in set(drops)] # a list from the a set of the drops
         dropped = X.drop(self.drop_, axis=1)
 
-        return dropped if self.as_df else dropped.as_matrix()
-
-    def transform(self, X):
-        """Drops the linear combination features from the new
-        input frame.
-
-        Parameters
-        ----------
-
-        X : Pandas DataFrame
-            The Pandas frame to transform.
-
-        Returns
-        -------
-
-        dropped : Pandas DataFrame or NumPy ndarray
-            The test frame sans "bad" columns
-        """
-        check_is_fitted(self, 'drop_')
-        # check on state of X and cols
-        X, _ = validate_is_pd(X, self.cols)
-
-        dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
         
 

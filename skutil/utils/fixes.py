@@ -110,6 +110,24 @@ def is_iterable(x):
     return hasattr(x, '__iter__')
 
 
+def _cols_if_none(X, self_cols):
+    """Since numerous transformers in the preprocessing
+    and feature selection modules take ``cols`` arguments
+    (which could end up as ``None`` via the ``validate_is_pd``
+    method), this will return the columns that should be used.
+
+    Parameters
+    ----------
+
+    X : Pandas ``DataFrame``
+        The data frame being transformed.
+
+    self_cols : list (string) or None
+        The columns.
+    """
+    return X.columns.tolist() if not self_cols else self_cols
+
+
 def _is_integer(x):
     """Determine whether some object ``x`` is an
     integer type (int, long, etc). This is part of the 

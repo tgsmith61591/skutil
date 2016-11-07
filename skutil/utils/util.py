@@ -10,7 +10,7 @@ from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail, _is_integer, is_iterable
+from .fixes import _grid_detail, _is_integer, is_iterable, _cols_if_none
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -188,7 +188,14 @@ def _val_cols(cols):
             return [cols]
         else:
             raise ValueError('cols must be an iterable sequence')
-    return [c for c in cols]  # make it a list implicitly, make no guarantees about elements
+
+    # if it is an index or a np.ndarray, it will have a built-in
+    # (potentially more efficient tolist() method)
+    if hasattr(cols, 'tolist') and hasattr(cols.tolist, '__call__'):
+        return cols.tolist()
+
+    # make it a list implicitly, make no guarantees about elements
+    return [c for c in cols]
 
 
 def _def_headers(X):
@@ -482,7 +489,11 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     # we need to ensure all are finite
     if assert_all_finite:
-        if X.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
+        # if cols, we only need to ensure the specified columns are finite
+        cols = _cols_if_none(X, cols)
+        X_prime = X[cols]
+
+        if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')
 
     return X, cols

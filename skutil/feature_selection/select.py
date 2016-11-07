@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 from collections import namedtuple
 import numpy as np
@@ -5,6 +7,7 @@ import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 from .base import _BaseFeatureSelector
 from ..utils import validate_is_pd, is_numeric
+from ..utils.fixes import _cols_if_none
 
 __all__ = [
     'FeatureDropper',
@@ -97,7 +100,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         self.threshold = threshold
 
     def fit(self, X, y=None):
-        """Fit the linear combination filterer.
+        """Fit the transformer.
 
         Parameters
         ----------
@@ -105,7 +108,8 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -125,7 +129,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
                              '0 (inclusive) and 1. Got %s' % str(thresh))
 
         # get cols
-        cols = self.cols if self.cols is not None else X.columns.tolist()
+        cols = _cols_if_none(X, self.cols)
 
         # assess sparsity
         self.sparsity_ = X[cols].apply(lambda x: x.isnull().sum() / x.shape[0]).values  # numpy array
@@ -154,6 +158,18 @@ class FeatureDropper(_BaseFeatureSelector):
         method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.random.rand(3,3), columns=['a','b','c'])
+        >>> dropper = FeatureDropper(cols=['a','b'])
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 1 # drop out first two columns
 
 
     Attributes
@@ -196,6 +212,18 @@ class FeatureRetainer(_BaseFeatureSelector):
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
 
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.random.rand(3,3), columns=['a','b','c'])
+        >>> dropper = FeatureRetainer(cols=['a','b'])
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 2 # retain first two columns
+
+
     Attributes
     ----------
     
@@ -209,6 +237,26 @@ class FeatureRetainer(_BaseFeatureSelector):
         super(FeatureRetainer, self).__init__(cols=cols, as_df=as_df)
 
     def fit(self, X, y=None):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+
+        X : Pandas ``DataFrame``
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
 
@@ -222,7 +270,9 @@ class FeatureRetainer(_BaseFeatureSelector):
         check_is_fitted(self, 'drop_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)  # copy X
-        retained = X[self.cols or X.columns]  # if cols is None, returns all
+        cols = X.columns if self.cols is None else self.cols
+
+        retained = X[cols]  # if cols is None, returns all
         return retained if self.as_df else retained.as_matrix()
 
 
@@ -372,8 +422,9 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     threshold : float, optional (default=0.85)
         The threshold above which to filter correlated features
 
-    method : str, one of ['pearson','kendall','spearman'], default 'pearson'
-        The method used to compute the correlation
+    method : str, optional (default='pearson')
+        The method used to compute the correlation,
+        one of ['pearson','kendall','spearman'].
 
     as_df : bool, optional (default=True)
         Whether to return a Pandas ``DataFrame`` in the ``transform``
@@ -424,7 +475,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         self.method = method
 
     def fit(self, X, y=None):
-        """Fit the multicollinearity filterer.
+        """Fit the transformer.
 
         Parameters
         ----------
@@ -432,7 +483,8 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -456,7 +508,8 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -470,10 +523,11 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-        _validate_cols(self.cols)
+        cols = _cols_if_none(X, self.cols)
+        _validate_cols(cols)
 
         # Generate correlation matrix
-        c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
+        c = X[cols].corr(method=self.method).apply(lambda x: np.abs(x))
 
         # get drops list
         d, mac, crz = filter_collinearity(c, self.threshold)
@@ -484,33 +538,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         # if drop is None, we need to just return X
         if not self.drop_:
             return X if self.as_df else X.as_matrix()
-
-        dropped = X.drop(self.drop_, axis=1)
-        return dropped if self.as_df else dropped.as_matrix()
-
-    def transform(self, X):
-        """Drops the multicollinear features from the new
-        input frame.
-
-        Parameters
-        ----------
-
-        X : Pandas ``DataFrame``
-            The Pandas frame to transform.
-
-        Returns
-        -------
-
-        dropped : Pandas DataFrame or NumPy ndarray
-            The test frame sans "bad" columns
-        """
-        check_is_fitted(self, 'drop_')
-        # check on state of X and cols
-        X, _ = validate_is_pd(X, self.cols)
-
-        # ensure we don't drop None
-        if not self.drop_:
-            return X
 
         dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
@@ -617,9 +644,29 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         self.strategy = strategy
 
     def fit(self, X, y=None):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+
+        X : Pandas ``DataFrame``
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-        cols = self.cols if self.cols is not None else X.columns
+        cols = _cols_if_none(X, self.cols)
 
         # validate strategy
         valid_strategies = ('variance', 'ratio')
