@@ -1,7 +1,19 @@
-from __future__ import division
+# -*- coding: utf-8 -*-
+"""
+The purpose of the utils.fixes module is to provide
+fixes to non version-invariant methods or behavior.
+We want to perform as view version-specific checks
+as possible, so anything that requires version-specific
+behavior should be placed in fixes.
+Author: Taylor G Smith
+"""
+
+from __future__ import division, absolute_import, print_function
+import numbers
 import numpy as np
 import pandas as pd
 import sklearn
+import sys
 from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
@@ -13,17 +25,16 @@ from .metaestimators import if_delegate_has_method
 import warnings
 
 __all__ = [
-    '_as_numpy',
-    '_validate_X',
-    '_validate_y',
-    '_check_param_grid',
-    '_CVScoreTuple',
-    '_grid_detail',
-    '_SK17GridSearchCV',
-    '_SK17RandomizedSearchCV'
+    'is_iterable'
 ]
 
-# deprecation in sklearn 0.18
+VERSION_MAJOR = sys.version_info.major
+
+# easier test for numericism
+if VERSION_MAJOR > 2:
+    long = int
+
+# grid_search deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     SK18 = True
     from sklearn.model_selection import check_cv
@@ -77,6 +88,71 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def is_iterable(x):
+    """Python 3.x adds the ``__iter__`` attribute
+    to strings. Thus, our previous tests for iterable
+    will fail when using ``hasattr``.
+
+    Parameters
+    ----------
+
+    x : object
+        The object or primitive to test whether
+        or not is an iterable.
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an iterable
+    """
+    if isinstance(x, six.string_types):
+        return False
+    return hasattr(x, '__iter__')
+
+
+def _cols_if_none(X, self_cols):
+    """Since numerous transformers in the preprocessing
+    and feature selection modules take ``cols`` arguments
+    (which could end up as ``None`` via the ``validate_is_pd``
+    method), this will return the columns that should be used.
+
+    Parameters
+    ----------
+
+    X : Pandas ``DataFrame``
+        The data frame being transformed.
+
+    self_cols : list (string) or None
+        The columns.
+    """
+    return X.columns.tolist() if not self_cols else self_cols
+
+
+def _is_integer(x):
+    """Determine whether some object ``x`` is an
+    integer type (int, long, etc). This is part of the 
+    ``fixes`` module, since Python 3 removes the long
+    datatype, we have to check the version major.
+
+    Parameters
+    ----------
+
+    x : object
+        The item to assess whether is an integer.
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an integer type
+    """
+    return (not isinstance(x, (bool, np.bool))) and \
+        isinstance(x, (numbers.Integral, int, np.int, np.long, long)) # no long type in python 3
 
 
 def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):
@@ -237,9 +313,11 @@ def _get_groups(X, y):
     Returns
     -------
 
-    groups
+    groups : indexable
+        The groups
     """
-    return (X, y, None) if not SK18 else indexable(X, y, None)
+    groups = (X, y, None) if not SK18 else indexable(X, y, None)
+    return groups
 
 
 def _as_numpy(y):
@@ -263,7 +341,7 @@ def _as_numpy(y):
         return np.copy(y)
     elif hasattr(y, 'as_matrix'):
         return y.as_matrix()
-    elif hasattr(y, '__iter__'):
+    elif is_iterable(y):
         return np.asarray([i for i in y])
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
 

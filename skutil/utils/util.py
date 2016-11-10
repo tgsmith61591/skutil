@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division, absolute_import
-import numbers
 import warnings
 import numpy as np
 import pandas as pd
+import numbers
 import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail
+from .fixes import _grid_detail, _is_integer, is_iterable, _cols_if_none
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -118,13 +118,14 @@ def _exp_single(x):
 
 
 def _vectorize(fun, x):
-    if hasattr(x, '__iter__'):
+    if is_iterable(x):
         return np.array([fun(p) for p in x])
-    raise ValueError('Type %s does not have attr __iter__' % type(x))
+    raise ValueError('Type %s is not iterable' % type(x))
 
 
 def exp(x):
-    """A safe mechanism for computing the exponential function.
+    """A safe mechanism for computing the exponential function
+    while avoiding overflows.
     
     Parameters
     ----------
@@ -150,7 +151,8 @@ def exp(x):
 
 
 def log(x):
-    """A safe mechanism for computing a log.
+    """A safe mechanism for computing a log while
+    avoiding NaNs or exceptions.
 
     Parameters
     ----------
@@ -181,12 +183,19 @@ def _val_cols(cols):
         return cols
 
     # try to make cols a list
-    if not hasattr(cols, '__iter__'):
+    if not is_iterable(cols):
         if isinstance(cols, six.string_types):
             return [cols]
         else:
             raise ValueError('cols must be an iterable sequence')
-    return [c for c in cols]  # make it a list implicitly, make no guarantees about elements
+
+    # if it is an index or a np.ndarray, it will have a built-in
+    # (potentially more efficient tolist() method)
+    if hasattr(cols, 'tolist') and hasattr(cols.tolist, '__call__'):
+        return cols.tolist()
+
+    # make it a list implicitly, make no guarantees about elements
+    return [c for c in cols]
 
 
 def _def_headers(X):
@@ -317,7 +326,7 @@ def flatten_all(container):
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
         >>> flatten_all(a)
-        [3,4,'1','a',1,1,2]
+        [3, 4, '1', 'a', 1, 1, 2]
 
 
     Returns
@@ -347,14 +356,14 @@ def flatten_all_generator(container):
     The example below produces a list of mixed results:
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
-        >>> flatten_all(a)
-        [3,4,'1','a',1,1,2] # yields a generator for this iterable
+        >>> flatten_all(a) # yields a generator for this iterable
+        [3, 4, '1', 'a', 1, 1, 2]
     """
-    if not hasattr(container, '__iter__'):
+    if not is_iterable(container):
         yield container
     else:
         for i in container:
-            if hasattr(i, '__iter__'):
+            if is_iterable(i):
                 for j in flatten_all_generator(i):
                     yield j
             else:
@@ -445,7 +454,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         is_df = isinstance(X, pd.DataFrame)
 
         # we do want to make sure the X at least is "array-like"
-        if not hasattr(X, '__iter__'):
+        if not is_iterable(X):
             raise TypeError('X (type=%s) cannot be cast to DataFrame' % type(X))
 
         # case 1, we have names but the X is not a frame
@@ -469,7 +478,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
         else:
             # we'll do two tests here... either that it's a np ndarray or a list of lists
-            if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
+            if isinstance(X, np.ndarray) or (is_iterable(X) and all(isinstance(elem, list) for elem in X)):
                 return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
 
             # bail out:
@@ -480,13 +489,17 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     # we need to ensure all are finite
     if assert_all_finite:
-        if X.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
+        # if cols, we only need to ensure the specified columns are finite
+        cols_tmp = _cols_if_none(X, cols)
+        X_prime = X[cols_tmp]
+
+        if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')
 
     return X, cols
 
 
-def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
+def df_memory_estimate(X, unit='MB', index=False):
     """We estimate the memory footprint of an H2OFrame
     to determine whether it's capable of being held in memory 
     or not.
@@ -494,15 +507,14 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
     Parameters
     ----------
 
-    X : pandas DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame in question
-
-    bit_est : int, optional (default=32)
-        The estimated bit-size of each cell. The default
-        assumes each cell is a signed 32-bit float
 
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
+    index : bool, optional (default=False)
+        Whether to also estimate the memory footprint of the index.
 
 
     Returns
@@ -535,7 +547,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
     Parameters
     ----------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame on which to compute stats.
 
     col_type : str, optional (default='all')
@@ -556,7 +568,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
     Returns
     -------
 
-    s : pd.DataFrame, shape=(n_samples, n_features)
+    s : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The resulting stats dataframe
     """
     X, _ = validate_is_pd(X, None, False)
@@ -656,7 +668,7 @@ def get_numeric(X):
     Parameters
     ----------
 
-    X : pandas DF
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe
 
 
@@ -711,7 +723,7 @@ def is_entirely_numeric(X):
     Parameters
     ----------
 
-    X : pd DataFrame
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe to test
 
 
@@ -742,8 +754,7 @@ def is_integer(x):
     bool
         True if ``x`` is an integer type
     """
-    return (not isinstance(x, (bool, np.bool))) and \
-        isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+    return _is_integer(x)
 
 
 def is_float(x):
@@ -763,7 +774,8 @@ def is_float(x):
     bool
         True if ``x`` is a float type
     """
-    return isinstance(x, (float, np.float))
+    return isinstance(x, (float, np.float)) or \
+        (not isinstance(x, (bool, np.bool)) and isinstance(x, numbers.Real))
 
 
 def is_numeric(x):
@@ -873,7 +885,7 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
     Returns
     -------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The loaded dataset
     """
     bo = load_boston()
@@ -896,7 +908,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     Parameters
     ----------
 
-    random_search : BaseSearchCV or BaseH2OSearchCV
+    random_search : ``BaseSearchCV`` or ``BaseH2OSearchCV``
         The fitted grid search
 
     charts : bool, optional (default=True)
@@ -946,7 +958,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     Returns
     -------
 
-    result_df : pd.DataFrame, shape=(n_iter, n_params)
+    result_df : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The grid search results
 
     drops : list

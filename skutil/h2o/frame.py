@@ -1,13 +1,16 @@
 from __future__ import absolute_import, division, print_function
 from h2o.frame import H2OFrame
+import pandas as pd
 from .base import check_frame
 from ..utils import flatten_all
 
 __all__ = [
     '_check_is_1d_frame',
+    'as_series',
     'is_numeric',
     'is_integer',
-    'is_float'
+    'is_float',
+    'value_counts'
 ]
 
 
@@ -38,6 +41,26 @@ def _check_is_1d_frame(X):
     assert X.shape[1] == 1, 'expected 1d H2OFrame'
 
     return X
+
+
+def as_series(x):
+    """Make a 1d H2OFrame into a pd.Series.
+
+    Parameters
+    ----------
+
+    x : H2OFrame, shape=(n_samples, 1)
+        The H2OFrame
+
+    Returns
+    -------
+
+    x : pd.Series, shape=(n_samples,)
+        The pandas series
+    """
+    x = _check_is_1d_frame(x)
+    x = x.as_data_frame(use_pandas=True)[x.columns[0]]
+    return x
 
 
 def is_numeric(x):
@@ -96,3 +119,24 @@ def is_float(x):
     """
     _check_is_1d_frame(x)
     return is_numeric(x) and not is_integer(x)
+
+
+def value_counts(x):
+    """Compute a Pandas-esque ``value_counts``
+    on a 1d H2OFrame.
+
+    Parameters
+    ----------
+
+    x : H2OFrame, shape=(n_samples, 1)
+        The H2OFrame
+
+    Returns
+    -------
+
+    cts : pd.Series, shape=(n_samples,)
+        The pandas series
+    """
+    x = _check_is_1d_frame(x)
+    cts = as_series(x).value_counts()
+    return cts

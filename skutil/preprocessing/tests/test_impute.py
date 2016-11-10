@@ -90,67 +90,67 @@ def test_selective_imputer():
     ], columns=['a', 'b', 'c'])
 
     # first, use an int
-    imputer = SelectiveImputer(def_fill=-1)
+    imputer = SelectiveImputer(fill=-1)
     y = imputer.fit_transform(a)
-    assert imputer.modes_ == -1
+    assert imputer.fills_ == -1
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([x == -1 for x in (y.iloc[1, 0], y.iloc[2, 1], y.iloc[2, 2])])
 
     # now try with a string...
-    imputer = SelectiveImputer(def_fill='mode')
+    imputer = SelectiveImputer(fill='mode')
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] in (1, 2), y.iloc[2, 1] == 2, y.iloc[2, 2] in (3, 2)])
 
     # now try with a string...
-    imputer = SelectiveImputer(def_fill='mean')
+    imputer = SelectiveImputer(fill='mean')
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 1.5, y.iloc[2, 1] == 2.0, y.iloc[2, 2] == 2.5])
 
     # now try with a string...
-    imputer = SelectiveImputer(def_fill='median')
+    imputer = SelectiveImputer(fill='median')
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 1.5, y.iloc[2, 1] == 2, y.iloc[2, 2] == 2.5])
 
     # now test with an iterable
-    imputer = SelectiveImputer(def_fill=[5, 6, 7])
+    imputer = SelectiveImputer(fill=[5, 6, 7])
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 5, y.iloc[2, 1] == 6, y.iloc[2, 2] == 7])
 
     # test with a mixed iterable
-    imputer = SelectiveImputer(def_fill=[5, 'mode', 'mean'])
+    imputer = SelectiveImputer(fill=[5, 'mode', 'mean'])
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 5, y.iloc[2, 1] == 2, y.iloc[2, 2] == 2.5])
 
     # test with a mixed iterable -- again
-    imputer = SelectiveImputer(def_fill=['median', 3, 'mean'])
+    imputer = SelectiveImputer(fill=['median', 3, 'mean'])
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 1.5, y.iloc[2, 1] == 3, y.iloc[2, 2] == 2.5])
 
     # test with a dict
-    imputer = SelectiveImputer(def_fill={'a': 'median', 'b': 3, 'c': 'mean'})
+    imputer = SelectiveImputer(fill={'a': 'median', 'b': 3, 'c': 'mean'})
     y = imputer.fit_transform(a)
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([y.iloc[1, 0] == 1.5, y.iloc[2, 1] == 3, y.iloc[2, 2] == 2.5])
 
     # test failures now...
-    assert_fails(SelectiveImputer(def_fill='blah').fit, TypeError, a)
-    assert_fails(SelectiveImputer(def_fill=[1, 2]).fit, ValueError, a)
-    assert_fails(SelectiveImputer(def_fill=['a', 'b', 'c']).fit, TypeError, a)
-    assert_fails(SelectiveImputer(def_fill='a').fit, TypeError, a)
-    assert_fails(SelectiveImputer(def_fill=[1, 2, 'a']).fit, TypeError, a)
+    assert_fails(SelectiveImputer(fill='blah').fit, TypeError, a)
+    assert_fails(SelectiveImputer(fill=[1, 2]).fit, ValueError, a)
+    assert_fails(SelectiveImputer(fill=['a', 'b', 'c']).fit, TypeError, a)
+    assert_fails(SelectiveImputer(fill='a').fit, TypeError, a)
+    assert_fails(SelectiveImputer(fill=[1, 2, 'a']).fit, TypeError, a)
 
     # generate anonymous class for test...
     class SomeObject(object):
         def __init__(self):
             pass
 
-    assert_fails(SelectiveImputer(def_fill=SomeObject()).fit, TypeError, a)
+    assert_fails(SelectiveImputer(fill=SomeObject()).fit, TypeError, a)
 
 
 def test_bagged_imputer_errors():
