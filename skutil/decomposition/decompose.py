@@ -19,7 +19,7 @@ __all__ = [
 ]
 
 
-class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil)):
+class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin)):
     """Base class for selective decompositional transformers.
     Each of these transformers should adhere to the :class:`skutil.base.SelectiveMixin`
     standard of accepting a ``cols`` parameter in the ``__init__`` method, and
@@ -165,7 +165,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -197,7 +197,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform. The operation will
             be applied to a copy of the input data, and the result
             will be returned.
@@ -237,13 +237,13 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
-        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        """Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,
         this method returns the internal decomposition class: 
         ``sklearn.decomposition.PCA``
 
         Returns
         -------
-        self.pca_ : sklearn.decomposition.PCA
+        self.pca_ : ``sklearn.decomposition.PCA``
             The fit internal decomposition class
         """
         return self.pca_ if hasattr(self, 'pca_') else None
@@ -256,7 +256,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
+        X: Pandas ``DataFrame``, shape=(n_samples, n_features)
             The data to score.
 
         y: None
@@ -354,7 +354,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -387,7 +387,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform. The operation will
             be applied to a copy of the input data, and the result
             will be returned.
@@ -396,7 +396,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         Returns
         -------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The operation is applied to a copy of ``X``,
             and the result set is returned.
         """
@@ -417,13 +417,13 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
-        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        """Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,
         this method returns the internal decomposition class: 
         ``sklearn.decomposition.TruncatedSVD``
 
         Returns
         -------
-        self.svd_ : sklearn.decomposition.TruncatedSVD
+        self.svd_ : ``sklearn.decomposition.TruncatedSVD``
             The fit internal decomposition class
         """
         return self.svd_ if hasattr(self, 'svd_') else None

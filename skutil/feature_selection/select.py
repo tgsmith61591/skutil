@@ -27,7 +27,7 @@ def _validate_cols(cols):
     Parameters
     ----------
 
-    cols : array_like or None
+    cols : None or array_like, shape=(n_features,)
         The columns to evaluate. If ``cols`` is not None
         and the length is less than 2, will raise a 
         ``ValueError``.
@@ -105,7 +105,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -242,7 +242,7 @@ class FeatureRetainer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -266,7 +266,24 @@ class FeatureRetainer(_BaseFeatureSelector):
 
         return self
 
-    def transform(self, X, y=None):
+    def transform(self, X):
+        """Transform a test matrix given the already-fit transformer.
+
+        Parameters
+        ----------
+
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The Pandas frame to transform. The prescribed
+            ``drop_`` columns will be dropped and a copy of
+            ``X`` will be returned.
+
+
+        Returns
+        -------
+
+        dropped : Pandas ``DataFrame`` or np.ndarray, shape=(n_samples, n_features)
+            The test data with the prescribed ``drop_`` columns removed.
+        """
         check_is_fitted(self, 'drop_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)  # copy X
@@ -475,12 +492,12 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         self.method = method
 
     def fit(self, X, y=None):
-        """Fit the transformer.
+        """Fit the multicollinearity filterer.
 
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -494,32 +511,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         -------
 
         self
-        """
-        self.fit_transform(X, y)
-        return self
-
-    def fit_transform(self, X, y=None):
-        """Fit the multicollinearity filterer and return
-        the transformed training matrix.
-
-        Parameters
-        ----------
-
-        X : Pandas ``DataFrame``
-            The Pandas frame to fit. The frame will only
-            be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None. Furthermore, ``X`` will
-            not be altered in the process of the fit.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
-
-        Returns
-        -------
-
-        dropped : Pandas DataFrame or NumPy ndarray
-            The training frame sans "bad" columns
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
@@ -535,12 +526,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         self.mean_abs_correlations_ = mac if mac else None
         self.correlations_ = crz if crz else None
 
-        # if drop is None, we need to just return X
-        if not self.drop_:
-            return X if self.as_df else X.as_matrix()
-
-        dropped = X.drop(self.drop_, axis=1)
-        return dropped if self.as_df else dropped.as_matrix()
+        return self
 
 
 def _near_zero_variance_ratio(series, ratio):
@@ -672,7 +658,7 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will

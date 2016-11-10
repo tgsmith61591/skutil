@@ -86,7 +86,7 @@ class ImputerMixin:
     _def_fill = -999999
 
 
-class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, ImputerMixin)):
+class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin, ImputerMixin)):
     """A base class for all imputers. Handles assignment of the fill value.
 
     Parameters

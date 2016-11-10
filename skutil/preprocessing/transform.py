@@ -44,7 +44,7 @@ def _validate_rows(X):
         raise ValueError('n_samples should be at least two, but got %i' % m)
 
 
-class FunctionMapper(BaseSkutil):
+class FunctionMapper(BaseSkutil, TransformerMixin):
     """Apply a function to a column or set of columns.
 
     Parameters
@@ -207,7 +207,7 @@ def _mul(a, b):
     return (a * b).values
 
 
-class InteractionTermTransformer(BaseSkutil):
+class InteractionTermTransformer(BaseSkutil, TransformerMixin):
     """A class that will generate interaction terms between selected columns.
     An interaction captures some relationship between two independent variables
     in the form of In = (xi * xj).
@@ -369,7 +369,7 @@ class InteractionTermTransformer(BaseSkutil):
         return X if self.as_df else X.as_matrix()
 
 
-class SelectiveScaler(BaseSkutil):
+class SelectiveScaler(BaseSkutil, TransformerMixin):
     """A class that will apply scaling only to a select group
     of columns. Useful for data that may contain features that should not
     be scaled, such as those that have been dummied, or for any already-in-scale 
@@ -501,7 +501,7 @@ class SelectiveScaler(BaseSkutil):
         return X if self.as_df else X.as_matrix()
 
 
-class BoxCoxTransformer(BaseSkutil):
+class BoxCoxTransformer(BaseSkutil, TransformerMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Box-Cox transformation.
@@ -688,7 +688,7 @@ def _estimate_lambda_single_y(y):
     return b[1]
 
 
-class YeoJohnsonTransformer(BaseSkutil):
+class YeoJohnsonTransformer(BaseSkutil, TransformerMixin):
     """Estimate a lambda parameter for each feature, and transform
        it to a distribution more-closely resembling a Gaussian bell
        using the Yeo-Johnson transformation.
@@ -927,7 +927,7 @@ def _yj_llf(data, lmb):
     return llf
 
 
-class SpatialSignTransformer(BaseSkutil):
+class SpatialSignTransformer(BaseSkutil, TransformerMixin):
     """Project the feature space of a matrix into a multi-dimensional sphere
     by dividing each feature by its squared norm.
        

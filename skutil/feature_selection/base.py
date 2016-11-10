@@ -4,6 +4,7 @@ from __future__ import print_function, division, absolute_import
 from abc import ABCMeta, abstractmethod
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
+from sklearn.base import TransformerMixin
 from skutil.base import BaseSkutil
 from ..utils import validate_is_pd
 import warnings
@@ -13,7 +14,7 @@ __all__ = [
 ]
 
 
-class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
+class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin)):
     """The base class for all skutil feature selectors, the _BaseFeatureSelector
     should adhere to the following behavior:
 
@@ -53,7 +54,7 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
     """
 
     @abstractmethod
-    def __init__(self, cols=None, as_df=True, **kwargs):
+    def __init__(self, cols=None, as_df=True):
         super(_BaseFeatureSelector, self).__init__(cols=cols, as_df=as_df)
 
 
@@ -63,7 +64,7 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform. The prescribed
             ``drop_`` columns will be dropped and a copy of
             ``X`` will be returned.
@@ -72,9 +73,8 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
         Returns
         -------
 
-        dropped : Pandas ``DataFrame``
-            The test data with the prescribed ``drop_``
-            columns removed.
+        dropped : Pandas ``DataFrame`` or np.ndarray, shape=(n_samples, n_features)
+            The test data with the prescribed ``drop_`` columns removed.
         """
         check_is_fitted(self, 'drop_')
         # check on state of X and cols

@@ -6,6 +6,7 @@ from sklearn.utils import column_or_1d
 from sklearn.preprocessing.label import _check_numpy_unicode_bug
 import numpy as np
 import pandas as pd
+from skutil.base import BaseSkutil
 from skutil.utils import validate_is_pd
 
 __all__ = [
@@ -66,7 +67,7 @@ class SafeLabelEncoder(LabelEncoder):
         return e
 
 
-class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
+class OneHotCategoricalEncoder(BaseSkutil, TransformerMixin):
     """This class achieves three things: first, it will fill in 
     any NaN values with a provided surrogate (if desired). Second,
     it will dummy out any categorical features using OneHotEncoding
@@ -123,8 +124,8 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, fill='Missing', as_df=True):
+        super(OneHotCategoricalEncoder, self).__init__(cols=None, as_df=as_df)
         self.fill = fill
-        self.as_df = as_df
 
     def fit(self, X, y=None):
         """Fit the encoder.

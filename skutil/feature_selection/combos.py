@@ -69,7 +69,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -94,7 +94,7 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas ``DataFrame``
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None. Furthermore, ``X`` will
@@ -156,7 +156,7 @@ def _enumLC(decomp):
     Parameters
     ----------
 
-    decomp : a QRDecomposition object
+    decomp : a ``QRDecomposition`` object
         The QR decomposition of the matrix
     """
     qr = decomp.qr  # the decomposition matrix

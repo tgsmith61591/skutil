@@ -108,12 +108,10 @@ class SelectiveMixin:
     # concrete functionality
 
 
-class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                    TransformerMixin, SelectiveMixin)):
+class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, SelectiveMixin)):
     """Provides the base class for all non-h2o skutil transformers.
-    Implements both ``TransformerMixin`` and ``SelectiveMixin``. Also
-    provides the "pretty-print" ``__repr__`` implemented in sklearn's
-    ``BaseEstimator``.
+    Implements ``SelectiveMixin``. Also provides the "pretty-print" 
+    ``__repr__`` implemented in sklearn's ``BaseEstimator``.
 
     Parameters
     ----------

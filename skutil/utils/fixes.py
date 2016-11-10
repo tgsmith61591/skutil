@@ -30,6 +30,10 @@ __all__ = [
 
 VERSION_MAJOR = sys.version_info.major
 
+# easier test for numericism
+if VERSION_MAJOR > 2:
+    long = int
+
 # grid_search deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     SK18 = True
@@ -148,8 +152,7 @@ def _is_integer(x):
         True if ``x`` is an integer type
     """
     return (not isinstance(x, (bool, np.bool))) and \
-        (isinstance(x, (numbers.Integral, int, np.int, np.long)) or\
-         (VERSION_MAJOR==2 and isinstance(x, long))) # no long type in python 3
+        isinstance(x, (numbers.Integral, int, np.int, np.long, long)) # no long type in python 3
 
 
 def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):
