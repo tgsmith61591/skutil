@@ -63,7 +63,7 @@ def _validate_x_y_ratio(X, y, ratio):
     Parameters
     ----------
 
-    X : pd.DataFrame
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to sample
 
     y : str
@@ -125,7 +125,7 @@ class BalancerMixin:
         Parameters
         ----------
 
-        X : pd.DataFrame
+        X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
             The frame from which to balance
         """
         raise NotImplementedError('this method must be implemented by a subclass')

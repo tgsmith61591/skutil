@@ -507,7 +507,7 @@ def df_memory_estimate(X, unit='MB', index=False):
     Parameters
     ----------
 
-    X : pandas DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame in question
 
     unit : str, optional (default='MB')
@@ -547,7 +547,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
     Parameters
     ----------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame on which to compute stats.
 
     col_type : str, optional (default='all')
@@ -568,7 +568,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
     Returns
     -------
 
-    s : pd.DataFrame, shape=(n_samples, n_features)
+    s : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The resulting stats dataframe
     """
     X, _ = validate_is_pd(X, None, False)
@@ -668,7 +668,7 @@ def get_numeric(X):
     Parameters
     ----------
 
-    X : pandas DF
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe
 
 
@@ -723,7 +723,7 @@ def is_entirely_numeric(X):
     Parameters
     ----------
 
-    X : pd DataFrame
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe to test
 
 
@@ -885,7 +885,7 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
     Returns
     -------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The loaded dataset
     """
     bo = load_boston()
@@ -908,7 +908,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     Parameters
     ----------
 
-    random_search : BaseSearchCV or BaseH2OSearchCV
+    random_search : ``BaseSearchCV`` or ``BaseH2OSearchCV``
         The fitted grid search
 
     charts : bool, optional (default=True)
@@ -958,7 +958,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     Returns
     -------
 
-    result_df : pd.DataFrame, shape=(n_iter, n_params)
+    result_df : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The grid search results
 
     drops : list
