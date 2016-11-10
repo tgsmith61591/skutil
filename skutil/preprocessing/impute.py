@@ -28,7 +28,7 @@ def _validate_all_numeric(X):
     Parameters
     ----------
 
-    X : pd.DataFrame
+    X : Pandas ``DataFrame``, shape=(n_samples, n_features)
         The dataframe to validate
 
     Raises
@@ -187,7 +187,7 @@ class SelectiveImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -276,7 +276,7 @@ class SelectiveImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform.
 
         Returns
@@ -336,7 +336,7 @@ class _BaseBaggedImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -360,7 +360,7 @@ class _BaseBaggedImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
             all of them if ``cols`` is None.
@@ -471,7 +471,7 @@ class _BaseBaggedImputer(_BaseImputer):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform.
 
         Returns
@@ -570,6 +570,28 @@ class BaggedCategoricalImputer(_BaseBaggedImputer):
         the fill to use for missing values in the training matrix
         when fitting a BaggingClassifier. If None, will default to -999999
 
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> from skutil.preprocessing import BaggedCategoricalImputer
+        >>>
+        >>> nan = np.nan
+        >>> X = pd.DataFrame.from_records(data=np.array([
+        ...                                 [1.0,  nan,  4.0],
+        ...                                 [nan,  1.0,  nan],
+        ...                                 [2.0,  2.0,  3.0]]), 
+        ...                               columns=['a','b','c'])
+        >>> imputer = BaggedCategoricalImputer(random_state=42)
+        >>> imputer.fit_transform(X)
+             a    b    c
+        0  1.0  2.0  4.0
+        1  2.0  1.0  4.0
+        2  2.0  2.0  3.0
+
+
     Attributes
     ----------
 
@@ -650,6 +672,28 @@ class BaggedImputer(_BaseBaggedImputer):
     fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a BaggingRegressor. If None, will default to -999999
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> from skutil.preprocessing import BaggedImputer
+        >>>
+        >>> nan = np.nan
+        >>> X = pd.DataFrame.from_records(data=np.array([
+        ...                                 [1.0,  nan,  3.1],
+        ...                                 [nan,  2.3,  nan],
+        ...                                 [2.1,  2.1,  3.1]]), 
+        ...                               columns=['a','b','c'])
+        >>> imputer = BaggedImputer(random_state=42)
+        >>> imputer.fit_transform(X)
+               a     b    c
+        0  1.000  2.16  3.1
+        1  1.715  2.30  3.1
+        2  2.100  2.10  3.1
+
 
     Attributes
     ----------

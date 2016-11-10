@@ -76,8 +76,6 @@ def _validate_x_y_ratio(X, y, ratio):
         be performed. Used to determine whether balancing is
         required.
 
-    ratio : 
-
     Returns
     -------
 
@@ -148,7 +146,7 @@ class _BaseBalancePartitioner(six.with_metaclass(abc.ABCMeta, object)):
     Parameters
     ----------
 
-    X : pd.DataFrame or H2OFrame
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to sample
 
     y_name : str
@@ -398,7 +396,7 @@ class OversamplingClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The data to balance.
 
         Returns
@@ -491,7 +489,7 @@ class SMOTEClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The data to balance.
 
         Returns
@@ -636,7 +634,7 @@ class UndersamplingClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The data to balance.
 
         Returns

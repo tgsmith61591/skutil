@@ -133,7 +133,7 @@ class OneHotCategoricalEncoder(BaseSkutil, TransformerMixin):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the object columns of the dataframe.
 
@@ -215,13 +215,13 @@ class OneHotCategoricalEncoder(BaseSkutil, TransformerMixin):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform.
 
         Returns
         -------
 
-        x : Pandas DataFrame or NumPy ndarray
+        x : Pandas ``DataFrame`` or np.ndarray, shape=(n_samples, n_features)
             The encoded dataframe or array
         """
         check_is_fitted(self, 'obj_cols_')
