@@ -95,10 +95,10 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         >>> from skutil.preprocessing import OneHotCategoricalEncoder
         >>>
         >>> X = pd.DataFrame.from_records(data=np.array([
-                                             ['USA','RED','a'],
-                                             ['MEX','GRN','b'],
-                                             ['FRA','RED','b']]), 
-                                          columns=['A','B','C'])
+        ...                                  ['USA','RED','a'],
+        ...                                  ['MEX','GRN','b'],
+        ...                                  ['FRA','RED','b']]), 
+        ...                               columns=['A','B','C'])
         >>>
         >>> o = OneHotCategoricalEncoder(as_df=True)
         >>> o.fit_transform(X)

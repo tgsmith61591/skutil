@@ -490,8 +490,8 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     # we need to ensure all are finite
     if assert_all_finite:
         # if cols, we only need to ensure the specified columns are finite
-        cols = _cols_if_none(X, cols)
-        X_prime = X[cols]
+        cols_tmp = _cols_if_none(X, cols)
+        X_prime = X[cols_tmp]
 
         if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')

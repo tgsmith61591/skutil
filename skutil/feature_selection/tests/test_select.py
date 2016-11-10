@@ -205,7 +205,7 @@ def test_multi_collinearity():
     print(transformer.correlations_)  # the correlations...
 
     # test the selective mixin
-    assert transformer.cols is None
+    assert transformer.cols is None, 'expected None but got %s' % str(transformer.cols)
 
     # Test fit, then transform
     transformer = MulticollinearityFilterer().fit(X)
@@ -243,7 +243,7 @@ def test_nzv_filterer():
     assert transformer.transform(y).shape[1] == 4
 
     # test the selective mixin
-    assert transformer.cols is None
+    assert transformer.cols is None, 'expected None but got %s' % str(transformer.cols)
 
     # see what happens if we have a nan or inf in the mix:
     a = pd.DataFrame.from_records(data=np.reshape(np.arange(25), (5, 5)))

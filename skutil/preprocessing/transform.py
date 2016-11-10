@@ -429,7 +429,7 @@ class SelectiveScaler(BaseSkutil):
         >>> X_transform = trans.fit_transform(X)
         >>>
         >>> X_transform.head()
-        sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+           sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
         0          -0.900681          1.032057                1.4               0.2
         1          -1.143017         -0.124958                1.4               0.2
         2          -1.385353          0.337848                1.3               0.2

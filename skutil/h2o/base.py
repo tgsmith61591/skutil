@@ -413,22 +413,31 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         Note that this is a static method and should be called accordingly:
 
-            >>> from skutil.h2o.select import H2OMulticollinearityFilterer
-            >>> mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
-            >>> mcf.transform(X)
+            >>> def load_and_transform():
+            ...     from skutil.h2o.select import H2OMulticollinearityFilterer
+            ...     mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
+            ...     return mcf.transform(X)
+            >>>
+            >>> load_and_transform() # doctest: +SKIP
 
         Some classes define their own load functionality, and will not
         work as expected if called in the following manner:
 
-            >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
+            >>> def load_pipe():
+            ...     return BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         This is because of the aforementioned situation wherein some classes
         handle saves and loads of H2OEstimator objects differently. Thus, any
         class that is being loaded should be statically referenced at the level of
         lowest abstraction possible:
 
-            >>> from skutil.h2o.pipeline import H2OPipeline
-            >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl')
+            >>> def load_pipe():
+            ...     from skutil.h2o.pipeline import H2OPipeline
+            ...     return H2OPipeline.load('path/to/h2o/pipeline.pkl')
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         Parameters
         ----------

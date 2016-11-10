@@ -92,7 +92,7 @@ def test_selective_imputer():
     # first, use an int
     imputer = SelectiveImputer(fill=-1)
     y = imputer.fit_transform(a)
-    assert imputer.modes_ == -1
+    assert imputer.fills_ == -1
     assert y.isnull().sum().sum() == 0, ('expected no nulls but got:\n', y)
     assert all([x == -1 for x in (y.iloc[1, 0], y.iloc[2, 1], y.iloc[2, 2])])
 

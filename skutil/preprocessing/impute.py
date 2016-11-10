@@ -158,10 +158,10 @@ class SelectiveImputer(_BaseImputer):
         >>>
         >>> nan = np.nan
         >>> X = pd.DataFrame.from_records(data=np.array([
-                                            [1.0,  nan,  3.1],
-                                            [nan,  2.3,  nan],
-                                            [2.1,  2.1,  3.1]]), 
-                                          columns=['a','b','c'])
+        ...                                 [1.0,  nan,  3.1],
+        ...                                 [nan,  2.3,  nan],
+        ...                                 [2.1,  2.1,  3.1]]), 
+        ...                               columns=['a','b','c'])
         >>> imputer = SelectiveImputer(fill=['mean', -999, 'mode'])
         >>> imputer.fit_transform(X)
               a      b    c
