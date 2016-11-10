@@ -619,6 +619,28 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         ``strategy`` is 'ratio', ``threshold`` must be greater than 1.
 
 
+    Examples
+    --------
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.feature_selection import NearZeroVarianceFilterer
+        >>> 
+        >>> X = pd.DataFrame.from_records(data=np.array([
+                                            [1,2,3],
+                                            [4,5,3],
+                                            [6,7,3],
+                                            [8,9,3]]), 
+                                          columns=['a','b','c'])
+        >>> filterer = NearZeroVarianceFilterer(threshold=0.05)
+        >>> filterer.fit_transform(X)
+           a  b
+        0  1  2
+        1  4  5
+        2  6  7
+        3  8  9
+
+
     Attributes
     ----------
 

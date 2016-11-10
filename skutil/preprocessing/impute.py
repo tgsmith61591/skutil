@@ -107,19 +107,19 @@ class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, ImputerMixin)):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    def_fill : int, float, string or iterable, optional (default=None)
+    fill : int, float, string or iterable, optional (default=None)
         The fill values to use for missing values in columns
 
     Attributes
     ----------
 
-    fill_ : float, int, None or str
+    fill : float, int, None or str
         The fill
     """
 
-    def __init__(self, cols=None, as_df=True, def_fill=None):
+    def __init__(self, cols=None, as_df=True, fill=None):
         super(_BaseImputer, self).__init__(cols=cols, as_df=as_df)
-        self.fill_ = def_fill if def_fill is not None else self._def_fill
+        self.fill = fill if fill is not None else self._def_fill
 
 
 class SelectiveImputer(_BaseImputer):
@@ -144,13 +144,41 @@ class SelectiveImputer(_BaseImputer):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    def_fill : int, optional (default=None)
+    fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a ``SelectiveImputer``. If None, will default to 'mean'
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> from skutil.preprocessing import SelectiveImputer
+        >>>
+        >>> nan = np.nan
+        >>> X = pd.DataFrame.from_records(data=np.array([
+                                            [1.0,  nan,  3.1],
+                                            [nan,  2.3,  nan],
+                                            [2.1,  2.1,  3.1]]), 
+                                          columns=['a','b','c'])
+        >>> imputer = SelectiveImputer(fill=['mean', -999, 'mode'])
+        >>> imputer.fit_transform(X)
+              a      b    c
+        0  1.00 -999.0  3.1
+        1  1.55    2.3  3.1
+        2  2.10    2.1  3.1
+
+
+    Attributes
+    ----------
+
+    fills_ : iterable, int or float
+        The imputer fill-values
     """
 
-    def __init__(self, cols=None, as_df=True, def_fill='mean'):
-        super(SelectiveImputer, self).__init__(cols, as_df, def_fill)
+    def __init__(self, cols=None, as_df=True, fill='mean'):
+        super(SelectiveImputer, self).__init__(cols, as_df, fill)
 
     def fit(self, X, y=None):
         """Fit the imputer and return the
@@ -179,7 +207,7 @@ class SelectiveImputer(_BaseImputer):
         cols = self.cols if self.cols is not None else X.columns.values
 
         # validate the fill, do fit
-        fill = self.fill_
+        fill = self.fill
         if isinstance(fill, six.string_types):
             fill = str(fill)
             if not fill in ('mode', 'mean', 'median'):
@@ -189,13 +217,13 @@ class SelectiveImputer(_BaseImputer):
             if fill == 'mode':
                 # for each column to impute, we go through and get the value counts
                 # of each, sorting by the max...
-                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: _col_mode(x))))
+                self.fills_ = dict(zip(cols, X[cols].apply(lambda x: _col_mode(x))))
 
             elif fill == 'median':
-                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmedian(x.values))))
+                self.fills_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmedian(x.values))))
 
             else:
-                self.modes_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
+                self.fills_ = dict(zip(cols, X[cols].apply(lambda x: np.nanmean(x.values))))
 
         # if the fill is an iterable, we have to get a bit more stringent on our validation
         elif is_iterable(fill):
@@ -228,7 +256,7 @@ class SelectiveImputer(_BaseImputer):
                     else:
                         d[c] = np.nanmean(the_col.values)
 
-            self.modes_ = d
+            self.fills_ = d
 
         else:
             if not is_numeric(fill):
@@ -238,7 +266,7 @@ class SelectiveImputer(_BaseImputer):
             # either the fill is an int, or it's something the user provided...
             # if it's not an int or float, we'll let it go and not catch it because
             # the it's their fault they were dumb.
-            self.modes_ = fill
+            self.fills_ = fill
 
         return self
 
@@ -258,13 +286,13 @@ class SelectiveImputer(_BaseImputer):
             The imputed matrix
         """
 
-        check_is_fitted(self, 'modes_')
+        check_is_fitted(self, 'fills_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
         cols = self.cols if self.cols is not None else X.columns.values
 
         # get the fills
-        modes = self.modes_
+        modes = self.fills_
 
         # if it's a single int, easy:
         if isinstance(modes, int):
@@ -285,9 +313,9 @@ class _BaseBaggedImputer(_BaseImputer):
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,
                  max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
                  oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True,
-                 def_fill=None, is_classification=False):
+                 fill=None, is_classification=False):
 
-        super(_BaseBaggedImputer, self).__init__(cols=cols, as_df=as_df, def_fill=def_fill)
+        super(_BaseBaggedImputer, self).__init__(cols=cols, as_df=as_df, fill=fill)
 
         # set self attributes
         self.base_estimator = base_estimator
@@ -402,7 +430,7 @@ class _BaseBaggedImputer(_BaseImputer):
             #
             # the most "catch-all" solution is going to be to fill all missing values with some val, say -999999
 
-            x = x.fillna(self.fill_)
+            x = x.fillna(self.fill)
             X_train = x[~y_missing]  # the rows that don't correspond to missing y values
             X_test = x[y_missing]  # the rows to "predict" on
             y_train = y[~y_missing]  # the training y vector
@@ -469,7 +497,7 @@ class _BaseBaggedImputer(_BaseImputer):
             assert col not in features, 'predictive column should not be in fit features (%s)' % col
 
             # since this is a copy, we can add the missing vals where needed
-            X_test = X_test.fillna(self.fill_)
+            X_test = X_test.fillna(self.fill)
 
             # generate predictions, subset where y was null
             y_null = pd.isnull(y)
@@ -538,7 +566,7 @@ class BaggedCategoricalImputer(_BaseBaggedImputer):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    def_fill : int, optional (default=None)
+    fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a BaggingClassifier. If None, will default to -999999
 
@@ -552,10 +580,11 @@ class BaggedCategoricalImputer(_BaseBaggedImputer):
 
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,
                  max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
-                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, fill=None):
+
         # categorical imputer needs to be classification
         super(BaggedCategoricalImputer, self).__init__(
-            cols=cols, as_df=as_df, def_fill=def_fill,
+            cols=cols, as_df=as_df, fill=fill,
             base_estimator=base_estimator, n_estimators=n_estimators,
             max_samples=max_samples, max_features=max_features, bootstrap=bootstrap,
             bootstrap_features=bootstrap_features, oob_score=oob_score,
@@ -618,7 +647,7 @@ class BaggedImputer(_BaseBaggedImputer):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    def_fill : int, optional (default=None)
+    fill : int, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a BaggingRegressor. If None, will default to -999999
 
@@ -632,10 +661,10 @@ class BaggedImputer(_BaseBaggedImputer):
 
     def __init__(self, cols=None, base_estimator=None, n_estimators=10,
                  max_samples=1.0, max_features=1.0, bootstrap=True, bootstrap_features=True,
-                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, def_fill=None):
+                 oob_score=False, n_jobs=1, random_state=None, verbose=0, as_df=True, fill=None):
         # invoke super constructor
         super(BaggedImputer, self).__init__(
-            cols=cols, as_df=as_df, def_fill=def_fill,
+            cols=cols, as_df=as_df, fill=fill,
             base_estimator=base_estimator, n_estimators=n_estimators,
             max_samples=max_samples, max_features=max_features, bootstrap=bootstrap,
             bootstrap_features=bootstrap_features, oob_score=oob_score,

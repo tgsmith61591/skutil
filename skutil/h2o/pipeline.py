@@ -112,134 +112,63 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
     The following is a simple example of an ``H2OPipeline`` in use:
 
-        >>> import h2o
-        >>> from h2o.estimators import H2ORandomForestEstimator
-        >>> from skutil.h2o import H2OMulticollinearityFilterer
-        >>> from skutil.h2o import load_iris_h2o
-        >>>
-        >>>
-        >>> # initialize h2o
-        >>> h2o.init() # doctest:+ELLIPSIS
-        <BLANKLINE>
-        <BLANKLINE>
-        No instance found at ip and port: localhost:... Trying to start local jar...
-        <BLANKLINE>
-        <BLANKLINE>
-        JVM stdout: /tmp/tmp.../h2o_travis_started_from_python.out
-        JVM stderr: /tmp/tmp.../h2o_travis_started_from_python.err
-        Using ice_root: /tmp/tmp...
-        <BLANKLINE>
-        <BLANKLINE>
-        Java Version: java version "..."
-        Java(TM) SE Runtime Environment (build ...)
-        Java HotSpot(TM) ...-Bit Server VM (build ..., mixed mode)
-        <BLANKLINE>
-        <BLANKLINE>
-        Starting H2O JVM and connecting: .............................. Connection successful!
-        ------------------------------  -------------------------------------
-        H2O cluster uptime:             ... seconds ... milliseconds
-        H2O cluster version:            ...
-        H2O cluster name:               ...
-        H2O cluster total nodes:        ...
-        H2O cluster total free memory:  ...
-        H2O cluster total cores:        ...
-        H2O cluster allowed cores:      ...
-        H2O cluster healthy:            ...
-        H2O Connection ip:              ...
-        H2O Connection port:            ...
-        H2O Connection proxy:           ...
-        Python Version:                 ...
-        ------------------------------  ------------------------------------
-        >>>
-        >>>
-        >>> # load into h2o
-        >>> X = load_iris_h2o(tgt_name="Species") # doctest:+ELLIPSIS
-        <BLANKLINE>
-        Parse Progress: [##################################################] 100%
-        >>>
-        >>>
-        >>> # get feature names and target
-        >>> x, y = X.columns[:-1], X.columns[-1]
-        >>>
-        >>>
-        >>> # define and fit the pipe
-        >>> pipe = H2OPipeline([
-        ...     ('mcf', H2OMulticollinearityFilterer()),
-        ...     ('clf', H2ORandomForestEstimator())
-        ... ], feature_names=x, target_feature=y)
-        >>>
-        >>>
-        >>> # fit
-        >>> pipe.fit() # doctest:+ELLIPSIS
+        >>> def example():
+        ...     import h2o
+        ...     from h2o.estimators import H2ORandomForestEstimator
+        ...     from skutil.h2o import H2OMulticollinearityFilterer
+        ...     from skutil.h2o import load_iris_h2o
+        ...     
+        ...     
+        ...     # initialize h2o
+        ...     h2o.init()
+        ...     
+        ...     # load into h2o
+        ...     X = load_iris_h2o(tgt_name="Species") # doctest:+ELLIPSIS
         ...
+        ...     # get feature names and target
+        ...     x, y = X.columns[:-1], X.columns[-1]
+        ...
+        ...     # define and fit the pipe
+        ...     pipe = H2OPipeline([
+        ...         ('mcf', H2OMulticollinearityFilterer()),
+        ...         ('clf', H2ORandomForestEstimator())
+        ...     ], feature_names=x, target_feature=y).fit()
+        >>>     
+        >>> example() # doctest: +SKIP
 
     This a more advanced example of the ``H2OPipeline`` (including use
     of the ``exclude_from_ppc`` and ``exclude_from_fit`` parameters):
 
-        >>> import h2o
-        >>> from skutil.h2o import load_boston_h2o
-        >>> from skutil.h2o import h2o_train_test_split
-        >>> from skutil.h2o.transform import H2OSelectiveScaler
-        >>> from skutil.h2o.select import H2OMulticollinearityFilterer
-        >>> from h2o.estimators import H2OGradientBoostingEstimator
-        >>>
-        >>>
-        >>> # initialize h2o
-        >>> h2o.init() # doctest:+ELLIPSIS
-        <BLANKLINE>
-        <BLANKLINE>
-        No instance found at ip and port: localhost:... Trying to start local jar...
-        <BLANKLINE>
-        <BLANKLINE>
-        JVM stdout: /tmp/tmp.../h2o_travis_started_from_python.out
-        JVM stderr: /tmp/tmp.../h2o_travis_started_from_python.err
-        Using ice_root: /tmp/tmp...
-        <BLANKLINE>
-        <BLANKLINE>
-        Java Version: java version "..."
-        Java(TM) SE Runtime Environment (build ...)
-        Java HotSpot(TM) ...-Bit Server VM (build ..., mixed mode)
-        <BLANKLINE>
-        <BLANKLINE>
-        Starting H2O JVM and connecting: .............................. Connection successful!
-        ------------------------------  -------------------------------------
-        H2O cluster uptime:             ... seconds ... milliseconds
-        H2O cluster version:            ...
-        H2O cluster name:               ...
-        H2O cluster total nodes:        ...
-        H2O cluster total free memory:  ...
-        H2O cluster total cores:        ...
-        H2O cluster allowed cores:      ...
-        H2O cluster healthy:            ...
-        H2O Connection ip:              ...
-        H2O Connection port:            ...
-        H2O Connection proxy:           ...
-        Python Version:                 ...
-        ------------------------------  ------------------------------------
-        >>>
-        >>>
-        >>> # load into h2o
-        >>> X = load_boston_h2o(include_tgt=True, shuffle=True, tgt_name='target') # doctest:+ELLIPSIS
-        <BLANKLINE>
-        Parse Progress: [##################################################] 100%
-        >>>
-        >>>
-        >>> # this splits our data
-        >>> X_train, X_test = h2o_train_test_split(X, train_size=0.7)
-        >>>
-        >>>
-        >>> # Declare our pipe - this one is intentionally a bit complex in behavior
-        >>> pipe = H2OPipeline([
-        >>>         ('scl', H2OSelectiveScaler(feature_names=['B','PTRATIO','CRIM'])), # will ONLY operate on these features
-        >>>         ('mcf', H2OMulticollinearityFilterer(exclude_features=['CHAS'])),  # will exclude this AS WELL AS 'TAX'
-        >>>         ('gbm', H2OGradientBoostingEstimator())
-        >>>     ], exclude_from_ppc=['TAX'], # excluded from all preprocessor fits
-        >>>        feature_names=None,       # fit the first stage on ALL features (minus exceptions)
-        >>>        target_feature='target')  # will be excluded from all preprocessor fits, as it's the target
-        >>>
-        >>> # do actual fit:
-        >>> pipe.fit(X_train) # doctest:+ELLIPSIS
+        >>> def example():
+        ...     import h2o
+        ...     from skutil.h2o import load_boston_h2o
+        ...     from skutil.h2o import h2o_train_test_split
+        ...     from skutil.h2o.transform import H2OSelectiveScaler
+        ...     from skutil.h2o.select import H2OMulticollinearityFilterer
+        ...     from h2o.estimators import H2OGradientBoostingEstimator
+        ...     
+        ...     
+        ...     # initialize h2o
+        ...     h2o.init() # doctest:+ELLIPSIS
+        ...     
+        ...     # load into h2o
+        ...     X = load_boston_h2o(include_tgt=True, shuffle=True, tgt_name='target') # doctest:+ELLIPSIS
         ...
+        ...     # this splits our data
+        ...     X_train, X_test = h2o_train_test_split(X, train_size=0.7)
+        ...     
+        ...     
+        ...     # Declare our pipe - this one is intentionally a bit complex in behavior
+        ...     pipe = H2OPipeline([
+        ...             ('scl', H2OSelectiveScaler(feature_names=['B','PTRATIO','CRIM'])), # will ONLY operate on these features
+        ...             ('mcf', H2OMulticollinearityFilterer(exclude_features=['CHAS'])),  # will exclude this AS WELL AS 'TAX'
+        ...             ('gbm', H2OGradientBoostingEstimator())
+        ...         ], exclude_from_ppc=['TAX'], # excluded from all preprocessor fits
+        ...            feature_names=None,       # fit the first stage on ALL features (minus exceptions)
+        ...            target_feature='target'   # will be excluded from all preprocessor fits, as it's the target
+        ...     ).fit(X_train)
+        >>>
+        >>> example() # doctest: +SKIP
 
 
     Attributes
@@ -376,7 +305,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             Training data on which to fit. Must fulfill input requirements 
             of first step of the pipeline.
 
@@ -444,16 +373,21 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         is a **kwargs-style dictionary whose keys should be prefixed by the
         name of the step targeted and a double underscore:
 
-        #    >>> from skutil.h2o.select import H2OMulticollinearityFilterer
-        #    >>> from h2o.estimators import H2ORandomForestEstimator
-        #    >>> pipe = H2OPipeline([
-        #    ...     ('mcf', H2OMulticollinearityFilterer()),
-        #    ...     ('rf',  H2ORandomForestEstimator())
-        #    ... ])
-        #    >>> pipe.set_params(**{
-        #    ...     'rf__ntrees':     100,
-        #    ...     'mcf__threshold': 0.75
-        #    ... })
+            >>> def example():
+            ...     from skutil.h2o.select import H2OMulticollinearityFilterer
+            ...     from h2o.estimators import H2ORandomForestEstimator
+            ...     
+            ...     pipe = H2OPipeline([
+            ...         ('mcf', H2OMulticollinearityFilterer()),
+            ...         ('rf',  H2ORandomForestEstimator())
+            ...     ])
+            ...
+            ...     pipe.set_params(**{
+            ...         'rf__ntrees':     100,
+            ...         'mcf__threshold': 0.75
+            ...     })
+            >>>
+            >>> example() # doctest: +SKIP
 
         Returns
         -------
@@ -512,18 +446,27 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         Note that this is a static method and should be called accordingly:
 
-            >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl') # GOOD!
+            >>> def load_pipe():
+            ...     return H2OPipeline.load('path/to/h2o/pipeline.pkl') # GOOD!
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         Also note that since H2OPipeline can contain an H2OEstimator, it's
         ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper
         and will not function properly if called at the highest level of abstraction:
 
-            >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl') # BAD!
+            >>> def load_pipe():
+            ...     return BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl') # BAD!
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         Furthermore, trying to load a different type of BaseH2OFunctionWrapper from
         this method will raise a TypeError:
 
-            >>> mcf = H2OPipeline.load('path/to/some/other/transformer.pkl') # BAD!
+            >>> def load_pipe():
+            ...     return H2OPipeline.load('path/to/some/other/transformer.pkl') # BAD!
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         Parameters
         ----------

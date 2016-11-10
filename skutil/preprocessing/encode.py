@@ -85,6 +85,28 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.preprocessing import OneHotCategoricalEncoder
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.array([
+                                             ['USA','RED','a'],
+                                             ['MEX','GRN','b'],
+                                             ['FRA','RED','b']]), 
+                                          columns=['A','B','C'])
+        >>>
+        >>> o = OneHotCategoricalEncoder(as_df=True)
+        >>> o.fit_transform(X)
+           A.FRA  A.MEX  A.USA  A.NA  B.GRN  B.RED  B.NA  C.a  C.b  C.NA
+        0    0.0    0.0    1.0   0.0    0.0    1.0   0.0  1.0  0.0   0.0
+        1    0.0    1.0    0.0   0.0    1.0    0.0   0.0  0.0  1.0   0.0
+        2    1.0    0.0    0.0   0.0    0.0    1.0   0.0  0.0  1.0   0.0
+
         
     Attributes
     ----------

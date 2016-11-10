@@ -30,27 +30,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
 
-    Example (given ``column``):
-    # >>> column
-    #  C1
-    #----
-    #   5
-    #   6
-    #   5
-    #   7
-    #   7
-    #[5 rows x 1 column]
-
-    #>>> H2OLabelEncoder().fit_transform(column)
-    #  C1
-    #----
-    #   0
-    #   1
-    #   0
-    #   2
-    #   2
-    #[5 rows x 1 column]
-
     Parameters
     ----------
 
@@ -63,6 +42,38 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
+
+
+    Examples
+    --------
+
+        >>> def example():
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o import from_pandas
+        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     
+        ...     x = pd.DataFrame.from_records(data=[
+        ...                 [5, 4],
+        ...                 [6, 2],
+        ...                 [5, 1],
+        ...                 [7, 9],
+        ...                 [7, 2]], columns=['C1', 'C2'])
+        ...     
+        ...     X = from_pandas(x)
+        ...     encoder = H2OLabelEncoder()
+        ...     encoder.fit_transform(X['C1'])
+        >>>
+        >>> example() # doctest: +SKIP
+          C1
+        ----
+           0
+           1
+           0
+           2
+           2
+        [5 rows x 1 column]
+
 
     Attributes
     ----------

@@ -115,72 +115,34 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     minority classes (1, 2) will be oversampled until they are represented 
     at a ratio of at least 0.5 * the prevalence of the majority class (0)
 
-        >>> import h2o
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> from skutil.h2o.frame import value_counts
-        >>> from skutil.h2o import from_pandas
+        >>> def example():
+        ...     import h2o
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o.frame import value_counts
+        ...     from skutil.h2o import from_pandas
+        ...     
+        ...     # initialize h2o
+        ...     h2o.init()
+        ...
+        ...     # read into pandas
+        ...     x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
+        ...     
+        ...     # load into h2o
+        ...     X = from_pandas(x)
+        ...     
+        ...     # initialize sampler
+        ...     sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
+        ...     
+        ...     # do balancing
+        ...     X_balanced = sampler.balance(X)
+        ...     value_counts(X_balanced)
         >>>
-        >>>
-        >>> # initialize h2o
-        >>> h2o.init() # doctest:+ELLIPSIS
-        <BLANKLINE>
-        <BLANKLINE>
-        No instance found at ip and port: localhost:... Trying to start local jar...
-        <BLANKLINE>
-        <BLANKLINE>
-        JVM stdout: /tmp/tmp.../h2o_travis_started_from_python.out
-        JVM stderr: /tmp/tmp.../h2o_travis_started_from_python.err
-        Using ice_root: /tmp/tmp...
-        <BLANKLINE>
-        <BLANKLINE>
-        Java Version: java version "..."
-        Java(TM) SE Runtime Environment (build ...)
-        Java HotSpot(TM) ...-Bit Server VM (build ..., mixed mode)
-        <BLANKLINE>
-        <BLANKLINE>
-        Starting H2O JVM and connecting: .............................. Connection successful!
-        ------------------------------  -------------------------------------
-        H2O cluster uptime:             ... seconds ... milliseconds
-        H2O cluster version:            ...
-        H2O cluster name:               ...
-        H2O cluster total nodes:        ...
-        H2O cluster total free memory:  ...
-        H2O cluster total cores:        ...
-        H2O cluster allowed cores:      ...
-        H2O cluster healthy:            ...
-        H2O Connection ip:              ...
-        H2O Connection port:            ...
-        H2O Connection proxy:           ...
-        Python Version:                 ...
-        ------------------------------  ------------------------------------
-        >>>
-        >>>
-        >>> # read into pandas
-        >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
-        >>>
-        >>>
-        >>> # load into h2o
-        >>> X = from_pandas(x) # doctest:+ELLIPSIS
-        <BLANKLINE>
-        Parse Progress: [##################################################] 100%
-        >>>
-        >>> # initialize sampler
-        >>> sampler = H2OOversamplingClassBalancer(target_feature="A", ratio=0.5)
-        >>>
-        >>> # do balancing
-        >>> X_balanced = sampler.balance(X)
-        >>> value_counts(X_balanced)
+        >>> example() # doctest: +SKIP
         0    100
         1     50
         2     50
         Name A, dtype: int64
-        >>>
-        >>>
-        >>> # shutdown h2o
-        >>> h2o.shutdown(prompt=False) # doctest:+ELLIPSIS
-        <BLANKLINK>
-        ...
         
     """
 
@@ -251,70 +213,33 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     majority class (0) will be undersampled until the second most-populous 
     class (1) is represented at a ratio of 0.5.
 
-        >>> import h2o
-        >>> import pandas as pd
-        >>> import numpy as np
-        >>> from skutil.h2o.frame import value_counts
-        >>> from skutil.h2o import from_pandas
-        >>>
-        >>> # initialize h2o
-        >>> h2o.init() # doctest:+ELLIPSIS
-        <BLANKLINE>
-        <BLANKLINE>
-        No instance found at ip and port: localhost:... Trying to start local jar...
-        <BLANKLINE>
-        <BLANKLINE>
-        JVM stdout: /tmp/tmp.../h2o_travis_started_from_python.out
-        JVM stderr: /tmp/tmp.../h2o_travis_started_from_python.err
-        Using ice_root: /tmp/tmp...
-        <BLANKLINE>
-        <BLANKLINE>
-        Java Version: java version "..."
-        Java(TM) SE Runtime Environment (build ...)
-        Java HotSpot(TM) ...-Bit Server VM (build ..., mixed mode)
-        <BLANKLINE>
-        <BLANKLINE>
-        Starting H2O JVM and connecting: .............................. Connection successful!
-        ------------------------------  -------------------------------------
-        H2O cluster uptime:             ... seconds ... milliseconds
-        H2O cluster version:            ...
-        H2O cluster name:               ...
-        H2O cluster total nodes:        ...
-        H2O cluster total free memory:  ...
-        H2O cluster total cores:        ...
-        H2O cluster allowed cores:      ...
-        H2O cluster healthy:            ...
-        H2O Connection ip:              ...
-        H2O Connection port:            ...
-        H2O Connection proxy:           ...
-        Python Version:                 ...
-        ------------------------------  ------------------------------------
-        >>>
-        >>>
-        >>> # read into pandas
-        >>> x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
-        >>>
-        >>>
-        >>> # load into h2o
-        >>> X = from_pandas(x) # doctest:+ELLIPSIS
-        <BLANKLINE>
-        Parse Progress: [##################################################] 100%
-        >>>
-        >>> # initialize sampler
-        >>> sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
-        >>>
-        >>> X_balanced = sampler.balance(X)
-        >>> value_counts(X_balanced)
+        >>> def example():
+        ...     import h2o
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o.frame import value_counts
+        ...     from skutil.h2o import from_pandas
+        ...
+        ...     # initialize h2o
+        ...     h2o.init()
+        ...     
+        ...     # read into pandas
+        ...     x = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
+        ...     
+        ...     # load into h2o
+        ...     X = from_pandas(x) # doctest:+ELLIPSIS
+        ...     
+        ...     # initialize sampler
+        ...     sampler = H2OUndersamplingClassBalancer(target_feature="A", ratio=0.5)
+        ...     
+        ...     X_balanced = sampler.balance(X)
+        ...     value_counts(X_balanced)
+        ...
+        >>> example() # doctest: +SKIP
         0    60
         1    30
         2    10
         Name A, dtype: int64
-        >>>
-        >>>
-        >>> # shutdown h2o
-        >>> h2o.shutdown(prompt=False) # doctest:+ELLIPSIS
-        <BLANKLINK>
-        ...
 
     """
 
