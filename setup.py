@@ -1,5 +1,8 @@
 from __future__ import print_function
-import os, sys, shutil, glob
+import os
+import sys
+import shutil
+import glob
 import warnings
 import subprocess
 from pkg_resources import parse_version
@@ -109,6 +112,18 @@ class CleanCommand(Clean):
                     shutil.rmtree(os.path.join(dirpath, dirname))
 
 cmdclass = {'clean': CleanCommand}
+
+
+# This is the optional wheelhouse-uploader feature
+# that sklearn includes in its setup. We can use this to both
+# fetch artifacts as well as upload to PyPi (eventually).
+# The URLs are set up in the setup.cfg file that sklearn defined
+# and we modified.
+
+WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts', 'upload_all'])
+if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
+    import wheelhouse_uploader.cmd
+    cmdclass.update(vars(wheelhouse_uploader.cmd))
 
 
 # DEFINE CONFIG
@@ -260,7 +275,9 @@ def setup_package():
             if not mpl_uptodate:
                 warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
         except ImportError as i:
-            pass  # not required, doesn't matter
+            # not required, doesn't matter really
+            warnings.warn('Matplotlib is not installed. Some functions may not work as expected.',
+                          ImportWarning)
 
         pandas_status = get_pandas_status()
         sklearn_status = get_sklearn_status()

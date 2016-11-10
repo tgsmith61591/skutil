@@ -6,6 +6,7 @@ from sklearn.utils import column_or_1d
 from sklearn.preprocessing.label import _check_numpy_unicode_bug
 import numpy as np
 import pandas as pd
+from skutil.base import BaseSkutil
 from skutil.utils import validate_is_pd
 
 __all__ = [
@@ -66,7 +67,7 @@ class SafeLabelEncoder(LabelEncoder):
         return e
 
 
-class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
+class OneHotCategoricalEncoder(BaseSkutil, TransformerMixin):
     """This class achieves three things: first, it will fill in 
     any NaN values with a provided surrogate (if desired). Second,
     it will dummy out any categorical features using OneHotEncoding
@@ -81,10 +82,32 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         The value that will fill the missing values in the column
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.preprocessing import OneHotCategoricalEncoder
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.array([
+        ...                                  ['USA','RED','a'],
+        ...                                  ['MEX','GRN','b'],
+        ...                                  ['FRA','RED','b']]), 
+        ...                               columns=['A','B','C'])
+        >>>
+        >>> o = OneHotCategoricalEncoder(as_df=True)
+        >>> o.fit_transform(X)
+           A.FRA  A.MEX  A.USA  A.NA  B.GRN  B.RED  B.NA  C.a  C.b  C.NA
+        0    0.0    0.0    1.0   0.0    0.0    1.0   0.0  1.0  0.0   0.0
+        1    0.0    1.0    0.0   0.0    1.0    0.0   0.0  0.0  1.0   0.0
+        2    1.0    0.0    0.0   0.0    0.0    1.0   0.0  0.0  1.0   0.0
+
         
     Attributes
     ----------
@@ -101,8 +124,8 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, fill='Missing', as_df=True):
+        super(OneHotCategoricalEncoder, self).__init__(cols=None, as_df=as_df)
         self.fill = fill
-        self.as_df = as_df
 
     def fit(self, X, y=None):
         """Fit the encoder.
@@ -110,7 +133,7 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to fit. The frame will only
             be fit on the object columns of the dataframe.
 
@@ -192,13 +215,13 @@ class OneHotCategoricalEncoder(BaseEstimator, TransformerMixin):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
             The Pandas frame to transform.
 
         Returns
         -------
 
-        x : Pandas DataFrame or NumPy ndarray
+        x : Pandas ``DataFrame`` or np.ndarray, shape=(n_samples, n_features)
             The encoded dataframe or array
         """
         check_is_fitted(self, 'obj_cols_')

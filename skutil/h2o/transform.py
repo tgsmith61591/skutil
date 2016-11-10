@@ -1,10 +1,12 @@
 from __future__ import print_function, division, absolute_import
-from .base import BaseH2OTransformer, _frame_from_x_y, _check_is_frame
+from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
+from ..utils.fixes import is_iterable
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
+import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
@@ -21,34 +23,12 @@ def _flatten_one(x):
     a list is. This will determine the proper 
     type for each item in the vec.
     """
-    return x[0] if hasattr(x, '__iter__') else x
+    return x[0] if is_iterable(x) else x
 
 
 class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
-
-    Example (given ``column``):
-        
-    >>> column
-      C1
-    ----
-       5
-       6
-       5
-       7
-       7
-    [5 rows x 1 column]
-
-    >>> H2OLabelEncoder().fit_transform(column)
-      C1
-    ----
-       0
-       1
-       0
-       2
-       2
-    [5 rows x 1 column]
 
     Parameters
     ----------
@@ -62,6 +42,38 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
+
+
+    Examples
+    --------
+
+        >>> def example():
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o import from_pandas
+        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     
+        ...     x = pd.DataFrame.from_records(data=[
+        ...                 [5, 4],
+        ...                 [6, 2],
+        ...                 [5, 1],
+        ...                 [7, 9],
+        ...                 [7, 2]], columns=['C1', 'C2'])
+        ...     
+        ...     X = from_pandas(x)
+        ...     encoder = H2OLabelEncoder()
+        ...     encoder.fit_transform(X['C1'])
+        >>>
+        >>> example() # doctest: +SKIP
+          C1
+        ----
+           0
+           1
+           0
+           2
+           2
+        [5 rows x 1 column]
+
 
     Attributes
     ----------
@@ -123,6 +135,24 @@ class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
         self.fill_ = self._def_fill if def_fill is None else def_fill
 
 
+def _mode(x, def_fill=ImputerMixin._def_fill):
+    """Get the most common value in a 1d
+    H2OFrame. Ties will be handled in a non-specified
+    manner.
+
+    Parameters
+    ----------
+
+    x : H2OFrame, shape=(n_samples, 1)
+        The 1d frame from which to derive the mode
+    """
+    idx = x.as_data_frame(use_pandas=True)[x.columns[0]].value_counts().index
+
+    # if the most common is null, then return the next most common.
+    # if there is no next common (i.e., 100% null) then we return the def_fill
+    return idx[0] if not pd.isnull(idx[0]) else idx[1] if idx.shape[0] > 1 else def_fill
+
+
 class H2OSelectiveImputer(_H2OBaseImputer):
     """The selective imputer provides extreme flexibility and simplicity
     in imputation tasks. Rather than imposing one strategy across an entire
@@ -174,16 +204,16 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The H2OFrame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
 
         self
         """
-        frame = _check_is_frame(X)
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        X = check_frame(X, copy=False)
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # at this point, the entirety of frame can be operated on...
         cols = [str(u) for u in frame.columns]  # convert to string...
@@ -199,7 +229,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             if fill == 'mode':
                 # for each column to impute, we go through and get the value counts
                 # of each, sorting by the max...
-                raise NotImplementedError('h2o has not yet implemented "mode" functionality')
+                self.fill_val_ = dict(zip(cols, [_mode(X[c]) for c in cols]))
 
             elif fill == 'median':
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].median(na_rm=True) for c in cols])))
@@ -207,7 +237,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             else:
                 self.fill_val_ = dict(zip(cols, flatten_all([X[c].mean(na_rm=True) for c in cols])))
 
-        elif hasattr(fill, '__iter__'):
+        elif is_iterable(fill):
 
             # if fill is a dictionary
             if isinstance(fill, dict):
@@ -235,7 +265,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
                 else:
                     the_col = X[c]
                     if f == 'mode':
-                        raise NotImplementedError('h2o has not yet implemented "mode" functionality')
+                        d[c] = _mode(the_col)
                         # d[c] = _col_mode(the_col)
                     elif f == 'median':
                         d[c] = _flatten_one(the_col.median(na_rm=True))
@@ -262,16 +292,16 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The test data to transform.
 
         Returns
         -------
-        X : H2OFrame
-            The transformed (imputed) H2OFrame
+        X : H2OFrame, shape=(n_samples, n_features)
+            The transformed (imputed) test data.
         """
         check_is_fitted(self, 'fill_val_')
-        X = _check_is_frame(X)
+        X = check_frame(X, copy=True) # make a copy
 
         # get the fills
         fill_val = self.fill_val_
@@ -306,7 +336,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-        # this is going to impact it in place...
+        # this is going to impact the copy
         return X
 
 
@@ -319,7 +349,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
@@ -362,11 +392,11 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
-            The data to transform
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit
         """
-        frame = _check_is_frame(X)
-        frame = _frame_from_x_y(frame, self.feature_names, self.target_feature)
+        X = check_frame(X, copy=False)
+        frame = _frame_from_x_y(X, self.feature_names, self.target_feature)
         self.cols_ = [str(i) for i in frame.columns]
 
         # get and std
@@ -384,11 +414,17 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape [n_samples, n_features]
-            The data to transform
+        X : H2OFrame, shape=(n_samples, n_features)
+            The test data to transform
+
+        Returns
+        -------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The transformed test data.
         """
         check_is_fitted(self, 'cols_')
-        frame = _check_is_frame(X)[X.columns]  # get a copy...
+        frame = check_frame(X, copy=True) # get a copy...
 
         if (not self.with_mean) and (not self.with_std):
             return frame  # nothing to change...
@@ -409,13 +445,17 @@ def _mul(a, b):
     Parameters
     ----------
 
-    a : H2OFrame
-    b : H2OFrame
+    a : H2OFrame, shape=(n_samples, 1)
+        The first feature
+
+    b : H2OFrame, shape=(n_samples, 1)
+        The second feature
 
     Returns
     -------
 
-    product H2OFrame
+    ``a`` * ``b`` : H2OFrame
+        The product of ``a`` and ``b``
     """
     return a * b
 
@@ -437,7 +477,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
     feature_names : array_like (str), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
@@ -486,8 +526,8 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
         
-        frame : H2OFrame, shape=[n_samples, n_features]
-            The data to transform
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training data on which to fit.
 
         Returns
         -------
@@ -508,26 +548,24 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
 
         return self
 
-    def transform(self, frame):
-        """Perform the interaction term expansion
+    def transform(self, X):
+        """Perform the interaction term expansion.
         
         Parameters
         ----------
 
-        frame : H2OFrame, shape=[n_samples, n_features]
-            The data to transform
+        X : H2OFrame, shape=(n_samples, n_features)
+            The test data to transform.
 
         Returns
         -------
 
-        frame : H2OFrame
-            The expanded H2OFrame
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The expanded (interacted) test data.
         """
         check_is_fitted(self, 'fun_')
-        _check_is_frame(frame)
-
-        # this creates a copy...
-        frame = frame[frame.columns]
+        frame = check_frame(X, copy=True) # get a copy
+        
         cols, fun, suff = self.cols, self.fun_, self.name_suffix
         n_features = len(cols)
 

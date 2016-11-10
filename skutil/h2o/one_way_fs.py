@@ -9,7 +9,7 @@ from .split import *
 from .select import BaseH2OFeatureSelector
 from .util import _unq_vals_col, rbind_all
 from ..utils import is_integer
-from .base import (BaseH2OTransformer, _check_is_frame, 
+from .base import (BaseH2OTransformer, check_frame, 
                    _retain_features, _frame_from_x_y, 
                    validate_x_y)
 from ..base import overrides
@@ -40,11 +40,11 @@ def h2o_f_classif(X, feature_names, target_feature):
     Parameters
     ----------
 
-    X : ``H2OFrame``, shape=(n_samples, n_features)
+    X : H2OFrame, shape=(n_samples, n_features)
         The feature matrix. Each feature will be tested 
         sequentially.
 
-    y : ``H2OFrame``, shape=(n_samples,)
+    y : H2OFrame, shape=(n_samples, 1)
         The target feature. Should be int or enum, per
         the classification objective.
 
@@ -57,7 +57,7 @@ def h2o_f_classif(X, feature_names, target_feature):
     prob : float
         The associated p-value from the F-distribution.
     """
-    frame = _check_is_frame(X)
+    frame = check_frame(X, copy=False)
 
     # first, get unique values of y
     y = X[target_feature]
@@ -200,7 +200,7 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+    cv : int or H2OBaseCrossValidator, optional (default=3)
         Univariate feature selection can very easily remove
         features erroneously or cause overfitting. Using cross
         validation, we can more confidently select the features 
@@ -211,10 +211,10 @@ class _H2OBaseUnivariateSelector(six.with_metaclass(ABCMeta,
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default='any')
+    min_version : str or float (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default=None)
+    max_version : str or float (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
     @abstractmethod
@@ -262,23 +262,23 @@ def _test_and_score(frame, fun, cv, feature_names, target_feature, iid, select_f
     Parameters
     ----------
 
-    frame : H2OFrame
+    frame : H2OFrame, shape=(n_samples, n_features)
             The frame to fit
 
     fun : callable
         The function to call
 
-    cv : ``H2OBaseCrossValidator``
+    cv : H2OBaseCrossValidator
         The cross validation class
 
-    feature_names : array_like (str), optional (default=None)
+    feature_names : array_like (str)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default=None)
+    target_feature : str
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    iid : bool, optional (default=True)
+    iid : bool
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
         in each fold
@@ -353,7 +353,7 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+    cv : int or H2OBaseCrossValidator, optional (default=3)
         Univariate feature selection can very easily remove
         features erroneously or cause overfitting. Using cross
         validation, we can more confidently select the features 
@@ -364,10 +364,10 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default='any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default=None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -400,10 +400,10 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         Parameters
         ----------
 
-        all_scores : np.ndarray, float
+        all_scores : np.ndarray (float)
             The scores
 
-        all_pvalues : np.ndarray, float
+        all_pvalues : np.ndarray (float)
             The p-values
 
         feature_names : array_like (str)
@@ -422,8 +422,8 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------
@@ -464,7 +464,7 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+    cv : int or H2OBaseCrossValidator, optional (default=3)
         Univariate feature selection can very easily remove
         features erroneously or cause overfitting. Using cross
         validation, we can more confidently select the features 
@@ -478,10 +478,10 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default='any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default=None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -511,8 +511,8 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------
@@ -531,10 +531,10 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        all_scores : np.ndarray, float
+        all_scores : np.ndarray (float)
             The scores
 
-        all_pvalues : np.ndarray, float
+        all_pvalues : np.ndarray (float)
             The p-values
 
         feature_names : array_like (str)
@@ -588,7 +588,7 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
-    cv : int or ``H2OBaseCrossValidator``, optional (default=3)
+    cv : int or H2OBaseCrossValidator, optional (default=3)
         Univariate feature selection can very easily remove
         features erroneously or cause overfitting. Using cross
         validation, we can more confidently select the features 
@@ -602,10 +602,10 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         are normalized at the end by the number of observations
         in each fold
 
-    min_version : str, float (default='any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default=None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
 
     Attributes
@@ -635,8 +635,8 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit
 
         Returns
         -------
@@ -655,10 +655,10 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
         Parameters
         ----------
 
-        all_scores : np.ndarray, float
+        all_scores : np.ndarray (float)
             The scores
 
-        all_pvalues : np.ndarray, float
+        all_pvalues : np.ndarray (float)
             The p-values
 
         feature_names : array_like (str)

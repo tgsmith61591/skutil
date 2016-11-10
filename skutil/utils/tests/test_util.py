@@ -10,7 +10,7 @@ from sklearn.datasets import load_iris
 from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
-from skutil.utils.fixes import *
+from skutil.utils.fixes import _SK17GridSearchCV, _SK17RandomizedSearchCV
 from skutil.decomposition import SelectivePCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -18,7 +18,15 @@ from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
 from skutil.utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 
-from matplotlib.testing.decorators import cleanup
+try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from matplotlib.testing.decorators import cleanup
+        # log it
+        CAN_CHART_MPL = True
+except ImportError as ie:
+    CAN_CHART_MPL = False
 
 # Def data for testing
 iris = load_iris()
@@ -282,17 +290,18 @@ def test_pd_stats():
     assert_fails(pd_stats, ValueError, Y, 'bad_type')
 
 
-@cleanup
-def test_corr():
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+if CAN_CHART_MPL:
+    @cleanup
+    def test_corr():
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
 
-        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
-        corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
-        corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
-        corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
+            corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
 
-        assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
+            assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
 
 
 def test_bytes():
@@ -317,7 +326,7 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
-    assert is_numeric(1L)
+    assert is_numeric(np.long(1))
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)

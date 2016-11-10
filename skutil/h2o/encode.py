@@ -5,7 +5,7 @@ from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_is_fitted
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
-from .base import (BaseH2OTransformer, _check_is_frame, _frame_from_x_y)
+from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
 
 __all__ = [
     'H2OSafeOneHotEncoder'
@@ -18,7 +18,7 @@ def _val_vec(y):
 
 
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
-    """Safely one-hot encodes an H2OVec into an H2OFrame of
+    """Safely one-hot encodes an H2OVec into an ``H2OFrame`` of
     one-hot encoded dummies. Whereas H2O's default behavior for
     previously-unseen factor levels is to error, the 
     ``_H2OVecSafeOneHotEncoder`` skips previously-unseen levels
@@ -28,14 +28,14 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str), optional (default=None)
+    feature_names : array_like (str) shape=(n_features,), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None, optional (default=None)
+    exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
     """
 
@@ -55,8 +55,9 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : ``H2OFrame``, shape=(n_samples, 1)
+            The training frame on which to fit. Should
+            be a single column ``H2OFrame``
 
         Returns
         -------
@@ -86,14 +87,14 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, 1d
-            The 1d frame to transform
+        X : ``H2OFrame``, shape=(n_samples, 1)
+            The 1d ``H2OFrame`` to transform
 
         Returns
         -------
 
-        output : H2OFrame, 1d
-            The transformed H2OFrame
+        output : ``H2OFrame``, shape=(n_samples, 1)
+            The transformed ``H2OFrame``
         """
         # make sure is fitted, validate y
         check_is_fitted(self, 'classes_')
@@ -134,14 +135,14 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str), optional (default=None)
+    feature_names : array_like (str) shape=(n_features,), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None, optional (default=None)
+    exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     drop_after_encoded : bool (default=True)
@@ -166,25 +167,24 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : ``H2OFrame``, shape=(n_samples, n_features)
+            The training frame to fit
 
         Returns
         -------
 
         self
         """
-
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=False)
 
         # these are just the features to encode
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # do fit
         self.encoders_ = {
             str(k): _H2OVecSafeOneHotEncoder().fit(cat[str(k)])
             for k in cat.columns
-            }
+        }
 
         return self
 
@@ -194,22 +194,22 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The frame to transform
 
         Returns
         -------
 
-        X : H2OFrame
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=True)
         enc = self.encoders_
 
         # these are just the features to encode. (we will return the 
         # entire frame unless told not to...)
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         output = None
         for name in cat.columns:

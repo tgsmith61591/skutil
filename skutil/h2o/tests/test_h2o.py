@@ -7,7 +7,6 @@ import time
 import os
 
 import h2o
-import getpass
 from h2o.frame import H2OFrame
 from h2o.estimators import (H2ORandomForestEstimator,
                             H2OGeneralizedLinearEstimator,
@@ -31,7 +30,7 @@ from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
-from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df
+from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df, flatten_all
 from skutil.utils.tests.utils import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold,
@@ -40,8 +39,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
                               _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
-from skutil.utils import flatten_all
-from skutil.h2o.frame import is_integer, is_float
+from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
 
@@ -52,13 +50,22 @@ from scipy.stats import randint, uniform
 from numpy.random import choice
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 
-from matplotlib.testing.decorators import cleanup
 
 # for split
 try:
     from sklearn.model_selection import train_test_split
 except ImportError as i:
     from sklearn.cross_validation import train_test_split
+
+try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from matplotlib.testing.decorators import cleanup
+        # log it
+        CAN_CHART_MPL = True
+except ImportError as ie:
+    CAN_CHART_MPL = False
 
 
 def new_h2o_frame(X):
@@ -128,7 +135,7 @@ def test_h2o_no_conn_needed():
         def __init__(self):
             super(AnonCV, self).__init__()
 
-        def get_n_splits(): # overrides
+        def get_n_splits(self): # overrides
             return 0
 
     anoncv = AnonCV()
@@ -277,6 +284,27 @@ def test_h2o_with_conn():
 
             # h2o throws weird error because it override __contains__, so use the comprehension
             assert tgt in [c for c in y.columns], 'target feature was accidentally dropped...'
+
+        # test with strategy == ratio
+        if X is not None:
+            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
+            assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
+
+            x = np.array([
+                [1, 2, 3],
+                [1, 5, 3],
+                [1, 2, 4],
+                [2, 5, 4]
+            ])
+
+            df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+            DF = new_h2o_frame(df)
+
+            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(DF)
+            assert len(transformer.drop_) == 1
+            assert transformer.drop_[0] == 'a'
+            assert len(transformer.var_) == 1
+            assert transformer.var_['a'] == 3.0
 
         else:
             pass
@@ -973,7 +1001,7 @@ def test_h2o_with_conn():
 
         def _basic_scenario(X, fill):
             imputer = H2OSelectiveImputer(def_fill=fill)
-            imputer.fit_transform(X)
+            X = imputer.fit_transform(X)
             na_cnt = sum(X.nacnt())
             assert not na_cnt, 'expected no NAs, but found %d' % na_cnt
 
@@ -987,7 +1015,7 @@ def test_h2o_with_conn():
 
         def scenario_3(X):
             """Assert fails (for now) with 'mode' -- unimplemented"""
-            assert_fails(_basic_scenario, NotImplementedError, X, 'mode')
+            _basic_scenario(X, 'mode')
 
         def scenario_4(X):
             """Assert fails with unknown string arg"""
@@ -1003,7 +1031,7 @@ def test_h2o_with_conn():
 
         def scenario_7(X):
             """Assert fails with 'mode' in the list -- unimplemented"""
-            assert_fails(_basic_scenario, NotImplementedError, X, ['mode', 1.5, 'median', 'median'])
+            _basic_scenario(X, ['mode', 1.5, 'median', 'median'])
 
         def scenario_8(X):
             """Assert fails with len != ncols"""
@@ -1058,17 +1086,15 @@ def test_h2o_with_conn():
             scenario_13
         ]
 
-        # since the imputer works in place, we have to do this for each scenario...
-        for scenario in scenarios:
-            try:
-                M = new_h2o_frame(f.copy())
-            except Exception as e:
-                M = None
+        try:
+            M = new_h2o_frame(f.copy())
+        except Exception as e:
+            M = None
 
-            if M is not None:
+        if M is not None:
+            # loop scenarios
+            for scenario in scenarios:
                 scenario(M)
-            else:
-                pass
 
     def persist():
         f = F.copy()
@@ -1213,18 +1239,19 @@ def test_h2o_with_conn():
         else:
             pass
 
-    @cleanup
-    def corr():
-        if X is not None:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
+    if CAN_CHART_MPL:
+        @cleanup
+        def corr():
+            if X is not None:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
 
-            # plots for the test, should be cleaned up by the decorator
-            h2o_corr_plot(X, plot_type='cor', na_warn=False)
+                # plots for the test, should be cleaned up by the decorator
+                h2o_corr_plot(X, plot_type='cor', na_warn=False)
 
-        else:
-            pass
+            else:
+                pass
 
     def interactions():
         x_dict = {
@@ -1453,6 +1480,7 @@ def test_h2o_with_conn():
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
             assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+            h2o_precision_recall_fscore_support(y_act, y_pred, y_type="binary", average="weighted")
 
             # force all negative labels on recall/support/precision
             y_act, y_pred = Y['zero'], Y['zero']
@@ -1629,6 +1657,17 @@ def test_h2o_with_conn():
             selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
             selector.fit_transform(irs)
 
+    def val_counts():
+        if X is not None:
+            try:
+                Y = new_h2o_frame(load_iris_df())
+            except Exception as e:
+                return
+
+            cts = value_counts(Y['Species'])
+            assert cts.shape[0] == 3
+            assert all([cts.iloc[i] == 50 for i in range(3)])
+
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
@@ -1648,7 +1687,8 @@ def test_h2o_with_conn():
     sparse()
     impute()
     mem_est()
-    corr()
+    if CAN_CHART_MPL:
+        corr()
     interactions()
     balance()
     encode()

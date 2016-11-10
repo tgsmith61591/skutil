@@ -1,11 +1,10 @@
 from __future__ import print_function, division, absolute_import
 import warnings
+import h2o
 import os
-
+from ..utils.fixes import is_iterable
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
-
-import h2o
 from h2o.frame import H2OFrame
 
 # in different versions, we get different exceptions
@@ -28,6 +27,7 @@ except ImportError as e:
     import pickle
 
 __all__ = [
+    'check_frame',
     'check_version',
     'NAWarning',
     'BaseH2OFunctionWrapper',
@@ -52,10 +52,10 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
-    x : array_like
+    x : array_like, shape=(n_features,)
         The feature names. These will be retained in the frame
 
     y : str
@@ -68,36 +68,44 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         Whether to return the sanitized ``x``, ``y`` variables.
         If False, will only return ``X``.
 
+
     Returns
     -------
 
-    X : pd.DataFrame
-        The sanitized dataframe
+    X : ``H2OFrame``, shape=(n_samples, n_features)
+        The sanitized H2OFrame
     """
     x, y = validate_x_y(X, x, y, exclude_features)
-    X = _check_is_frame(X)[x]  # make a copy
+    X = check_frame(X, copy=False) # don't copy here
+    X = X[x] # make a copy of only the x features
 
     return X if not return_x_y else (X, x, y)
 
 
-def _check_is_frame(X):
-    """Returns X if X is a frame else throws a TypeError
+def check_frame(X, copy=False):
+    """Returns ``X`` if ``X`` is an H2OFrame
+    else raises a TypeError. If ``copy`` is True,
+    will return a copy of ``X`` instead.
 
     Parameters
     ----------
 
-    X : H2OFrame
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame to evaluate
+
+    copy : bool, optional (default=False)
+        Whether to return a copy of the H2OFrame.
+
 
     Returns
     -------
 
-    X
+    X : ``H2OFrame``, shape=(n_samples, n_features)
+        The frame or the copy
     """
-
     if not isinstance(X, H2OFrame):
         raise TypeError('expected H2OFrame but got %s' % type(X))
-    return X
+    return X if not copy else X[X.columns]
 
 
 def _retain_features(X, exclude):
@@ -108,11 +116,12 @@ def _retain_features(X, exclude):
     Parameters
     ----------
 
-    X : H2OFrame
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
     exclude : array_like
         The columns to exclude
+
 
     Returns
     -------
@@ -136,6 +145,7 @@ def _retain_from_list(x, exclude):
     exclude : array_like
         The columns to exclude
 
+
     Returns
     -------
 
@@ -151,18 +161,19 @@ def validate_x(x):
     Parameters
     ----------
 
-    x : None, iterable
+    x : None or iterable, shape=(n_features,)
         The feature names
+
 
     Returns
     -------
 
-    x : iterable or None
+    x : None or iterable, shape=(n_features,)
         The feature names
     """
     if x is not None:
         # validate feature_names
-        if not (hasattr(x, '__iter__') and all([isinstance(i, six.string_types) for i in x])):
+        if not (is_iterable(x) and all([isinstance(i, six.string_types) for i in x])):
             raise TypeError('x must be an iterable of strings. '
                             'Got %s' % str(x))
 
@@ -171,12 +182,12 @@ def validate_x(x):
 
 def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     """Validate the feature_names and target_feature arguments
-    passed to an ``H2OTransformer``.
+    passed to an H2OTransformer.
 
     Parameters
     ----------
 
-    X : H2OFrame
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
     feature_names : iterable or None
@@ -189,19 +200,25 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
         The target name to exclude from the transformer analysis. If None,
         unsupervised is assumed, otherwise must be string or unicode.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``x``
+
 
     Returns
     -------
 
-    (feature_names, target_feature)
+    feature_names : list, str
+        A list of the ``feature_names`` as strings
+
+    target_feature : str or None
+        The ``target_feature`` as a string if it is not 
+        None, else None
     """
     if feature_names is not None:
         # validate feature_names
         feature_names = validate_x(feature_names)
     else:
-        X = _check_is_frame(X)
+        X = check_frame(X, copy=False)
         feature_names = X.columns
 
     # validate exclude_features
@@ -224,33 +241,35 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     # the target_feature from the feature_names
     return (
         _retain_from_list([
-                              str(i) for i in feature_names
-                              if not str(i) == target_feature
-                              ], exclude_features),
+              str(i) for i in feature_names
+              if not str(i) == target_feature
+        ], exclude_features),
         target_feature
     )
 
 
 class VizMixin:
     """This mixin class provides the interface to plot
-    an H2OEstimator's fit performance over a timestep.
+    an ``H2OEstimator``'s fit performance over a timestep.
     Any structure that wraps an H2OEstimator's fitting
     functionality should derive from this mixin.
     """
 
     def plot(self, timestep, metric):
         """Plot an H2OEstimator's performance over a
-        given timestep.
+        given ``timestep`` (x-axis) against a provided 
+        ``metric`` (y-axis).
 
         Parameters
         ----------
 
         timestep : str
-            A timestep as defined in the H2O API. Examples
-            include number_of_trees, epochs
+            A timestep as defined in the H2O API. One of
+            ("AUTO", "duration", "number_of_trees").
 
         metric : str
-            The performance metric to evaluate, i.e., MSE
+            The performance metric to evaluate. One of
+            ("log_likelihood", "objective", "MSE", "AUTO")
         """
 
         # Initially were raising but now want to just return NI.
@@ -326,10 +345,10 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit).
 
-    min_version : str, float, optional (default='any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float, optional (default=None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -396,24 +415,35 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         """Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``
         from disk. If the instance is of a more complex class, i.e., one that contains
         an ``H2OEstimator``, this method will handle loading these models separately 
-        and outside of the constraints of the ``pickle`` package. 
+        and outside of the constraints of the pickle package. 
 
         Note that this is a static method and should be called accordingly:
 
-            >>> mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
-            >>> mcf.transform(X)
+            >>> def load_and_transform():
+            ...     from skutil.h2o.select import H2OMulticollinearityFilterer
+            ...     mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
+            ...     return mcf.transform(X)
+            >>>
+            >>> load_and_transform() # doctest: +SKIP
 
-        Some classes define their own ``load`` functionality, and will not
+        Some classes define their own load functionality, and will not
         work as expected if called in the following manner:
 
-            >>> pipeline = BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
+            >>> def load_pipe():
+            ...     return BaseH2OFunctionWrapper.load('path/to/h2o/pipeline.pkl')
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         This is because of the aforementioned situation wherein some classes
-        handle saves and loads of ``H2OEstimator`` objects differently. Thus, any
+        handle saves and loads of H2OEstimator objects differently. Thus, any
         class that is being loaded should be statically referenced at the level of
         lowest abstraction possible:
 
-            >>> pipeline = H2OPipeline.load('path/to/h2o/pipeline.pkl')
+            >>> def load_pipe():
+            ...     from skutil.h2o.pipeline import H2OPipeline
+            ...     return H2OPipeline.load('path/to/h2o/pipeline.pkl')
+            >>>
+            >>> pipe = load_pipe() # doctest: +SKIP
 
         Parameters
         ----------
@@ -424,7 +454,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         Returns
         -------
 
-        m : ``BaseH2OFunctionWrapper``
+        m : BaseH2OFunctionWrapper
             The unpickled instance of the model
         """
         with open(location) as f:
@@ -434,10 +464,10 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     def save(self, location, warn_if_exists=True, **kwargs):
         """Saves the ``BaseH2OFunctionWrapper`` to disk. If the 
         instance is of a more complex class, i.e., one that contains
-        an ``H2OEstimator``, this method will handle saving these 
+        an H2OEstimator, this method will handle saving these 
         models separately and outside of the constraints of the 
-        ``pickle`` package. Any key-word arguments will be passed to
-        the ``_save_internal`` method (if it exists).
+        pickle package. Any key-word arguments will be passed to
+        the _save_internal method (if it exists).
 
 
         Parameters
@@ -481,21 +511,21 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     Parameters
     ----------
 
-    feature_names : array_like (str)
+    feature_names : array_like, str
         The list of names on which to fit the feature selector.
 
-    target_feature : str (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None
+    exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
         during the fit.
 
-    min_version : str, float (default 'any')
+    min_version : str or float, optional (default='any')
         The minimum version of h2o that is compatible with the transformer
 
-    max_version : str, float (default None)
+    max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
     """
 
@@ -515,13 +545,13 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The training frame
 
         Returns
         -------
 
-        ft : ``H2OFrame``
+        ft : H2OFrame, shape=(n_samples, n_features)
             The transformed training frame
         """
         ft = self.fit(frame).transform(frame)
