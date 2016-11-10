@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 from collections import namedtuple
 import numpy as np
@@ -5,6 +7,7 @@ import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 from .base import _BaseFeatureSelector
 from ..utils import validate_is_pd, is_numeric
+from ..utils.fixes import _cols_if_none
 
 __all__ = [
     'FeatureDropper',
@@ -36,30 +39,54 @@ def _validate_cols(cols):
 
 class SparseFeatureDropper(_BaseFeatureSelector):
     """Retains features that are less sparse (NaN) than
-    the provided threshold.
+    the provided threshold. Useful in situations where matrices
+    are too sparse to impute reliably.
 
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     threshold : float, optional (default=0.5)
         The threshold of sparsity above which features will be
         deemed "too sparse" and will be dropped.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> nan = np.nan
+        >>> X = np.array([
+        ...     [1.0, 2.0, nan],
+        ...     [2.0, 3.0, nan],
+        ...     [3.0, nan, 1.0],
+        ...     [4.0, 5.0, nan]
+        ... ])
+        >>>
+        >>> X = pd.DataFrame.from_records(data=X, columns=['a','b','c'])
+        >>> dropper = SparseFeatureDropper(threshold=0.5)
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 2 # drop out last column
+
 
     Attributes
     ----------
 
-    sparsity_ : array_like, (n_cols,)
+    sparsity_ : array_like, shape=(n_features,)
         The array of sparsity values
     
     drop_ : array_like, shape=(n_features,)
@@ -73,15 +100,16 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         self.threshold = threshold
 
     def fit(self, X, y=None):
-        """Fit the linear combination filterer.
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -101,7 +129,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
                              '0 (inclusive) and 1. Got %s' % str(thresh))
 
         # get cols
-        cols = self.cols if self.cols is not None else X.columns.tolist()
+        cols = _cols_if_none(X, self.cols)
 
         # assess sparsity
         self.sparsity_ = X[cols].apply(lambda x: x.isnull().sum() / x.shape[0]).values  # numpy array
@@ -117,7 +145,7 @@ class FeatureDropper(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like (string)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The features to drop. Note that ``FeatureDropper`` behaves slightly
         differently from all other ``_BaseFeatureSelector`` classes in the sense
         that it will drop all of the features prescribed in this parameter. However,
@@ -126,10 +154,23 @@ class FeatureDropper(_BaseFeatureSelector):
         parameter).
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.random.rand(3,3), columns=['a','b','c'])
+        >>> dropper = FeatureDropper(cols=['a','b'])
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 1 # drop out first two columns
+
 
     Attributes
     ----------
@@ -157,16 +198,31 @@ class FeatureRetainer(_BaseFeatureSelector):
     Parameters
     ----------
     
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>>
+        >>> X = pd.DataFrame.from_records(data=np.random.rand(3,3), columns=['a','b','c'])
+        >>> dropper = FeatureRetainer(cols=['a','b'])
+        >>> X_transform = dropper.fit_transform(X)
+        >>> assert X_transform.shape[1] == 2 # retain first two columns
+
 
     Attributes
     ----------
@@ -181,6 +237,26 @@ class FeatureRetainer(_BaseFeatureSelector):
         super(FeatureRetainer, self).__init__(cols=cols, as_df=as_df)
 
     def fit(self, X, y=None):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+
+        X : Pandas ``DataFrame``
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
 
@@ -194,7 +270,9 @@ class FeatureRetainer(_BaseFeatureSelector):
         check_is_fitted(self, 'drop_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)  # copy X
-        retained = X[self.cols or X.columns]  # if cols is None, returns all
+        cols = X.columns if self.cols is None else self.cols
+
+        retained = X[cols]  # if cols is None, returns all
         return retained if self.as_df else retained.as_matrix()
 
 
@@ -228,7 +306,7 @@ def filter_collinearity(c, threshold):
     Parameters
     ----------
 
-    c : pandas DataFrame
+    c : pandas ``DataFrame``
         The pre-computed correlation matrix. This is expected to be
         a square matrix, and will raise a ``ValueError`` if it's not.
 
@@ -236,12 +314,21 @@ def filter_collinearity(c, threshold):
         The threshold above which to filter features which
         are multicollinear in nature.
 
+
     Returns
     -------
 
-    out_tup: tuple
-        drops, macor, crrz (The drop list, the mean absolute 
-        correlations, and the correlation tuples)
+    drops : list (string), shape=(n_features,)
+        The features that should be dropped
+
+    macor : list (float), shape=(n_features,)
+        The mean absolute correlations between
+        the features.
+
+    crrz : list (_MCFTuple), shape=(n_features,)
+        The tuple containing all information on the
+        collinearity metrics between each pairwise
+        correlation.
     """
     # ensure symmetric
     if c.shape[0] != c.shape[1]:
@@ -325,22 +412,47 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like (string)
-        The features on which to compute the correlation matrix and from which to
-        compute the ``drop_`` attribute. In the case that ``cols`` is None, 
-        the transformer will be fit on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
-    threshold : float, default 0.85
+    threshold : float, optional (default=0.85)
         The threshold above which to filter correlated features
 
-    method : str, one of ['pearson','kendall','spearman'], default 'pearson'
-        The method used to compute the correlation
+    method : str, optional (default='pearson')
+        The method used to compute the correlation,
+        one of ['pearson','kendall','spearman'].
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+    The following demonstrates a simple multicollinearity filterer 
+    applied to the iris dataset.
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> mcf = MulticollinearityFilterer(threshold=0.85)
+        >>> mcf.fit_transform(X).head()
+           sepal length (cm)  sepal width (cm)  petal width (cm)
+        0                5.1               3.5               0.2
+        1                4.9               3.0               0.2
+        2                4.7               3.2               0.2
+        3                4.6               3.1               0.2
+        4                5.0               3.6               0.2
+
 
     Attributes
     ----------
@@ -363,15 +475,16 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         self.method = method
 
     def fit(self, X, y=None):
-        """Fit the multicollinearity filterer.
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -392,10 +505,11 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         Parameters
         ----------
 
-        X : Pandas DataFrame
+        X : Pandas ``DataFrame``
             The Pandas frame to fit. The frame will only
             be fit on the prescribed ``cols`` (see ``__init__``) or
-            all of them if ``cols`` is None.
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
         y : None
             Passthrough for ``sklearn.pipeline.Pipeline``. Even
@@ -409,10 +523,11 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-        _validate_cols(self.cols)
+        cols = _cols_if_none(X, self.cols)
+        _validate_cols(cols)
 
         # Generate correlation matrix
-        c = X[self.cols or X.columns].corr(method=self.method).apply(lambda x: np.abs(x))
+        c = X[cols].corr(method=self.method).apply(lambda x: np.abs(x))
 
         # get drops list
         d, mac, crz = filter_collinearity(c, self.threshold)
@@ -427,37 +542,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         dropped = X.drop(self.drop_, axis=1)
         return dropped if self.as_df else dropped.as_matrix()
 
-    def transform(self, X, y=None):
-        """Drops the multicollinear features from the new
-        input frame.
-
-        Parameters
-        ----------
-
-        X : Pandas DataFrame
-            The Pandas frame to transform.
-
-        y : None
-            Passthrough for ``sklearn.pipeline.Pipeline``. Even
-            if explicitly set, will not change behavior of ``fit``.
-
-        Returns
-        -------
-
-        dropped : Pandas DataFrame or NumPy ndarray
-            The test frame sans "bad" columns
-        """
-        check_is_fitted(self, 'drop_')
-        # check on state of X and cols
-        X, _ = validate_is_pd(X, self.cols)
-
-        # ensure we don't drop None
-        if not self.drop_:
-            return X
-
-        dropped = X.drop(self.drop_, axis=1)
-        return dropped if self.as_df else dropped.as_matrix()
-
 
 def _near_zero_variance_ratio(series, ratio):
     """Perform NZV filtering based on a ratio of the
@@ -466,7 +550,7 @@ def _near_zero_variance_ratio(series, ratio):
     Parameters
     ----------
     
-    series : pd.Series, shape=(n_samples,)
+    series : pandas ``Series``, shape=(n_samples,)
         The series on which to compute ``value_counts``.
 
     Returns
@@ -508,19 +592,21 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     threshold : float, optional (default=1e-6)
         The threshold below which to declare "zero variance"
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     strategy : str, optional (default='variance')
         The strategy by which feature selection should be performed,
@@ -531,6 +617,28 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         most prevalent value is represented at a ratio greater than or equal to
         ``threshold`` to the second-most frequent value. **Note** that if 
         ``strategy`` is 'ratio', ``threshold`` must be greater than 1.
+
+
+    Examples
+    --------
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from skutil.feature_selection import NearZeroVarianceFilterer
+        >>> 
+        >>> X = pd.DataFrame.from_records(data=np.array([
+        ...                                 [1,2,3],
+        ...                                 [4,5,3],
+        ...                                 [6,7,3],
+        ...                                 [8,9,3]]), 
+        ...                               columns=['a','b','c'])
+        >>> filterer = NearZeroVarianceFilterer(threshold=0.05)
+        >>> filterer.fit_transform(X)
+           a  b
+        0  1  2
+        1  4  5
+        2  6  7
+        3  8  9
 
 
     Attributes
@@ -558,9 +666,29 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         self.strategy = strategy
 
     def fit(self, X, y=None):
+        """Fit the transformer.
+
+        Parameters
+        ----------
+
+        X : Pandas ``DataFrame``
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
+
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
+
+        Returns
+        -------
+
+        self
+        """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)
-        cols = self.cols if self.cols is not None else X.columns
+        cols = _cols_if_none(X, self.cols)
 
         # validate strategy
         valid_strategies = ('variance', 'ratio')

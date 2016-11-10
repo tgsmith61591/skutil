@@ -8,11 +8,10 @@ from numpy.random import choice
 from sklearn.externals import six
 from sklearn.neighbors import NearestNeighbors
 from skutil.base import *
-from skutil.base import overrides
+from skutil.base import overrides, BaseSkutil
 from ..utils import *
 
 __all__ = [
-    'BalancerMixin',
     'OversamplingClassBalancer',
     'SMOTEClassBalancer',
     'UndersamplingClassBalancer'
@@ -58,8 +57,17 @@ def _validate_x_y_ratio(X, y, ratio):
     X : pd.DataFrame
         The frame from which to sample
 
-    y_name : str
-        The name of the column that is the response class
+    y : str
+        The name of the column that is the response class.
+        This is the column on which ``value_counts`` will be
+        executed to determine imbalance.
+
+    ratio : float
+        The ratio at which the balancing operation will 
+        be performed. Used to determine whether balancing is
+        required.
+
+    ratio : 
 
     Returns
     -------
@@ -265,7 +273,7 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
         return out
 
 
-class _BaseBalancer(six.with_metaclass(abc.ABCMeta, object, BalancerMixin)):
+class _BaseBalancer(six.with_metaclass(abc.ABCMeta, BaseSkutil, BalancerMixin)):
     """A super class for all balancer classes. Balancers are not like TransformerMixins
     or BaseEstimators, and do not implement fit or predict. This is because Balancers
     are ONLY applied to training data.
@@ -287,10 +295,10 @@ class _BaseBalancer(six.with_metaclass(abc.ABCMeta, object, BalancerMixin)):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``balance``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
@@ -322,22 +330,6 @@ def _over_under_balance(X, y, ratio, as_df, shuffle, partitioner_class):
 class OversamplingClassBalancer(_BaseBalancer):
     """Oversample all of the minority classes until they are 
     represented at the target proportion to the majority class.
-    For example, given the following pd.Series, ``a_counts``, 
-    (index = class, and values = counts):
-
-        >>> a_counts
-        0  100
-        1  30
-        2  25
-
-    and a ``ratio`` of 0.5, the minority classes (1, 2) will be oversampled 
-    until they are represented at a ratio of at least 0.5 * the prevalence of
-    the majority class (0):
-
-        >>> a_counts_undersampled
-        0  100
-        1  50
-        2  50
 
     Parameters
     ----------
@@ -355,10 +347,32 @@ class OversamplingClassBalancer(_BaseBalancer):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``balance``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+    
+    Consider the following example: with a ``ratio`` of 0.5, the 
+    minority classes (1, 2) will be oversampled until they are represented 
+    at a ratio of at least 0.5 * the prevalence of the majority class (0)
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> 
+        >>> # 100 zeros, 30 ones and 25 twos
+        >>> X = pd.DataFrame(np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2]), columns=['A'])
+        >>> sampler = OversamplingClassBalancer(y="A", ratio=0.5)
+        >>>
+        >>> X_balanced = sampler.balance(X)
+        >>> X_balanced['A'].value_counts().sort_index()
+        0.0    100
+        1.0     50
+        2.0     50
+        Name: A, dtype: int64
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, as_df=True):
@@ -375,21 +389,22 @@ class OversamplingClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to balance
+        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+            The data to balance.
 
         Returns
         -------
 
-        pd.DataFrame
+        blnc : pandas ``DataFrame``, shape=(n_samples, n_features)
             The balanced dataframe. The dataframe will be
             explicitly shuffled if ``self.shuffle`` is True however,
             if ``self.shuffle`` is False, preservation of original, 
             natural ordering is not guaranteed.
         """
-        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
+        blnc = _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
                                    shuffle=self.shuffle, as_df=self.as_df,
                                    partitioner_class=_OversamplingBalancePartitioner)
+        return blnc
 
 
 class SMOTEClassBalancer(_BaseBalancer):
@@ -417,10 +432,38 @@ class SMOTEClassBalancer(_BaseBalancer):
         The number of neighbors to use in the nearest neighbors model
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``balance``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+    Consider the following example: with a ``ratio`` of 0.5, the 
+    minority classes (1, 2) will be oversampled until they are represented 
+    at a ratio of at least 0.5 * the prevalence of the majority class (0)
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> from numpy.random import RandomState
+        >>>
+        >>> # establish a random state
+        >>> prng = RandomState(42)
+        >>>
+        >>> # 100 zeros, 30 ones and 25 twos
+        >>> X = pd.DataFrame(np.asarray([prng.rand(155), 
+        ...                              np.concatenate([np.zeros(100), np.ones(30), np.ones(25)*2])]).T,
+        ...                              columns=['x', 'y'])
+        >>> sampler = SMOTEClassBalancer(y="y", ratio=0.5)
+        >>>
+        >>> X_balanced = sampler.balance(X)
+        >>> X_balanced['y'].value_counts().sort_index()
+        0.0    100
+        1.0     50
+        2.0     50
+        Name: y, dtype: int64
     """
 
     def __init__(self, y, ratio=BalancerMixin._def_ratio, shuffle=True, k=3, as_df=True):
@@ -439,13 +482,13 @@ class SMOTEClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to balance
+        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+            The data to balance.
 
         Returns
         -------
 
-        pd.DataFrame
+        X : pandas ``DataFrame``, shape=(n_samples, n_features)
             The balanced dataframe. The dataframe will be
             explicitly shuffled if ``self.shuffle`` is True however,
             if ``self.shuffle`` is False, preservation of original, 
@@ -512,6 +555,9 @@ class SMOTEClassBalancer(_BaseBalancer):
             # append to X
             X = pd.concat([X, syn_frame])
 
+        # reset index
+        X.index = np.arange(X.shape[0])
+
         # shuffle if necessary
         X = X if not self.shuffle else shuffle_dataframe(X)
 
@@ -521,22 +567,8 @@ class SMOTEClassBalancer(_BaseBalancer):
 
 class UndersamplingClassBalancer(_BaseBalancer):
     """Undersample the majority class until it is represented
-    at the target proportion to the most-represented minority class (i.e., the
-    second-most populous class). For example, given the following pd.Series, 
-    ``a_counts``, (index = class, and values = counts):
-
-        >>> a_counts
-        0  150
-        1  30
-        2  10
-
-    and a ``ratio`` of 0.5, the majority class (0) will be undersampled until
-    the second most-populous class (1) is represented at a ratio of 0.5:
-
-        >>> a_counts_undersampled
-        0  60
-        1  30
-        2  10
+    at the target proportion to the most-represented minority class 
+    (i.e., the second-most populous class).
 
     Parameters
     ----------
@@ -554,10 +586,32 @@ class UndersamplingClassBalancer(_BaseBalancer):
         Whether or not to shuffle rows on return
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``balance``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+    Consider the following example: with a ``ratio`` of 0.5, the 
+    majority class (0) will be undersampled until the second most-populous 
+    class (1) is represented at a ratio of 0.5.
+
+        >>> import pandas as pd
+        >>> import numpy as np
+        >>> 
+        >>> # 150 zeros, 30 ones and 10 twos
+        >>> X = pd.DataFrame(np.concatenate([np.zeros(150), np.ones(30), np.ones(10)*2]), columns=['A'])
+        >>> sampler = UndersamplingClassBalancer(y="A", ratio=0.5)
+        >>>
+        >>> X_balanced = sampler.balance(X)
+        >>> X_balanced['A'].value_counts().sort_index()
+        0.0    60
+        1.0    30
+        2.0    10
+        Name: A, dtype: int64
     """
 
     def __init__(self, y, ratio=0.2, shuffle=True, as_df=True):
@@ -573,18 +627,19 @@ class UndersamplingClassBalancer(_BaseBalancer):
         Parameters
         ----------
 
-        X : pandas DF, shape [n_samples, n_features]
-            The data to balance
+        X : pandas ``DataFrame``, shape=(n_samples, n_features)
+            The data to balance.
 
         Returns
         -------
 
-        pd.DataFrame
+        blnc : pandas ``DataFrame``, shape=(n_samples, n_features)
             The balanced dataframe. The dataframe will be
             explicitly shuffled if ``self.shuffle`` is True however,
             if ``self.shuffle`` is False, preservation of original, 
             natural ordering is not guaranteed.
         """
-        return _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
+        blnc = _over_under_balance(X=X, y=self.y_, ratio=self.ratio,
                                    shuffle=self.shuffle, as_df=self.as_df,
                                    partitioner_class=_UndersamplingBalancePartitioner)
+        return blnc

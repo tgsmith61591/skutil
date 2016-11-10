@@ -39,7 +39,7 @@ from skutil.h2o.split import (check_cv, H2OKFold,
                               _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
 from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
-from skutil.h2o.frame import is_integer, is_float
+from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
 
@@ -1656,6 +1656,17 @@ def test_h2o_with_conn():
             names = [str(i) for i in irs.columns if not str(i)=='Species']
             selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
             selector.fit_transform(irs)
+
+    def val_counts():
+        if X is not None:
+            try:
+                Y = new_h2o_frame(load_iris_df())
+            except Exception as e:
+                return
+
+            cts = value_counts(Y['Species'])
+            assert cts.shape[0] == 3
+            assert all([cts.iloc[i] == 50 for i in range(3)])
 
 
     # run the tests -- put new or commonly failing tests

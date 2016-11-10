@@ -89,9 +89,7 @@ else:
 def is_iterable(x):
     """Python 3.x adds the ``__iter__`` attribute
     to strings. Thus, our previous tests for iterable
-    will fail:
-
-        >>> if hasattr(x, '__iter__'):  ...
+    will fail when using ``hasattr``.
 
     Parameters
     ----------
@@ -110,6 +108,24 @@ def is_iterable(x):
     if isinstance(x, six.string_types):
         return False
     return hasattr(x, '__iter__')
+
+
+def _cols_if_none(X, self_cols):
+    """Since numerous transformers in the preprocessing
+    and feature selection modules take ``cols`` arguments
+    (which could end up as ``None`` via the ``validate_is_pd``
+    method), this will return the columns that should be used.
+
+    Parameters
+    ----------
+
+    X : Pandas ``DataFrame``
+        The data frame being transformed.
+
+    self_cols : list (string) or None
+        The columns.
+    """
+    return X.columns.tolist() if not self_cols else self_cols
 
 
 def _is_integer(x):
@@ -294,9 +310,11 @@ def _get_groups(X, y):
     Returns
     -------
 
-    groups
+    groups : indexable
+        The groups
     """
-    return (X, y, None) if not SK18 else indexable(X, y, None)
+    groups = (X, y, None) if not SK18 else indexable(X, y, None)
+    return groups
 
 
 def _as_numpy(y):

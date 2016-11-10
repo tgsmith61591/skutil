@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
 from abc import ABCMeta, abstractmethod
 from sklearn.utils.validation import check_is_fitted
@@ -27,16 +29,19 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
 
     Attributes
     ----------
@@ -58,14 +63,18 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
         Parameters
         ----------
 
-        X : pd.DataFrame
-            The test frame
+        X : Pandas ``DataFrame``
+            The Pandas frame to transform. The prescribed
+            ``drop_`` columns will be dropped and a copy of
+            ``X`` will be returned.
+
 
         Returns
         -------
 
-        dropped : pd.DataFrame
-            The transformed matrix
+        dropped : Pandas ``DataFrame``
+            The test data with the prescribed ``drop_``
+            columns removed.
         """
         check_is_fitted(self, 'drop_')
         # check on state of X and cols
@@ -79,8 +88,8 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil)):
             # user...
             drops = [x for x in self.drop_ if x in X.columns]
             if not len(drops) == len(self.drop_):
-                warnings.warn('one of more features to drop not contained '
-                              'in input data feature names')
+                warnings.warn('one or more features to drop not contained '
+                              'in input data feature names', UserWarning)
 
             dropped = X.drop(drops, axis=1)
             return dropped if self.as_df else dropped.as_matrix()

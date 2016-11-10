@@ -111,6 +111,18 @@ class CleanCommand(Clean):
 cmdclass = {'clean': CleanCommand}
 
 
+# This is the optional wheelhouse-uploader feature
+# that sklearn includes in its setup. We can use this to both
+# fetch artifacts as well as upload to PyPi (eventually).
+# The URLs are set up in the setup.cfg file that sklearn defined
+# and we modified.
+
+WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts', 'upload_all'])
+if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
+    import wheelhouse_uploader.cmd
+    cmdclass.update(vars(wheelhouse_uploader.cmd))
+
+
 # DEFINE CONFIG
 def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration

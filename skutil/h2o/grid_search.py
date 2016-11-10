@@ -732,18 +732,27 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         Note that this is a static method and should be called accordingly:
 
-            >>> search = BaseH2OSearchCV.load('path/to/h2o/search.pkl') # GOOD!
+            >>> def load_search():
+            ...     return BaseH2OSearchCV.load('path/to/h2o/search.pkl') # GOOD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
         Also note that since BaseH2OSearchCV will contain an H2OEstimator, it's
         ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper
         and will not function properly if called at the highest level of abstraction:
 
-            >>> search = BaseH2OFunctionWrapper.load('path/to/h2o/search.pkl') # BAD!
+            >>> def load_search():
+            ...     return BaseH2OFunctionWrapper.load('path/to/h2o/search.pkl') # BAD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
         Furthermore, trying to load a different type of BaseH2OFunctionWrapper from
         this method will raise a TypeError:
 
-            >>> mcf = BaseH2OSearchCV.load('path/to/some/other/transformer.pkl') # BAD!
+            >>> def load_search():
+            ...     return BaseH2OSearchCV.load('path/to/some/other/transformer.pkl') # BAD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
         Parameters
         ----------

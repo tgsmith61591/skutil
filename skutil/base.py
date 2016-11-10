@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import absolute_import, division, print_function
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
@@ -39,10 +41,13 @@ def overrides(interface_class):
     The following would be an invalid ``overrides`` statement, since
     ``A`` does not have a ``b`` method to override.
 
-        >>> class C(B):
+        >>> class C(B): # doctest: +IGNORE_EXCEPTION_DETAIL
         ...     @overrides(A) # should override B, not A
         ...     def b(self):
         ...         return 1
+        Traceback (most recent call last):  
+        AssertionError: A.b must override a super method!
+
     """
 
     def overrider(method):
@@ -68,6 +73,23 @@ def suppress_warnings(func):
         Automatically passed to the decorator. This
         function is run within the context of the warning
         filterer.
+
+
+    Examples
+    --------
+
+    When any function is decorated with the ``suppress_warnings``
+    decorator, any warnings that are raised will be suppressed.
+
+        >>> import warnings
+        >>>
+        >>> @suppress_warnings
+        ... def fun_that_warns():
+        ...     warnings.warn("This is a warning", UserWarning)
+        ...     return 1
+        >>>
+        >>> fun_that_warns()
+        1
     """
 
     def suppressor(*args, **kwargs):
@@ -100,6 +122,8 @@ class SelectiveMixin:
     """
     # at one time, this contained methods. But They've since
     # been weeded out one-by-one... do we want to keep it?
+    # TODO: in future versions, remove this mixin or add
+    # concrete functionality
 
 
 class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, 
@@ -110,16 +134,18 @@ class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator,
     Parameters
     ----------
 
-    cols : array_like, optional (default=None)
-        The columns on which the transformer will be ``fit``. In
-        the case that ``cols`` is None, the transformer will be fit
-        on all columns.
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
     as_df : bool, optional (default=True)
-        Whether to return a Pandas DataFrame in the ``transform``
-        method. If False, will return a NumPy ndarray instead. 
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
-        DataFrame features, the ``as_df`` parameter is True by default.
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
     """
     
     def __init__(self, cols=None, as_df=True):
