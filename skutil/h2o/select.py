@@ -461,7 +461,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -478,13 +478,13 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
         -------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed training data
         """
         X = check_frame(X, copy=False) # copy in next line

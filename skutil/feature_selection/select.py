@@ -712,8 +712,8 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
             # get a np.array mask
             matrix = np.array([_near_zero_variance_ratio(X[col], ratio) for col in cols])
             drop_mask = matrix[:,1].astype(np.bool)
-            self.var_ = matrix[drop_mask, 0].tolist() # just retain the variances
             self.drop_ = np.asarray(cols)[drop_mask].tolist()
+            self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist())) # just retain the variances
 
         # I don't like making this None; it opens up bugs in pd.drop,
         # but it was the precedent the API set from early on, so don't

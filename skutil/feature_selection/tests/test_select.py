@@ -269,7 +269,7 @@ def test_nzv_filterer():
     assert len(transformer.drop_) == 1
     assert transformer.drop_[0] == 'a'
     assert len(transformer.var_) == 1
-    assert transformer.var_[0] == 3.0
+    assert transformer.var_['a'] == 3.0
 
 
 
