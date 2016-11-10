@@ -499,7 +499,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     return X, cols
 
 
-def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
+def df_memory_estimate(X, unit='MB', index=False):
     """We estimate the memory footprint of an H2OFrame
     to determine whether it's capable of being held in memory 
     or not.
@@ -510,12 +510,11 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
     X : pandas DataFrame, shape=(n_samples, n_features)
         The DataFrame in question
 
-    bit_est : int, optional (default=32)
-        The estimated bit-size of each cell. The default
-        assumes each cell is a signed 32-bit float
-
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
+    index : bool, optional (default=False)
+        Whether to also estimate the memory footprint of the index.
 
 
     Returns
