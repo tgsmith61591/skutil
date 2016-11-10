@@ -47,6 +47,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         pip install seaborn;
     fi
 
+    pip install jinja2
     pip install coveralls
     pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
     # Install nose-timer via pip
