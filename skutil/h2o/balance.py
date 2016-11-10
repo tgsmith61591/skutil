@@ -7,7 +7,7 @@ from .util import reorder_h2o_frame
 from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
-                                     BalancerMixin)
+                                     BalancerMixin, SamplingWarning)
 
 __all__ = [
     'H2OOversamplingClassBalancer',

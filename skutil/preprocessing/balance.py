@@ -13,9 +13,18 @@ from ..utils import *
 
 __all__ = [
     'OversamplingClassBalancer',
+    'SamplingWarning',
     'SMOTEClassBalancer',
     'UndersamplingClassBalancer'
 ]
+
+
+
+class SamplingWarning(UserWarning):
+    """Custom warning used to notify the user that sub-optimal sampling behavior
+    has occurred. For instance, performing oversampling on a minority class with only
+    one instance will cause this warning to be thrown.
+    """
 
 
 def _validate_ratio(ratio):

@@ -7,12 +7,10 @@ from abc import ABCMeta
 import warnings
 
 __all__ = [
-    'BaseSkutil',
     'overrides',
-    'SamplingWarning',
-    'SelectiveMixin',
-    'SelectiveWarning',
-    'suppress_warnings'
+    'suppress_warnings',
+    'BaseSkutil',
+    'SelectiveMixin'
 ]
 
 
@@ -58,7 +56,6 @@ def overrides(interface_class):
     return overrider
 
 
-
 def suppress_warnings(func):
     """Decorator that forces a method to suppress
     all warnings it may raise. This should be used with caution,
@@ -100,21 +97,6 @@ def suppress_warnings(func):
     return suppressor
 
 
-
-class SamplingWarning(UserWarning):
-    """Custom warning used to notify the user that sub-optimal sampling behavior
-    has occurred. For instance, performing oversampling on a minority class with only
-    one instance will cause this warning to be thrown.
-    """
-
-
-class SelectiveWarning(UserWarning):
-    """Custom warning used to notify user when a structure implementing SelectiveMixin
-    operates improperly. A common usecase is when the fit method receives a non-DataFrame
-    X, and no cols.
-    """
-
-
 class SelectiveMixin:
     """A mixin class that all selective transformers
     should implement. All ``SelectiveMixin`` implementers
@@ -129,7 +111,9 @@ class SelectiveMixin:
 class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator, 
                                     TransformerMixin, SelectiveMixin)):
     """Provides the base class for all non-h2o skutil transformers.
-    Implements both ``TransformerMixin`` and ``SelectiveMixin``.
+    Implements both ``TransformerMixin`` and ``SelectiveMixin``. Also
+    provides the "pretty-print" ``__repr__`` implemented in sklearn's
+    ``BaseEstimator``.
 
     Parameters
     ----------
@@ -146,6 +130,19 @@ class BaseSkutil(six.with_metaclass(ABCMeta, BaseEstimator,
         method. If False, will return a Numpy ``ndarray`` instead. 
         Since most skutil transformers depend on explicitly-named
         ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> from skutil.base import BaseSkutil
+        >>> class A(BaseSkutil):
+        ...     def __init__(self, cols=None, as_df=None):
+        ...             super(A, self).__init__(cols, as_df)
+        ...
+        >>> A()
+        A(as_df=None, cols=None)
+
     """
     
     def __init__(self, cols=None, as_df=True):
