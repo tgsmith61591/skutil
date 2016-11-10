@@ -650,7 +650,7 @@ def _transform_y(y, lam):
     Parameters
     ----------
 
-    y : ndarray, shape (n_samples,)
+    y : array_like, shape (n_samples,)
        The vector being transformed
        
     lam : ndarray, shape (n_lambdas,)

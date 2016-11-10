@@ -52,10 +52,10 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
-    x : array_like
+    x : array_like, shape=(n_features,)
         The feature names. These will be retained in the frame
 
     y : str
@@ -68,10 +68,11 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         Whether to return the sanitized ``x``, ``y`` variables.
         If False, will only return ``X``.
 
+
     Returns
     -------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The sanitized H2OFrame
     """
     x, y = validate_x_y(X, x, y, exclude_features)
@@ -89,16 +90,17 @@ def check_frame(X, copy=False):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame to evaluate
 
     copy : bool, optional (default=False)
         Whether to return a copy of the H2OFrame.
 
+
     Returns
     -------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame or the copy
     """
     if not isinstance(X, H2OFrame):
@@ -114,11 +116,12 @@ def _retain_features(X, exclude):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
     exclude : array_like
         The columns to exclude
+
 
     Returns
     -------
@@ -142,6 +145,7 @@ def _retain_from_list(x, exclude):
     exclude : array_like
         The columns to exclude
 
+
     Returns
     -------
 
@@ -157,13 +161,14 @@ def validate_x(x):
     Parameters
     ----------
 
-    x : None, iterable
+    x : None or iterable, shape=(n_features,)
         The feature names
+
 
     Returns
     -------
 
-    x : iterable or None
+    x : None or iterable, shape=(n_features,)
         The feature names
     """
     if x is not None:
@@ -182,7 +187,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame from which to drop
 
     feature_names : iterable or None
@@ -197,6 +202,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
 
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``x``
+
 
     Returns
     -------
@@ -244,7 +250,7 @@ def validate_x_y(X, feature_names, target_feature, exclude_features=None):
 
 class VizMixin:
     """This mixin class provides the interface to plot
-    an H2OEstimator's fit performance over a timestep.
+    an ``H2OEstimator``'s fit performance over a timestep.
     Any structure that wraps an H2OEstimator's fitting
     functionality should derive from this mixin.
     """
@@ -365,7 +371,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     @property
     def max_version(self):
         """Returns the max version of H2O that is compatible
-        with the BaseH2OFunctionWrapper instance. Some classes
+        with the ``BaseH2OFunctionWrapper`` instance. Some classes
         differ in their support for H2O versions, due to changes
         in the underlying API.
 
@@ -374,7 +380,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         mv : string, or None
             If there is a max version associated with
-            the BaseH2OFunctionWrapper, returns it
+            the ``BaseH2OFunctionWrapper``, returns it
             as a string, otherwise returns None.
         """
         try:
@@ -386,7 +392,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
     @property
     def min_version(self):
         """Returns the min version of H2O that is compatible
-        with the BaseH2OFunctionWrapper instance. Some classes
+        with the ``BaseH2OFunctionWrapper`` instance. Some classes
         differ in their support for H2O versions, due to changes
         in the underlying API.
 
@@ -395,7 +401,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         mv : string
             If there is a min version associated with
-            the BaseH2OFunctionWrapper, returns it
+            the ``BaseH2OFunctionWrapper``, returns it
             as a string, otherwise returns 'any'
         """
         try:
@@ -406,9 +412,9 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
     @staticmethod
     def load(location):
-        """Loads a persisted state of an instance of BaseH2OFunctionWrapper
+        """Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``
         from disk. If the instance is of a more complex class, i.e., one that contains
-        an H2OEstimator, this method will handle loading these models separately 
+        an ``H2OEstimator``, this method will handle loading these models separately 
         and outside of the constraints of the pickle package. 
 
         Note that this is a static method and should be called accordingly:
@@ -456,7 +462,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         return m
 
     def save(self, location, warn_if_exists=True, **kwargs):
-        """Saves the BaseH2OFunctionWrapper to disk. If the 
+        """Saves the ``BaseH2OFunctionWrapper`` to disk. If the 
         instance is of a more complex class, i.e., one that contains
         an H2OEstimator, this method will handle saving these 
         models separately and outside of the constraints of the 
@@ -539,7 +545,7 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
         Parameters
         ----------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The training frame
 
         Returns

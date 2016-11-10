@@ -27,7 +27,7 @@ def _validate_use(X, use, na_warn):
     Parameters
     ----------
 
-    X : H2OFrame, shape=(n_samples, n_features)
+    X : ``H2OFrame``, shape=(n_samples, n_features)
         The frame to evaluate. Since this is an internal method,
         no validation is done to ensure it is, in fact, an ``H2OFrame``
 
@@ -101,8 +101,9 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test frame to transform
+
 
         Returns
         -------
@@ -142,6 +143,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     exclude_features : iterable or None, optional (default=None)
         Any names that should be excluded from ``feature_names``
 
+
     Attributes
     ----------
 
@@ -161,7 +163,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -229,7 +231,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -291,6 +293,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         One of {'complete.obs','all.obs','everything'}.
         A string indicating how to handle missing values.
 
+
     Attributes
     ----------
 
@@ -327,7 +330,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -345,13 +348,13 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit
 
         Returns
         -------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed training data
         """
         X = check_frame(X, copy=False) # copy below
@@ -426,8 +429,9 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     drop_ : list, string
         The columns to drop
 
-    var_ : array_like, shape=(n_features,)
-        The variances or ratios, depending on the ``strategy``
+    var_ : dict
+        The dropped columns mapped to their corresponding 
+        variances or ratios, depending on the ``strategy``
 
 
     References

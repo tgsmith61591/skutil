@@ -649,8 +649,9 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
         are designated as "bad" and will be dropped in the ``transform``
         method.
 
-    var_ : array_like, shape=(n_features,)
-        The variances or ratios, depending on the ``strategy``
+    var_ : dict
+        The dropped columns mapped to their corresponding 
+        variances or ratios, depending on the ``strategy``
 
 
     References
