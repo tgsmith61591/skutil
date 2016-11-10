@@ -1,10 +1,17 @@
 from jinja2 import Template, Environment, FileSystemLoader
 from sklearn.externals import six
-from abc import ABCMeta
+from sklearn.base import BaseEstimator
+from skutil.base import overrides
+from abc import ABCMeta, abstractmethod
 import os
 
+__all__ = [
+    'EnvironmentTemplater',
+    'StringTemplater'
+]
 
-class Templater(six.with_metaclass(ABCMeta, object)):
+
+class _BaseTemplater(six.with_metaclass(ABCMeta, BaseEstimator)):
     """The class for building a template from a string or a file given a dictionary
      of substitutions.
 
@@ -15,50 +22,65 @@ class Templater(six.with_metaclass(ABCMeta, object)):
           a dictionary of substitutions. The ``jinja2.Environment`` is created by specifying a template
           directory for the ``FileSystemLoader``.
     """
+    @abstractmethod
+    def build(self, string, params):
+        raise NotImplementedError('This must be implemented by a subclass!')
 
-    @staticmethod
-    def build_template_from_string(template_string, dictionary):
-        """Generates the rendered template from a template string and a dictionary of substitutions.
 
-        Parameters
-        ----------
-
-        template_string : str
-            The string representation of the Jinja template prior to substitutions.
-
-        dictionary : dict
-            The dictionary of substitutions, where each key is substituted with its corresponding value.
-
-        Returns
-        -------
-
-        Rendered Jinja template with substitutions from ``dictionary`` made within ``template_string``.
-
-        """
-
-        template = Template(template_string)
-        return template.render(dictionary)
-
-    @staticmethod
-    def build_template_from_env(template_file, dictionary):
-        """Generates the rendered template from a template file and a dictionary of substitutions.
+class EnvironmentTemplater(_BaseTemplater):
+    @overrides(_BaseTemplater)
+    def build(self, template_file, params):
+        """Generates the rendered template from a template 
+        file and a dictionary of substitutions.
 
         Parameters
         ----------
 
         template_file: file
-            The file located within skutil.h2o.templates
+            The file located within ``skutil.h2o.templates``
 
-        dictionary: dict
-            The dictionary of substitutions, where each key is substituted with its corresponding value.
+        params: dict
+            The dictionary of substitutions, where each key is 
+            substituted with its corresponding value.
+
+        Returns
+        -------
+        
+        template : ``Template``
+            Rendered Jinja template with substitutions from 
+            ``dictionary`` made within ``template_string``.
+        """
+
+        templates_dir = os.path.dirname(os.path.realpath(__file__)) + os.path.join(os.path.sep,"..","templates")
+        env = Environment(autoescape=False, loader=FileSystemLoader(templates_dir))
+        template = env.get_template(template_file)
+        return template.render(params)
+
+
+class StringTemplater(_BaseTemplater):
+    @overrides(_BaseTemplater)
+    def build(self, the_string, params):
+        """Generates the rendered template from a template 
+        string and a dictionary of substitutions.
+
+        Parameters
+        ----------
+
+        the_string : str
+            The string representation of the Jinja 
+            template prior to substitutions.
+
+        params : dict
+            The dictionary of substitutions, where each key is 
+            substituted with its corresponding value.
 
         Returns
         -------
 
-        Rendered Jinja template with substitutions from ``dictionary`` made within ``template_string``.
-        """
+        template : ``Template``
+            Rendered Jinja template with substitutions from 
+            ``dictionary`` made within ``template_string``.
 
-        templates_dir = os.path.dirname(os.path.realpath(__file__)) + "/../templates"
-        env = Environment(autoescape=False, loader=FileSystemLoader(templates_dir))
-        template = env.get_template(template_file)
-        return template.render(dictionary)
+        """
+        template = Template(the_string)
+        return template.render(params)

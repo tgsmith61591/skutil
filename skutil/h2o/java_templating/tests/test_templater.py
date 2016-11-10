@@ -1,16 +1,16 @@
-from skutil.h2o.java_templating.templater import Templater
+from __future__ import print_function, absolute_import, division
+from skutil.h2o.java_templating import StringTemplater, EnvironmentTemplater
 import os
 import sys
 
 
 def test_templater():
-
-    templates_dir = os.path.dirname(os.path.realpath(__file__)) + "/../../templates/"
+    templates_dir = os.path.dirname(os.path.realpath(__file__)) + os.path.join(os.path.sep, "..","..","templates")
     template_filename = "main_class.java"
 
     # attempt to load template file
     try:
-        with open(templates_dir + template_filename, 'r') as myfile:
+        with open(os.path.join(templates_dir, template_filename), 'r') as myfile:
             template_string = myfile.read()
     except IOError as io_err:
         print("\n\n" + io_err.strerror + ": " + template_filename + "\n")
@@ -31,8 +31,10 @@ def test_templater():
         """}
 
     # render same template file using the string representation of the template
-    from_string = Templater.build_template_from_string(template_string=template_string, dictionary=kwargs)
-    # render same template file using the jinja2.Environment object
-    from_env = Templater.build_template_from_env(template_file=template_filename, dictionary=kwargs)
+    from_string = StringTemplater().build(template_string, params=kwargs)
 
+    # render same template file using the jinja2.Environment object
+    from_env = EnvironmentTemplater().build(template_filename, params=kwargs)
+
+    # they should be the same
     assert(from_string == from_env) # both templates should be equivalent
