@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 import sklearn
+from .base import overrides
 from .utils.fixes import (_validate_X, _validate_y,
                           _check_param_grid, _as_numpy, _CVScoreTuple)
 
@@ -171,6 +172,8 @@ if sklearn.__version__ >= '0.18':
         n_splits_ : int
             The number of cross-validation splits (folds/iterations).
         """
+        
+        @overrides(ms.GridSearchCV)
         def fit(self, X, y=None, groups=None):
             """Run fit with all sets of parameters.
 
@@ -354,6 +357,7 @@ if sklearn.__version__ >= '0.18':
             The number of cross-validation splits (folds/iterations).
         """
 
+        @overrides(ms.RandomizedSearchCV)
         def fit(self, X, y=None, groups=None):
             """Run fit on the estimator with randomly drawn parameters.
 

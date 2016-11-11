@@ -10,7 +10,7 @@ from sklearn.datasets import load_iris
 from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
-from skutil.utils.fixes import *
+from skutil.utils.fixes import _SK17GridSearchCV, _SK17RandomizedSearchCV
 from skutil.decomposition import SelectivePCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -326,10 +326,7 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
-    python_major_version = sys.version_info.major
-    print("MAJOR PYTHON VERSION: {}".format(python_major_version))
-    if python_major_version == 2: # Run test for long if Python major version == 2
-        assert is_numeric(np.long(1))
+    assert is_numeric(np.long(1))
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)

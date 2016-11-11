@@ -1,4 +1,5 @@
 sudo: true
+
 language: python
 python:
   - "2.7"
@@ -15,68 +16,30 @@ addons:
     - gfortran
 
 env:
- - COMBINATION=sklearn-0-17-matplotlib-seaborn
- - COMBINATION=sklearn-0-17-without-matplotlib-seaborn
- - COMBINATION=sklearn-0-18-matplotlib-seaborn
- - COMBINATION=sklearn-0-18-without-matplotlib-seaborn
+  global:
+    # Directory where tests are run from
+    - TEST_DIR=/tmp/skutil
+    - OMP_NUM_THREADS=4
+    - OPENBLAS_NUM_THREADS=4
+  matrix:
+   - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.17.1"
+     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.17.1"
+     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.18"
+     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.18"
+     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
 
+matrix:
+  allow_failures:
+    - python: 3.5
 
-## Install the packages
-
-
-
-install:
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O anaconda.sh;
-    else
-      wget https://repo.continuum.io/archive/Anaconda3-4.2.0-Linux-x86_64.sh -O anaconda.sh;
-    fi
-
-  - bash anaconda.sh -b -p $HOME/anaconda
-  - export PATH="$HOME/anaconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-
-  # Useful for debugging any issues with conda
-  - conda info -a
-
-  # dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-  - source activate test-environment
-  - conda install --yes numpy scipy pandas coverage cython
-
-  # Coverage packages
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      conda install --yes -c dan_blanchard python-coveralls nose-cov;
-    fi
-  - chmod 777 ./build_tools/travis/install.sh
-  - ./build_tools/travis/install.sh
-  - pip install coveralls
-  - python -m pip install http://h2o-release.s3.amazonaws.com/h2o/rel-turchin/9/Python/h2o-3.8.2.9-py2.py3-none-any.whl
-  - python setup.py develop
-
+install: source build_tools/travis/install.sh
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 5 # give xvfb some time to start by sleeping for 5 seconds
-
-## Run tests
-script:
-  - which pip
-  - which conda
-  - which python
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      nosetests --with-coverage --cover-package=skutil --logging-level=INFO;
-    else
-      nosetests --logging-level=INFO;
-    fi
-
-# Compute Coverage Using Coveralls
-after_success:
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      coveralls;
-    fi
+script: bash build_tools/travis/test_script.sh
+after_success: source build_tools/travis/after_success.sh
 

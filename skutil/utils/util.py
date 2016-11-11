@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division, absolute_import
-import numbers
 import warnings
 import sys
 import traceback
 import numpy as np
 import pandas as pd
+import numbers
 import scipy.stats as st
 from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
+from ..base import suppress_warnings
+from .fixes import _grid_detail, _is_integer, is_iterable, _cols_if_none
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -63,8 +65,15 @@ __all__ = [
 ]
 
 
+@suppress_warnings
 def _log_single(x):
     """Sanitized log function for a single element.
+    Since this method internally calls np.log and carries
+    the (very likely) possibility to overflow, the method
+    suppresses all warnings.
+
+    #XXX: at some point we might want to let ``suppress_warnings``
+    # specify exactly which types of warnings it should filter.
 
     Parameters
     ----------
@@ -83,14 +92,22 @@ def _log_single(x):
     return val
 
 
+@suppress_warnings
 def _exp_single(x):
     """Sanitized exponential function.
+    Since this method internally calls np.exp and carries
+    the (very likely) possibility to overflow, the method
+    suppresses all warnings.
+
+    #XXX: at some point we might want to let ``suppress_warnings``
+    # specify exactly which types of warnings it should filter.
 
     Parameters
     ----------
 
     x : float
         The number to exp
+
 
     Returns
     -------
@@ -103,19 +120,21 @@ def _exp_single(x):
 
 
 def _vectorize(fun, x):
-    if hasattr(x, '__iter__'):
+    if is_iterable(x):
         return np.array([fun(p) for p in x])
-    raise ValueError('Type %s does not have attr __iter__' % type(x))
+    raise ValueError('Type %s is not iterable' % type(x))
 
 
 def exp(x):
-    """A safe mechanism for computing the exponential function.
+    """A safe mechanism for computing the exponential function
+    while avoiding overflows.
     
     Parameters
     ----------
 
     x : float, number
         The number for which to compute the exp
+
 
     Returns
     -------
@@ -134,13 +153,15 @@ def exp(x):
 
 
 def log(x):
-    """A safe mechanism for computing a log.
+    """A safe mechanism for computing a log while
+    avoiding NaNs or exceptions.
 
     Parameters
     ----------
 
     x : float, number
         The number for which to compute the log
+
 
     Returns
     -------
@@ -164,12 +185,19 @@ def _val_cols(cols):
         return cols
 
     # try to make cols a list
-    if not hasattr(cols, '__iter__'):
+    if not is_iterable(cols):
         if isinstance(cols, six.string_types):
             return [cols]
         else:
             raise ValueError('cols must be an iterable sequence')
-    return [c for c in cols]  # make it a list implicitly, make no guarantees about elements
+
+    # if it is an index or a np.ndarray, it will have a built-in
+    # (potentially more efficient tolist() method)
+    if hasattr(cols, 'tolist') and hasattr(cols.tolist, '__call__'):
+        return cols.tolist()
+
+    # make it a list implicitly, make no guarantees about elements
+    return [c for c in cols]
 
 
 def _def_headers(X):
@@ -292,6 +320,7 @@ def flatten_all(container):
         not iterable, it will be returned in a list as 
         ``[container]``
 
+
     Examples
     --------
 
@@ -299,7 +328,8 @@ def flatten_all(container):
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
         >>> flatten_all(a)
-        [3,4,'1','a',1,1,2]
+        [3, 4, '1', 'a', 1, 1, 2]
+
 
     Returns
     -------
@@ -321,20 +351,21 @@ def flatten_all_generator(container):
     container : iterable, object
         The iterable to flatten.
 
+
     Examples
     --------
 
     The example below produces a list of mixed results:
 
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
-        >>> flatten_all(a)
-        [3,4,'1','a',1,1,2] # yields a generator for this iterable
+        >>> flatten_all(a) # yields a generator for this iterable
+        [3, 4, '1', 'a', 1, 1, 2]
     """
-    if not hasattr(container, '__iter__'):
+    if not is_iterable(container):
         yield container
     else:
         for i in container:
-            if hasattr(i, '__iter__'):
+            if is_iterable(i):
                 for j in flatten_all_generator(i):
                     yield j
             else:
@@ -396,6 +427,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         If True, will raise an AssertionError if any np.nan or np.inf
         values reside in ``X``.
 
+
     Returns
     -------
 
@@ -424,7 +456,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         is_df = isinstance(X, pd.DataFrame)
 
         # we do want to make sure the X at least is "array-like"
-        if not hasattr(X, '__iter__'):
+        if not is_iterable(X):
             raise TypeError('X (type=%s) cannot be cast to DataFrame' % type(X))
 
         # case 1, we have names but the X is not a frame
@@ -448,7 +480,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
         # case 4, we have neither a frame nor cols (maybe JUST a np.array?)
         else:
             # we'll do two tests here... either that it's a np ndarray or a list of lists
-            if isinstance(X, np.ndarray) or (hasattr(X, '__iter__') and all(isinstance(elem, list) for elem in X)):
+            if isinstance(X, np.ndarray) or (is_iterable(X) and all(isinstance(elem, list) for elem in X)):
                 return pd.DataFrame.from_records(data=X, columns=_def_headers(X)), None
 
             # bail out:
@@ -459,13 +491,17 @@ def validate_is_pd(X, cols, assert_all_finite=False):
 
     # we need to ensure all are finite
     if assert_all_finite:
-        if X.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
+        # if cols, we only need to ensure the specified columns are finite
+        cols_tmp = _cols_if_none(X, cols)
+        X_prime = X[cols_tmp]
+
+        if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')
 
     return X, cols
 
 
-def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
+def df_memory_estimate(X, unit='MB', index=False):
     """We estimate the memory footprint of an H2OFrame
     to determine whether it's capable of being held in memory 
     or not.
@@ -473,15 +509,15 @@ def df_memory_estimate(X, bit_est=32, unit='MB', index=False):
     Parameters
     ----------
 
-    X : pandas DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame in question
-
-    bit_est : int, optional (default=32)
-        The estimated bit-size of each cell. The default
-        assumes each cell is a signed 32-bit float
 
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
+    index : bool, optional (default=False)
+        Whether to also estimate the memory footprint of the index.
+
 
     Returns
     -------
@@ -513,7 +549,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
     Parameters
     ----------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The DataFrame on which to compute stats.
 
     col_type : str, optional (default='all')
@@ -530,10 +566,11 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
         be deemed "moderate," so long as it does not exceed
         ``hi_skew_thresh``
 
+
     Returns
     -------
 
-    s : pd.DataFrame, shape=(n_samples, n_features)
+    s : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The resulting stats dataframe
     """
     X, _ = validate_is_pd(X, None, False)
@@ -633,8 +670,9 @@ def get_numeric(X):
     Parameters
     ----------
 
-    X : pandas DF
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe
+
 
     Returns
     -------
@@ -657,6 +695,7 @@ def human_bytes(b, unit='MB'):
 
     unit : str, optional (default='MB')
         The units to report. One of ('MB', 'KB', 'GB', 'TB')
+
 
     Returns
     -------
@@ -686,8 +725,9 @@ def is_entirely_numeric(X):
     Parameters
     ----------
 
-    X : pd DataFrame
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The dataframe to test
+
 
     Returns
     -------
@@ -708,6 +748,7 @@ def is_integer(x):
 
     x : object
         The item to assess
+
 
     Returns
     -------
@@ -732,6 +773,7 @@ def is_integer(x):
 
         print('An error occurred on line {} in statement {}'.format(line, text))
         exit(1)
+    return _is_integer(x)
 
 
 def is_float(x):
@@ -744,13 +786,15 @@ def is_float(x):
     x : object
         The item to assess
 
+
     Returns
     -------
 
     bool
         True if ``x`` is a float type
     """
-    return isinstance(x, (float, np.float))
+    return isinstance(x, (float, np.float)) or \
+        (not isinstance(x, (bool, np.bool)) and isinstance(x, numbers.Real))
 
 
 def is_numeric(x):
@@ -762,6 +806,7 @@ def is_numeric(x):
 
     x : object
         The item to assess
+
 
     Returns
     -------
@@ -788,6 +833,7 @@ def load_iris_df(include_tgt=True, tgt_name="Species", shuffle=False):
 
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows on return
+
 
     Returns
     -------
@@ -821,6 +867,7 @@ def load_breast_cancer_df(include_tgt=True, tgt_name="target", shuffle=False):
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
 
+
     Returns
     -------
 
@@ -853,10 +900,11 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
     shuffle : bool, optional (default=False)
         Whether to shuffle the rows
 
+
     Returns
     -------
 
-    X : pd.DataFrame, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The loaded dataset
     """
     bo = load_boston()
@@ -869,8 +917,9 @@ def load_boston_df(include_tgt=True, tgt_name="target", shuffle=False):
 
 
 def report_grid_score_detail(random_search, charts=True, sort_results=True,
-                             ascending=True, percentile=0.975, y_axis='score', sort_by='score',
-                             highlight_best=True, highlight_col='red', def_color='blue'):
+                             ascending=True, percentile=0.975, y_axis='mean_test_score', 
+                             sort_by='mean_test_score', highlight_best=True, highlight_col='red', 
+                             def_color='blue', return_drops=False):
     """Return plots and dataframe of results, given a fitted grid search.
     Note that if Matplotlib is not installed, a warning will be thrown
     and no plots will be generated.
@@ -878,7 +927,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     Parameters
     ----------
 
-    random_search : BaseSearchCV or BaseH2OSearchCV
+    random_search : ``BaseSearchCV`` or ``BaseH2OSearchCV``
         The fitted grid search
 
     charts : bool, optional (default=True)
@@ -889,16 +938,17 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
 
     ascending : bool, optional (default=True)
         If ``sort_results`` is True, whether to use asc or desc
+        in the sorting process.
 
     percentile : float, optional (default=0.975)
         The percentile point (0 < percentile < 1.0). The
         corresponding z-score will be multiplied
         by the cross validation score standard deviations.
 
-    y_axis : str, optional (default='score')
+    y_axis : str, optional (default='mean_test_score')
         The y-axis of the charts. One of ('score','std')
 
-    sort_by : str, optional (default='score')
+    sort_by : str, optional (default='mean_test_score')
         The column to sort by. This is not validated, in case
         the user wants to sort by a parameter column. If
         not ``sort_results``, this is unused.
@@ -918,13 +968,28 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         This should differ from ``highlight_col``, but no validation
         is performed.
 
+    return_drops : bool, optional (default=False)
+        If True, will return the list of names that can be dropped
+        out (i.e., were generated by sklearn and are not parameters
+        of interest).
+
+
     Returns
     -------
 
-    results_df : pd.DataFrame, shape=(n_iter, n_params)
+    result_df : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
         The grid search results
+
+    drops : list
+        List of sklearn-generated names. Only returned if
+        ``return_drops`` is True.
     """
-    valid_axes = ('score', 'std')
+    valid_axes = ('mean_test_score', 'std_test_score')
+
+    # these are produced in sklearn 0.18 but not 0.17 -- want to skip for now...
+    ignore_axes = ('mean_fit_time', 'mean_score_time', 
+                   'mean_train_score', 'std_fit_time', 
+                   'std_score_time', 'std_train_score')
 
     # validate y-axis
     if not y_axis in valid_axes:
@@ -935,25 +1000,20 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
         raise ValueError('percentile must be > 0 and < 1, but got %.5f' % percentile)
     z_score = st.norm.ppf(percentile)
 
-    # list of dicts
-    df_list = []
-
-    # convert each score tuple into dicts -- this will eventually be deprecated...
-    for score in random_search.grid_scores_:
-        results_dict = dict(score.parameters)  # the parameter tuple or sampler
-        results_dict["score"] = score.mean_validation_score
-        results_dict["std"] = score.cv_validation_scores.std() * z_score
-        df_list.append(results_dict)
-
-    # make into a data frame
-    result_df = pd.DataFrame(df_list)
-    if sort_results:
-        result_df = result_df.sort_values(sort_by, ascending=ascending)
+    # make into a data frame from search
+    result_df, drops = _grid_detail(random_search, 
+                                    z_score=z_score,
+                                    sort_results=sort_results, 
+                                    sort_by=sort_by, 
+                                    ascending=ascending)
 
     # if the import failed, we won't be able to chart here
     if charts and CAN_CHART_MPL:
         for col in get_numeric(result_df):
-            if col not in valid_axes:  # skip score / std
+            if col in ignore_axes:
+                # don't plot these ones
+                continue
+            elif col not in valid_axes:  # skip score / std
                 ser = result_df[col]
                 color = [def_color for i in range(ser.shape[0])]
 
@@ -983,7 +1043,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
     elif charts and not CAN_CHART_MPL:
         warnings.warn('no module matplotlib, will not be able to display charts', ImportWarning)
 
-    return result_df
+    return result_df if not return_drops else (result_df, drops)
 
 
 def report_confusion_matrix(actual, pred, return_metrics=True):
@@ -1002,6 +1062,7 @@ def report_confusion_matrix(actual, pred, return_metrics=True):
     return_metrics : bool, optional (default=True)
         Whether to return the metrics in a pd.Series. If False,
         index 1 of the returned tuple will be None.
+
 
     Returns
     -------

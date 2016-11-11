@@ -205,7 +205,7 @@ def test_multi_collinearity():
     print(transformer.correlations_)  # the correlations...
 
     # test the selective mixin
-    assert transformer.cols is None
+    assert transformer.cols is None, 'expected None but got %s' % str(transformer.cols)
 
     # Test fit, then transform
     transformer = MulticollinearityFilterer().fit(X)
@@ -243,7 +243,7 @@ def test_nzv_filterer():
     assert transformer.transform(y).shape[1] == 4
 
     # test the selective mixin
-    assert transformer.cols is None
+    assert transformer.cols is None, 'expected None but got %s' % str(transformer.cols)
 
     # see what happens if we have a nan or inf in the mix:
     a = pd.DataFrame.from_records(data=np.reshape(np.arange(25), (5, 5)))
@@ -252,6 +252,25 @@ def test_nzv_filterer():
 
     # expect a ValueError
     assert_fails(NearZeroVarianceFilterer().fit, ValueError, a)
+
+    # test with the ratio strategy
+    transformer = NearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
+    assert_fails(transformer.fit, ValueError, y) # will fail because thresh must be greater than 1.0
+
+    x = np.array([
+        [1, 2, 3],
+        [1, 5, 3],
+        [1, 2, 4],
+        [2, 5, 4]
+    ])
+
+    df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+    transformer = NearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(df)
+    assert len(transformer.drop_) == 1
+    assert transformer.drop_[0] == 'a'
+    assert len(transformer.var_) == 1
+    assert transformer.var_['a'] == 3.0
+
 
 
 def test_feature_dropper_warning():
