@@ -120,7 +120,7 @@ class GainsStatisticalReport(object):
         else:
             # otherwise they are cross validation scores...
             # ensure divisibility...
-            n_obs, n_folds, n_iter = len(self.stats[self._signs.keys()[0]]), self.n_folds, self.n_iter
+            n_obs, n_folds, n_iter = len(self.stats[list(self._signs.keys())[0]]), self.n_folds, self.n_iter
             if not (n_folds * n_iter) == n_obs:
                 raise ValueError('n_obs is not divisible by n_folds and n_iter')
 
