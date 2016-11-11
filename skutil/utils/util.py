@@ -12,7 +12,8 @@ from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail, _is_integer, is_iterable, _cols_if_none
+from .fixes import (_grid_detail, _is_integer, is_iterable, 
+                    _cols_if_none, dict_keys, dict_values)
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -713,7 +714,7 @@ def human_bytes(b, unit='MB'):
 
     if not unit in units:
         raise ValueError('got %s, expected one of (%s)'
-                         % (unit, ', '.join(units.keys())))
+                         % (unit, ', '.join(dict_keys(units))))
 
     return '%.3f %s' % (b / units[unit], unit)
 

@@ -3,10 +3,8 @@
 # License: BSD
 
 from __future__ import division, print_function, absolute_import
-
 import time
 from abc import abstractmethod
-
 import h2o
 import numpy as np
 import pandas as pd
@@ -22,6 +20,7 @@ from .frame import _check_is_1d_frame
 from .base import check_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
 from skutil.base import overrides
 from ..utils import report_grid_score_detail
+from ..utils.fixes import dict_keys
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 from skutil.grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
@@ -460,7 +459,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             if isinstance(scoring, str):
                 if scoring not in SCORERS:
                     raise ValueError('Scoring must be one of (%s) or a callable. '
-                                     'Got %s' % (', '.join(SCORERS.keys()), scoring))
+                                     'Got %s' % (', '.join(dict_keys(SCORERS)), scoring))
 
                 scoring = SCORERS[scoring]
             # make it a scorer
