@@ -1,6 +1,6 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
-from ..utils.fixes import is_iterable
+from ..utils.fixes import is_iterable, dict_keys
 import pandas as pd
 import numpy as np
 import warnings
@@ -83,7 +83,7 @@ class GainsStatisticalReport(object):
         self.n_groups = 10
         self.score_by = score_by
 
-        met = self._signs.keys()
+        met = dict_keys(self._signs)
         self.stats = {m: [] for m in met}
         self.sample_sizes = []
 
@@ -120,12 +120,12 @@ class GainsStatisticalReport(object):
         else:
             # otherwise they are cross validation scores...
             # ensure divisibility...
-            n_obs, n_folds, n_iter = len(self.stats[list(self._signs.keys())[0]]), self.n_folds, self.n_iter
+            n_obs, n_folds, n_iter = len(self.stats[dict_keys(self._signs)[0]]), self.n_folds, self.n_iter
             if not (n_folds * n_iter) == n_obs:
                 raise ValueError('n_obs is not divisible by n_folds and n_iter')
 
             new_stats = {}
-            for metric in self._signs.keys():
+            for metric in dict_keys(self._signs):
                 new_stats['%s_mean' % metric] = [] # the mean scores
                 new_stats['%s_std' % metric] = []  # the std scores
                 new_stats['%s_min' % metric] = []  # the min scores
@@ -320,7 +320,7 @@ class GainsStatisticalReport(object):
             # that the computation method is the name of the metric
             # preceded by an underscore...
             if store:
-                for metric in self._signs.keys():
+                for metric in dict_keys(self._signs):
                     self.stats[metric].append(
                         getattr(self, '_%s' % metric)(**kwargs)
                     )
@@ -333,7 +333,7 @@ class GainsStatisticalReport(object):
 
             # if it's ignore, it will pass.
             if store:
-                for metric in self._signs.keys():
+                for metric in dict_keys(self._signs):
                     self.stats[metric].append(self.error_score)
 
         self.sample_sizes.append(pred.shape[0])
