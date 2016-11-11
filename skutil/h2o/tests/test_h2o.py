@@ -42,6 +42,7 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
+from skutil.base import overrides
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
