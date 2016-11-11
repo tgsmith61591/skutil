@@ -6,6 +6,7 @@ from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.decomposition import *
 from skutil.utils import validate_is_pd
+from skutil.utils.fixes import dict_values
 from skutil.utils.tests.utils import assert_fails
 
 # Def data for testing
@@ -17,24 +18,32 @@ def test_boxcox():
     transformer = BoxCoxTransformer().fit(X)  # Will fit on all cols
 
     # Assert similar lambdas
-    assert_array_almost_equal(sorted(transformer.lambda_.values()),
-                              np.array([-0.14475082666963388, 0.26165380763371671, 0.64441777772515185,
-                                        0.93129521538860016]))
+    assert_array_almost_equal(sorted(dict_values(transformer.lambda_)),
+                              np.array([
+                                -0.14475082666963388, 
+                                0.26165380763371671, 
+                                0.64441777772515185,
+                                0.93129521538860016
+                            ]))
 
     # Assert exact shifts
-    assert_array_equal(transformer.shift_.values(), np.array([0., 0., 0., 0.]))
+    assert_array_equal(dict_values(transformer.shift_), np.array([0., 0., 0., 0.]))
 
     # Now subtract out some fixed amt from X, assert we get different values:
     x = X - 10
     transformer = BoxCoxTransformer().fit(x)
 
     # Assert similar lambdas
-    assert_array_almost_equal(sorted(transformer.lambda_.values()),
-                              np.array(
-                                  [0.42501980692063013, 0.5928185584100969, 0.59843688208993162, 0.69983717204250795]))
+    assert_array_almost_equal(sorted(dict_values(transformer.lambda_)),
+                              np.array([
+                                0.42501980692063013, 
+                                0.5928185584100969, 
+                                0.59843688208993162, 
+                                0.69983717204250795
+                            ]))
 
     # Assert exact shifts
-    assert_array_equal(sorted(transformer.shift_.values()), np.array([5.700001, 8.000001, 9.000001, 9.900001]))
+    assert_array_equal(sorted(dict_values(transformer.shift_)), np.array([5.700001, 8.000001, 9.000001, 9.900001]))
 
     # assert transform works
     transformed = transformer.transform(X)
@@ -188,7 +197,7 @@ def test_spatial_sign():
     # Assert transform works
     transformed = transformer.transform(X)
 
-    vals = np.array(transformer.sq_nms_.values())
+    vals = np.array(dict_values(transformer.sq_nms_))
     l = len(vals[vals == np.inf])
     assert l == 0, 'expected len == 0, but got %i' % l
 
@@ -202,7 +211,7 @@ def test_spatial_sign():
     assert isinstance(transformed, pd.DataFrame)
 
     # Assert all Inf
-    vals = np.array(transformer.sq_nms_.values())
+    vals = np.array(dict_values(transformer.sq_nms_))
     l = len(vals[vals == np.inf])
     assert l == 5, 'expected len == 5, but got %i' % l
 

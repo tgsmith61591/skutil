@@ -25,6 +25,7 @@ from .metaestimators import if_delegate_has_method
 import warnings
 
 __all__ = [
+    'dict_values',
     'is_iterable'
 ]
 
@@ -88,6 +89,25 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def dict_values(d):
+    """In python 3, the ``d.values()`` method
+    returns a view and not an actual list.
+
+    Parameters
+    ----------
+
+    d : dict
+        The dictionary
+
+
+    Returns
+    -------
+
+    list
+    """
+    return list(d.values())
 
 
 def is_iterable(x):

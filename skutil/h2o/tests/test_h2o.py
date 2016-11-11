@@ -45,6 +45,7 @@ from skutil.h2o.select import _validate_use
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.base import BaseEstimator
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
@@ -110,7 +111,8 @@ def test_h2o_no_conn_needed():
             assert_fails(AnonH2O, ValueError, **kwargs)
 
     # test NotImplemented on anonymous VizMixin
-    class AnonViz(object, VizMixin):
+    class AnonViz(BaseEstimator, VizMixin):
+        @overrides(VizMixin)
         def plot(self, timestep, metric):
             return super(AnonViz, self).plot(timestep, metric)
 
