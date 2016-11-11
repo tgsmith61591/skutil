@@ -29,7 +29,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
     chmod +x miniconda.sh && ./miniconda.sh -b
     cd ..
-    export PATH=/home/travis/miniconda/bin:$PATH
+    echo $PREFIX
+    export PATH=$PREFIX/bin:$PATH
+
     conda update --yes conda
     popd
 
