@@ -1,9 +1,6 @@
 sudo: true
 
 language: python
-python:
-  - "2.7"
-  - "3.5"
 
 before_install:
   - sudo apt-get -qq update
@@ -29,6 +26,14 @@ env:
    - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.18"
      WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
    - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.18"
+     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.17.1"
+     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.17.1"
+     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.18"
+     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.18"
      WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
 
 matrix:
