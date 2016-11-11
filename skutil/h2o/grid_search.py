@@ -121,7 +121,7 @@ def _as_numpy(_1d_h2o_frame):
 def _kv_str(k, v):
     k = str(k)  # h2o likes unicode...
     # likewise, if the v is unicode, let's make it a string.
-    v = v if not isinstance(v, unicode) else str(v)
+    v = v if not isinstance(v, six.string_types) else str(v)
     return k, v
 
 
@@ -1114,11 +1114,11 @@ def _val_exp_loss_prem(x, y, z):
         prem : str or None
             The name of the prem feature (``z``)
     """
-    if not all([isinstance(i, (str, unicode)) for i in (x, y)]):
+    if not all([isinstance(i, six.string_types) for i in (x, y)]):
         raise TypeError('exposure and loss must be strings or unicode')
 
     if z is not None:
-        if not isinstance(z, (str, unicode)):
+        if not isinstance(z, six.string_types):
             raise TypeError('premium must be None or string or unicode')
 
     out = (str(x), str(y), str(z) if z is not None else z)
