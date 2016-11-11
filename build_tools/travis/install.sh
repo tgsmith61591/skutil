@@ -23,7 +23,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
             -O miniconda.sh
         fi
         if [[ "$PYTHON_VERSION" == "3.5" ]]; then
-            wget http://repo.continuum.io/miniconda/Miniconda3-3.6.0-Linux-x86_64.sh \
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
             -O miniconda.sh
         fi
     fi
