@@ -29,8 +29,14 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
     chmod +x miniconda.sh && ./miniconda.sh -b
     cd ..
-    echo $PREFIX
-    export PATH=$PREFIX/bin:$PATH
+
+    # Set conda command relative to miniconda version.
+    if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+        export PATH=/home/travis/miniconda/bin:$PATH
+    fi
+    if [[ "$PYTHON_VERSION" == "3.5" ]]; then
+        export PATH=/home/travis/miniconda3/bin:$PATH
+    fi
 
     conda update --yes conda
     popd
