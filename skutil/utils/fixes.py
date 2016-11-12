@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 import sklearn
 import sys
-from types import NoneType
 from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
@@ -32,6 +31,7 @@ __all__ = [
 ]
 
 VERSION_MAJOR = sys.version_info.major
+NoneType = type(None) # Python 3 doesn't have a types.NoneType
 
 # easier test for numericism
 if VERSION_MAJOR > 2:
@@ -656,8 +656,8 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
         y = _validate_y(y)  # if it's a series, make it into a np.ndarray, shape=(n_samples,)
 
         # for debugging
-        assert isinstance(X, np.ndarray)
-        assert isinstance(y, (np.ndarray, NoneType))
+        assert not isinstance(X, pd.DataFrame)
+        assert not isinstance(y, pd.DataFrame)
 
         # begin sklearn code
         estimator = self.estimator
