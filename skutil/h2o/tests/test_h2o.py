@@ -25,7 +25,7 @@ from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
-                             shuffle_h2o_frame)
+                             shuffle_h2o_frame, h2o_col_to_numpy)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
@@ -1513,8 +1513,10 @@ def test_h2o_with_conn():
             encoder = H2OLabelEncoder()
             trans = encoder.fit_transform(Y['target'])
 
-            assert (Y['species'] == trans).sum() == Y.shape[0]
-            assert (Y['target'] == trans).sum() == 0  # assert not changed in place
+            h = h2o_col_to_numpy
+            np_trans = h(trans)
+            assert_array_equal(h(Y['species']), np_trans)
+            assert np.sum(h(Y['target']) == np_trans) == 0
         else:
             pass
 
