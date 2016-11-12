@@ -656,7 +656,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
         # for debugging
         assert isinstance(X, np.ndarray)
-        assert isinstance(y, np.ndarray)
+        assert isinstance(y, (np.ndarray, None))
 
         # begin sklearn code
         estimator = self.estimator

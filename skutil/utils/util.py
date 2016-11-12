@@ -682,7 +682,7 @@ def get_numeric(X):
     list, int
         The list of indices which are numeric.
     """
-    validate_is_pd(X, None)  # don't want warning
+    validate_is_pd(X, cols=None, assert_all_finite=False) # don't want to assert finite or maybe endless recursion
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
 
 
