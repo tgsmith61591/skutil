@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 import sklearn
 import sys
-from types import NoneType
 from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
@@ -24,6 +23,8 @@ from sklearn.metrics.scorer import check_scoring
 from collections import namedtuple, Sized
 from .metaestimators import if_delegate_has_method
 import warnings
+
+NoneType = type(None)
 
 __all__ = [
     'dict_keys',
