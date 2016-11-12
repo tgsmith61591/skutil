@@ -765,7 +765,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         model : BaseH2OSearchCV
             The unpickled instance of the BaseH2OSearchCV model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             model = pickle.load(f)
 
         if not isinstance(model, BaseH2OSearchCV):

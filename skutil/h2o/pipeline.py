@@ -480,7 +480,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         model : H2OPipeline
             The unpickled instance of the H2OPipeline model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             model = pickle.load(f)
 
         if not isinstance(model, H2OPipeline):

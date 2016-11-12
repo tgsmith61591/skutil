@@ -457,7 +457,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         m : BaseH2OFunctionWrapper
             The unpickled instance of the model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             m = pickle.load(f)
         return m
 
