@@ -24,8 +24,6 @@ from collections import namedtuple, Sized
 from .metaestimators import if_delegate_has_method
 import warnings
 
-NoneType = type(None)
-
 __all__ = [
     'dict_keys',
     'dict_values',
