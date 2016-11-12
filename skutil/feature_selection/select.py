@@ -134,7 +134,7 @@ class SparseFeatureDropper(_BaseFeatureSelector):
         # assess sparsity
         self.sparsity_ = X[cols].apply(lambda x: x.isnull().sum() / x.shape[0]).values  # numpy array
         mask = self.sparsity_ > thresh  # numpy boolean array
-        self.drop_ = X.columns[mask].tolist() if mask.sum() > 0 else None
+        self.drop_ = X.columns[mask].tolist()
         return self
 
 
@@ -289,7 +289,7 @@ class FeatureRetainer(_BaseFeatureSelector):
         X, _ = validate_is_pd(X, self.cols)  # copy X
         cols = X.columns if self.cols is None else self.cols
 
-        retained = X[cols]  # if cols is None, returns all
+        retained = X[cols]  # if not cols, returns all
         return retained if self.as_df else retained.as_matrix()
 
 
@@ -521,10 +521,7 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
         c = X[cols].corr(method=self.method).apply(lambda x: np.abs(x))
 
         # get drops list
-        d, mac, crz = filter_collinearity(c, self.threshold)
-        self.drop_ = d if d else None
-        self.mean_abs_correlations_ = mac if mac else None
-        self.correlations_ = crz if crz else None
+        self.drop_, self.mean_abs_correlations_, self.correlations_ = filter_collinearity(c, self.threshold)
 
         return self
 
@@ -701,12 +698,5 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
             drop_mask = matrix[:,1].astype(np.bool)
             self.drop_ = np.asarray(cols)[drop_mask].tolist()
             self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist())) # just retain the variances
-
-        # I don't like making this None; it opens up bugs in pd.drop,
-        # but it was the precedent the API set from early on, so don't
-        # want to change it without a warning. TODO: in future versions,
-        # don't do this...
-        if not self.drop_:
-            self.drop_ = None
 
         return self
