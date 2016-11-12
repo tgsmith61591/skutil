@@ -1512,8 +1512,8 @@ def test_h2o_with_conn():
         if Y is not None:
             encoder = H2OLabelEncoder()
             trans = encoder.fit_transform(Y['target']).as_data_frame(use_pandas=True)['target'] # as numpy
-            assert_array_equal(irs['species'], np_trans)
-            assert np.sum(irs['target'] == np_trans) == 0
+            assert_array_equal(irs['species'].values, trans)
+            assert np.sum(irs['target'].values == trans) == 0
         else:
             pass
 
