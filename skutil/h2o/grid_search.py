@@ -67,15 +67,15 @@ __all__ = [
 ]
 
 SCORERS = {
-    'accuracy_score': h2o_accuracy_score,
-    'f1_score': h2o_f1_score,
-    # 'log_loss'             :,
-    'mean_absolute_error': h2o_mean_absolute_error,
-    'mean_squared_error': h2o_mean_squared_error,
+    'accuracy_score':        h2o_accuracy_score,
+    'f1_score':              h2o_f1_score,
+    # 'log_loss' :,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
     'median_absolute_error': h2o_median_absolute_error,
-    'precision_score': h2o_precision_score,
-    'r2_score': h2o_r2_score,
-    'recall_score': h2o_recall_score
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
 }
 
 """These parameters are ones h2o stores
@@ -173,13 +173,13 @@ def _new_base_estimator(est, clonable_kwargs):
         The cloned base estimator
     """
     est_map = {
-        'dl': H2ODeepLearningEstimator,
-        'gbm': H2OGradientBoostingEstimator,
-        'glm': H2OGeneralizedLinearEstimator,
+        'dl':   H2ODeepLearningEstimator,
+        'gbm':  H2OGradientBoostingEstimator,
+        'glm':  H2OGeneralizedLinearEstimator,
         # 'glrm': H2OGeneralizedLowRankEstimator,
         # 'km'  : H2OKMeansEstimator,
-        'nb': H2ONaiveBayesEstimator,
-        'rf': H2ORandomForestEstimator
+        'nb':   H2ONaiveBayesEstimator,
+        'rf':   H2ORandomForestEstimator
     }
 
     estimator = est_map[est]()  # initialize the new ones
@@ -456,12 +456,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     scoring = 'accuracy_score'
 
             # make strs into scoring functions
-            if isinstance(scoring, str):
+            if isinstance(scoring, six.string_types):
                 if scoring not in SCORERS:
                     raise ValueError('Scoring must be one of (%s) or a callable. '
                                      'Got %s' % (', '.join(dict_keys(SCORERS)), scoring))
 
                 scoring = SCORERS[scoring]
+                
             # make it a scorer
             if hasattr(scoring, '__call__'):
                 self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])

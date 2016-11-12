@@ -11,7 +11,6 @@ from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
     'H2OInteractionTermTransformer',
-    'H2OLabelEncoder',
     'H2OSelectiveImputer',
     'H2OSelectiveScaler'
 ]
@@ -24,102 +23,6 @@ def _flatten_one(x):
     type for each item in the vec.
     """
     return x[0] if is_iterable(x) else x
-
-
-class H2OLabelEncoder(BaseH2OTransformer):
-    """Encode categorical values in a H2OFrame (single column)
-    into ordinal labels 0 - len(column) - 1.
-
-    Parameters
-    ----------
-
-    feature_names : array_like (str), optional (default=None)
-        The list of names on which to fit the transformer.
-
-    target_feature : str, optional (default None)
-        The name of the target feature (is excluded from the fit)
-        for the estimator.
-
-    exclude_features : iterable or None, optional (default=None)
-        Any names that should be excluded from ``feature_names``
-
-
-    Examples
-    --------
-
-        >>> def example():
-        ...     import pandas as pd
-        ...     import numpy as np
-        ...     from skutil.h2o import from_pandas
-        ...     from sktuil.h2o.transform import H2OLabelEncoder
-        ...     
-        ...     x = pd.DataFrame.from_records(data=[
-        ...                 [5, 4],
-        ...                 [6, 2],
-        ...                 [5, 1],
-        ...                 [7, 9],
-        ...                 [7, 2]], columns=['C1', 'C2'])
-        ...     
-        ...     X = from_pandas(x)
-        ...     encoder = H2OLabelEncoder()
-        ...     encoder.fit_transform(X['C1'])
-        >>>
-        >>> example() # doctest: +SKIP
-          C1
-        ----
-           0
-           1
-           0
-           2
-           2
-        [5 rows x 1 column]
-
-
-    Attributes
-    ----------
-
-    classes_ : np.ndarray
-        The unique class levels
-    """
-    _min_version = '3.8.2.9'
-    _max_version = None
-
-    def __init__(self):
-        super(H2OLabelEncoder, self).__init__(feature_names=None,
-                                              target_feature=None,
-                                              exclude_features=None,
-                                              min_version=self._min_version,
-                                              max_version=self._max_version)
-
-    def fit(self, column):
-        column = _check_is_1d_frame(column)
-        c1_nm, unq = _unq_vals_col(column)
-
-        # get sorted classes, and map of classes to order
-        self.classes_ = unq[c1_nm].values
-        self.map_ = dict(zip(unq[c1_nm].values, unq.index.values))
-
-        return self
-
-    def transform(self, column):
-        check_is_fitted(self, 'classes_')
-        column = _check_is_1d_frame(column)
-
-        # ensure no unseen labels
-        unq = h2o_col_to_numpy(column.unique())
-
-        # get a copy
-        column = column[column.columns[0]]
-
-        if any([i not in self.classes_ for i in unq]):
-            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
-                             % (str(self.classes_), str(unq)))
-
-        # encode
-        for k, v in six.iteritems(self.map_):
-            column[column == k] = v
-
-        return column
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):

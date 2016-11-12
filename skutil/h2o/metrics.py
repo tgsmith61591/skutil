@@ -10,7 +10,7 @@ import numpy as np
 from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .frame import _check_is_1d_frame, is_integer
-from .transform import H2OLabelEncoder
+from .encode import H2OLabelEncoder
 from .util import h2o_bincount, h2o_col_to_numpy
 from ..utils import flatten_all
 from ..utils.fixes import is_iterable
@@ -282,6 +282,9 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
 
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
     Returns
     -------
 
@@ -345,6 +348,9 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
 
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
 
     Returns
     -------
@@ -412,6 +418,9 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
 
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
 
     Returns
     -------
@@ -482,6 +491,9 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
 
     sample_weight : H2OFrame, optional (default=None)
         The sample weights
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
 
     Returns
     -------

@@ -2,12 +2,15 @@ from __future__ import print_function, absolute_import, division
 import pandas as pd
 import h2o
 from h2o.frame import H2OFrame
+from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
+from .util import h2o_col_to_numpy, _unq_vals_col
 
 __all__ = [
+    'H2OLabelEncoder',
     'H2OSafeOneHotEncoder'
 ]
 
@@ -15,6 +18,103 @@ __all__ = [
 def _val_vec(y):
     _check_is_1d_frame(y)
     return y
+
+
+class H2OLabelEncoder(BaseH2OTransformer):
+    """Encode categorical values in a H2OFrame (single column)
+    into ordinal labels 0 - len(column) - 1.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+
+    Examples
+    --------
+
+        >>> def example():
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o import from_pandas
+        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     
+        ...     x = pd.DataFrame.from_records(data=[
+        ...                 [5, 4],
+        ...                 [6, 2],
+        ...                 [5, 1],
+        ...                 [7, 9],
+        ...                 [7, 2]], columns=['C1', 'C2'])
+        ...     
+        ...     X = from_pandas(x)
+        ...     encoder = H2OLabelEncoder()
+        ...     encoder.fit_transform(X['C1'])
+        >>>
+        >>> example() # doctest: +SKIP
+          C1
+        ----
+           0
+           1
+           0
+           2
+           2
+        [5 rows x 1 column]
+
+
+    Attributes
+    ----------
+
+    classes_ : np.ndarray
+        The unique class levels
+    """
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self):
+        super(H2OLabelEncoder, self).__init__(feature_names=None,
+                                              target_feature=None,
+                                              exclude_features=None,
+                                              min_version=self._min_version,
+                                              max_version=self._max_version)
+
+    def fit(self, column):
+        column = _check_is_1d_frame(column)
+        c1_nm, unq = _unq_vals_col(column)
+
+        # get sorted classes, and map of classes to order
+        self.classes_ = unq[c1_nm].values
+        self.map_ = dict(zip(unq[c1_nm].values, unq.index.values))
+
+        return self
+
+    def transform(self, column):
+        check_is_fitted(self, 'classes_')
+        column = _check_is_1d_frame(column)
+
+        # ensure no unseen labels
+        unq = h2o_col_to_numpy(column.unique())
+
+        # get a copy
+        column = column[column.columns[0]]
+
+        if any([i not in self.classes_ for i in unq]):
+            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
+                             % (str(self.classes_), str(unq)))
+
+        # encode
+        for k, v in six.iteritems(self.map_):
+            column[column == k] = int(v) # idk why Python 3 wants us to explicitly cast
+
+        return column
+
 
 
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
