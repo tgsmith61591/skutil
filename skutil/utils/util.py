@@ -494,8 +494,9 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     if assert_all_finite:
         # if cols, we only need to ensure the specified columns are finite
         cols_tmp = _cols_if_none(X, cols)
-        X_prime = X[cols_tmp]
+        X_prime = X[get_numeric(X[cols_tmp])] # subset the subset... only numerics
 
+        # also apply only to the non-object columns
         if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')
 
@@ -671,7 +672,7 @@ def get_numeric(X):
     Parameters
     ----------
 
-    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame``, shape=(n_samples, n_features)
         The dataframe
 
 

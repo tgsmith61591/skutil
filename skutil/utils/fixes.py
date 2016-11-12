@@ -381,8 +381,10 @@ def _as_numpy(y):
         return np.copy(y)
     elif hasattr(y, 'as_matrix'):
         return y.as_matrix()
+    elif hasattr(y, 'tolist'):
+        return y.tolist()
     elif is_iterable(y):
-        return np.asarray([i for i in y])
+        return np.asarray([i for i in y]) # might accidentally force object type in 3
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
 
 
@@ -399,14 +401,14 @@ def _validate_y(y):
 
     # if it's a series
     elif isinstance(y, pd.Series):
-        return np.array(y.tolist())
+        return _as_numpy(y)
 
     # if it's a dataframe:
     elif isinstance(y, pd.DataFrame):
         # check it's X dims
         if y.shape[1] > 1:
             raise ValueError('matrix provided as y')
-        return np.array(y[y.columns[0]].tolist())
+        return _as_numpy(y[y.columns[0]])
 
     # bail and let the sklearn function handle validation
     return y
@@ -650,11 +652,11 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
     def _fit(self, X, y, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
         X = _validate_X(X)  # if it's a frame, will be turned into a matrix
-        y = _validate_y(y)  # if it's a series, make it into a list
+        y = _validate_y(y)  # if it's a series, make it into a np.ndarray, shape=(n_samples,)
 
         # for debugging
-        assert not isinstance(X, pd.DataFrame)
-        assert not isinstance(y, pd.DataFrame)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
 
         # begin sklearn code
         estimator = self.estimator
