@@ -46,6 +46,7 @@ from skutil.base import overrides
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.externals import six
 from sklearn.base import BaseEstimator
 from scipy.stats import randint, uniform
 
@@ -856,7 +857,7 @@ def test_h2o_with_conn():
         # testing val_y
         assert_fails(_val_y, TypeError, 1)
         assert _val_y(None) is None
-        assert isinstance(_val_y(unicode('asdf')), str)
+        assert isinstance(_val_y('asdf'), six.string_types)
 
         # testing _validate_shuffle_split_init
         assert_fails(_validate_shuffle_split_init, ValueError,
