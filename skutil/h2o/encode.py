@@ -8,6 +8,7 @@ from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
 from .util import h2o_col_to_numpy, _unq_vals_col
+from ..utils.fixes import dict_values
 
 __all__ = [
     'H2OLabelEncoder',
@@ -18,6 +19,10 @@ __all__ = [
 def _val_vec(y):
     _check_is_1d_frame(y)
     return y
+
+
+def _cast(itrble, dtype):
+    return [dtype(x) for x in itrble]
 
 
 class H2OLabelEncoder(BaseH2OTransformer):
@@ -78,6 +83,12 @@ class H2OLabelEncoder(BaseH2OTransformer):
     _min_version = '3.8.2.9'
     _max_version = None
 
+    # type mapping
+    _types = {
+        'real' : np.float64,
+        'int' : np.int64
+    }
+
     def __init__(self):
         super(H2OLabelEncoder, self).__init__(feature_names=None,
                                               target_feature=None,
@@ -90,8 +101,9 @@ class H2OLabelEncoder(BaseH2OTransformer):
         c1_nm, unq = _unq_vals_col(column)
 
         # get sorted classes, and map of classes to order
-        self.classes_ = unq[c1_nm].values
-        self.map_ = dict(zip(unq[c1_nm].values, unq.index.values))
+        self.type_ = self._types.get(dict_values(columns.types)[0], np.float64)
+        self.classes_ = _cast(unq[c1_nm].values, self.type_)
+        self.map_ = dict(zip(self.classes_, _cast(unq.index.values, self.type_)))
 
         return self
 
@@ -100,7 +112,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
         column = _check_is_1d_frame(column)
 
         # ensure no unseen labels
-        unq = h2o_col_to_numpy(column.unique())
+        unq = _cast(h2o_col_to_numpy(column.unique()), self._type)
 
         # get a copy
         column = column[column.columns[0]]
@@ -111,7 +123,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
         # encode
         for k, v in six.iteritems(self.map_):
-            column[column == k] = int(v) # idk why Python 3 wants us to explicitly cast
+            column[column == k] = self.type_(v) # explicit typecast for python3 bug
 
         return column
 
