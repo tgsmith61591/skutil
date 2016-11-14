@@ -98,11 +98,11 @@ class H2OLabelEncoder(BaseH2OTransformer):
                                               max_version=self._max_version)
 
     def fit(self, column):
-        column = _check_is_1d_frame(column)
+        column = _check_is_1d_frame(column).asnumeric()
         c1_nm, unq = _unq_vals_col(column)
 
         # get sorted classes, and map of classes to order
-        self.type_ = self._types.get(dict_values(columns.types)[0], np.float64)
+        self.type_ = self._types.get(dict_values(column.types)[0], np.float64)
         self.classes_ = _cast(unq[c1_nm].values, self.type_)
         self.map_ = dict(zip(self.classes_, _cast(unq.index.values, self.type_)))
 
@@ -110,10 +110,10 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
     def transform(self, column):
         check_is_fitted(self, 'classes_')
-        column = _check_is_1d_frame(column)
+        column = _check_is_1d_frame(column).asnumeric()
 
         # ensure no unseen labels
-        unq = _cast(h2o_col_to_numpy(column.unique()), self._type)
+        unq = _cast(h2o_col_to_numpy(column.unique()), self.type_)
 
         # get a copy
         column = column[column.columns[0]]
