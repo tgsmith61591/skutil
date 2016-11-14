@@ -89,14 +89,13 @@ class H2OLabelEncoder(BaseH2OTransformer):
                                               max_version=self._max_version)
 
     def fit(self, column):
-        column = h2o_col_to_numpy(_check_is_1d_frame(column))
-        self.encoder_ = LabelEncoder().fit(column)
+        self.encoder_ = LabelEncoder().fit(h2o_col_to_numpy(column))
         self.classes_ = self.encoder_.classes_
         return self
 
     def transform(self, column):
         check_is_fitted(self, 'encoder_')
-        column = h2o_col_to_numpy(_check_is_1d_frame(column))
+        column = h2o_col_to_numpy(column)
 
         # transform--
         # I don't like that we have to re-upload... but we do...
