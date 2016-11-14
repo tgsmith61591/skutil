@@ -22,10 +22,6 @@ def _val_vec(y):
     return y
 
 
-def _cast(itrble, dtype):
-    return [dtype(x) for x in itrble]
-
-
 class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
@@ -84,12 +80,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
     _min_version = '3.8.2.9'
     _max_version = None
 
-    # type mapping
-    _types = {
-        'real' : np.float64,
-        'int' : np.int64
-    }
-
     def __init__(self):
         super(H2OLabelEncoder, self).__init__(feature_names=None,
                                               target_feature=None,
@@ -102,9 +92,8 @@ class H2OLabelEncoder(BaseH2OTransformer):
         c1_nm, unq = _unq_vals_col(column)
 
         # get sorted classes, and map of classes to order
-        self.type_ = self._types.get(dict_values(column.types)[0], np.float64)
-        self.classes_ = _cast(unq[c1_nm].values, self.type_)
-        self.map_ = dict(zip(self.classes_, _cast(unq.index.values, self.type_)))
+        self.classes_ = unq[c1_nm].values
+        self.map_ = dict(zip(self.classes_, [np.float(x) for x in unq.index.values]))
 
         return self
 
@@ -113,7 +102,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
         column = _check_is_1d_frame(column).asnumeric()
 
         # ensure no unseen labels
-        unq = _cast(h2o_col_to_numpy(column.unique()), self.type_)
+        unq = h2o_col_to_numpy(column.unique())
 
         # get a copy
         column = column[column.columns[0]]
@@ -124,7 +113,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
         # encode
         for k, v in six.iteritems(self.map_):
-            column[column == k] = self.type_(v) # explicit typecast for python3 bug
+            column[column == k] = np.float(v) # explicit typecast for python3 bug
 
         return column
 
