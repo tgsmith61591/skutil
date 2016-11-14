@@ -5,6 +5,7 @@ import h2o
 from h2o.frame import H2OFrame
 from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
+from sklearn.preprocessing import LabelEncoder
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
@@ -88,34 +89,20 @@ class H2OLabelEncoder(BaseH2OTransformer):
                                               max_version=self._max_version)
 
     def fit(self, column):
-        column = _check_is_1d_frame(column).asnumeric()
-        c1_nm, unq = _unq_vals_col(column)
-
-        # get sorted classes, and map of classes to order
-        self.classes_ = unq[c1_nm].values
-        self.map_ = dict(zip(self.classes_, [np.float(x) for x in unq.index.values]))
-
+        column = h2o_col_to_numpy(_check_is_1d_frame(column))
+        self.encoder_ = LabelEncoder().fit(column)
         return self
 
     def transform(self, column):
-        check_is_fitted(self, 'classes_')
-        column = _check_is_1d_frame(column).asnumeric()
+        check_is_fitted(self, 'encoder_')
+        column = h2o_col_to_numpy(_check_is_1d_frame(column))
 
-        # ensure no unseen labels
-        unq = h2o_col_to_numpy(column.unique())
+        # transform
+        trans = self.encoder_.transform(column)
+        trans_T = trans.reshape(trans.shape[0], 1)
 
-        # get a copy
-        column = column[column.columns[0]]
-
-        if any([i not in self.classes_ for i in unq]):
-            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
-                             % (str(self.classes_), str(unq)))
-
-        # encode
-        for k, v in six.iteritems(self.map_):
-            column[column == k] = np.float(v) # explicit typecast for python3 bug
-
-        return column
+        # I don't like that we have to re-upload... but we do...
+        return H2OFrame.from_python(trans_T)
 
 
 
