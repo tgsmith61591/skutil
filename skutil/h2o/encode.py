@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 import pandas as pd
+import numpy as np
 import h2o
 from h2o.frame import H2OFrame
 from sklearn.externals import six
