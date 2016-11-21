@@ -3,7 +3,7 @@ from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
-from ..utils.fixes import is_iterable
+from ..utils.fixes import is_iterable, dict_values
 from ..preprocessing import ImputerMixin
 from sklearn.externals import six
 import pandas as pd
@@ -23,6 +23,21 @@ def _flatten_one(x):
     type for each item in the vec.
     """
     return x[0] if is_iterable(x) else x
+
+
+def _transform_col(col, val):
+    """If an imputation value does not match column
+    type, we'll get some errors. So this is going to manipulate
+    the column type based on the value type. This is
+    necessary as opposed to the opposite way because an 
+    int column might still have a 'mean' fill. Thus, we'll
+    just treat everything as float.
+    """
+    if dict_values(col.types)[0] in ('int', 'real'):
+        return col * 1.0, float(val)
+
+    # for enums, character, etc...
+    return col, val
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
@@ -231,6 +246,10 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             # if it's a single int, easy, otherwise query dict
             col_imp_value = fill_val if is_int else fill_val[col]
 
+            # reassign the column itself, as we might need to make it
+            # a float column for imputation to avoid numpy int64 bug
+            X[col], col_imp_value = _transform_col(X[col], col_imp_value)
+
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
             the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
@@ -239,7 +258,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-        # this is going to impact the copy
+        # return the copy
         return X
 
 
