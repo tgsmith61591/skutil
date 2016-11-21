@@ -34,8 +34,7 @@ def _transform_col(col, val):
     just treat everything as float.
     """
     if dict_values(col.types)[0] in ('int', 'real'):
-        print(col.types, val)
-        return col * 1.0, float(val)
+        return col.asnumeric(), float(val)
 
     # for enums, character, etc...
     return col, val
