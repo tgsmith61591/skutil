@@ -1674,6 +1674,7 @@ def test_h2o_with_conn():
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
+    impute()
     fscore()
     persist()
     act_search()
@@ -1688,7 +1689,6 @@ def test_h2o_with_conn():
     cv()
     split_tsts()
     sparse()
-    impute()
     mem_est()
     if CAN_CHART_MPL:
         corr()
