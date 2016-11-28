@@ -107,7 +107,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -195,12 +195,12 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform.
 
         Returns
         -------
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed (imputed) test data.
         """
         check_is_fitted(self, 'fill_val_')
@@ -295,7 +295,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit
         """
         X = check_frame(X, copy=False)
@@ -317,13 +317,13 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform
 
         Returns
         -------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed test data.
         """
         check_is_fitted(self, 'cols_')
@@ -348,10 +348,10 @@ def _mul(a, b):
     Parameters
     ----------
 
-    a : H2OFrame, shape=(n_samples, 1)
+    a : ``H2OFrame``, shape=(n_samples, 1)
         The first feature
 
-    b : H2OFrame, shape=(n_samples, 1)
+    b : ``H2OFrame``, shape=(n_samples, 1)
         The second feature
 
     Returns
@@ -429,7 +429,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
         
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -457,7 +457,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform.
 
         Returns
