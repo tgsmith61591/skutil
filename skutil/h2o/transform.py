@@ -61,7 +61,7 @@ def _mode(x, def_fill=ImputerMixin._def_fill):
     Parameters
     ----------
 
-    x : H2OFrame, shape=(n_samples, 1)
+    x : ``H2OFrame``, shape=(n_samples, 1)
         The 1d frame from which to derive the mode
     """
     idx = x.as_data_frame(use_pandas=True)[x.columns[0]].value_counts().index
