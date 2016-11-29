@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import h2o
-from skutil.base import overrides
+from ..base import overrides, since
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
@@ -178,6 +178,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         The columns that are retained for training purposes
         after the ``_pre_transform`` operation, which fits
         the series of transformers but not the final estimator.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -480,7 +483,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         model : H2OPipeline
             The unpickled instance of the H2OPipeline model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             model = pickle.load(f)
 
         if not isinstance(model, H2OPipeline):
@@ -633,6 +636,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         return self._final_estimator.varimp(use_pandas=use_pandas)
 
 
+    @since('0.1.2')
     @if_delegate_isinstance(delegate='_final_estimator', instance_type=H2OEstimator)
     def download_pojo(self, path="", get_jar=True):
         """This method is injected at runtime if the ``_final_estimator``

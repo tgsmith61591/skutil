@@ -10,10 +10,11 @@ import numpy as np
 from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .frame import _check_is_1d_frame, is_integer
-from .transform import H2OLabelEncoder
+from .encode import H2OLabelEncoder
 from .util import h2o_bincount, h2o_col_to_numpy
 from ..utils import flatten_all
 from ..utils.fixes import is_iterable
+from ..base import since
 
 __all__ = [
     'h2o_accuracy_score',
@@ -84,7 +85,7 @@ def _type_of_target(y):
     Parameters
     ----------
 
-    y : H2OFrame
+    y : ``H2OFrame``, shape=(n_samples,)
         the y variable
 
     Returns
@@ -114,11 +115,11 @@ def _check_targets(y_true, y_pred, y_type=None):
     Parameters
     ----------
 
-    y_true : H2OFrame, shape=(n_samples, 1)
-        A 1d H2OFrame of the ground truth.
+    y_true : ``H2OFrame``, shape=(n_samples,)
+        A 1d ``H2OFrame`` of the ground truth.
 
-    y_pred : H2OFrame, shape=(n_samples, 1)
-        A 1d H2OFrame of the predictions.
+    y_pred : ``H2OFrame``, shape=(n_samples,)
+        A 1d ``H2OFrame`` of the predictions.
 
     y_type : string, optional (default=None)
         If provided, will not test for type.
@@ -134,11 +135,11 @@ def _check_targets(y_true, y_pred, y_type=None):
         The type of frame. One of: 
         ('multiclass', 'continuous', 'binary', 'unknown')
 
-    y_true : H2OFrame
-        A 1d H2OFrame of the ground truth.
+    y_true : ``H2OFrame``, shape=(n_samples,)
+        A 1d ``H2OFrame`` of the ground truth.
 
-    y_pred : H2OFrame
-        A 1d H2OFrame of the predictions.
+    y_pred : ``H2OFrame``, shape=(n_samples,)
+        A 1d ``H2OFrame`` of the predictions.
     """
     frms = [_check_is_1d_frame(arg) for arg in (y_true, y_pred)]
     shape = frms[0].shape
@@ -171,10 +172,10 @@ def _weighted_sum(sample_score, sample_weight, normalize):
     Parameters
     ----------
 
-    sample_score : H2OFrame
+    sample_score : ``H2OFrame``, shape=(n_samples)
         The binary vector
 
-    sample_weight : H2OFrame
+    sample_weight : ``H2OFrame``, shape=(n_samples) or float
         A frame of weights and of matching dims as
         the sample_score frame.
 
@@ -197,6 +198,7 @@ def _weighted_sum(sample_score, sample_weight, normalize):
         return sample_score.sum()
 
 
+@since('0.1.0')
 def h2o_accuracy_score(y_actual, y_predict, normalize=True,
                        sample_weight=None, y_type=None):
     """Accuracy classification score for H2O
@@ -204,11 +206,11 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The ground truth
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     normalize : bool, optional (default=True)
         Whether to average the data
@@ -230,6 +232,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     return _weighted_sum(y_actual == y_predict, sample_weight, normalize)
 
 
+@since('0.1.0')
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
                  sample_weight=None, y_type=None):
     """Compute the F1 score, the weighted average of the precision 
@@ -240,11 +243,11 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The actual labels
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     labels : list, optional (default=None)
         The set of labels to include when ``average != 'binary'``, and their
@@ -282,6 +285,9 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
 
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
     Returns
     -------
 
@@ -293,6 +299,7 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
                            sample_weight=sample_weight, y_type=y_type)
 
 
+@since('0.1.0')
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
                     average='binary', sample_weight=None, y_type=None):
     """Compute the F-beta score.  The F-beta score is the weighted harmonic 
@@ -301,11 +308,11 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The actual labels
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     beta : float
         The beta value for the F-score
@@ -346,6 +353,9 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
 
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
     Returns
     -------
 
@@ -363,6 +373,7 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     return f
 
 
+@since('0.1.0')
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                         average='binary', sample_weight=None, y_type=None):
     """Compute the precision.  Precision is the ratio ``tp / (tp + fp)`` where ``tp`` 
@@ -371,11 +382,11 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The actual labels
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     labels : list, optional (default=None)
         The set of labels to include when ``average != 'binary'``, and their
@@ -413,6 +424,9 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
     sample_weight : H2OFrame or float, optional (default=None)
         The sample weights
 
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
     Returns
     -------
 
@@ -431,6 +445,7 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
     return p
 
 
+@since('0.1.0')
 def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
                      average='binary', sample_weight=None, y_type=None):
     """Compute the recall
@@ -441,11 +456,11 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The actual labels
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     labels : list, optional (default=None)
         The set of labels to include when ``average != 'binary'``, and their
@@ -482,6 +497,9 @@ def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
 
     sample_weight : H2OFrame, optional (default=None)
         The sample weights
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
 
     Returns
     -------
@@ -675,6 +693,7 @@ def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
     return abs_diff
 
 
+@since('0.1.0')
 def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Mean absolute error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -682,11 +701,11 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The ground truth
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     sample_weight : H2OFrame or float, optional (default=None)
         A frame of sample weights of matching dims with
@@ -705,6 +724,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     return score
 
 
+@since('0.1.0')
 def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Median absolute error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -712,11 +732,11 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The ground truth
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     sample_weight : H2OFrame or float, optional (default=None)
         A frame of sample weights of matching dims with
@@ -735,6 +755,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     return score
 
 
+@since('0.1.0')
 def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     """R^2 score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -742,11 +763,11 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The ground truth
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     sample_weight : H2OFrame or float, optional (default=None)
         A frame of sample weights of matching dims with
@@ -788,6 +809,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     return score
 
 
+@since('0.1.0')
 def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Mean squared error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -795,11 +817,11 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     Parameters
     ----------
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        The ground truth
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
 
-    y_predict : H2OFrame, shape=(n_samples, 1)
-        The predicted labels
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
 
     sample_weight : H2OFrame or float, optional (default=None)
         A frame of sample weights of matching dims with
@@ -829,6 +851,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     return score
 
 
+@since('0.1.0')
 def make_h2o_scorer(score_function, y_actual):
     """Make a scoring function from a callable.
     The signature for the callable should resemble:
@@ -841,15 +864,15 @@ def make_h2o_scorer(score_function, y_actual):
     score_function : callable
         The function
 
-    y_actual : H2OFrame, shape=(n_samples, 1)
-        An H2O frame (the ground truth). This is
-        used to determine before hand whether the
-        type is binary or multiclass.
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        A one-dimensional ``H2OFrame`` (the ground truth). This is
+        used to determine before hand whether the type is 
+        binary or multiclass.
 
     Returns
     -------
-    score_class : _H2OScorer
-        An instance of _H2OScorer whose ``score`` method
+    score_class : ``_H2OScorer``
+        An instance of ``_H2OScorer`` whose ``score`` method
         will be used for scoring in the ``skutil.h2o.grid_search`` 
         module.
     """
@@ -873,10 +896,10 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
     score_function : callable
         The function
 
-    y_true : H2OFrame
-        An H2O frame (the ground truth). This is
-        used to determine before hand whether the
-        type is binary or multiclass.
+    y_true : ``H2OFrame``, shape=(n_samples,)
+        A one-dimensional ``H2OFrame`` (the ground truth). This is
+        used to determine before hand whether the type is 
+        binary or multiclass.
     """
 
     def __init__(self, score_function, y_true):

@@ -3,10 +3,8 @@
 # License: BSD
 
 from __future__ import division, print_function, absolute_import
-
 import time
 from abc import abstractmethod
-
 import h2o
 import numpy as np
 import pandas as pd
@@ -20,10 +18,11 @@ except ImportError as e:
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
 from .base import check_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
-from skutil.base import overrides
+from ..base import overrides, since
 from ..utils import report_grid_score_detail
+from ..utils.fixes import dict_keys
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
-from skutil.grid_search import _CVScoreTuple, _check_param_grid
+from ..grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .split import *
 from .metrics import (h2o_accuracy_score,
@@ -68,15 +67,15 @@ __all__ = [
 ]
 
 SCORERS = {
-    'accuracy_score': h2o_accuracy_score,
-    'f1_score': h2o_f1_score,
-    # 'log_loss'             :,
-    'mean_absolute_error': h2o_mean_absolute_error,
-    'mean_squared_error': h2o_mean_squared_error,
+    'accuracy_score':        h2o_accuracy_score,
+    'f1_score':              h2o_f1_score,
+    # 'log_loss' :,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
     'median_absolute_error': h2o_median_absolute_error,
-    'precision_score': h2o_precision_score,
-    'r2_score': h2o_r2_score,
-    'recall_score': h2o_recall_score
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
 }
 
 """These parameters are ones h2o stores
@@ -122,7 +121,7 @@ def _as_numpy(_1d_h2o_frame):
 def _kv_str(k, v):
     k = str(k)  # h2o likes unicode...
     # likewise, if the v is unicode, let's make it a string.
-    v = v if not isinstance(v, unicode) else str(v)
+    v = v if not isinstance(v, six.string_types) else str(v)
     return k, v
 
 
@@ -174,13 +173,13 @@ def _new_base_estimator(est, clonable_kwargs):
         The cloned base estimator
     """
     est_map = {
-        'dl': H2ODeepLearningEstimator,
-        'gbm': H2OGradientBoostingEstimator,
-        'glm': H2OGeneralizedLinearEstimator,
+        'dl':   H2ODeepLearningEstimator,
+        'gbm':  H2OGradientBoostingEstimator,
+        'glm':  H2OGeneralizedLinearEstimator,
         # 'glrm': H2OGeneralizedLowRankEstimator,
         # 'km'  : H2OKMeansEstimator,
-        'nb': H2ONaiveBayesEstimator,
-        'rf': H2ORandomForestEstimator
+        'nb':   H2ONaiveBayesEstimator,
+        'rf':   H2ORandomForestEstimator
     }
 
     estimator = est_map[est]()  # initialize the new ones
@@ -457,12 +456,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     scoring = 'accuracy_score'
 
             # make strs into scoring functions
-            if isinstance(scoring, str):
+            if isinstance(scoring, six.string_types):
                 if scoring not in SCORERS:
                     raise ValueError('Scoring must be one of (%s) or a callable. '
-                                     'Got %s' % (', '.join(SCORERS.keys()), scoring))
+                                     'Got %s' % (', '.join(dict_keys(SCORERS)), scoring))
 
                 scoring = SCORERS[scoring]
+                
             # make it a scorer
             if hasattr(scoring, '__call__'):
                 self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
@@ -668,6 +668,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         return p
 
 
+    @since('0.1.2')
     @if_delegate_isinstance(delegate='best_estimator_', instance_type=(H2OEstimator, H2OPipeline))
     def download_pojo(self, path="", get_jar=True):
         """This method is injected at runtime if the ``best_estimator_``
@@ -766,7 +767,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         model : BaseH2OSearchCV
             The unpickled instance of the BaseH2OSearchCV model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             model = pickle.load(f)
 
         if not isinstance(model, BaseH2OSearchCV):
@@ -939,6 +940,9 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         hyper parameters which maximizes the cross validation score mean.
         Alternatively, 'variance' will select the model which minimizes
         the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -1047,6 +1051,9 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         hyper parameters which maximizes the cross validation score mean.
         Alternatively, 'variance' will select the model which minimizes
         the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -1115,11 +1122,11 @@ def _val_exp_loss_prem(x, y, z):
         prem : str or None
             The name of the prem feature (``z``)
     """
-    if not all([isinstance(i, (str, unicode)) for i in (x, y)]):
+    if not all([isinstance(i, six.string_types) for i in (x, y)]):
         raise TypeError('exposure and loss must be strings or unicode')
 
     if z is not None:
-        if not isinstance(z, (str, unicode)):
+        if not isinstance(z, six.string_types):
             raise TypeError('premium must be None or string or unicode')
 
     out = (str(x), str(y), str(z) if z is not None else z)
@@ -1219,6 +1226,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     error_behavior : str, optional (default='warn')
         How to handle the pd.qcut ValueError. One of {'warn','raise','ignore'}
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,

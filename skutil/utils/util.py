@@ -2,6 +2,8 @@
 
 from __future__ import print_function, division, absolute_import
 import warnings
+import sys
+import traceback
 import numpy as np
 import pandas as pd
 import numbers
@@ -10,7 +12,8 @@ from sklearn.datasets import load_iris, load_breast_cancer, load_boston
 from sklearn.externals import six
 from sklearn.metrics import confusion_matrix as cm
 from ..base import suppress_warnings
-from .fixes import _grid_detail, _is_integer, is_iterable, _cols_if_none
+from .fixes import (_grid_detail, _is_integer, is_iterable, 
+                    _cols_if_none, dict_keys, dict_values)
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
@@ -491,8 +494,9 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     if assert_all_finite:
         # if cols, we only need to ensure the specified columns are finite
         cols_tmp = _cols_if_none(X, cols)
-        X_prime = X[cols_tmp]
+        X_prime = X[get_numeric(X[cols_tmp])] # subset the subset... only numerics
 
+        # also apply only to the non-object columns
         if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
             raise ValueError('Expected all entries to be finite')
 
@@ -668,7 +672,7 @@ def get_numeric(X):
     Parameters
     ----------
 
-    X : Pandas ``DataFrame`` or ``H2OFrame``, shape=(n_samples, n_features)
+    X : Pandas ``DataFrame``, shape=(n_samples, n_features)
         The dataframe
 
 
@@ -678,7 +682,7 @@ def get_numeric(X):
     list, int
         The list of indices which are numeric.
     """
-    validate_is_pd(X, None)  # don't want warning
+    validate_is_pd(X, cols=None, assert_all_finite=False) # don't want to assert finite or maybe endless recursion
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
 
 
@@ -711,7 +715,7 @@ def human_bytes(b, unit='MB'):
 
     if not unit in units:
         raise ValueError('got %s, expected one of (%s)'
-                         % (unit, ', '.join(units.keys())))
+                         % (unit, ', '.join(dict_keys(units))))
 
     return '%.3f %s' % (b / units[unit], unit)
 
@@ -754,6 +758,23 @@ def is_integer(x):
     bool
         True if ``x`` is an integer type
     """
+    try:
+        python_major_version = sys.version_info.major
+        assert(python_major_version == 2 or python_major_version == 3)
+        if python_major_version == 2:
+            return (not isinstance(x, (bool, np.bool))) and \
+                isinstance(x, (numbers.Integral, int, long, np.int, np.long))
+        elif python_major_version == 3:
+             return (not isinstance(x, (bool, np.bool))) and \
+                isinstance(x, (numbers.Integral, int, np.int, np.long))
+    except AssertionError as e:
+        _, _, tb = sys.exc_info()
+        traceback.print_tb(tb) # Fixed format
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+
+        print('An error occurred on line {} in statement {}'.format(line, text))
+        exit(1)
     return _is_integer(x)
 
 

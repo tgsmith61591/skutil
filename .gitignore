@@ -24,3 +24,6 @@ gh-pages/
 
 # pycharm
 .idea/
+
+# model directory
+*.mdl

@@ -4,10 +4,12 @@ from __future__ import absolute_import, division, print_function
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
 from abc import ABCMeta
+import re
 import warnings
 
 __all__ = [
     'overrides',
+    'since',
     'suppress_warnings',
     'BaseSkutil',
     'SelectiveMixin'
@@ -46,6 +48,8 @@ def overrides(interface_class):
         Traceback (most recent call last):  
         AssertionError: A.b must override a super method!
 
+
+    .. versionadded:: 0.1.0
     """
 
     def overrider(method):
@@ -54,6 +58,34 @@ def overrides(interface_class):
         return method
 
     return overrider
+
+
+def since(version):
+    """A decorator that annotates a function to append the version 
+    of skutil the function was added. This decorator is an adaptation of PySpark's.
+
+    Examples
+    --------
+
+        >>> @since('0.1.5')
+        ... def some_fun():
+        ...     '''Some docstring'''
+        ...     return None
+        ...
+        >>>
+        >>> some_fun.__doc__ # doctest: +SKIP
+        'Some docstring\n\n.. versionadded:: 0.1.5'
+
+
+    .. versionadded:: 0.1.5
+    """
+    indent_p = re.compile(r'\n( +)')
+    def deco(f):
+        indents = indent_p.findall(f.__doc__)
+        indent = ' ' * (min(len(m) for m in indents) if indents else 0)
+        f.__doc__ = f.__doc__.rstrip() + "\n\n%s.. versionadded:: %s" % (indent, version)
+        return f
+    return deco
 
 
 def suppress_warnings(func):
@@ -87,6 +119,9 @@ def suppress_warnings(func):
         >>>
         >>> fun_that_warns()
         1
+
+
+    .. versionadded:: 0.1.0
     """
 
     def suppressor(*args, **kwargs):

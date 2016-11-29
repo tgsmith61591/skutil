@@ -35,8 +35,8 @@ except ImportError as i:
 def test_pipeline_basic():
     pipe = Pipeline([
         ('selector', FeatureRetainer(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
-        ('scaler', SelectiveScaler()),
-        ('model', RandomForestClassifier())
+        ('scaler',   SelectiveScaler()),
+        ('model',    RandomForestClassifier())
     ])
 
     pipe.fit(X, iris.target)
@@ -44,12 +44,12 @@ def test_pipeline_basic():
 
 def test_pipeline_complex():
     pipe = Pipeline([
-        ('selector', FeatureRetainer(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
-        ('scaler', SelectiveScaler()),
-        ('boxcox', BoxCoxTransformer()),
-        ('pca', SelectivePCA()),
-        ('svd', SelectiveTruncatedSVD()),
-        ('model', RandomForestClassifier())
+        ('selector',  FeatureRetainer(cols=['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)'])),
+        ('scaler',    SelectiveScaler()),
+        ('boxcox',    BoxCoxTransformer()),
+        ('pca',       SelectivePCA()),
+        ('svd',       SelectiveTruncatedSVD()),
+        ('model',     RandomForestClassifier())
     ])
 
     pipe.fit(X, iris.target)
@@ -58,31 +58,31 @@ def test_pipeline_complex():
 def test_random_grid():
     # build a pipeline
     pipe = Pipeline([
-        ('retainer', FeatureRetainer()),  # will retain all
-        ('dropper', FeatureDropper()),  # won't drop any
-        ('mapper', FunctionMapper()),  # pass through
-        ('encoder', OneHotCategoricalEncoder()),  # no object dtypes, so will pass through
-        ('collinearity', MulticollinearityFilterer(threshold=0.85)),
-        ('imputer', SelectiveImputer()),  # pass through
-        ('scaler', SelectiveScaler()),
-        ('boxcox', BoxCoxTransformer()),
-        ('nzv', NearZeroVarianceFilterer(threshold=1e-4)),
-        ('pca', SelectivePCA(n_components=0.9)),
-        ('model', RandomForestClassifier(n_jobs=1))
+        ('retainer',       FeatureRetainer()),  # will retain all
+        ('dropper',        FeatureDropper()),  # won't drop any
+        ('mapper',         FunctionMapper()),  # pass through
+        ('encoder',        OneHotCategoricalEncoder()),  # no object dtypes, so will pass through
+        ('collinearity',   MulticollinearityFilterer(threshold=0.85)),
+        ('imputer',        SelectiveImputer()),  # pass through
+        ('scaler',         SelectiveScaler()),
+        ('boxcox',         BoxCoxTransformer()),
+        ('nzv',            NearZeroVarianceFilterer(threshold=1e-4)),
+        ('pca',            SelectivePCA(n_components=0.9)),
+        ('model',          RandomForestClassifier(n_jobs=1))
     ])
 
     # let's define a set of hyper-parameters over which to search
     hp = {
-        'collinearity__threshold': uniform(loc=.8, scale=.15),
-        'collinearity__method': ['pearson', 'kendall', 'spearman'],
-        'scaler__scaler': [StandardScaler(), RobustScaler()],
-        'pca__n_components': uniform(loc=.75, scale=.2),
-        'pca__whiten': [True, False],
-        'model__n_estimators': randint(5, 10),
-        'model__max_depth': randint(2, 5),
-        'model__min_samples_leaf': randint(1, 5),
-        'model__max_features': uniform(loc=.5, scale=.5),
-        'model__max_leaf_nodes': randint(10, 15)
+        'collinearity__threshold':    uniform(loc=.8, scale=.15),
+        'collinearity__method':       ['pearson', 'kendall', 'spearman'],
+        'scaler__scaler':             [StandardScaler(), RobustScaler()],
+        'pca__n_components':          uniform(loc=.75, scale=.2),
+        'pca__whiten':                [True, False],
+        'model__n_estimators':        randint(5, 10),
+        'model__max_depth':           randint(2, 5),
+        'model__min_samples_leaf':    randint(1, 5),
+        'model__max_features':        uniform(loc=.5, scale=.5),
+        'model__max_leaf_nodes':      randint(10, 15)
     }
 
     # define the gridsearch
@@ -103,31 +103,31 @@ def test_random_grid():
 def test_regular_grid():
     # build a pipeline
     pipe = Pipeline([
-        ('retainer', FeatureRetainer()),  # will retain all
-        ('dropper', FeatureDropper()),  # won't drop any
-        ('mapper', FunctionMapper()),  # pass through
-        ('encoder', OneHotCategoricalEncoder()),  # no object dtypes, so will pass through
-        ('collinearity', MulticollinearityFilterer(threshold=0.85)),
-        ('imputer', SelectiveImputer()),  # pass through since no missing
-        ('scaler', SelectiveScaler()),
-        ('boxcox', BoxCoxTransformer()),
-        ('nzv', NearZeroVarianceFilterer(threshold=1e-4)),
-        ('pca', SelectivePCA(n_components=0.9)),
-        ('model', RandomForestClassifier(n_jobs=1))
+        ('retainer',      FeatureRetainer()),  # will retain all
+        ('dropper',       FeatureDropper()),  # won't drop any
+        ('mapper',        FunctionMapper()),  # pass through
+        ('encoder',       OneHotCategoricalEncoder()),  # no object dtypes, so will pass through
+        ('collinearity',  MulticollinearityFilterer(threshold=0.85)),
+        ('imputer',       SelectiveImputer()),  # pass through since no missing
+        ('scaler',        SelectiveScaler()),
+        ('boxcox',        BoxCoxTransformer()),
+        ('nzv',           NearZeroVarianceFilterer(threshold=1e-4)),
+        ('pca',           SelectivePCA(n_components=0.9)),
+        ('model',         RandomForestClassifier(n_jobs=1))
     ])
 
     # let's define a set of hyper-parameters over which to search (exhaustively, so for the test, just do one of each)
     hp = {
         'collinearity__threshold': [0.90],
-        'collinearity__method': ['spearman'],
-        'scaler__scaler': [RobustScaler()],
-        'pca__n_components': [0.95],
-        'pca__whiten': [True],
-        'model__n_estimators': [5],
-        'model__max_depth': [5],
+        'collinearity__method':    ['spearman'],
+        'scaler__scaler':          [RobustScaler()],
+        'pca__n_components':       [0.95],
+        'pca__whiten':             [True],
+        'model__n_estimators':     [5],
+        'model__max_depth':        [5],
         'model__min_samples_leaf': [8],
-        'model__max_features': [0.75],
-        'model__max_leaf_nodes': [20]
+        'model__max_features':     [0.75],
+        'model__max_leaf_nodes':   [20]
     }
 
     # define the gridsearch

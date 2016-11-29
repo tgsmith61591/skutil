@@ -18,12 +18,26 @@ if [[ "$DISTRIB" == "conda" ]]; then
     echo
     if [[ ! -f miniconda.sh ]]
         then
-        wget http://repo.continuum.io/miniconda/Miniconda-3.6.0-Linux-x86_64.sh \
+        if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+            wget http://repo.continuum.io/miniconda/Miniconda-3.6.0-Linux-x86_64.sh \
             -O miniconda.sh
         fi
+        if [[ "$PYTHON_VERSION" == "3.5" ]]; then
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+            -O miniconda.sh
+        fi
+    fi
     chmod +x miniconda.sh && ./miniconda.sh -b
     cd ..
-    export PATH=/home/travis/miniconda/bin:$PATH
+
+    # Set conda command relative to miniconda version.
+    if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+        export PATH=/home/travis/miniconda/bin:$PATH
+    fi
+    if [[ "$PYTHON_VERSION" == "3.5" ]]; then
+        export PATH=/home/travis/miniconda3/bin:$PATH
+    fi
+
     conda update --yes conda
     popd
 
