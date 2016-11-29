@@ -11,6 +11,7 @@ from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
 from .util import h2o_col_to_numpy, _unq_vals_col
 from ..utils.fixes import dict_values
+from ..base import since
 
 __all__ = [
     'H2OLabelEncoder',
@@ -23,6 +24,7 @@ def _val_vec(y):
     return y
 
 
+@since('0.1.0')
 class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
@@ -212,6 +214,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         return output
 
 
+@since('0.1.0')
 class H2OSafeOneHotEncoder(BaseH2OTransformer):
     """Given a set of feature_names, one-hot encodes (dummies)
     a set of vecs into an expanded set of dummied columns. Will

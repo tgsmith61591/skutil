@@ -5,6 +5,7 @@ from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
 from ..utils.fixes import is_iterable, dict_values
 from ..preprocessing import ImputerMixin
+from ..base import since
 from sklearn.externals import six
 import pandas as pd
 from sklearn.utils.validation import check_is_fitted
@@ -71,6 +72,7 @@ def _mode(x, def_fill=ImputerMixin._def_fill):
     return idx[0] if not pd.isnull(idx[0]) else idx[1] if idx.shape[0] > 1 else def_fill
 
 
+@since('0.1.0')
 class H2OSelectiveImputer(_H2OBaseImputer):
     """The selective imputer provides extreme flexibility and simplicity
     in imputation tasks. Rather than imposing one strategy across an entire
@@ -262,6 +264,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         return X
 
 
+@since('0.1.0')
 class H2OSelectiveScaler(BaseH2OTransformer):
     """A class that will scale selected features in the H2OFrame.
 
@@ -382,6 +385,7 @@ def _mul(a, b):
     return a * b
 
 
+@since('0.1.0')
 class H2OInteractionTermTransformer(BaseH2OTransformer):
     """A class that will generate interaction terms between selected columns.
     An interaction captures some relationship between two independent variables
@@ -482,7 +486,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Returns
         -------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The expanded (interacted) test data.
         """
         check_is_fitted(self, 'fun_')

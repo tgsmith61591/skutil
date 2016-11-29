@@ -12,7 +12,7 @@ from ..utils import is_integer
 from .base import (BaseH2OTransformer, check_frame, 
                    _retain_features, _frame_from_x_y, 
                    validate_x_y)
-from ..base import overrides
+from ..base import overrides, since
 from sklearn.utils import as_float_array
 
 __all__ = [
@@ -32,6 +32,7 @@ def _clean_nans(scores):
     return scores
 
 
+@since('0.1.2')
 def h2o_f_classif(X, feature_names, target_feature):
     """Compute the ANOVA F-value for the provided sample.
     This method is adapted from ``sklearn.feature_selection.f_classif``
@@ -77,6 +78,8 @@ def h2o_f_classif(X, feature_names, target_feature):
 # it does not copy the data while keeping the inputs unchanged. Furthermore,
 # contrary to the sklearn implementation, it does not use np.ndarrays, rather
 # amending 1d H2OFrames inplace.
+
+@since('0.1.2')
 def h2o_f_oneway(*args):
     """Performs a 1-way ANOVA.
     The one-way ANOVA tests the null hypothesis that 2 or more groups have
@@ -447,6 +450,7 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         return self
 
 
+@since('0.1.2')
 class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
     """Select the top percentile of features based on the F-score, 
     using the ``h2o_f_classif`` method.
@@ -571,6 +575,7 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
             return (np.asarray(feature_names)[mask]).tolist()
 
 
+@since('0.1.2')
 class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
     """Select the top ``k`` features based on the F-score, 
     using the ``h2o_f_classif`` method.
@@ -685,4 +690,3 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
 
             # now se the drop as the inverse mask
             return (np.asarray(feature_names)[mask]).tolist()
-

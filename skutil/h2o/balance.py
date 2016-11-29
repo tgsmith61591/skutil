@@ -5,6 +5,7 @@ from sklearn.externals import six
 from skutil.base import overrides
 from .util import reorder_h2o_frame
 from .base import check_frame, BaseH2OFunctionWrapper
+from ..base import since
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
                                      BalancerMixin, SamplingWarning)
@@ -87,6 +88,7 @@ class _BaseH2OBalancer(six.with_metaclass(ABCMeta,
         self.shuffle = shuffle
 
 
+@since('0.1.0')
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
     """Oversample the minority classes until they are represented
     at the target proportion to the majority class.
@@ -185,6 +187,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         return Xb
 
 
+@since('0.1.0')
 class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
     """Undersample the majority class until it is represented
     at the target proportion to the most-represented minority class.

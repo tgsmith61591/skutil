@@ -63,6 +63,7 @@ def _validate_use(X, use, na_warn):
     return use
 
 
+@since('0.1.0')
 class BaseH2OFeatureSelector(BaseH2OTransformer):
     """Base class for all H2O selectors.
 
@@ -108,7 +109,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         Returns
         -------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed frame
         """
         # validate state, frame
@@ -118,6 +119,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         return X[_retain_features(X, self.drop_)]
 
 
+@since('0.1.0')
 class H2OFeatureDropper(BaseH2OFeatureSelector):
     """A very simple class to be used at the beginning or any stage of an
     H2OPipeline that will drop the given features from the remainder of the pipe.
@@ -184,6 +186,7 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
+@since('0.1.0')
 class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     """Retains features that are less sparse (NA) than
     the provided threshold.
@@ -262,6 +265,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
+@since('0.1.0')
 class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
@@ -373,6 +377,7 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         return self.transform(X)
 
 
+@since('0.1.0')
 class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     """Identify and remove any features that have a variance below
     a certain threshold. There are two possible strategies for near-zero

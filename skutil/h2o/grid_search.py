@@ -18,11 +18,11 @@ except ImportError as e:
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
 from .base import check_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
-from skutil.base import overrides
+from ..base import overrides, since
 from ..utils import report_grid_score_detail
 from ..utils.fixes import dict_keys
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
-from skutil.grid_search import _CVScoreTuple, _check_param_grid
+from ..grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .split import *
 from .metrics import (h2o_accuracy_score,
@@ -668,6 +668,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         return p
 
 
+    @since('0.1.2')
     @if_delegate_isinstance(delegate='best_estimator_', instance_type=(H2OEstimator, H2OPipeline))
     def download_pojo(self, path="", get_jar=True):
         """This method is injected at runtime if the ``best_estimator_``
@@ -876,6 +877,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         return self.best_estimator_.varimp(use_pandas=use_pandas)
 
 
+@since('0.1.0')
 class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
@@ -972,6 +974,7 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         return self._fit(frame, ParameterGrid(self.param_grid))
 
 
+@since('0.1.0')
 class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
@@ -1126,6 +1129,7 @@ def _val_exp_loss_prem(x, y, z):
     return out
 
 
+@since('0.1.0')
 class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     """A grid search that scores based on actuarial metrics
     (See ``skutil.metrics.GainsStatisticalReport``). This is a more

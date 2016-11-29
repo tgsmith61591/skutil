@@ -6,6 +6,8 @@ from ..utils.fixes import is_iterable
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
 from h2o.frame import H2OFrame
+from pkg_resources import parse_version
+from ..utils import is_numeric
 
 # in different versions, we get different exceptions
 try:
@@ -17,9 +19,6 @@ try:
     from h2o.exceptions import H2OConnectionError
 except ImportError as e:
     H2OConnectionError = EnvironmentError
-
-from pkg_resources import parse_version
-from ..utils import is_numeric
 
 try:
     import cPickle as pickle
@@ -336,6 +335,7 @@ def check_version(min_version, max_version):
                          'or None, but got %s: %s' % (type(max_version), str(max_version)))
 
 
+@since('0.1.0')
 class BaseH2OFunctionWrapper(BaseEstimator):
     """Base class for all H2O estimators or functions.
 
@@ -505,6 +505,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
                 pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
 
+@since('0.1.0')
 class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     """Base class for all H2OTransformers.
 

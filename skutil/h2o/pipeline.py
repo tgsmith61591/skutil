@@ -1,6 +1,6 @@
 from __future__ import print_function, division, absolute_import
 import h2o
-from skutil.base import overrides
+from ..base import overrides, since
 from sklearn.utils import tosequence
 from sklearn.externals import six
 from sklearn.base import BaseEstimator
@@ -38,6 +38,7 @@ def _union_exclusions(a, b):
     return flatten_all([a, b])
 
 
+@since('0.1.0')
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     """Create a sklearn-esque pipeline of H2O steps finished with an 
     optional H2OEstimator. Note that as of version 0.1.0, the behavior
@@ -633,6 +634,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         return self._final_estimator.varimp(use_pandas=use_pandas)
 
 
+    @since('0.1.2')
     @if_delegate_isinstance(delegate='_final_estimator', instance_type=H2OEstimator)
     def download_pojo(self, path="", get_jar=True):
         """This method is injected at runtime if the ``_final_estimator``

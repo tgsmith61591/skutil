@@ -14,6 +14,7 @@ from .encode import H2OLabelEncoder
 from .util import h2o_bincount, h2o_col_to_numpy
 from ..utils import flatten_all
 from ..utils.fixes import is_iterable
+from ..base import since
 
 __all__ = [
     'h2o_accuracy_score',
@@ -197,6 +198,7 @@ def _weighted_sum(sample_score, sample_weight, normalize):
         return sample_score.sum()
 
 
+@since('0.1.0')
 def h2o_accuracy_score(y_actual, y_predict, normalize=True,
                        sample_weight=None, y_type=None):
     """Accuracy classification score for H2O
@@ -230,6 +232,7 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     return _weighted_sum(y_actual == y_predict, sample_weight, normalize)
 
 
+@since('0.1.0')
 def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary',
                  sample_weight=None, y_type=None):
     """Compute the F1 score, the weighted average of the precision 
@@ -296,6 +299,7 @@ def h2o_f1_score(y_actual, y_predict, labels=None, pos_label=1, average='binary'
                            sample_weight=sample_weight, y_type=y_type)
 
 
+@since('0.1.0')
 def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
                     average='binary', sample_weight=None, y_type=None):
     """Compute the F-beta score.  The F-beta score is the weighted harmonic 
@@ -369,6 +373,7 @@ def h2o_fbeta_score(y_actual, y_predict, beta, labels=None, pos_label=1,
     return f
 
 
+@since('0.1.0')
 def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
                         average='binary', sample_weight=None, y_type=None):
     """Compute the precision.  Precision is the ratio ``tp / (tp + fp)`` where ``tp`` 
@@ -440,6 +445,7 @@ def h2o_precision_score(y_actual, y_predict, labels=None, pos_label=1,
     return p
 
 
+@since('0.1.0')
 def h2o_recall_score(y_actual, y_predict, labels=None, pos_label=1,
                      average='binary', sample_weight=None, y_type=None):
     """Compute the recall
@@ -687,6 +693,7 @@ def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
     return abs_diff
 
 
+@since('0.1.0')
 def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Mean absolute error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -717,6 +724,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     return score
 
 
+@since('0.1.0')
 def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Median absolute error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -747,6 +755,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     return score
 
 
+@since('0.1.0')
 def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     """R^2 score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -800,6 +809,7 @@ def h2o_r2_score(y_actual, y_predict, sample_weight=None, y_type=None):
     return score
 
 
+@since('0.1.0')
 def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None):
     """Mean squared error score for H2O frames. Provides fast computation
     in a distributed fashion without loading all of the data into memory.
@@ -841,6 +851,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     return score
 
 
+@since('0.1.0')
 def make_h2o_scorer(score_function, y_actual):
     """Make a scoring function from a callable.
     The signature for the callable should resemble:
