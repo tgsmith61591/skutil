@@ -70,7 +70,7 @@ def since(version):
         ...     return None
         ...
         >>>
-        >>> some_fun.__doc__
+        >>> some_fun.__doc__ # doctest: +SKIP
         'Some docstring\n\n.. versionadded:: 0.1.5'
     """
     indent_p = re.compile(r'\n( +)')
