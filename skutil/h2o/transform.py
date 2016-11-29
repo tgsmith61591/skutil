@@ -72,7 +72,6 @@ def _mode(x, def_fill=ImputerMixin._def_fill):
     return idx[0] if not pd.isnull(idx[0]) else idx[1] if idx.shape[0] > 1 else def_fill
 
 
-@since('0.1.0')
 class H2OSelectiveImputer(_H2OBaseImputer):
     """The selective imputer provides extreme flexibility and simplicity
     in imputation tasks. Rather than imposing one strategy across an entire
@@ -105,6 +104,9 @@ class H2OSelectiveImputer(_H2OBaseImputer):
     fill_val_ : int, float or iterable
         The fill value(s) provided or 
         derived in the ``fit`` method.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -264,7 +266,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         return X
 
 
-@since('0.1.0')
 class H2OSelectiveScaler(BaseH2OTransformer):
     """A class that will scale selected features in the H2OFrame.
 
@@ -287,6 +288,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     with_std : bool, optional (default=True)
         should divide by std?
 
+
     Attributes
     -------
     
@@ -295,6 +297,9 @@ class H2OSelectiveScaler(BaseH2OTransformer):
 
     stds : dict (string:float)
         The mapping of column names to column standard deviations
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -385,7 +390,6 @@ def _mul(a, b):
     return a * b
 
 
-@since('0.1.0')
 class H2OInteractionTermTransformer(BaseH2OTransformer):
     """A class that will generate interaction terms between selected columns.
     An interaction captures some relationship between two independent variables
@@ -422,12 +426,16 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         If set to True, will only return features in feature_names
         and their respective generated interaction terms.
 
+
     Attributes
     ----------
 
     fun_ : callable
         The interaction term function assigned 
         in the ``fit`` method.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'

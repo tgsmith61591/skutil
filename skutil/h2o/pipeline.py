@@ -38,7 +38,6 @@ def _union_exclusions(a, b):
     return flatten_all([a, b])
 
 
-@since('0.1.0')
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
     """Create a sklearn-esque pipeline of H2O steps finished with an 
     optional H2OEstimator. Note that as of version 0.1.0, the behavior
@@ -179,6 +178,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         The columns that are retained for training purposes
         after the ``_pre_transform`` operation, which fits
         the series of transformers but not the final estimator.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'

@@ -47,6 +47,9 @@ def overrides(interface_class):
         ...         return 1
         Traceback (most recent call last):  
         AssertionError: A.b must override a super method!
+
+
+    .. versionadded:: 0.1.0
     """
 
     def overrider(method):
@@ -72,6 +75,9 @@ def since(version):
         >>>
         >>> some_fun.__doc__ # doctest: +SKIP
         'Some docstring\n\n.. versionadded:: 0.1.5'
+
+
+    .. versionadded:: 0.1.5
     """
     indent_p = re.compile(r'\n( +)')
     def deco(f):
@@ -113,6 +119,9 @@ def suppress_warnings(func):
         >>>
         >>> fun_that_warns()
         1
+
+
+    .. versionadded:: 0.1.0
     """
 
     def suppressor(*args, **kwargs):

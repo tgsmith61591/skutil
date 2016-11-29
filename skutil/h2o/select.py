@@ -7,6 +7,7 @@ from ..feature_selection import filter_collinearity
 from ..feature_selection.select import _near_zero_variance_ratio
 from ..utils import is_numeric
 from ..utils.fixes import is_iterable
+from ..base import since
 from .base import (BaseH2OTransformer, check_frame, _retain_features, _frame_from_x_y)
 from .frame import as_series
 
@@ -63,7 +64,6 @@ def _validate_use(X, use, na_warn):
     return use
 
 
-@since('0.1.0')
 class BaseH2OFeatureSelector(BaseH2OTransformer):
     """Base class for all H2O selectors.
 
@@ -85,6 +85,9 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
 
     max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None,
@@ -119,7 +122,6 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         return X[_retain_features(X, self.drop_)]
 
 
-@since('0.1.0')
 class H2OFeatureDropper(BaseH2OFeatureSelector):
     """A very simple class to be used at the beginning or any stage of an
     H2OPipeline that will drop the given features from the remainder of the pipe.
@@ -152,6 +154,9 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
     drop_ : list (str)
         These are the features that will be dropped by 
         the ``FeatureDropper``
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None):
@@ -186,7 +191,6 @@ class H2OFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
-@since('0.1.0')
 class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
     """Retains features that are less sparse (NA) than
     the provided threshold.
@@ -215,6 +219,9 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 
     drop_ : array_like
         The array of column names to drop
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -265,7 +272,6 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
         return self
 
 
-@since('0.1.0')
 class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
     """Filter out features with a correlation greater than the provided threshold.
     When a pair of correlated features is identified, the mean absolute correlation (MAC)
@@ -311,6 +317,9 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         A list of tuples with each tuple containing the two correlated features, 
         the level of correlation, the feature that was selected for dropping, and
         the mean absolute correlation of the dropped feature.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -377,7 +386,6 @@ class H2OMulticollinearityFilterer(BaseH2OFeatureSelector):
         return self.transform(X)
 
 
-@since('0.1.0')
 class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
     """Identify and remove any features that have a variance below
     a certain threshold. There are two possible strategies for near-zero
@@ -444,6 +452,9 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
     .. [1] Kuhn, M. & Johnson, K. "Applied Predictive 
            Modeling" (2013). New York, NY: Springer.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'

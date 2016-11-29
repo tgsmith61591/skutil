@@ -381,6 +381,9 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
 
     p_values_ : np.ndarray, float
         The p-value array, adjusted for ``n_folds``
+
+
+    .. versionadded:: 0.1.2
     """
 
     _min_version = '3.8.2.9'
@@ -450,7 +453,6 @@ class _BaseH2OFScoreSelector(six.with_metaclass(ABCMeta,
         return self
 
 
-@since('0.1.2')
 class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
     """Select the top percentile of features based on the F-score, 
     using the ``h2o_f_classif`` method.
@@ -496,6 +498,9 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
 
     p_values_ : np.ndarray, float
         The p-value array, adjusted for ``n_folds``
+
+
+    .. versionadded:: 0.1.2
     """
 
     _min_version = '3.8.2.9'
@@ -575,7 +580,6 @@ class H2OFScorePercentileSelector(_BaseH2OFScoreSelector):
             return (np.asarray(feature_names)[mask]).tolist()
 
 
-@since('0.1.2')
 class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
     """Select the top ``k`` features based on the F-score, 
     using the ``h2o_f_classif`` method.
@@ -621,6 +625,9 @@ class H2OFScoreKBestSelector(_BaseH2OFScoreSelector):
 
     p_values_ : np.ndarray, float
         The p-value array, adjusted for ``n_folds``
+
+
+    .. versionadded:: 0.1.2
     """
 
     _min_version = '3.8.2.9'

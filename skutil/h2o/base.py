@@ -336,7 +336,6 @@ def check_version(min_version, max_version):
                          'or None, but got %s: %s' % (type(max_version), str(max_version)))
 
 
-@since('0.1.0')
 class BaseH2OFunctionWrapper(BaseEstimator):
     """Base class for all H2O estimators or functions.
 
@@ -351,6 +350,9 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
     max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, target_feature=None, min_version='any', max_version=None):
@@ -506,7 +508,6 @@ class BaseH2OFunctionWrapper(BaseEstimator):
                 pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
 
-@since('0.1.0')
 class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
     """Base class for all H2OTransformers.
 
@@ -529,6 +530,9 @@ class BaseH2OTransformer(BaseH2OFunctionWrapper, TransformerMixin):
 
     max_version : str or float, optional (default=None)
         The maximum version of h2o that is compatible with the transformer
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, feature_names=None, target_feature=None, exclude_features=None,

@@ -11,7 +11,6 @@ from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
 from .util import h2o_col_to_numpy, _unq_vals_col
 from ..utils.fixes import dict_values
-from ..base import since
 
 __all__ = [
     'H2OLabelEncoder',
@@ -24,7 +23,6 @@ def _val_vec(y):
     return y
 
 
-@since('0.1.0')
 class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
@@ -79,6 +77,9 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
     classes_ : np.ndarray
         The unique class levels
+
+
+    .. versionadded:: 0.1.0
     """
     _min_version = '3.8.2.9'
     _max_version = None
@@ -125,6 +126,9 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
 
     exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -214,7 +218,6 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         return output
 
 
-@since('0.1.0')
 class H2OSafeOneHotEncoder(BaseH2OTransformer):
     """Given a set of feature_names, one-hot encodes (dummies)
     a set of vecs into an expanded set of dummied columns. Will
@@ -236,6 +239,9 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
     drop_after_encoded : bool (default=True)
         Whether to drop the original columns after transform
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'

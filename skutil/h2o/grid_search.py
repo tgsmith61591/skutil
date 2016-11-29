@@ -877,7 +877,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         return self.best_estimator_.varimp(use_pandas=use_pandas)
 
 
-@since('0.1.0')
 class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
@@ -941,6 +940,9 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         hyper parameters which maximizes the cross validation score mean.
         Alternatively, 'variance' will select the model which minimizes
         the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -974,7 +976,6 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         return self._fit(frame, ParameterGrid(self.param_grid))
 
 
-@since('0.1.0')
 class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
@@ -1050,6 +1051,9 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         hyper parameters which maximizes the cross validation score mean.
         Alternatively, 'variance' will select the model which minimizes
         the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -1129,7 +1133,6 @@ def _val_exp_loss_prem(x, y, z):
     return out
 
 
-@since('0.1.0')
 class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     """A grid search that scores based on actuarial metrics
     (See ``skutil.metrics.GainsStatisticalReport``). This is a more
@@ -1223,6 +1226,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     error_behavior : str, optional (default='warn')
         How to handle the pd.qcut ValueError. One of {'warn','raise','ignore'}
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
