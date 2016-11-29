@@ -3,6 +3,7 @@ import warnings
 import h2o
 import os
 from ..utils.fixes import is_iterable
+from ..base import since
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
 from h2o.frame import H2OFrame
