@@ -1,12 +1,10 @@
 from __future__ import print_function, absolute_import, division
-
 import warnings
-
+import sys
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-
 from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
@@ -41,7 +39,9 @@ X['perfect'] = X[[1]]
 
 
 def _check_equal(L1, L2):
-    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+    first = len(L1) == len(L2)
+    a, b = set(L1), set(L2)
+    return first and len(a.intersection(b)) == len(a)
 
 
 def test_suppress():

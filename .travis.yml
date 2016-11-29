@@ -27,6 +27,14 @@ env:
      WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
    - DISTRIB="conda" PYTHON_VERSION="2.7" SCIKIT_LEARN_VERSION="0.18"
      WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
+#   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.17.1"
+#     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+#   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.17.1"
+#     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
+#   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.18"
+#     WITH_MATPLOTLIB="true" WITH_SEABORN="true" COVERAGE="true"
+#   - DISTRIB="conda" PYTHON_VERSION="3.5" SCIKIT_LEARN_VERSION="0.18"
+#     WITH_MATPLOTLIB="false" WITH_SEABORN="false" COVERAGE="true"
 
 matrix:
   allow_failures:
@@ -39,3 +47,4 @@ before_script:
   - sleep 5 # give xvfb some time to start by sleeping for 5 seconds
 script: bash build_tools/travis/test_script.sh
 after_success: source build_tools/travis/after_success.sh
+

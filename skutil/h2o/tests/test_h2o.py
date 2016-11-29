@@ -25,7 +25,7 @@ from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2
 from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
-                             shuffle_h2o_frame)
+                             shuffle_h2o_frame, h2o_col_to_numpy)
 from skutil.h2o.grid_search import _as_numpy
 from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
@@ -38,13 +38,16 @@ from skutil.h2o.split import (check_cv, H2OKFold,
                               _validate_shuffle_split_init, _validate_shuffle_split,
                               _val_y, H2OBaseCrossValidator, H2OStratifiedShuffleSplit)
 from skutil.h2o.balance import H2OUndersamplingClassBalancer, H2OOversamplingClassBalancer
-from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler, H2OLabelEncoder
+from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransformer, H2OSelectiveScaler
 from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
+from skutil.base import overrides
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.externals import six
+from sklearn.base import BaseEstimator
 from scipy.stats import randint, uniform
 
 from numpy.random import choice
@@ -110,7 +113,8 @@ def test_h2o_no_conn_needed():
             assert_fails(AnonH2O, ValueError, **kwargs)
 
     # test NotImplemented on anonymous VizMixin
-    class AnonViz(object, VizMixin):
+    class AnonViz(BaseEstimator, VizMixin):
+        @overrides(VizMixin)
         def plot(self, timestep, metric):
             return super(AnonViz, self).plot(timestep, metric)
 
@@ -853,7 +857,7 @@ def test_h2o_with_conn():
         # testing val_y
         assert_fails(_val_y, TypeError, 1)
         assert _val_y(None) is None
-        assert isinstance(_val_y(unicode('asdf')), str)
+        assert isinstance(_val_y('asdf'), six.string_types)
 
         # testing _validate_shuffle_split_init
         assert_fails(_validate_shuffle_split_init, ValueError,
@@ -1508,10 +1512,9 @@ def test_h2o_with_conn():
 
         if Y is not None:
             encoder = H2OLabelEncoder()
-            trans = encoder.fit_transform(Y['target'])
-
-            assert (Y['species'] == trans).sum() == Y.shape[0]
-            assert (Y['target'] == trans).sum() == 0  # assert not changed in place
+            trans = h2o_col_to_numpy(encoder.fit_transform(Y['target'])) # as numpy
+            assert_array_equal(irs['species'].values, trans)
+            assert np.sum(irs['target'].values == trans) == 0
         else:
             pass
 
@@ -1671,6 +1674,7 @@ def test_h2o_with_conn():
 
     # run the tests -- put new or commonly failing tests
     # up front as smoke tests. i.e., act, persist and grid
+    impute()
     fscore()
     persist()
     act_search()
@@ -1685,7 +1689,6 @@ def test_h2o_with_conn():
     cv()
     split_tsts()
     sparse()
-    impute()
     mem_est()
     if CAN_CHART_MPL:
         corr()

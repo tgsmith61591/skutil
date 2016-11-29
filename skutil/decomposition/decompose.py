@@ -11,7 +11,7 @@ from sklearn.externals import six
 from skutil.base import *
 from skutil.base import overrides
 from ..utils import *
-from ..utils.fixes import _cols_if_none
+from ..utils.fixes import _cols_if_none, _as_numpy
 
 __all__ = [
     'SelectivePCA',
@@ -187,7 +187,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         # fails thru if names don't exist:
         self.pca_ = PCA(
             n_components=self.n_components,
-            whiten=self.whiten).fit(X[cols])
+            whiten=self.whiten).fit(X[cols].as_matrix())
 
         return self
 
@@ -216,7 +216,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         cols = _cols_if_none(X, self.cols)
 
         other_nms = [nm for nm in X.columns if nm not in cols]
-        transform = self.pca_.transform(X[cols])
+        transform = self.pca_.transform(X[cols].as_matrix())
 
         # do weighting if necessary
         if self.weight:
@@ -281,7 +281,7 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        ll = self.pca_.score(X[cols], y)
+        ll = self.pca_.score(X[cols].as_matrix(), _as_numpy(y))
         return ll
 
 
@@ -377,7 +377,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         self.svd_ = TruncatedSVD(
             n_components=self.n_components,
             algorithm=self.algorithm,
-            n_iter=self.n_iter).fit(X[cols])
+            n_iter=self.n_iter).fit(X[cols].as_matrix())
 
         return self
 
@@ -406,9 +406,12 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         cols = _cols_if_none(X, self.cols)
 
         other_nms = [nm for nm in X.columns if nm not in cols]
-        transform = self.svd_.transform(X[cols])
+        transform = self.svd_.transform(X[cols].as_matrix())
         left = pd.DataFrame.from_records(data=transform,
-                                         columns=[('Concept%i' % (i + 1)) for i in range(transform.shape[1])])
+                                         columns=[
+                                            ('Concept%i' % (i + 1)) 
+                                            for i in range(transform.shape[1])
+                                        ])
 
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left

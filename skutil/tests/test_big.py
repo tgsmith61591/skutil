@@ -1,7 +1,5 @@
 from __future__ import print_function
-
 import warnings
-
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_array_equal)
@@ -10,7 +8,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
-
 from skutil.decomposition import *
 from skutil.grid_search import _as_numpy
 from skutil.preprocessing import *
