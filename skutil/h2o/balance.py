@@ -144,6 +144,8 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         2     50
         Name A, dtype: int64
         
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, target_feature, ratio=BalancerMixin._def_ratio, shuffle=True):
@@ -241,6 +243,8 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         2    10
         Name A, dtype: int64
 
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'

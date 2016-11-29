@@ -80,14 +80,14 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMi
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
 
-        if self.drop_ is None:
+        if not self.drop_: # empty or None
             return X if self.as_df else X.as_matrix()
         else:
             # what if we don't want to throw this key error for a non-existent
             # column that we hope to drop anyways? We need to at least inform the
             # user...
             drops = [x for x in self.drop_ if x in X.columns]
-            if not len(drops) == len(self.drop_):
+            if len(drops) != len(self.drop_):
                 warnings.warn('one or more features to drop not contained '
                               'in input data feature names', UserWarning)
 

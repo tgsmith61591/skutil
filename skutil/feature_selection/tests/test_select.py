@@ -232,7 +232,7 @@ def test_multi_collinearity():
 
 def test_nzv_filterer():
     transformer = NearZeroVarianceFilterer().fit(X)
-    assert transformer.drop_ is None
+    assert not transformer.drop_
 
     y = X.copy()
     y['zeros'] = np.zeros(150)

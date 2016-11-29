@@ -658,7 +658,7 @@ def _transform_y(y, lam):
     """
     # ensure np array
     y = np.array(y)
-    y_prime = np.array(map(lambda x: (np.power(x, lam) - 1) / lam if not _eqls(lam, ZERO) else np.log(x), y))
+    y_prime = np.array([(np.power(x, lam) - 1) / lam if not _eqls(lam, ZERO) else log(x) for x in y])
 
     # rarely -- very rarely -- we can get a NaN. Why?
     return y_prime

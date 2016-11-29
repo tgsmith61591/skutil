@@ -163,7 +163,7 @@ h2o_train_test_split.__test__ = False
 
 
 def _val_y(y):
-    if isinstance(y, (str, unicode)):
+    if isinstance(y, six.string_types):
         return str(y)
     elif y is None:
         return y

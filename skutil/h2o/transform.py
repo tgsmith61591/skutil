@@ -3,15 +3,15 @@ from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from .frame import _check_is_1d_frame
 from .util import h2o_col_to_numpy, _unq_vals_col
-from ..utils.fixes import is_iterable
+from ..utils.fixes import is_iterable, dict_values
 from ..preprocessing import ImputerMixin
+from ..base import since
 from sklearn.externals import six
 import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 
 __all__ = [
     'H2OInteractionTermTransformer',
-    'H2OLabelEncoder',
     'H2OSelectiveImputer',
     'H2OSelectiveScaler'
 ]
@@ -26,100 +26,19 @@ def _flatten_one(x):
     return x[0] if is_iterable(x) else x
 
 
-class H2OLabelEncoder(BaseH2OTransformer):
-    """Encode categorical values in a H2OFrame (single column)
-    into ordinal labels 0 - len(column) - 1.
-
-    Parameters
-    ----------
-
-    feature_names : array_like (str), optional (default=None)
-        The list of names on which to fit the transformer.
-
-    target_feature : str, optional (default None)
-        The name of the target feature (is excluded from the fit)
-        for the estimator.
-
-    exclude_features : iterable or None, optional (default=None)
-        Any names that should be excluded from ``feature_names``
-
-
-    Examples
-    --------
-
-        >>> def example():
-        ...     import pandas as pd
-        ...     import numpy as np
-        ...     from skutil.h2o import from_pandas
-        ...     from sktuil.h2o.transform import H2OLabelEncoder
-        ...     
-        ...     x = pd.DataFrame.from_records(data=[
-        ...                 [5, 4],
-        ...                 [6, 2],
-        ...                 [5, 1],
-        ...                 [7, 9],
-        ...                 [7, 2]], columns=['C1', 'C2'])
-        ...     
-        ...     X = from_pandas(x)
-        ...     encoder = H2OLabelEncoder()
-        ...     encoder.fit_transform(X['C1'])
-        >>>
-        >>> example() # doctest: +SKIP
-          C1
-        ----
-           0
-           1
-           0
-           2
-           2
-        [5 rows x 1 column]
-
-
-    Attributes
-    ----------
-
-    classes_ : np.ndarray
-        The unique class levels
+def _transform_col(col, val):
+    """If an imputation value does not match column
+    type, we'll get some errors. So this is going to manipulate
+    the column type based on the value type. This is
+    necessary as opposed to the opposite way because an 
+    int column might still have a 'mean' fill. Thus, we'll
+    just treat everything as float.
     """
-    _min_version = '3.8.2.9'
-    _max_version = None
+    if dict_values(col.types)[0] in ('int', 'real'):
+        return col.asnumeric(), float(val)
 
-    def __init__(self):
-        super(H2OLabelEncoder, self).__init__(feature_names=None,
-                                              target_feature=None,
-                                              exclude_features=None,
-                                              min_version=self._min_version,
-                                              max_version=self._max_version)
-
-    def fit(self, column):
-        column = _check_is_1d_frame(column)
-        c1_nm, unq = _unq_vals_col(column)
-
-        # get sorted classes, and map of classes to order
-        self.classes_ = unq[c1_nm].values
-        self.map_ = dict(zip(unq[c1_nm].values, unq.index.values))
-
-        return self
-
-    def transform(self, column):
-        check_is_fitted(self, 'classes_')
-        column = _check_is_1d_frame(column)
-
-        # ensure no unseen labels
-        unq = h2o_col_to_numpy(column.unique())
-
-        # get a copy
-        column = column[column.columns[0]]
-
-        if any([i not in self.classes_ for i in unq]):
-            raise ValueError('seen labels include: %s, but got %s (unseen labels)'
-                             % (str(self.classes_), str(unq)))
-
-        # encode
-        for k, v in six.iteritems(self.map_):
-            column[column == k] = v
-
-        return column
+    # for enums, character, etc...
+    return col, val
 
 
 class _H2OBaseImputer(BaseH2OTransformer, ImputerMixin):
@@ -143,7 +62,7 @@ def _mode(x, def_fill=ImputerMixin._def_fill):
     Parameters
     ----------
 
-    x : H2OFrame, shape=(n_samples, 1)
+    x : ``H2OFrame``, shape=(n_samples, 1)
         The 1d frame from which to derive the mode
     """
     idx = x.as_data_frame(use_pandas=True)[x.columns[0]].value_counts().index
@@ -185,6 +104,9 @@ class H2OSelectiveImputer(_H2OBaseImputer):
     fill_val_ : int, float or iterable
         The fill value(s) provided or 
         derived in the ``fit`` method.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -204,7 +126,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -292,12 +214,12 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform.
 
         Returns
         -------
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed (imputed) test data.
         """
         check_is_fitted(self, 'fill_val_')
@@ -328,6 +250,10 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             # if it's a single int, easy, otherwise query dict
             col_imp_value = fill_val if is_int else fill_val[col]
 
+            # reassign the column itself, as we might need to make it
+            # a float column for imputation to avoid numpy int64 bug
+            X[col], col_imp_value = _transform_col(X[col], col_imp_value)
+
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
             the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
@@ -336,7 +262,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             for na_row in na_mask_idcs:
                 X[na_row, col_idx] = col_imp_value
 
-        # this is going to impact the copy
+        # return the copy
         return X
 
 
@@ -362,6 +288,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
     with_std : bool, optional (default=True)
         should divide by std?
 
+
     Attributes
     -------
     
@@ -370,6 +297,9 @@ class H2OSelectiveScaler(BaseH2OTransformer):
 
     stds : dict (string:float)
         The mapping of column names to column standard deviations
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -392,7 +322,7 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit
         """
         X = check_frame(X, copy=False)
@@ -414,13 +344,13 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform
 
         Returns
         -------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed test data.
         """
         check_is_fitted(self, 'cols_')
@@ -445,10 +375,10 @@ def _mul(a, b):
     Parameters
     ----------
 
-    a : H2OFrame, shape=(n_samples, 1)
+    a : ``H2OFrame``, shape=(n_samples, 1)
         The first feature
 
-    b : H2OFrame, shape=(n_samples, 1)
+    b : ``H2OFrame``, shape=(n_samples, 1)
         The second feature
 
     Returns
@@ -496,12 +426,16 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         If set to True, will only return features in feature_names
         and their respective generated interaction terms.
 
+
     Attributes
     ----------
 
     fun_ : callable
         The interaction term function assigned 
         in the ``fit`` method.
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -526,7 +460,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
         
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The training data on which to fit.
 
         Returns
@@ -554,13 +488,13 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, shape=(n_samples, n_features)
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The test data to transform.
 
         Returns
         -------
 
-        frame : H2OFrame, shape=(n_samples, n_features)
+        frame : ``H2OFrame``, shape=(n_samples, n_features)
             The expanded (interacted) test data.
         """
         check_is_fitted(self, 'fun_')

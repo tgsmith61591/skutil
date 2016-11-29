@@ -18,7 +18,7 @@ from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils.validation import _num_samples, indexable, check_is_fitted
+from sklearn.utils.validation import _num_samples, check_is_fitted, check_consistent_length #,indexable
 from sklearn.metrics.scorer import check_scoring
 from collections import namedtuple, Sized
 from .metaestimators import if_delegate_has_method
@@ -357,8 +357,9 @@ def _get_groups(X, y):
     groups : indexable
         The groups
     """
-    groups = (X, y, None) if not SK18 else indexable(X, y, None)
-    return groups
+    if SK18:
+        X, y = _indexable(X, y)
+    return (X, y, None)
 
 
 def _as_numpy(y):
@@ -389,6 +390,26 @@ def _as_numpy(y):
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
 
 
+def _indexable(X, y):
+    """Make arrays indexable for cross-validation. Checks consistent 
+    length, passes through None, and ensures that everything can be indexed.
+
+    Parameters
+    ----------
+
+    X : array-like or pandas DataFrame, shape = [n_samples, n_features]
+        Input data, where n_samples is the number of samples and
+        n_features is the number of features.
+
+    y : array-like, shape = [n_samples] or [n_samples, n_output], optional
+        Target relative to X for classification or regression;
+        None for unsupervised learning.
+    """
+    result = [_validate_X(X), _validate_y(y)]
+    check_consistent_length(*result)
+    return result
+
+
 def _validate_X(X):
     """Returns X if X isn't a pandas frame, otherwise 
     the underlying matrix in the frame. """
@@ -411,8 +432,11 @@ def _validate_y(y):
             raise ValueError('matrix provided as y')
         return _as_numpy(y[y.columns[0]])
 
-    # bail and let the sklearn function handle validation
-    return y
+    elif is_iterable(y):
+        return _as_numpy(y)
+
+    # bail
+    raise ValueError('Cannot create indexable from type=%s'%type(y))
 
 
 def _check_param_grid(param_grid):
@@ -652,8 +676,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
     def _fit(self, X, y, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
-        X = _validate_X(X)  # if it's a frame, will be turned into a matrix
-        y = _validate_y(y)  # if it's a series, make it into a np.ndarray, shape=(n_samples,)
+        X, y = _indexable(X, y)
 
         # for debugging
         assert not isinstance(X, pd.DataFrame)
@@ -661,17 +684,10 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
         # begin sklearn code
         estimator = self.estimator
-        cv = self.cv
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
         n_samples = _num_samples(X)
-        X, y = indexable(X, y)
-
-        if y is not None:
-            if len(y) != n_samples:
-                raise ValueError('Target variable (y) has a different number '
-                                 'of samples (%i) than data (X: %i samples)'
-                                 % (len(y), n_samples))
+        cv = self.cv
         cv = _set_cv(cv, X, y, classifier=is_classifier(estimator))
 
         if self.verbose > 0:

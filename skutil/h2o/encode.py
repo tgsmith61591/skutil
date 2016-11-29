@@ -1,13 +1,19 @@
 from __future__ import print_function, absolute_import, division
 import pandas as pd
+import numpy as np
 import h2o
 from h2o.frame import H2OFrame
+from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
+from sklearn.preprocessing import LabelEncoder
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
+from .util import h2o_col_to_numpy, _unq_vals_col
+from ..utils.fixes import dict_values
 
 __all__ = [
+    'H2OLabelEncoder',
     'H2OSafeOneHotEncoder'
 ]
 
@@ -15,6 +21,89 @@ __all__ = [
 def _val_vec(y):
     _check_is_1d_frame(y)
     return y
+
+
+class H2OLabelEncoder(BaseH2OTransformer):
+    """Encode categorical values in a H2OFrame (single column)
+    into ordinal labels 0 - len(column) - 1.
+
+    Parameters
+    ----------
+
+    feature_names : array_like (str), optional (default=None)
+        The list of names on which to fit the transformer.
+
+    target_feature : str, optional (default None)
+        The name of the target feature (is excluded from the fit)
+        for the estimator.
+
+    exclude_features : iterable or None, optional (default=None)
+        Any names that should be excluded from ``feature_names``
+
+
+    Examples
+    --------
+
+        >>> def example():
+        ...     import pandas as pd
+        ...     import numpy as np
+        ...     from skutil.h2o import from_pandas
+        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     
+        ...     x = pd.DataFrame.from_records(data=[
+        ...                 [5, 4],
+        ...                 [6, 2],
+        ...                 [5, 1],
+        ...                 [7, 9],
+        ...                 [7, 2]], columns=['C1', 'C2'])
+        ...     
+        ...     X = from_pandas(x)
+        ...     encoder = H2OLabelEncoder()
+        ...     encoder.fit_transform(X['C1'])
+        >>>
+        >>> example() # doctest: +SKIP
+          C1
+        ----
+           0
+           1
+           0
+           2
+           2
+        [5 rows x 1 column]
+
+
+    Attributes
+    ----------
+
+    classes_ : np.ndarray
+        The unique class levels
+
+
+    .. versionadded:: 0.1.0
+    """
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self):
+        super(H2OLabelEncoder, self).__init__(feature_names=None,
+                                              target_feature=None,
+                                              exclude_features=None,
+                                              min_version=self._min_version,
+                                              max_version=self._max_version)
+
+    def fit(self, column):
+        self.encoder_ = LabelEncoder().fit(h2o_col_to_numpy(column))
+        self.classes_ = self.encoder_.classes_
+        return self
+
+    def transform(self, column):
+        check_is_fitted(self, 'encoder_')
+        column = h2o_col_to_numpy(column)
+
+        # transform--
+        # I don't like that we have to re-upload... but we do...
+        return H2OFrame.from_python(self.encoder_.transform(column).reshape(column.shape[0], 1))
+
 
 
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
@@ -37,6 +126,9 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
 
     exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -147,6 +239,9 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
 
     drop_after_encoded : bool (default=True)
         Whether to drop the original columns after transform
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
