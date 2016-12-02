@@ -57,7 +57,6 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMi
     def __init__(self, cols=None, as_df=True):
         super(_BaseFeatureSelector, self).__init__(cols=cols, as_df=as_df)
 
-
     def transform(self, X):
         """Transform a test matrix given the already-fit transformer.
 
@@ -77,10 +76,11 @@ class _BaseFeatureSelector(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMi
             The test data with the prescribed ``drop_`` columns removed.
         """
         check_is_fitted(self, 'drop_')
+
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
 
-        if not self.drop_: # empty or None
+        if not self.drop_:  # empty or None
             return X if self.as_df else X.as_matrix()
         else:
             # what if we don't want to throw this key error for a non-existent

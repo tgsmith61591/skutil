@@ -26,7 +26,7 @@ try:
 
         # log it
         CAN_CHART_MPL = True
-except ImportError as ie:
+except ImportError:
     CAN_CHART_MPL = False
 
 try:
@@ -35,7 +35,7 @@ try:
         import seaborn as sns
 
         CAN_CHART_SNS = True
-except ImportError as ie:
+except ImportError:
     CAN_CHART_SNS = False
 
 __max_exp__ = 1e19
@@ -50,7 +50,6 @@ __all__ = [
     'human_bytes',
     'is_entirely_numeric',
     'is_integer',
-    'is_float',
     'is_numeric',
     'is_integer',
     'is_float',

@@ -411,7 +411,7 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
                                          columns=[
                                             ('Concept%i' % (i + 1)) 
                                             for i in range(transform.shape[1])
-                                        ])
+                                         ])
 
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left

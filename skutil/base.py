@@ -21,12 +21,21 @@ def overrides(interface_class):
     runtime validation that the method is, in fact, inherited from the
     superclass. If not, will raise an ``AssertionError``.
 
+    Parameters
+    ----------
+
+    interface_class : type
+        The class/type from which the specified method is inherited.
+        If the method does not exist in the specified type, a ``RuntimeError``
+        will be raised.
+
+
     Examples
     --------
     
     The following is valid use:
 
-        >>> class A():
+        >>> class A(object):
         ...     def a(self):
         ...         return 1
 
@@ -64,6 +73,13 @@ def since(version):
     """A decorator that annotates a function to append the version 
     of skutil the function was added. This decorator is an adaptation of PySpark's.
 
+    Parameters
+    ----------
+
+    version : str, float or int
+        The version the specified method was added to skutil.
+
+
     Examples
     --------
 
@@ -80,11 +96,13 @@ def since(version):
     .. versionadded:: 0.1.5
     """
     indent_p = re.compile(r'\n( +)')
+
     def deco(f):
         indents = indent_p.findall(f.__doc__)
         indent = ' ' * (min(len(m) for m in indents) if indents else 0)
         f.__doc__ = f.__doc__.rstrip() + "\n\n%s.. versionadded:: %s" % (indent, version)
         return f
+
     return deco
 
 
@@ -125,7 +143,7 @@ def suppress_warnings(func):
     """
 
     def suppressor(*args, **kwargs):
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter("ignore")
             return func(*args, **kwargs)
 

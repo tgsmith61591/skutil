@@ -1,7 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
 from sklearn.externals import six
-from sklearn.utils.validation import check_is_fitted
 from skutil.odr import QRDecomposition
 from .base import _BaseFeatureSelector
 from .select import _validate_cols
@@ -111,19 +110,19 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
         """
 
         # check on state of X and cols
-        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True) # must all be finite for fortran
+        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)  # must all be finite for fortran
         _validate_cols(self.cols)
 
         # init drops list
         drops = []
 
         # Generate sub matrix for qr decomposition
-        cols = _cols_if_none(X, self.cols) # get a copy of the cols
+        cols = _cols_if_none(X, self.cols)  # get a copy of the cols
         x = X[cols].as_matrix()
         cols = np.array(cols)  # so we can do boolean indexing
 
         # do subroutines
-        lc_list = _enumLC(QRDecomposition(x))
+        lc_list = _enum_lc(QRDecomposition(x))
 
         if lc_list is not None:
             while lc_list is not None:
@@ -139,18 +138,18 @@ class LinearCombinationFilterer(_BaseFeatureSelector):
                 cols = np.delete(cols, bad)
 
                 # keep removing linear dependencies until it resolves
-                lc_list = _enumLC(QRDecomposition(x))
+                lc_list = _enum_lc(QRDecomposition(x))
 
                 # will break when lc_list returns None
 
         # Assign attributes, return
-        self.drop_ = [p for p in set(drops)] # a list from the a set of the drops
+        self.drop_ = [p for p in set(drops)]  # a list from the a set of the drops
         dropped = X.drop(self.drop_, axis=1)
 
         return dropped if self.as_df else dropped.as_matrix()
         
 
-def _enumLC(decomp):
+def _enum_lc(decomp):
     """Perform a single iteration of linear combo scoping.
 
     Parameters
@@ -159,21 +158,21 @@ def _enumLC(decomp):
     decomp : a ``QRDecomposition`` object
         The QR decomposition of the matrix
     """
-    qr = decomp.qr  # the decomposition matrix
+    # qr = decomp.qr  # the decomposition matrix
 
     # extract the R matrix
     R = decomp.get_R()         # the R matrix
     n_features = R.shape[1]    # number of columns in R
-    is_zero = n_features == 0  # whether there are no features
+    # is_zero = n_features == 0  # whether there are no features
     rank = decomp.get_rank()   # the rank of the original matrix, or num of independent cols
 
     if not (rank == n_features):
-        pivot = decomp.pivot        # the pivot vector
-        X = R[:rank, :rank]         # extract the independent cols
-        Y = R[:rank, rank:]  # +1?  # extract the dependent columns
+        pivot = decomp.pivot         # the pivot vector
+        X = R[:rank, :rank]          # extract the independent cols
+        Y = R[:rank, rank:]  # +1?   # extract the dependent columns
 
-        new_qr = QRDecomposition(X) # factor the independent columns
-        b = new_qr.get_coef(Y)      # get regression coefficients of dependent cols
+        new_qr = QRDecomposition(X)  # factor the independent columns
+        b = new_qr.get_coef(Y)       # get regression coefficients of dependent cols
 
         # if b is None, then there were no dependent columns
         if b is not None:

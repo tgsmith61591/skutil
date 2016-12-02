@@ -107,7 +107,7 @@ class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin, Imp
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    fill : int, float, string or iterable, optional (default=None)
+    fill : int, float, string or array_like, optional (default=None)
         The fill values to use for missing values in columns
 
     Attributes
@@ -144,7 +144,7 @@ class SelectiveImputer(_BaseImputer):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    fill : int, optional (default=None)
+    fill : int, float, string or array_like, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a ``SelectiveImputer``. If None, will default to 'mean'
 

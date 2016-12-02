@@ -456,7 +456,6 @@ class MulticollinearityFilterer(_BaseFeatureSelector):
     The following demonstrates a simple multicollinearity filterer 
     applied to the iris dataset.
 
-        >>> import numpy as np
         >>> import pandas as pd
         >>> from skutil.utils import load_iris_df
         >>>
@@ -676,10 +675,9 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 
         # validate strategy
         valid_strategies = ('variance', 'ratio')
-        if not self.strategy in valid_strategies:
+        if self.strategy not in valid_strategies:
             raise ValueError('strategy must be one of {0}, but got {1}'.format(
                 str(valid_strategies), self.strategy))
-
 
         if self.strategy == 'variance':
             # if cols is None, applies over everything
@@ -695,8 +693,8 @@ class NearZeroVarianceFilterer(_BaseFeatureSelector):
 
             # get a np.array mask
             matrix = np.array([_near_zero_variance_ratio(X[col], ratio) for col in cols])
-            drop_mask = matrix[:,1].astype(np.bool)
+            drop_mask = matrix[:, 1].astype(np.bool)
             self.drop_ = np.asarray(cols)[drop_mask].tolist()
-            self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist())) # just retain the variances
+            self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist()))  # just retain the variances
 
         return self
