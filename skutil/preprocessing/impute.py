@@ -66,9 +66,9 @@ def _val_values(vals):
     in valid values.
     """
     if not all([
-               (is_numeric(i) or (isinstance(i, six.string_types)) and i in ('mode', 'mean', 'median'))
-               for i in vals
-            ]):
+                   (is_numeric(i) or (isinstance(i, six.string_types)) and i in ('mode', 'mean', 'median'))
+                   for i in vals
+               ]):
         raise TypeError('All values in self.fill must be numeric or in ("mode", "mean", "median"). '
                         'Got: %s' % ', '.join(vals))
 
@@ -107,7 +107,7 @@ class _BaseImputer(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin, Imp
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    fill : int, float, string or iterable, optional (default=None)
+    fill : int, float, string or array_like, optional (default=None)
         The fill values to use for missing values in columns
 
     Attributes
@@ -144,7 +144,7 @@ class SelectiveImputer(_BaseImputer):
         Since most skutil transformers depend on explicitly-named
         DataFrame features, the ``as_df`` parameter is True by default.
 
-    fill : int, optional (default=None)
+    fill : int, float, string or array_like, optional (default=None)
         the fill to use for missing values in the training matrix
         when fitting a ``SelectiveImputer``. If None, will default to 'mean'
 
@@ -210,7 +210,7 @@ class SelectiveImputer(_BaseImputer):
         fill = self.fill
         if isinstance(fill, six.string_types):
             fill = str(fill)
-            if not fill in ('mode', 'mean', 'median'):
+            if fill not in ('mode', 'mean', 'median'):
                 raise TypeError('self.fill must be either "mode", "mean", "median", None, '
                                 'a number, or an iterable. Got %s' % fill)
 

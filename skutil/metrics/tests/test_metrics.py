@@ -1,11 +1,10 @@
 from skutil.metrics import *
 import numpy as np
-import timeit
 from skutil.metrics.kernel import (_hilbert_dot,
                                    _hilbert_matrix)
 from skutil.metrics import GainsStatisticalReport
 from skutil.utils.tests.utils import assert_fails
-from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
+from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 
 sigma = 0.05
 
@@ -159,7 +158,7 @@ def test_act_stats():
     # purposefully set wrong error_behavior
     assert_fails(GainsStatisticalReport(error_behavior='').fit_fold,
                  ValueError,
-                 **{ 'pred': pred, 'expo': expo, 'loss': loss})
+                 **{'pred': pred, 'expo': expo, 'loss': loss})
 
     # purposefully set n_folds so that n_obs is not be divisible by n_folds and n_iter
     assert_fails(GainsStatisticalReport(n_folds=121, n_iter=111).as_data_frame, ValueError)

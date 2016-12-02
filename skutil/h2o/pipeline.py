@@ -11,12 +11,12 @@ from .base import (BaseH2OTransformer, BaseH2OFunctionWrapper,
 
 try:
     from h2o import H2OEstimator
-except ImportError as e:
+except ImportError:
     from h2o.estimators.estimator_base import H2OEstimator
 
 try:
     import cPickle as pickle
-except ImportError as ie:
+except ImportError:
     import pickle
 
 __all__ = [
@@ -160,8 +160,8 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         ...     
         ...     # Declare our pipe - this one is intentionally a bit complex in behavior
         ...     pipe = H2OPipeline([
-        ...             ('scl', H2OSelectiveScaler(feature_names=['B','PTRATIO','CRIM'])), # will ONLY operate on these features
-        ...             ('mcf', H2OMulticollinearityFilterer(exclude_features=['CHAS'])),  # will exclude this AS WELL AS 'TAX'
+        ...             ('scl', H2OSelectiveScaler(feature_names=['B','PTRATIO','CRIM'])),  # will ONLY operate on these
+        ...             ('mcf', H2OMulticollinearityFilterer(exclude_features=['CHAS'])),   # will exclude this & 'TAX'
         ...             ('gbm', H2OGradientBoostingEstimator())
         ...         ], exclude_from_ppc=['TAX'], # excluded from all preprocessor fits
         ...            feature_names=None,       # fit the first stage on ALL features (minus exceptions)
@@ -219,7 +219,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             raise TypeError("Last step of chain should be an H2OEstimator or BaseH2OTransformer, "
                             "not of type %s" % type(estimator))
 
-
     @property
     def named_steps(self):
         """Generates a dictionary of all of the stages
@@ -236,7 +235,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         d = dict(self.steps)
         return d
 
-
     @property
     def _final_estimator(self):
         """Returns the last stage in the H2OPipeline,
@@ -250,7 +248,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         s = self.steps[-1][1]
         return s
-
 
     def _pre_transform(self, frame=None):
         frame_t = frame
@@ -291,7 +288,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         # this will have y re-combined in the matrix
         return frame_t, next_feature_names
 
-
     def _reset(self):
         """Each individual step should handle its own
         state resets, but this method will reset any Pipeline
@@ -299,7 +295,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         """
         if hasattr(self, 'training_cols_'):
             del self.training_cols_
-
 
     def fit(self, frame):
         """Fit all the transforms one after the other and transform the
@@ -317,7 +312,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         self
         """
-        frame = check_frame(frame, copy=False) # copied in each transformer
+        frame = check_frame(frame, copy=False)  # copied in each transformer
         self._reset()  # reset if needed
 
         # reset to the cleaned ones, if necessary...
@@ -346,7 +341,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
-
     @overrides(VizMixin)
     @if_delegate_has_method(delegate='_final_estimator', method='_plot')
     def plot(self, timestep, metric):
@@ -367,7 +361,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             ("log_likelihood", "objective", "MSE", "AUTO")
         """
         self._final_estimator._plot(timestep=timestep, metric=metric)
-
 
     @overrides(BaseEstimator)
     def set_params(self, **params):
@@ -426,7 +419,7 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                 for parm, value in six.iteritems(parm_dict[est_name]):
                     try:
                         last_step._parms[parm] = value
-                    except Exception as e:
+                    except Exception:
                         raise ValueError('Invalid parameter for %s: %s'
                                          % (parm, last_step.__name__))
 
@@ -439,7 +432,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
                     setattr(last_step, parm, value)
 
         return self
-
 
     @staticmethod
     def load(location):
@@ -509,7 +501,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         return model
 
-
     def _save_internal(self, **kwargs):
         loc = kwargs.pop('location')
         model_loc = kwargs.pop('model_location')
@@ -537,7 +528,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         if ends_in_h2o:
             self.steps[-1] = last_step_
 
-
     @if_delegate_has_method(delegate='_final_estimator')
     def predict(self, frame):
         """Applies transforms to the data, and the predict method of the
@@ -551,12 +541,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Data to predict on. Must fulfill input requirements of first step
             of the pipeline.
         """
-        Xt = check_frame(frame, copy=False) # copied in each transformer
+        Xt = check_frame(frame, copy=False)  # copied in each transformer
         for name, transform in self.steps[:-1]:
             Xt = transform.transform(Xt)
 
         return self.steps[-1][-1].predict(Xt)
-
 
     @if_delegate_has_method(delegate='_final_estimator', method='predict')
     def fit_predict(self, frame):
@@ -572,7 +561,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             pipeline.
         """
         return self.fit(frame).predict(frame)
-
 
     @if_delegate_has_method(delegate='_final_estimator')
     def transform(self, frame):
@@ -592,12 +580,11 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Xt : H2OFrame, shape=(n_samples, n_features)
             The transformed test data
         """
-        Xt = check_frame(frame, copy=False) # copied in each transformer
+        Xt = check_frame(frame, copy=False)  # copied in each transformer
         for name, transform in self.steps:
             Xt = transform.transform(Xt)
 
         return Xt
-
 
     @if_delegate_has_method(delegate='_final_estimator', method='transform')
     def fit_transform(self, frame):
@@ -621,7 +608,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
         Xt = self.fit(frame).transform(frame)
         return Xt
 
-
     @if_delegate_has_method(delegate='_final_estimator')
     def varimp(self, use_pandas=True):
         """Get the variable importance, if the final
@@ -634,7 +620,6 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
             Whether to return a pandas dataframe
         """
         return self._final_estimator.varimp(use_pandas=use_pandas)
-
 
     @since('0.1.2')
     @if_delegate_isinstance(delegate='_final_estimator', instance_type=H2OEstimator)

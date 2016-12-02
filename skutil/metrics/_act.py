@@ -37,7 +37,7 @@ def _as_numpy(*args):
         else:
             return np.copy(x)
 
-    arrs = [_single_as_numpy(x) for x in args]
+    arrs = [_single_as_numpy(i) for i in args]
     if len(arrs) == 1:
         arrs = arrs[0]
 
@@ -94,7 +94,7 @@ class GainsStatisticalReport(object):
         self.error_behavior = error_behavior
 
         # validate score_by
-        if not score_by in self._signs:
+        if score_by not in self._signs:
             raise ValueError('score_by must be in %s, but got %s'
                              % (', '.join(met), score_by))
 
@@ -126,10 +126,10 @@ class GainsStatisticalReport(object):
 
             new_stats = {}
             for metric in dict_keys(self._signs):
-                new_stats['%s_mean' % metric] = [] # the mean scores
-                new_stats['%s_std' % metric] = []  # the std scores
-                new_stats['%s_min' % metric] = []  # the min scores
-                new_stats['%s_max' % metric] = []  # the max scores
+                new_stats['%s_mean' % metric] = []  # the mean scores
+                new_stats['%s_std' % metric] = []   # the std scores
+                new_stats['%s_min' % metric] = []   # the min scores
+                new_stats['%s_max' % metric] = []   # the max scores
                 idx = 0
 
                 for _ in range(n_iter):
@@ -171,7 +171,7 @@ class GainsStatisticalReport(object):
 
         rank = pd.qcut(pred_ser, n_groups, labels=False)
         n_groups = np.amax(rank) + 1
-        groups = np.arange(n_groups)
+        groups = np.arange(n_groups)  # if we ever go back to using n_groups...
 
         tab = pd.DataFrame({
             'rank': rank,
@@ -295,7 +295,7 @@ class GainsStatisticalReport(object):
         self
         """
         # check params
-        if not self.error_behavior in ('warn', 'raise', 'ignore'):
+        if self.error_behavior not in ('warn', 'raise', 'ignore'):
             raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). '
                              'Encountered %s' % str(self.error_behavior))
 

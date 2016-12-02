@@ -24,7 +24,7 @@ def test_boxcox():
                                 0.26165380763371671, 
                                 0.64441777772515185,
                                 0.93129521538860016
-                            ]))
+                              ]))
 
     # Assert exact shifts
     assert_array_equal(dict_values(transformer.shift_), np.array([0., 0., 0., 0.]))
@@ -40,7 +40,7 @@ def test_boxcox():
                                 0.5928185584100969, 
                                 0.59843688208993162, 
                                 0.69983717204250795
-                            ]))
+                              ]))
 
     # Assert exact shifts
     assert_array_equal(sorted(dict_values(transformer.shift_)), np.array([5.700001, 8.000001, 9.000001, 9.900001]))
@@ -69,8 +69,8 @@ def test_function_mapper():
     y['D'] = np.array(['$5,000', '$6,000', '$7'])
     y['E'] = np.array(['8%', '52%', '0.3%'])
 
-    def fun(x):
-        return x.replace('[\$,%]', '', regex=True).astype(float)
+    def fun(i):
+        return i.replace('[\$,%]', '', regex=True).astype(float)
 
     transformer = FunctionMapper(cols=['D', 'E'], fun=fun).fit(y)
     transformed = transformer.transform(y)
@@ -89,12 +89,7 @@ def test_function_mapper():
     assert x.equals(FunctionMapper().fit_transform(x))
 
     # Test on non-function
-    failed = False
-    try:
-        FunctionMapper(fun='woo-hoo').fit(x)
-    except ValueError as v:
-        failed = True
-    assert failed
+    assert_fails(FunctionMapper(fun='woo-hoo').fit, ValueError, x)
 
 
 def test_interactions():
@@ -157,7 +152,7 @@ def test_interactions():
 
 
 def test_yeo_johnson():
-    transformer = YeoJohnsonTransformer().fit(X)  ## will fit on all cols
+    transformer = YeoJohnsonTransformer().fit(X)  # will fit on all cols
 
     # Assert transform works...
     transformed = transformer.transform(X)
@@ -168,12 +163,7 @@ def test_yeo_johnson():
     assert transformer.cols is None
 
     # Test on only one row...
-    failed = False
-    try:
-        YeoJohnsonTransformer().fit(X.iloc[0])
-    except ValueError as v:
-        failed = True
-    assert failed
+    assert_fails(YeoJohnsonTransformer().fit, ValueError, X.iloc[0])
 
     # Test it on a random...
     m, n = 1000, 5
@@ -192,10 +182,10 @@ def test_yeo_johnson():
 
 
 def test_spatial_sign():
-    transformer = SpatialSignTransformer().fit(X)  ## will fit to all cols
+    transformer = SpatialSignTransformer().fit(X)  # will fit to all cols
 
     # Assert transform works
-    transformed = transformer.transform(X)
+    transformer.transform(X)
 
     vals = np.array(dict_values(transformer.sq_nms_))
     l = len(vals[vals == np.inf])
@@ -239,8 +229,8 @@ def test_selective_scale():
     original = X
     cols = [original.columns[0]]  # Only perform on first...
 
-    original_means = np.mean(X, axis=0)  # array([ 5.84333333,  3.054     ,  3.75866667,  1.19866667])
-    original_std = np.std(X, axis=0)  # array([ 0.82530129,  0.43214658,  1.75852918,  0.76061262])
+    # original_means = np.mean(X, axis=0)  # array([ 5.84333333,  3.054     ,  3.75866667,  1.19866667])
+    # original_std = np.std(X, axis=0)  # array([ 0.82530129,  0.43214658,  1.75852918,  0.76061262])
 
     transformer = SelectiveScaler(cols=cols).fit(original)
     transformed = transformer.transform(original)

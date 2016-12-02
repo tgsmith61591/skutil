@@ -7,7 +7,6 @@ from h2o.frame import H2OFrame
 from numpy.random import choice
 from sklearn.externals import six
 from sklearn.neighbors import NearestNeighbors
-from skutil.base import *
 from skutil.base import overrides, BaseSkutil
 from ..utils import *
 
@@ -17,7 +16,6 @@ __all__ = [
     'SMOTEClassBalancer',
     'UndersamplingClassBalancer'
 ]
-
 
 
 class SamplingWarning(UserWarning):
@@ -131,8 +129,8 @@ class BalancerMixin:
         raise NotImplementedError('this method must be implemented by a subclass')
 
 
-def _default_indices(len, shuffle):
-    x = np.arange(len)
+def _default_indices(length, shuffle):
+    x = np.arange(length)
     return x.tolist() if not shuffle else np.random.permutation(x).tolist()
 
 

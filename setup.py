@@ -3,12 +3,13 @@ import os
 import sys
 import shutil
 import glob
+import traceback
 import warnings
 import subprocess
 from pkg_resources import parse_version
 
 # For cleaning build artifacts
-from distutils.command.clean import clean as Clean
+from distutils.command.clean import clean
 
 if sys.version_info[0] < 3:
     import __builtin__ as builtins
@@ -17,7 +18,6 @@ else:
 
 try:
     from Cython.Build import cythonize
-
     ext = 'pyx'
 except ImportError as e:
     warnings.warn('Cython needs to be installed')
@@ -51,12 +51,12 @@ h2o_min_version = '3.8.2.9'
 matplotlib_version = '1.5'
 
 # Define setup tools early
-SETUPTOOLS_COMMANDS = set([
+SETUPTOOLS_COMMANDS = {  # this is a set literal, not a dict
     'develop', 'release', 'bdist_egg', 'bdist_rpm',
     'bdist_wininst', 'install_egg_info', 'build_sphinx',
     'egg_info', 'easy_install', 'upload', 'bdist_wheel',
     '--single-version-externally-managed'
-])
+}
 
 if SETUPTOOLS_COMMANDS.intersection(sys.argv):
     import setuptools
@@ -79,11 +79,11 @@ else:
 
 
 # Custom clean command to remove build artifacts -- adopted from sklearn
-class CleanCommand(Clean):
+class CleanCommand(clean):
     description = "Remove build artifacts from the source tree"
 
     def run(self):
-        Clean.run(self)
+        clean.run(self)
         # Remove c files if we are not within a sdist package
         cwd = os.path.abspath(os.path.dirname(__file__))
         remove_c_files = not os.path.exists(os.path.join(cwd, 'PKG-INFO'))
@@ -98,7 +98,7 @@ class CleanCommand(Clean):
             for filename in filenames:
                 if any(filename.endswith(suffix) for suffix in
                        (".so", ".pyd", ".dll", ".pyc")):
-                    print('Removing file: %s'%filename)
+                    print('Removing file: %s' % filename)
                     os.unlink(os.path.join(dirpath, filename))
                     continue
                 extension = os.path.splitext(filename)[1]
@@ -108,11 +108,10 @@ class CleanCommand(Clean):
                         os.unlink(os.path.join(dirpath, filename))
             for dirname in dirnames:
                 if dirname == '__pycache__' or dirname.endswith('.so.dSYM'):
-                    print('Removing directory: %s'%dirname)
+                    print('Removing directory: %s' % dirname)
                     shutil.rmtree(os.path.join(dirpath, dirname))
 
 cmdclass = {'clean': CleanCommand}
-
 
 # This is the optional wheelhouse-uploader feature
 # that sklearn includes in its setup. We can use this to both
@@ -120,9 +119,9 @@ cmdclass = {'clean': CleanCommand}
 # The URLs are set up in the setup.cfg file that sklearn defined
 # and we modified.
 
-WHEELHOUSE_UPLOADER_COMMANDS = set(['fetch_artifacts', 'upload_all'])
+WHEELHOUSE_UPLOADER_COMMANDS = {'fetch_artifacts', 'upload_all'}  # set literal
 if WHEELHOUSE_UPLOADER_COMMANDS.intersection(sys.argv):
-    import wheelhouse_uploader.cmd
+    import wheelhouse_uploader
     cmdclass.update(vars(wheelhouse_uploader.cmd))
 
 
@@ -143,14 +142,14 @@ def configuration(parent_package='', top_path=None):
 
 
 # the default dict for a non-up-to-date package
-default_status = {'up_to_date' : False, 'version' : ""}
+default_status = {'up_to_date': False, 'version': ""}
 
 
 def _check_version(current, required):
     crnt = str(current)
     return {
-        'up_to_date' : parse_version(crnt) >= parse_version(required),
-        'version'    : crnt
+        'up_to_date': parse_version(crnt) >= parse_version(required),
+        'version':    crnt
     }
 
 
@@ -260,7 +259,7 @@ def setup_package():
         # the system.
         try:
             from setuptools import setup
-        except ImportError as impe:
+        except ImportError:
             from distutils.core import setup
 
         metadata['version'] = VERSION
@@ -274,7 +273,7 @@ def setup_package():
 
             if not mpl_uptodate:
                 warnings.warn('Consider upgrading matplotlib (current version=%s, recommended=1.5)' % mplv)
-        except ImportError as i:
+        except ImportError:
             # not required, doesn't matter really
             warnings.warn('Matplotlib is not installed. Some functions may not work as expected.',
                           ImportWarning)
@@ -298,7 +297,6 @@ def setup_package():
         check_statuses('h2o', h2o_status, h2rs)
 
         # We know numpy is installed at this point
-        import numpy
         from numpy.distutils.core import setup
 
         metadata['configuration'] = configuration

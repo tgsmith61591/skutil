@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 import abc
 import warnings
 import numpy as np
-from h2o.frame import H2OFrame
 from sklearn.externals import six
 from .frame import _check_is_1d_frame, is_integer
 from .encode import H2OLabelEncoder
@@ -103,7 +102,7 @@ def _type_of_target(y):
         unq = y.unique()
         return 'unknown' if unq.shape[0] < 2 else \
             'binary' if unq.shape[0] == 2 else \
-                'multiclass'
+            'multiclass'
     return 'continuous'
 
 
@@ -541,7 +540,7 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
             if pos_label not in present_labels:
                 if len(present_labels) < 2:
                     # only negative
-                    return (0.0, 0.0, 0.0, 0.0)
+                    return 0.0, 0.0, 0.0, 0.0
                 else:
                     raise ValueError("pos_label=%r is not a valid label: %r"
                                      % (pos_label, present_labels))
@@ -550,7 +549,7 @@ def h2o_precision_recall_fscore_support(y_actual, y_predict, beta=1.0, pos_label
         else:
             raise ValueError('Target is %s but average="binary". Choose '
                              'another average setting' % y_type)
-    elif not pos_label in (None, 1):
+    elif pos_label not in (None, 1):
         warnings.warn('Note that pos_label (set to %r) is ignored when '
                       'average != "binary" (got %r). You may use '
                       'labels=[pos_label] to specify a single positive class.'
@@ -678,7 +677,7 @@ def _prf_divide(numerator, denominator, metric, modifier, average, warn_for):
     return result
 
 
-def _h2o_ae(y_actual, y_predict, sample_weight=None, y_type=None):
+def _h2o_ae(y_actual, y_predict, sample_weight=None):
     """Compute absolute difference between actual and predict"""
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
     _err_for_discrete(y_type)
@@ -720,7 +719,8 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     score : float
         The mean absolute error
     """
-    score = _get_mean(_h2o_ae(y_actual, y_predict, sample_weight, y_type))
+    _err_for_discrete(y_type)
+    score = _get_mean(_h2o_ae(y_actual, y_predict, sample_weight))
     return score
 
 
@@ -751,7 +751,8 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     score : float
         The median absolute error score
     """
-    score = flatten_all(_h2o_ae(y_actual, y_predict, sample_weight, y_type).median())[0]
+    _err_for_discrete(y_type)
+    score = flatten_all(_h2o_ae(y_actual, y_predict, sample_weight).median())[0]
     return score
 
 

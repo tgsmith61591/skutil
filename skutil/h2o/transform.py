@@ -1,11 +1,8 @@
 from __future__ import print_function, division, absolute_import
 from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
-from .frame import _check_is_1d_frame
-from .util import h2o_col_to_numpy, _unq_vals_col
 from ..utils.fixes import is_iterable, dict_values
 from ..preprocessing import ImputerMixin
-from ..base import since
 from sklearn.externals import six
 import pandas as pd
 from sklearn.utils.validation import check_is_fitted
@@ -144,7 +141,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         fill = self.fill_
         if isinstance(fill, six.string_types):
             fill = str(fill)
-            if not fill in ('mode', 'mean', 'median'):
+            if fill not in ('mode', 'mean', 'median'):
                 raise TypeError('self.fill must be either "mode", "mean", "median", None, '
                                 'a number, or an iterable. Got %s' % fill)
 
@@ -223,7 +220,7 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             The transformed (imputed) test data.
         """
         check_is_fitted(self, 'fill_val_')
-        X = check_frame(X, copy=True) # make a copy
+        X = check_frame(X, copy=True)  # make a copy
 
         # get the fills
         fill_val = self.fill_val_
@@ -470,7 +467,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
         """
         frame = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
         self.cols = [str(u) for u in frame.columns]  # the cols we'll ultimately operate on
-        self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
+        self.fun_ = self.interaction_function if self.interaction_function is not None else _mul
 
         # validate function
         if not hasattr(self.fun_, '__call__'):
@@ -498,7 +495,7 @@ class H2OInteractionTermTransformer(BaseH2OTransformer):
             The expanded (interacted) test data.
         """
         check_is_fitted(self, 'fun_')
-        frame = check_frame(X, copy=True) # get a copy
+        frame = check_frame(X, copy=True)  # get a copy
         
         cols, fun, suff = self.cols, self.fun_, self.name_suffix
         n_features = len(cols)

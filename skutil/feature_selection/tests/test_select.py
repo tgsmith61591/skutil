@@ -234,13 +234,13 @@ def test_nzv_filterer():
     transformer = NearZeroVarianceFilterer().fit(X)
     assert not transformer.drop_
 
-    y = X.copy()
-    y['zeros'] = np.zeros(150)
+    z = X.copy()
+    z['zeros'] = np.zeros(150)
 
-    transformer = NearZeroVarianceFilterer().fit(y)
+    transformer = NearZeroVarianceFilterer().fit(z)
     assert len(transformer.drop_) == 1
     assert transformer.drop_[0] == 'zeros'
-    assert transformer.transform(y).shape[1] == 4
+    assert transformer.transform(z).shape[1] == 4
 
     # test the selective mixin
     assert transformer.cols is None, 'expected None but got %s' % str(transformer.cols)
@@ -255,7 +255,7 @@ def test_nzv_filterer():
 
     # test with the ratio strategy
     transformer = NearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
-    assert_fails(transformer.fit, ValueError, y) # will fail because thresh must be greater than 1.0
+    assert_fails(transformer.fit, ValueError, z)  # will fail because thresh must be greater than 1.0
 
     x = np.array([
         [1, 2, 3],
@@ -270,7 +270,6 @@ def test_nzv_filterer():
     assert transformer.drop_[0] == 'a'
     assert len(transformer.var_) == 1
     assert transformer.var_['a'] == 3.0
-
 
 
 def test_feature_dropper_warning():
@@ -336,16 +335,16 @@ def test_sparsity():
     assert not filt.drop_
 
 
-def test_enumLC():
-    Y = np.array([
+def test_enum_lc():
+    z = np.array([
         [1, 2, 3],
         [4, 5, 6],
         [7, 8, 9],
         [10, 11, 12]
     ])
 
-    a, b = combos._enumLC(QRDecomposition(Y))[0], np.array([2, 0, 1])
+    a, b = combos._enum_lc(QRDecomposition(z))[0], np.array([2, 0, 1])
     assert (a == b).all(), 'should be [2,0,1] but got %s' % a
-    assert not combos._enumLC(QRDecomposition(iris.data))
+    assert not combos._enum_lc(QRDecomposition(iris.data))
 
-    assert_array_equal(combos._enumLC(QRDecomposition(y))[0], np.array([2, 1]))
+    assert_array_equal(combos._enum_lc(QRDecomposition(y))[0], np.array([2, 1]))

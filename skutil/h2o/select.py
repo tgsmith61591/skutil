@@ -2,12 +2,10 @@ from __future__ import print_function, division, absolute_import
 import warnings
 import numpy as np
 from sklearn.utils.validation import check_is_fitted
-from h2o.frame import H2OFrame
 from ..feature_selection import filter_collinearity
 from ..feature_selection.select import _near_zero_variance_ratio
 from ..utils import is_numeric
 from ..utils.fixes import is_iterable
-from ..base import since
 from .base import (BaseH2OTransformer, check_frame, _retain_features, _frame_from_x_y)
 from .frame import as_series
 
@@ -117,7 +115,7 @@ class BaseH2OFeatureSelector(BaseH2OTransformer):
         """
         # validate state, frame
         check_is_fitted(self, 'drop_')
-        X = check_frame(X, copy=False) # copied on next line
+        X = check_frame(X, copy=False)  # copied on next line
 
         return X[_retain_features(X, self.drop_)]
 
@@ -249,7 +247,7 @@ class H2OSparseFeatureDropper(BaseH2OFeatureSelector):
 
         return self
         """
-        X = check_frame(X, copy=False) # gets copied below
+        X = check_frame(X, copy=False)  # gets copied below
         thresh = self.threshold
 
         # do copy
@@ -507,7 +505,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
         X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed training data
         """
-        X = check_frame(X, copy=False) # copy in next line
+        X = check_frame(X, copy=False)  # copy in next line
         frame = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # validate use, check NAs
@@ -516,10 +514,9 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
         # validate strategy
         valid_strategies = ('variance', 'ratio')
-        if not self.strategy in valid_strategies:
+        if self.strategy not in valid_strategies:
             raise ValueError('strategy must be one of {0}, but got {1}'.format(
                 str(valid_strategies), self.strategy))
-
 
         if self.strategy == 'variance':
             # get covariance matrix, extract the diagonal
@@ -538,7 +535,7 @@ class H2ONearZeroVarianceFilterer(BaseH2OFeatureSelector):
 
             # get a np.array mask
             matrix = np.array([_near_zero_variance_ratio(as_series(frame[col]), ratio) for col in frame.columns])
-            drop_mask = matrix[:,1].astype(np.bool)
+            drop_mask = matrix[:, 1].astype(np.bool)
             self.drop_ = np.asarray(frame.columns)[drop_mask].tolist()
             self.var_ = dict(zip(self.drop_, matrix[drop_mask, 0].tolist()))
 

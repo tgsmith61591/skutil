@@ -23,7 +23,7 @@ try:
         from matplotlib.testing.decorators import cleanup
         # log it
         CAN_CHART_MPL = True
-except ImportError as ie:
+except ImportError:
     CAN_CHART_MPL = False
 
 # Def data for testing
@@ -67,7 +67,6 @@ def test_delegate_decorator():
         def do_something(self):
             return 'something'
 
-
     class B(object):
         def __init__(self):
             pass
@@ -82,7 +81,6 @@ def test_delegate_decorator():
         def __init__(self):
             pass
 
-
     class C(object):
         def __init__(self):
             self.a = A()
@@ -90,7 +88,7 @@ def test_delegate_decorator():
             self.c = Other()
             self.d = 4
 
-        @if_delegate_has_method(delegate=['a','b'])
+        @if_delegate_has_method(delegate=['a', 'b'])
         def foo(self):
             return self.b.foo()
 
@@ -119,14 +117,12 @@ def test_delegate_decorator():
         def some_other_instance_method(self):
             return True
 
-        @if_delegate_isinstance(('e','d'), instance_type=(int, float))
+        @if_delegate_isinstance(('e', 'd'), instance_type=(int, float))
         def yet_another_instance_method(self):
             return True
 
-
     # purely for coverage...
     A().foo()
-
 
     c = C()
     assert hasattr(c, 'foo')
@@ -139,7 +135,6 @@ def test_delegate_decorator():
     assert c.some_other_instance_method()
     assert c.yet_another_instance_method()
 
-
     # these don't work with assert_fails
     try:
         c.wont_work()
@@ -150,7 +145,7 @@ def test_delegate_decorator():
 
     try:
         c.some_instance_method()
-    except TypeError as t:
+    except TypeError:
         pass
     else:
         raise AssertionError('should have failed')
@@ -184,8 +179,8 @@ def test_grid_search_fix():
     pipe = Pipeline([('rf', RandomForestClassifier())])
     pipe2 = Pipeline([('pca', SelectivePCA())])
 
-    hyp  = {'rf__n_estimators'  : [10, 15]}
-    hyp2 = {'pca__n_components' : [ 1,  2]}
+    hyp = {'rf__n_estimators':  [10, 15]}
+    hyp2 = {'pca__n_components': [1,  2]}
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -212,7 +207,7 @@ def test_grid_search_fix():
         grid3.grid_scores_[0]
 
         # test fail with mismatched dims
-        assert_fails(grid3.fit, ValueError, X, np.array([1,2,3]))
+        assert_fails(grid3.fit, ValueError, X, np.array([1, 2, 3]))
 
         # test value error on missing scorer_
         sco = grid2.scorer_
@@ -225,19 +220,18 @@ def test_grid_search_fix():
         grid2.predict_log_proba(df)
 
 
-
 def test_fixes():
     assert _validate_y(None) is None
-    assert_fails(_validate_y, ValueError, X) # dim 1 is greater than 1
+    assert_fails(_validate_y, ValueError, X)  # dim 1 is greater than 1
 
     # try with one column
-    X_copy = X.copy().pop(X.columns[0]) # copy and get first column
+    X_copy = X.copy().pop(X.columns[0])  # copy and get first column
     assert isinstance(_validate_y(X_copy), np.ndarray)
-    assert isinstance(_validate_y(np.array([1,2,3])), np.ndarray) # return the np.ndarray
+    assert isinstance(_validate_y(np.array([1, 2, 3])), np.ndarray)  # return the np.ndarray
 
     # Testing param grid
     param_grid = {
-        'a' : np.ones((3,3))
+        'a': np.ones((3, 3))
     }
 
     # fails because value has more than 1 dim
@@ -245,14 +239,14 @@ def test_fixes():
 
     # test param grid with a dictionary as the value
     param_grid2 = {
-        'a' : {'a':1}
+        'a': {'a': 1}
     }
 
     # fails because v must be a tuple, list or np.ndarray
     assert_fails(_check_param_grid, ValueError, param_grid2)
 
     # fails because v is len 0
-    assert_fails(_check_param_grid, ValueError, {'a':[]})
+    assert_fails(_check_param_grid, ValueError, {'a': []})
 
 
 def test_pd_stats():
@@ -271,7 +265,7 @@ def test_pd_stats():
 
     # test with numerics
     stats = pd_stats(Y, col_type='numeric')
-    assert not 'species_factor' in stats.columns
+    assert 'species_factor' not in stats.columns
     assert stats.shape[1] == (Y.shape[1] - 1)
 
     # test with object

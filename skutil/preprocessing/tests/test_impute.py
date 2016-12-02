@@ -166,8 +166,8 @@ def test_bagged_imputer_errors():
     # test that all nan will fail
     failed = False
     try:
-        imputer = BaggedImputer().fit(X)
-    except ValueError as v:
+        BaggedImputer().fit(X)
+    except ValueError:
         failed = True
     assert failed, 'Expected imputation on fully missing feature to fail'
 
@@ -176,8 +176,8 @@ def test_bagged_imputer_errors():
     try:
         u = pd.DataFrame()
         u['b'] = X.b
-        imputer = BaggedImputer().fit(u)
-    except ValueError as v:
+        BaggedImputer().fit(u)
+    except ValueError:
         failed = True
     assert failed, 'Expected fitting on one col to fail'
 
@@ -186,7 +186,7 @@ def test_bagged_imputer_errors():
     X['f'] = f
     failed = False
     try:
-        imputer = BaggedImputer().fit(X[['d', 'e', 'f']])
-    except ValueError as v:
+        BaggedImputer().fit(X[['d', 'e', 'f']])
+    except ValueError:
         failed = True
     assert failed, 'Expected imputation with categorical feature to fail'
