@@ -13,7 +13,6 @@ from sklearn.utils.validation import check_is_fitted
 from skutil.base import *
 from ..utils import *
 from ..utils.fixes import _cols_if_none
-from abc import ABCMeta
 
 __all__ = [
     'BoxCoxTransformer',
@@ -259,7 +258,6 @@ class InteractionTermTransformer(BaseSkutil, TransformerMixin):
         >>> from skutil.preprocessing import InteractionTermTransformer
         >>> from skutil.utils import load_iris_df
         >>> import pandas as pd
-        >>> import numpy as np
         >>> 
         >>> X = load_iris_df(include_tgt=False)
         >>>
@@ -308,7 +306,7 @@ class InteractionTermTransformer(BaseSkutil, TransformerMixin):
         """
         X, self.cols = validate_is_pd(X, self.cols)
         cols = _cols_if_none(X, self.cols)
-        self.fun_ = self.interaction_function if not self.interaction_function is None else _mul
+        self.fun_ = self.interaction_function if self.interaction_function is not None else _mul
 
         # validate function
         if not hasattr(self.fun_, '__call__'):
@@ -441,7 +439,7 @@ class SelectiveScaler(BaseSkutil, TransformerMixin):
         super(SelectiveScaler, self).__init__(cols=cols, as_df=as_df)
         self.scaler = scaler
 
-    def fit(self, X, y=None, **kwargs):
+    def fit(self, X, y=None):
         """Fit the transformer.
 
         Parameters
@@ -579,7 +577,7 @@ class BoxCoxTransformer(BaseSkutil, TransformerMixin):
         self
         """
         # check on state of X and cols
-        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True) # creates a copy -- we need all to be finite
+        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)  # creates a copy -- we need all to be finite
         cols = _cols_if_none(X, self.cols)
 
         # ensure enough rows
@@ -673,9 +671,6 @@ def _estimate_lambda_single_y(y):
 
     y : ndarray, shape (n_samples,)
        The vector being estimated against
-       
-    lambdas : ndarray, shape (n_lambdas,)
-       The vector of lambdas to estimate with
     """
 
     # ensure is array
@@ -754,7 +749,7 @@ class YeoJohnsonTransformer(BaseSkutil, TransformerMixin):
         self
         """
         # check on state of X and cols
-        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True) # creates a copy -- we need all to be finite
+        X, self.cols = validate_is_pd(X, self.cols, assert_all_finite=True)  # creates a copy -- we need all to be finite
         cols = _cols_if_none(X, self.cols)
 
         # ensure enough rows
@@ -789,7 +784,7 @@ class YeoJohnsonTransformer(BaseSkutil, TransformerMixin):
         """
         check_is_fitted(self, 'lambda_')
         # check on state of X and cols
-        X, cols = validate_is_pd(X, self.cols, assert_all_finite=True) # creates a copy -- we need all to be finite
+        X, cols = validate_is_pd(X, self.cols, assert_all_finite=True)  # creates a copy -- we need all to be finite
         cols = _cols_if_none(X, self.cols)
 
         lambdas_ = self.lambda_
@@ -846,9 +841,6 @@ def _yj_estimate_lambda_single_y(y):
 
     y : ndarray, shape (n_samples,)
        The vector being estimated against
-
-    lambdas : ndarray, shape (n_lambdas,)
-       The vector of lambdas to estimate with
     """
     y = np.array(y)
     # Use customlog-likelihood estimator
@@ -868,12 +860,12 @@ def _yj_normmax(x, brack=(-2, 2)):
     """
 
     # Use MLE to compute the optimal YJ parameter
-    def _mle_opt(x, brack):
+    def _mle_opt(i, brck):
         def _eval_mle(lmb, data):
             # Function to minimize
             return -_yj_llf(data, lmb)
 
-        return optimize.brent(_eval_mle, brack=brack, args=(x,))
+        return optimize.brent(_eval_mle, brack=brck, args=(i,))
 
     return _mle_opt(x, brack)  # _mle(x, brack)
 

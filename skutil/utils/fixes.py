@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 VERSION_MAJOR = sys.version_info.major
-NoneType = type(None) # Python 3 doesn't have a types.NoneType
+NoneType = type(None)  # Python 3 doesn't have a types.NoneType
 
 # easier test for numericism
 if VERSION_MAJOR > 2:
@@ -193,7 +193,7 @@ def _is_integer(x):
         True if ``x`` is an integer type
     """
     return (not isinstance(x, (bool, np.bool))) and \
-        isinstance(x, (numbers.Integral, int, np.int, np.long, long)) # no long type in python 3
+        isinstance(x, (numbers.Integral, int, np.int, np.long, long))  # no long type in python 3
 
 
 def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):
@@ -241,7 +241,7 @@ def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', 
 
         # convert each score tuple into dicts
         for score in search.grid_scores_:
-            results_dict = dict(score.parameters) # the parameter tuple or sampler
+            results_dict = dict(score.parameters)  # the parameter tuple or sampler
             results_dict["mean_test_score"] = score.mean_validation_score
             results_dict["std_test_score"] = score.cv_validation_scores.std() * z_score
             df_list.append(results_dict)
@@ -359,7 +359,7 @@ def _get_groups(X, y):
     """
     if SK18:
         X, y = _indexable(X, y)
-    return (X, y, None)
+    return X, y, None
 
 
 def _as_numpy(y):
@@ -386,7 +386,7 @@ def _as_numpy(y):
     elif hasattr(y, 'tolist'):
         return y.tolist()
     elif is_iterable(y):
-        return np.asarray([i for i in y]) # might accidentally force object type in 3
+        return np.asarray([i for i in y])  # might accidentally force object type in 3
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
 
 
@@ -436,7 +436,7 @@ def _validate_y(y):
         return _as_numpy(y)
 
     # bail
-    raise ValueError('Cannot create indexable from type=%s'%type(y))
+    raise ValueError('Cannot create indexable from type=%s' % type(y))
 
 
 def _check_param_grid(param_grid):

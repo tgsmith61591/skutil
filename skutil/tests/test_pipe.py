@@ -12,6 +12,7 @@ from skutil.feature_selection import *
 from skutil.grid_search import RandomizedSearchCV, GridSearchCV
 from skutil.preprocessing import *
 from skutil.utils import report_grid_score_detail
+from skutil.utils.tests.utils import assert_fails
 
 # Def data for testing
 iris = load_iris()
@@ -96,8 +97,7 @@ def test_random_grid():
     search.fit(X_train, y_train)
 
     # test the report
-    the_report = report_grid_score_detail(search, charts=False)
-    # do nothing with it
+    report_grid_score_detail(search, charts=False)
 
 
 def test_regular_grid():
@@ -150,16 +150,10 @@ def test_regular_grid():
     # search.best_estimator_.predict(X_train)
 
     # test the report
-    the_report = report_grid_score_detail(search, charts=False)
-    # do nothing with it
+    report_grid_score_detail(search, charts=False)
 
     # test with invalid X and ys
-    failed = False
-    try:
-        search.fit(X_train, None)
-    except Exception as e:
-        failed = True
-    assert failed
+    assert_fails(search.fit, Exception, X_train, None)
 
     # fit the search with a series
     search.fit(X_train, pd.Series(y_train))
@@ -168,19 +162,9 @@ def test_regular_grid():
     search.fit(X_train, pd.DataFrame(pd.Series(y_train)))
 
     # test with invalid X and ys
-    failed = False
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            search.fit(X_train, pd.DataFrame([pd.Series(y_train), pd.Series(y_train)]))
-    except Exception as e:
-        failed = True
-    assert failed
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        assert_fails(search.fit, Exception, X_train, pd.DataFrame([pd.Series(y_train), pd.Series(y_train)]))
 
     # test with short y
-    failed = False
-    try:
-        search.fit(X_train, [0, 1, 2])
-    except ValueError as e:
-        failed = True
-    assert failed
+    assert_fails(search.fit, ValueError, X_train, [0, 1, 2])

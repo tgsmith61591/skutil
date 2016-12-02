@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 import numpy as np
 from skutil.odr import dqrsl # what happens if we make this absolute?
 from sklearn.utils import check_array
+from sklearn.base import BaseEstimator
 from numpy.linalg import matrix_rank
 
 # WARNING: there is little-to-no validation of input in these functions,
@@ -18,9 +19,9 @@ def _validate_matrix_size(n, p):
         raise ValueError('too many elements for Fortran LINPACK routine')
 
 
-def _safecall(fun, name, *args, **kwargs):
+def _safecall(fun, *args, **kwargs):
     """A method to call a LAPACK or LINPACK subroutine internally"""
-    ret = fun(*args, **kwargs)
+    fun(*args, **kwargs)
 
 
 def qr_decomposition(X, job=1):
@@ -75,7 +76,7 @@ def qr_decomposition(X, job=1):
     assert work.shape[0] == p, 'expected work to be of length %i' % p
 
     # call the fortran module IN PLACE
-    _safecall(dqrsl.dqrdc, 'dqrdc', X, n, n, p, qraux, pivot, work, job_)
+    _safecall(dqrsl.dqrdc, X, n, n, p, qraux, pivot, work, job_)
 
     # do returns
     return (X,
@@ -90,7 +91,7 @@ def _qr_R(qr):
     return qr[:min_dim + 1, :]
 
 
-class QRDecomposition():
+class QRDecomposition(BaseEstimator):
     """Performs the QR decomposition using LINPACK, BLAS and LAPACK
     Fortran subroutines, and provides an interface for other useful
     QR utility methods.
@@ -163,7 +164,7 @@ class QRDecomposition():
                       np.zeros(1, dtype=np.int, order='F'))
 
         # call the fortran module IN PLACE
-        _safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, 0)
+        _safecall(dqrsl.dqrcf, qr, n, k, qraux, X, ny, coef, 0)
 
         # post-processing
         # if k < p:

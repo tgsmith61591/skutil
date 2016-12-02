@@ -3,7 +3,6 @@ import warnings
 import h2o
 import os
 from ..utils.fixes import is_iterable
-from ..base import since
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.externals import six
 from h2o.frame import H2OFrame
@@ -76,8 +75,8 @@ def _frame_from_x_y(X, x, y, exclude_features=None, return_x_y=False):
         The sanitized H2OFrame
     """
     x, y = validate_x_y(X, x, y, exclude_features)
-    X = check_frame(X, copy=False) # don't copy here
-    X = X[x] # make a copy of only the x features
+    X = check_frame(X, copy=False)  # don't copy here
+    X = X[x]  # make a copy of only the x features
 
     return X if not return_x_y else (X, x, y)
 
@@ -363,8 +362,8 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         # test connection, warn where needed
         try:
-            g = h2o.frames()  # returns a dict of frames
-        except (EnvironmentError, ValueError, H2OServerError, H2OConnectionError) as v:
+            _ = h2o.frames()  # returns a dict of frames
+        except (EnvironmentError, ValueError, H2OServerError, H2OConnectionError):
             warnings.warn('h2o has not been started; '
                           'initializing an H2O transformer without '
                           'a connection will not cause any issues, '
@@ -389,7 +388,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         try:
             mv = self._max_version
             return mv if not mv else str(mv)
-        except AttributeError as n:
+        except AttributeError:
             return None
 
     @property
@@ -409,7 +408,7 @@ class BaseH2OFunctionWrapper(BaseEstimator):
         """
         try:
             mv = str(self._min_version)
-        except AttributeError as n:
+        except AttributeError:
             mv = 'any'
         return mv
 
