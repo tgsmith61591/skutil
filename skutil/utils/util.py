@@ -147,7 +147,7 @@ def exp(x):
     # try vectorized
     try:
         return _vectorize(exp, x)
-    except ValueError as v:
+    except ValueError:
         # bail
         raise ValueError("don't know how to compute exp for type %s" % type(x))
 
@@ -174,7 +174,7 @@ def log(x):
     # try vectorized
     try:
         return _vectorize(log, x)
-    except ValueError as v:
+    except ValueError:
         # bail
         raise ValueError("don't know how to compute log for type %s" % type(x))
 
@@ -207,7 +207,7 @@ def _def_headers(X):
 
 def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
               method='pearson', figsize=(11, 9), cmap_a=220, cmap_b=10, vmax=0.3,
-              xticklabels=5, yticklabels=5, linewidths=0.5, cbar_kws={'shrink': 0.5}):
+              xticklabels=5, yticklabels=5, linewidths=0.5, cbar_kws=None):
     """Create a simple correlation plot given a dataframe.
     Note that this requires all datatypes to be numeric and finite!
 
@@ -259,15 +259,19 @@ def corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5, corr=None,
     linewidths : float, optional (default=0.5)
         The width of the lines
 
-    cbar_kws : dict, optional (default={'shrink':0.5})
-        Any KWs to pass to seaborn's heatmap when ``plot_type`` = 'cor'
+    cbar_kws : dict, optional (default=None)
+        Any KWs to pass to seaborn's heatmap when ``plot_type`` = 'cor'.
+        If None, will default to {'shrink': 0.5}
     """
 
     X, _ = validate_is_pd(X, None, assert_all_finite=True)
     valid_types = ('cor', 'kde', 'pair')
-    if not plot_type in valid_types:
+    if plot_type not in valid_types:
         raise ValueError('expected one of (%s), but got %s'
                          % (','.join(valid_types), plot_type))
+
+    if cbar_kws is None:
+        cbar_kws = {'shrink': 0.5}
 
     # seaborn is needed for all of these, so we have to check outside
     if not CAN_CHART_SNS:
@@ -493,7 +497,7 @@ def validate_is_pd(X, cols, assert_all_finite=False):
     if assert_all_finite:
         # if cols, we only need to ensure the specified columns are finite
         cols_tmp = _cols_if_none(X, cols)
-        X_prime = X[get_numeric(X[cols_tmp])] # subset the subset... only numerics
+        X_prime = X[get_numeric(X[cols_tmp])]  # subset the subset... only numerics
 
         # also apply only to the non-object columns
         if X_prime.apply(lambda x: (~np.isfinite(x)).sum()).sum() > 0:
@@ -558,6 +562,10 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
         'numeric', 'object'). If not all, will only return
         corresponding typed columns.
 
+    na_str : str, optional (default='--')
+        The string to display in a cell that is not applicable
+        for the column's datatype.
+
     hi_skew_thresh : float, optional (default=1.0)
         The threshold above which a skewness rating will
         be deemed "high."
@@ -581,7 +589,7 @@ def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh
 
     # validate col_type
     valid_types = ('all', 'numeric', 'object')
-    if not col_type in valid_types:
+    if col_type not in valid_types:
         raise ValueError('expected col_type in (%s), but got %s'
                          % (','.join(valid_types), col_type))
 
@@ -681,7 +689,7 @@ def get_numeric(X):
     list, int
         The list of indices which are numeric.
     """
-    validate_is_pd(X, cols=None, assert_all_finite=False) # don't want to assert finite or maybe endless recursion
+    validate_is_pd(X, cols=None, assert_all_finite=False)  # don't want to assert finite or maybe endless recursion
     return X.dtypes[X.dtypes.apply(lambda x: str(x).startswith(("float", "int")))].index.tolist()
 
 
@@ -712,7 +720,7 @@ def human_bytes(b, unit='MB'):
         'TB': float(kb ** 4)
     }
 
-    if not unit in units:
+    if unit not in units:
         raise ValueError('got %s, expected one of (%s)'
                          % (unit, ', '.join(dict_keys(units))))
 
@@ -764,11 +772,11 @@ def is_integer(x):
             return (not isinstance(x, (bool, np.bool))) and \
                 isinstance(x, (numbers.Integral, int, long, np.int, np.long))
         elif python_major_version == 3:
-             return (not isinstance(x, (bool, np.bool))) and \
+            return (not isinstance(x, (bool, np.bool))) and \
                 isinstance(x, (numbers.Integral, int, np.int, np.long))
-    except AssertionError as e:
+    except AssertionError:
         _, _, tb = sys.exc_info()
-        traceback.print_tb(tb) # Fixed format
+        traceback.print_tb(tb)  # Fixed format
         tb_info = traceback.extract_tb(tb)
         filename, line, func, text = tb_info[-1]
 
@@ -993,7 +1001,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
                    'std_score_time', 'std_train_score')
 
     # validate y-axis
-    if not y_axis in valid_axes:
+    if y_axis not in valid_axes:
         raise ValueError('y-axis=%s must be one of (%s)' % (y_axis, ', '.join(valid_axes)))
 
     # validate percentile
@@ -1028,7 +1036,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
                 plt.ylabel(y_axis)
 
                 # if there's a '__' in the col, split it
-                x_lab = col if not '__' in col else col.split('__')[-1]
+                x_lab = col if '__' not in col else col.split('__')[-1]
                 plt.xlabel(x_lab)
 
                 # render

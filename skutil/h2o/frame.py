@@ -49,13 +49,13 @@ def as_series(x):
     Parameters
     ----------
 
-    x : H2OFrame, shape=(n_samples, 1)
+    x : ``H2OFrame``, shape=(n_samples, 1)
         The H2OFrame
 
     Returns
     -------
 
-    x : pd.Series, shape=(n_samples,)
+    x : Pandas ``Series``, shape=(n_samples,)
         The pandas series
     """
     x = _check_is_1d_frame(x)

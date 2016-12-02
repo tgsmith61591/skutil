@@ -164,7 +164,7 @@ class QRDecomposition(BaseEstimator):
                       np.zeros(1, dtype=np.int, order='F'))
 
         # call the fortran module IN PLACE
-        _safecall(dqrsl.dqrcf, 'dqrcf', qr, n, k, qraux, X, ny, coef, 0)
+        _safecall(dqrsl.dqrcf, qr, n, k, qraux, X, ny, coef, 0)
 
         # post-processing
         # if k < p:

@@ -13,13 +13,13 @@ from math import ceil, floor
 
 try:
     from h2o import H2OEstimator
-except ImportError as e:
+except ImportError:
     from h2o.estimators.estimator_base import H2OEstimator
 
 try:
     from sklearn.model_selection import KFold
     SK18 = True
-except ImportError as e:
+except ImportError:
     from sklearn.cross_validation import KFold
     SK18 = False
 
@@ -185,8 +185,11 @@ class H2OBaseCrossValidator(six.with_metaclass(ABCMeta)):
         Parameters
         ----------
 
-        frame : H2OFrame
+        frame : ``H2OFrame``
             The h2o frame to split
+
+        y : str, optional (default=None)
+            The name of the column to stratify, if applicable.
 
         Returns
         -------
@@ -265,7 +268,7 @@ def _validate_shuffle_split_init(test_size, train_size):
                     'train_size=%f should be smaller '
                     'than 1.0 or be an integer' % test_size)
             elif (np.asarray(test_size).dtype.kind == 'f' and
-                          (train_size + test_size) > 1.):
+                    (train_size + test_size) > 1.):
                 raise ValueError('The sum of test_size and train_size = %f'
                                  'should be smaller than 1.0. Reduce test_size '
                                  'and/or train_size.' % (train_size + test_size))
@@ -541,7 +544,7 @@ class _H2OBaseKFold(six.with_metaclass(ABCMeta, H2OBaseCrossValidator)):
             raise ValueError('k-fold cross-validation requires at least one '
                              'train/test split by setting n_folds=2 or more')
 
-        if not shuffle in [True, False]:
+        if shuffle not in [True, False]:
             raise TypeError('shuffle must be True or False. Got %s (type=%s)'
                             % (str(shuffle), type(shuffle)))
 

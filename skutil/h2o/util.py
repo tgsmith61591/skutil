@@ -412,7 +412,7 @@ def reorder_h2o_frame(X, idcs):
         The reordered H2OFrame
     """
     # hack... slow but functional
-    X = check_frame(X, copy=False) # we're rbinding. no need to copy
+    X = check_frame(X, copy=False)  # we're rbinding. no need to copy
     new_frame = None
 
     for i in idcs:

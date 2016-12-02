@@ -1,16 +1,13 @@
 from __future__ import print_function, absolute_import, division
 import pandas as pd
 import numpy as np
-import h2o
 from h2o.frame import H2OFrame
-from sklearn.externals import six
 from sklearn.utils.validation import check_is_fitted
 from sklearn.preprocessing import LabelEncoder
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
 from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
-from .util import h2o_col_to_numpy, _unq_vals_col
-from ..utils.fixes import dict_values
+from .util import h2o_col_to_numpy
 
 __all__ = [
     'H2OLabelEncoder',
@@ -46,7 +43,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
 
         >>> def example():
         ...     import pandas as pd
-        ...     import numpy as np
         ...     from skutil.h2o import from_pandas
         ...     from sktuil.h2o.transform import H2OLabelEncoder
         ...     
@@ -105,7 +101,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
         return H2OFrame.from_python(self.encoder_.transform(column).reshape(column.shape[0], 1))
 
 
-
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     """Safely one-hot encodes an H2OVec into an ``H2OFrame`` of
     one-hot encoded dummies. Whereas H2O's default behavior for
@@ -147,7 +142,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : ``H2OFrame``, shape=(n_samples, 1)
+        y : ``H2OFrame``, shape=(n_samples, 1)
             The training frame on which to fit. Should
             be a single column ``H2OFrame``
 
@@ -179,7 +174,7 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : ``H2OFrame``, shape=(n_samples, 1)
+        y : ``H2OFrame``, shape=(n_samples, 1)
             The 1d ``H2OFrame`` to transform
 
         Returns

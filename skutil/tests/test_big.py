@@ -109,11 +109,7 @@ if CAN_CHART_MPL:
         tr_pred, te_pred = grid.predict(X_train), grid.predict(X_test)
 
         # evaluate score (SHOULD be better than random...)
-        tr_score, te_score = accuracy_score(y_train, tr_pred), accuracy_score(y_test, te_pred)
-
-        # do we want to do this? Probably not because it's reliant on chance
-        # if not tr_score >= te_score:
-        # 	warnings.warn('expected training accuracy to be higher (train: %.5f, test: %.5f)' % (tr_score, te_score))
+        accuracy_score(y_train, tr_pred), accuracy_score(y_test, te_pred)
 
         # grid score reports:
         # assert fails for bad percentile
@@ -124,4 +120,4 @@ if CAN_CHART_MPL:
         assert_fails(report_grid_score_detail, ValueError, **{'random_search': grid, 'y_axis': 'bad_axis'})
 
         # assert passes otherwise
-        report = report_grid_score_detail(grid, charts=True, percentile=0.95)  # just ensure percentile works
+        report_grid_score_detail(grid, charts=True, percentile=0.95)  # just ensure percentile works

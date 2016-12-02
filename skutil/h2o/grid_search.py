@@ -8,11 +8,10 @@ from abc import abstractmethod
 import h2o
 import numpy as np
 import pandas as pd
-from h2o.frame import H2OFrame
 
 try:
     from h2o import H2OEstimator
-except ImportError as e:
+except ImportError:
     from h2o.estimators.estimator_base import H2OEstimator
 
 from .pipeline import H2OPipeline
@@ -47,7 +46,7 @@ from h2o.estimators import (H2ODeepLearningEstimator,
 
 try:
     import cPickle as pickle
-except ImportError as ie:
+except ImportError:
     import pickle
 
 # >= sklearn 0.18
@@ -55,7 +54,7 @@ try:
     from sklearn.model_selection import ParameterSampler, ParameterGrid
 
     SK18 = True
-except ImportError as i:
+except ImportError:
     from sklearn.grid_search import ParameterSampler, ParameterGrid
 
     SK18 = False
@@ -408,7 +407,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         self.validation_frame = validation_frame
         self.minimize = minimize
 
-
     def _fit(self, X, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
         X = check_frame(X, copy=True)  # copy because who knows what people do inside of score...
@@ -517,7 +515,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     'expo': _as_numpy(self.validation_frame[xtra_nms['expo']]),
                     'loss': _as_numpy(self.validation_frame[xtra_nms['loss']]),
                     'prem': _as_numpy(self.validation_frame[xtra_nms['prem']]) if (
-                    xtra_nms['prem'] is not None) else None
+                        xtra_nms['prem'] is not None) else None
                 }
             else:
                 kwargs = self.scoring_params
@@ -601,7 +599,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
-
     def score(self, frame):
         """After the grid search is fit, generates and scores 
         the predictions of the ``best_estimator_``.
@@ -619,12 +616,11 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             The score of the test predictions
         """
         check_is_fitted(self, 'best_estimator_')
-        frame = check_frame(frame, copy=True) # copy because who knows what people do inside of score...
+        frame = check_frame(frame, copy=True)  # copy because who knows what people do inside of score...
         scor = _score(self.best_estimator_, frame, self.target_feature,
                       self.scoring_class_, self.is_regression_,
                       **self.scoring_params)
         return scor
-
 
     @if_delegate_has_method(delegate='best_estimator_')
     def predict(self, frame):
@@ -643,10 +639,9 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)
             The test predictions
         """
-        frame = check_frame(frame, copy=False) # don't copy because predict doesn't need it
+        frame = check_frame(frame, copy=False)  # don't copy because predict doesn't need it
         p = self.best_estimator_.predict(frame)
         return p
-
 
     def fit_predict(self, frame):
         """First, fits the grid search and then generates predictions 
@@ -666,7 +661,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         """
         p = self.fit(frame).predict(frame)
         return p
-
 
     @since('0.1.2')
     @if_delegate_isinstance(delegate='best_estimator_', instance_type=(H2OEstimator, H2OPipeline))
@@ -697,7 +691,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             return self.best_estimator_.download_pojo(path=path, get_jar=get_jar)
 
-
     @overrides(VizMixin)
     def plot(self, timestep, metric):
         """Plot an H2OEstimator's performance over a
@@ -723,7 +716,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             # should be an H2OEstimator
             self.best_estimator_._plot(timestep=timestep, metric=metric)
-
 
     @staticmethod
     def load(location):
@@ -802,7 +794,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         return model
 
-
     def _save_internal(self, **kwargs):
         check_is_fitted(self, 'best_estimator_')
         best_estimator = self.best_estimator_
@@ -861,7 +852,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         else:
             self.best_estimator_ = last_step_
             self.estimator = base_last_step_
-
 
     @if_delegate_has_method(delegate='best_estimator_')
     def varimp(self, use_pandas=True):
