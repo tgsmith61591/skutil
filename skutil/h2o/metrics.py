@@ -719,7 +719,7 @@ def h2o_mean_absolute_error(y_actual, y_predict, sample_weight=None, y_type=None
     score : float
         The mean absolute error
     """
-    _err_for_discrete(y_type)
+    # _err_for_discrete(y_type)
     score = _get_mean(_h2o_ae(y_actual, y_predict, sample_weight))
     return score
 
@@ -751,7 +751,7 @@ def h2o_median_absolute_error(y_actual, y_predict, sample_weight=None, y_type=No
     score : float
         The median absolute error score
     """
-    _err_for_discrete(y_type)
+    # _err_for_discrete(y_type)
     score = flatten_all(_h2o_ae(y_actual, y_predict, sample_weight).median())[0]
     return score
 
@@ -838,7 +838,7 @@ def h2o_mean_squared_error(y_actual, y_predict, sample_weight=None, y_type=None)
     """
 
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict)
-    _err_for_discrete(y_type)
+    # _err_for_discrete(y_type)
 
     # compute abs diff
     diff = (y_actual - y_predict)
