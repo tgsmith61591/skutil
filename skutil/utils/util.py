@@ -78,7 +78,7 @@ def _log_single(x):
     Parameters
     ----------
 
-    x : float
+    x : float, int
         The number to log
 
     Returns
@@ -105,7 +105,7 @@ def _exp_single(x):
     Parameters
     ----------
 
-    x : float
+    x : float, int
         The number to exp
 
 
@@ -319,7 +319,7 @@ def flatten_all(container):
     Parameters
     ----------
 
-    container : iterable, object
+    container : array_like, shape=(n_items,)
         The iterable to flatten. If the ``container`` is
         not iterable, it will be returned in a list as 
         ``[container]``
@@ -338,7 +338,7 @@ def flatten_all(container):
     Returns
     -------
 
-    l : list
+    l : list, shape=(n_items,)
         The flattened list
     """
     l = [x for x in flatten_all_generator(container)]
@@ -352,8 +352,10 @@ def flatten_all_generator(container):
     Parameters
     ----------
 
-    container : iterable, object
-        The iterable to flatten.
+    container : array_like, shape=(n_items,)
+        The iterable to flatten. If the ``container`` is
+        not iterable, it will be returned in a list as
+        ``[container]``
 
 
     Examples
@@ -364,6 +366,12 @@ def flatten_all_generator(container):
         >>> a = [[[],3,4],['1','a'],[[[1]]],1,2]
         >>> flatten_all(a) # yields a generator for this iterable
         [3, 4, '1', 'a', 1, 1, 2]
+
+
+    Returns
+    -------
+
+    generator object
     """
     if not is_iterable(container):
         yield container
@@ -1024,7 +1032,7 @@ def report_grid_score_detail(random_search, charts=True, sort_results=True,
                 continue
             elif col not in valid_axes:  # skip score / std
                 ser = result_df[col]
-                color = [def_color for i in range(ser.shape[0])]
+                color = [def_color for _ in range(ser.shape[0])]
 
                 # highlight if needed
                 if sort_results and highlight_best:

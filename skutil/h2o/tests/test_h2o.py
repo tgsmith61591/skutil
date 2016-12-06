@@ -1505,7 +1505,7 @@ def test_h2o_with_conn():
             #assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
 
             # this will equal zero and force the warning:
-            assert h2o_precision_score(Y['Species'], Y['Species2'], average='weighted') == 0.0
+            assert h2o_precision_score(Y['species'], Y['species2'], average='weighted') == 0.0
 
         else:
             pass
