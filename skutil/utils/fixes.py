@@ -264,7 +264,7 @@ def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', 
 
         # adjust by z-score
         for col in result_df.columns:
-            if col in ('std_test_score','std_train_score','std_score_time','std_fit_time'):
+            if col in ('std_test_score', 'std_train_score', 'std_score_time', 'std_fit_time'):
                 result_df[col] = result_df[col] * z_score
 
         # assign drops
@@ -686,7 +686,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
         estimator = self.estimator
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
-        n_samples = _num_samples(X)
+        # n_samples = _num_samples(X)  # don't need for now...
         cv = self.cv
         cv = _set_cv(cv, X, y, classifier=is_classifier(estimator))
 
