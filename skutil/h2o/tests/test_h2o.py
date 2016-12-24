@@ -57,7 +57,7 @@ from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array
 # for split
 try:
     from sklearn.model_selection import train_test_split
-except ImportError as i:
+except ImportError:
     from sklearn.cross_validation import train_test_split
 
 try:
@@ -67,7 +67,7 @@ try:
         from matplotlib.testing.decorators import cleanup
         # log it
         CAN_CHART_MPL = True
-except ImportError as ie:
+except ImportError:
     CAN_CHART_MPL = False
 
 
@@ -125,7 +125,7 @@ def test_h2o_no_conn_needed():
     assert_fails(_val_exp_loss_prem, TypeError, '1', '2', 3)  # z should also be a string
 
     # test union_exclusion in pipeline
-    a, b = ['a','b'], ['a','c']
+    a, b = ['a', 'b'], ['a', 'c']
     assert not _union_exclusions(None, None)
     assert _union_exclusions(None, b) == b
     assert _union_exclusions(a, None) == a
@@ -139,7 +139,7 @@ def test_h2o_no_conn_needed():
         def __init__(self):
             super(AnonCV, self).__init__()
 
-        def get_n_splits(self): # overrides
+        def get_n_splits(self):  # overrides
             return 0
 
     anoncv = AnonCV()
@@ -149,7 +149,7 @@ def test_h2o_no_conn_needed():
     assert _get_bool(True)
     assert not _get_bool(False)
     assert _get_bool([True, False])
-    assert_fails(_err_for_discrete, ValueError, 'binary') # this method fails on non-'continuous'
+    assert_fails(_err_for_discrete, ValueError, 'binary')  # this method fails on non-'continuous'
 
 
 # if we can't start an h2o instance, let's just pass all these tests
@@ -161,12 +161,12 @@ def test_h2o_with_conn():
 
     try:
         h2o.init()
-        # h2o.init(ip='localhost', port=54321) # this might throw a warning
+        # h2o.init(ip='localhost', port=54321)  # this might throw a warning
 
         # sleep before trying this:
         time.sleep(10)
         X = new_h2o_frame(F)
-    except Exception as e:
+    except Exception:
         # raise #for debugging
 
         # if we can't start on localhost, try default (127.0.0.1)
@@ -178,7 +178,7 @@ def test_h2o_with_conn():
             try:
                 h2o.init()
                 X = new_h2o_frame(F)
-            except Exception as e:
+            except Exception:
                 count += 1
 
         if X is None:
@@ -1431,8 +1431,9 @@ def test_h2o_with_conn():
         irs = F.copy()
         irs['species'] = iris.target
         irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
+        irs['species2'] = [2 if i == 0 else 1 if i == 0 else 0 for i in iris.target]  # none in common
         irs['arbitrary'] = [3 for i in range(irs.shape[0])]
-        irs['rand'] = [i%2 for i in iris.target] # 1 for 1, 0 else
+        irs['rand'] = [i%2 for i in iris.target]  # 1 for 1, 0 else
         irs['zero'] = [0 for i in range(irs.shape[0])]
 
         try:
@@ -1458,21 +1459,22 @@ def test_h2o_with_conn():
             reg_target = Y['sepal length (cm)']
             shifted_down = reg_target - 1
 
-            # test on shifted down
-            assert h2o_mean_absolute_error(reg_target, shifted_down) == 1.0
-            assert h2o_median_absolute_error(reg_target, shifted_down) == 1.0
-            assert h2o_mean_squared_error(reg_target, shifted_down) == 1.0
-            assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0) == 1.0
+            # test on shifted down. Make sure we specify that this is a continuous
+            # type though! Otherwise it'll fail out...
+            assert h2o_mean_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
+            assert h2o_median_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
+            assert h2o_mean_squared_error(reg_target, shifted_down, y_type='continuous') == 1.0
+            assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0, y_type='continuous') == 1.0
 
             # test on same
-            assert h2o_mean_absolute_error(reg_target, reg_target) == 0.0
-            assert h2o_median_absolute_error(reg_target, reg_target) == 0.0
-            assert h2o_mean_squared_error(reg_target, reg_target) == 0.0
-            assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0) == 0.0
+            assert h2o_mean_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
+            assert h2o_median_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target, y_type='continuous') == 0.0
+            assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 0.0
 
             # test R^2 on the same
-            assert h2o_r2_score(reg_target, reg_target) == 1.0
-            assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0) == 1.0
+            assert h2o_r2_score(reg_target, reg_target, y_type='continuous') == 1.0
+            assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 1.0
 
             # test errors
             assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
@@ -1488,14 +1490,22 @@ def test_h2o_with_conn():
 
             # force all negative labels on recall/support/precision
             y_act, y_pred = Y['zero'], Y['zero']
-            assert_array_equal(np.asarray(h2o_precision_recall_fscore_support(y_act, y_pred, pos_label=1, y_type='binary', average='binary')), 
-                np.asarray([0.0, 0.0, 0.0, 0.0]))
+            assert_array_equal(
+                np.asarray(h2o_precision_recall_fscore_support(y_act,
+                                                               y_pred,
+                                                               pos_label=1,
+                                                               y_type='binary',
+                                                               average='binary')),
+                np.asarray([0.0, 0.0, 0.0, 0.0])
+            )
 
             # now binary
             y_act, y_pred = Y['rand'], Y['rand']
             # someone else can figure this bullsh*t out. I'm done today.
             #assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
 
+            # this will equal zero and force the warning:  # stupid bugs!!!!!
+            # assert h2o_precision_score(Y['species'], Y['species2'], average='weighted', y_type='multiclass') == 0.0
 
         else:
             pass

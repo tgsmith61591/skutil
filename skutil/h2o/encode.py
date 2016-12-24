@@ -24,19 +24,6 @@ class H2OLabelEncoder(BaseH2OTransformer):
     """Encode categorical values in a H2OFrame (single column)
     into ordinal labels 0 - len(column) - 1.
 
-    Parameters
-    ----------
-
-    feature_names : array_like (str), optional (default=None)
-        The list of names on which to fit the transformer.
-
-    target_feature : str, optional (default None)
-        The name of the target feature (is excluded from the fit)
-        for the estimator.
-
-    exclude_features : iterable or None, optional (default=None)
-        Any names that should be excluded from ``feature_names``
-
 
     Examples
     --------
@@ -97,7 +84,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
         column = h2o_col_to_numpy(column)
 
         # transform--
-        # I don't like that we have to re-upload... but we do...
+        # I don't like that we have to re-upload... but we do... for now...
         return H2OFrame.from_python(self.encoder_.transform(column).reshape(column.shape[0], 1))
 
 

@@ -12,17 +12,17 @@ from ..utils import is_numeric
 # in different versions, we get different exceptions
 try:
     from h2o.backend.connection import H2OServerError
-except ImportError as e:
+except ImportError:
     H2OServerError = EnvironmentError
 
 try:
     from h2o.exceptions import H2OConnectionError
-except ImportError as e:
+except ImportError:
     H2OConnectionError = EnvironmentError
 
 try:
     import cPickle as pickle
-except ImportError as e:
+except ImportError:
     import pickle
 
 __all__ = [
@@ -421,12 +421,12 @@ class BaseH2OFunctionWrapper(BaseEstimator):
 
         Note that this is a static method and should be called accordingly:
 
-            >>> def load_and_transform():
+            >>> def load_and_transform(X):
             ...     from skutil.h2o.select import H2OMulticollinearityFilterer
             ...     mcf = H2OMulticollinearityFilterer.load(location='example/path.pkl')
             ...     return mcf.transform(X)
             >>>
-            >>> load_and_transform() # doctest: +SKIP
+            >>> load_and_transform(X) # doctest: +SKIP
 
         Some classes define their own load functionality, and will not
         work as expected if called in the following manner:
