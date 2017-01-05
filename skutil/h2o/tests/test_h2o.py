@@ -42,7 +42,7 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
-from skutil.base import overrides
+from skutil.base import overrides, suppress_warnings
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -153,6 +153,7 @@ def test_h2o_no_conn_needed():
 
 
 # if we can't start an h2o instance, let's just pass all these tests
+@suppress_warnings  # old versions of h2o throw warnings all day in the requests library... causes travis failures.
 def test_h2o_with_conn():
     iris = load_iris()
     F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
