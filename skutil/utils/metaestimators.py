@@ -7,6 +7,7 @@
 from __future__ import print_function, absolute_import, division
 from functools import update_wrapper
 from operator import attrgetter
+from ..base import since
 
 __all__ = [
     'if_delegate_has_method',
@@ -133,6 +134,7 @@ class _IffIsInstanceDescriptor(object):
         return out
 
 
+@since('0.1.2')
 def if_delegate_isinstance(delegate, instance_type):
     """Create a decorator for methods that are delegated to a sub-estimator
     of a given type. This enables ducktyping by ``isinstance`` returning True 

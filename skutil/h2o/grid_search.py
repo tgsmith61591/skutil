@@ -3,27 +3,25 @@
 # License: BSD
 
 from __future__ import division, print_function, absolute_import
-
 import time
 from abc import abstractmethod
-
 import h2o
 import numpy as np
 import pandas as pd
-from h2o.frame import H2OFrame
 
 try:
     from h2o import H2OEstimator
-except ImportError as e:
+except ImportError:
     from h2o.estimators.estimator_base import H2OEstimator
 
 from .pipeline import H2OPipeline
 from .frame import _check_is_1d_frame
-from .base import _check_is_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
-from skutil.base import overrides
+from .base import check_frame, BaseH2OFunctionWrapper, validate_x_y, VizMixin
+from ..base import overrides, since
 from ..utils import report_grid_score_detail
+from ..utils.fixes import dict_keys
 from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
-from skutil.grid_search import _CVScoreTuple, _check_param_grid
+from ..grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .split import *
 from .metrics import (h2o_accuracy_score,
@@ -48,7 +46,7 @@ from h2o.estimators import (H2ODeepLearningEstimator,
 
 try:
     import cPickle as pickle
-except ImportError as ie:
+except ImportError:
     import pickle
 
 # >= sklearn 0.18
@@ -56,7 +54,7 @@ try:
     from sklearn.model_selection import ParameterSampler, ParameterGrid
 
     SK18 = True
-except ImportError as i:
+except ImportError:
     from sklearn.grid_search import ParameterSampler, ParameterGrid
 
     SK18 = False
@@ -68,15 +66,15 @@ __all__ = [
 ]
 
 SCORERS = {
-    'accuracy_score': h2o_accuracy_score,
-    'f1_score': h2o_f1_score,
-    # 'log_loss'             :,
-    'mean_absolute_error': h2o_mean_absolute_error,
-    'mean_squared_error': h2o_mean_squared_error,
+    'accuracy_score':        h2o_accuracy_score,
+    'f1_score':              h2o_f1_score,
+    # 'log_loss' :,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
     'median_absolute_error': h2o_median_absolute_error,
-    'precision_score': h2o_precision_score,
-    'r2_score': h2o_r2_score,
-    'recall_score': h2o_recall_score
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
 }
 
 """These parameters are ones h2o stores
@@ -122,7 +120,7 @@ def _as_numpy(_1d_h2o_frame):
 def _kv_str(k, v):
     k = str(k)  # h2o likes unicode...
     # likewise, if the v is unicode, let's make it a string.
-    v = v if not isinstance(v, unicode) else str(v)
+    v = v if not isinstance(v, six.string_types) else str(v)
     return k, v
 
 
@@ -174,13 +172,13 @@ def _new_base_estimator(est, clonable_kwargs):
         The cloned base estimator
     """
     est_map = {
-        'dl': H2ODeepLearningEstimator,
-        'gbm': H2OGradientBoostingEstimator,
-        'glm': H2OGeneralizedLinearEstimator,
+        'dl':   H2ODeepLearningEstimator,
+        'gbm':  H2OGradientBoostingEstimator,
+        'glm':  H2OGeneralizedLinearEstimator,
         # 'glrm': H2OGeneralizedLowRankEstimator,
         # 'km'  : H2OKMeansEstimator,
-        'nb': H2ONaiveBayesEstimator,
-        'rf': H2ORandomForestEstimator
+        'nb':   H2ONaiveBayesEstimator,
+        'rf':   H2ORandomForestEstimator
     }
 
     estimator = est_map[est]()  # initialize the new ones
@@ -199,7 +197,7 @@ def _get_estimator_string(estimator):
     Parameters
     ----------
 
-    estimator : ``H2OEstimator``
+    estimator : H2OEstimator
         The estimator
     """
     if isinstance(estimator, H2ODeepLearningEstimator):
@@ -240,10 +238,10 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         Parameters
         ----------
 
-        estimator : ``H2OPipeline`` or ``H2OEstimator``
+        estimator : H2OPipeline or H2OEstimator
             The estimator to fit
 
-        frame : ``H2OFrame``
+        frame : H2OFrame, shape=(n_samples, n_features)
             The training frame
 
         feature_names : iterable (str)
@@ -252,7 +250,7 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         target_feature : str
             The name of the target feature
 
-        scorer : ``H2OScorer``
+        scorer : H2OScorer
             The scoring function
 
         parameters : dict
@@ -264,29 +262,45 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         scoring_params : dict
             The parameters to pass as kwargs to the scoring function
 
-        train : iterable
+        train : iterable, shape=(n_train_samples,)
             The train fold indices
 
-        test : iterable
+        test : iterable, shape=(n_test_samples,)
             The test fold indices
 
         is_regression : bool
             Whether we are fitting a continuous target
 
         act_args : dict
-            ``GainsStatisticalReport`` args if called from a 
-            ``H2OGainsRandomizedSearchCV``
+            :class:``skutil.metrics.GainsStatisticalReport`` args if called 
+            from a :class:``skutil.h2o.H2OGainsRandomizedSearchCV``. Otherwise,
+            these are unused.
 
         cv_fold : int
             The fold number for reporting
 
-        iteration : int``
+        iteration : int
             The iteration number for reporting
 
         Returns
         -------
 
-        list : [test_score, len(test), estimator, parameters]
+        out : list, shape=(4,)
+            test_score : float
+                The score produced by the ``_score`` method
+                on the test fold of the training set.
+
+            len(test) : int
+                The number of samples included in the
+                test fold of the training set. Used later
+                for IID normalizing of test scores.
+
+            estimator : ``H2OEstimator`` or ``H2OPipeline``
+                The fit pipeline or estimator. Used for later
+                scoring on the validation set.
+
+            parameters : dict
+                The parameters used to fit this estimator.
     """
     if parameters is None:
         parameters = {}
@@ -361,7 +375,8 @@ def _fit_and_score(estimator, frame, feature_names, target_feature,
         print()  # new line
         print()  # new line
 
-    return [test_score, len(test), estimator, parameters]
+    out = [test_score, len(test), estimator, parameters]
+    return out
 
 
 class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
@@ -392,10 +407,10 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         self.validation_frame = validation_frame
         self.minimize = minimize
 
-
     def _fit(self, X, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
-        X = _check_is_frame(X)  # if it's a frame, will be turned into a matrix
+        X = check_frame(X, copy=True)  # copy because who knows what people do inside of score...
+
         self.feature_names, self.target_feature = validate_x_y(X, self.feature_names, self.target_feature)
         self.is_regression_ = (not X[self.target_feature].isfactor()[0])
 
@@ -439,12 +454,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     scoring = 'accuracy_score'
 
             # make strs into scoring functions
-            if isinstance(scoring, str):
+            if isinstance(scoring, six.string_types):
                 if scoring not in SCORERS:
                     raise ValueError('Scoring must be one of (%s) or a callable. '
-                                     'Got %s' % (', '.join(SCORERS.keys()), scoring))
+                                     'Got %s' % (', '.join(dict_keys(SCORERS)), scoring))
 
                 scoring = SCORERS[scoring]
+                
             # make it a scorer
             if hasattr(scoring, '__call__'):
                 self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
@@ -499,7 +515,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                     'expo': _as_numpy(self.validation_frame[xtra_nms['expo']]),
                     'loss': _as_numpy(self.validation_frame[xtra_nms['loss']]),
                     'prem': _as_numpy(self.validation_frame[xtra_nms['prem']]) if (
-                    xtra_nms['prem'] is not None) else None
+                        xtra_nms['prem'] is not None) else None
                 }
             else:
                 kwargs = self.scoring_params
@@ -583,7 +599,6 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
         return self
 
-
     def score(self, frame):
         """After the grid search is fit, generates and scores 
         the predictions of the ``best_estimator_``.
@@ -591,7 +606,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict
 
         Returns
@@ -601,13 +616,13 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
             The score of the test predictions
         """
         check_is_fitted(self, 'best_estimator_')
-        frame = _check_is_frame(frame)
+        frame = check_frame(frame, copy=True)  # copy because who knows what people do inside of score...
         scor = _score(self.best_estimator_, frame, self.target_feature,
                       self.scoring_class_, self.is_regression_,
                       **self.scoring_params)
         return scor
 
-
+    @if_delegate_has_method(delegate='best_estimator_')
     def predict(self, frame):
         """After the grid search is fit, generates predictions 
         on the test frame using the ``best_estimator_``.
@@ -615,20 +630,18 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict
 
         Returns
         -------
 
-        p : ``H2OFrame``
+        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)
             The test predictions
         """
-        check_is_fitted(self, 'best_estimator_')
-        frame = _check_is_frame(frame)
+        frame = check_frame(frame, copy=False)  # don't copy because predict doesn't need it
         p = self.best_estimator_.predict(frame)
         return p
-
 
     def fit_predict(self, frame):
         """First, fits the grid search and then generates predictions 
@@ -637,19 +650,19 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : H2OFrame, shape=(n_samples, n_features)
             The training frame on which to predict
 
         Returns
         -------
 
-        p : ``H2OFrame``
+        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)
             The training predictions
         """
         p = self.fit(frame).predict(frame)
         return p
 
-
+    @since('0.1.2')
     @if_delegate_isinstance(delegate='best_estimator_', instance_type=(H2OEstimator, H2OPipeline))
     def download_pojo(self, path="", get_jar=True):
         """This method is injected at runtime if the ``best_estimator_``
@@ -680,6 +693,21 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     @overrides(VizMixin)
     def plot(self, timestep, metric):
+        """Plot an H2OEstimator's performance over a
+        given ``timestep`` (x-axis) against a provided 
+        ``metric`` (y-axis).
+
+        Parameters
+        ----------
+
+        timestep : str
+            A timestep as defined in the H2O API. One of
+            ("AUTO", "duration", "number_of_trees").
+
+        metric : str
+            The performance metric to evaluate. One of
+            ("log_likelihood", "objective", "MSE", "AUTO")
+        """
         check_is_fitted(self, 'best_estimator_')
 
         # then it's a pipeline:
@@ -691,38 +719,47 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
 
     @staticmethod
     def load(location):
-        """Loads a persisted state of an instance of ``BaseH2OSearchCV``
-        from disk. This method will handle loading ``H2OEstimator`` models separately 
-        and outside of the constraints of the ``pickle`` package. 
+        """Loads a persisted state of an instance of BaseH2OSearchCV
+        from disk. This method will handle loading H2OEstimator models separately 
+        and outside of the constraints of the pickle package. 
 
         Note that this is a static method and should be called accordingly:
 
-            >>> search = BaseH2OSearchCV.load('path/to/h2o/search.pkl') # GOOD!
+            >>> def load_search():
+            ...     return BaseH2OSearchCV.load('path/to/h2o/search.pkl') # GOOD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
-        Also note that since ``BaseH2OSearchCV`` will contain an ``H2OEstimator``, it's
-        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``
+        Also note that since BaseH2OSearchCV will contain an H2OEstimator, it's
+        ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper
         and will not function properly if called at the highest level of abstraction:
 
-            >>> search = BaseH2OFunctionWrapper.load('path/to/h2o/search.pkl') # BAD!
+            >>> def load_search():
+            ...     return BaseH2OFunctionWrapper.load('path/to/h2o/search.pkl') # BAD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
-        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from
-        this method will raise a ``TypeError``:
+        Furthermore, trying to load a different type of BaseH2OFunctionWrapper from
+        this method will raise a TypeError:
 
-            >>> mcf = BaseH2OSearchCV.load('path/to/some/other/transformer.pkl') # BAD!
+            >>> def load_search():
+            ...     return BaseH2OSearchCV.load('path/to/some/other/transformer.pkl') # BAD!
+            >>>
+            >>> search = load_search() # doctest: +SKIP
 
         Parameters
         ----------
 
         location : str
-            The location where the persisted ``BaseH2OSearchCV`` model resides.
+            The location where the persisted BaseH2OSearchCV model resides.
 
         Returns
         -------
 
-        model : ``BaseH2OSearchCV``
-            The unpickled instance of the ``BaseH2OSearchCV`` model
+        model : BaseH2OSearchCV
+            The unpickled instance of the BaseH2OSearchCV model
         """
-        with open(location) as f:
+        with open(location, 'rb') as f:
             model = pickle.load(f)
 
         if not isinstance(model, BaseH2OSearchCV):
@@ -834,52 +871,68 @@ class H2OGridSearchCV(BaseH2OSearchCV):
     """An exhaustive grid search that will fit models across the
     entire hyperparameter grid provided.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        estimator : ``H2OPipeline`` or ``H2OEstimator``
-            The estimator to fit.
+    estimator : H2OPipeline or H2OEstimator
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
-        param_grid : dict
-            The hyper parameter grid over which to search.
+    param_grid : dict
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
-        feature_names : iterable (str)
-            The list of feature names on which to fit
+    feature_names : iterable (str)
+        The list of feature names on which to fit
 
-        target_feature : str
-            The name of the target
+    target_feature : str
+        The name of the target
 
-        scoring : str, optional (default='lift')
-            A valid scoring metric, i.e., "accuracy_score". See
-            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
+    scoring : str, optional (default='lift')
+        A valid scoring metric, i.e., "accuracy_score". See
+        ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
 
-        scoring_params : dict, optional (default=None)
-            Any kwargs to be passed to the scoring function for
-            scoring at each iteration.
+    scoring_params : dict, optional (default=None)
+        Any kwargs to be passed to the scoring function for
+        scoring at each iteration.
 
-        cv : int or ``H2OCrossValidator``, optional (default=5)
-            The number of folds to be fit for cross validation.
+    cv : int or H2OCrossValidator, optional (default=5)
+        The number of folds to be fit for cross validation.
 
-        verbose : int, optional (default=0)
-            The level of verbosity. 1,2 or greater.
+    verbose : int, optional (default=0)
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
-        iid : bool, optional (default=True)
-            Whether to consider each fold as IID. The fold scores
-            are normalized at the end by the number of observations
-            in each fold.
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
-        validation_frame : ``H2OFrame``, optional (default=None)
-            Whether to score on the full validation frame at the
-            end of all of the model fits. Note that this will NOT be
-            used in the actual model selection process.
+    validation_frame : H2OFrame, optional (default=None)
+        Whether to score on the full validation frame at the
+        end of all of the model fits. Note that this will NOT be
+        used in the actual model selection process.
 
-        minimize : str, optional (default='bias')
-            How the search selects the best model to fit on the entire dataset.
-            One of {'bias','variance'}. The default behavior is 'bias', which is
-            also the default behavior of sklearn. This will select the set of
-            hyper parameters which maximizes the cross validation score mean.
-            Alternatively, 'variance' will select the model which minimizes
-            the standard deviations between cross validation scores.
+    minimize : str, optional (default='bias')
+        How the search selects the best model to fit on the entire dataset.
+        One of {'bias','variance'}. The default behavior is 'bias', which is
+        also the default behavior of sklearn. This will select the set of
+        hyper parameters which maximizes the cross validation score mean.
+        Alternatively, 'variance' will select the model which minimizes
+        the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -902,6 +955,14 @@ class H2OGridSearchCV(BaseH2OSearchCV):
         _check_param_grid(param_grid)
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         return self._fit(frame, ParameterGrid(self.param_grid))
 
 
@@ -909,64 +970,80 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
     """A grid search that operates over a random sub-hyperparameter space
     at each iteration.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        estimator : ``H2OPipeline`` or ``H2OEstimator``
-            The estimator to fit.
+    estimator : H2OPipeline or H2OEstimator
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
-        param_grid : dict
-            The hyper parameter grid over which to search.
+    param_grid : dict
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
-        feature_names : iterable (str)
-            The list of feature names on which to fit
+    feature_names : iterable (str)
+        The list of feature names on which to fit
 
-        target_feature : str
-            The name of the target
+    target_feature : str
+        The name of the target
 
-        n_iter : int, optional (default=10)
-            The number of iterations to fit. Note that 
-            ``n_iter * cv.get_n_splits`` will be fit. If there
-            are 10 folds and 10 iterations, 100 models (plus
-            one) will be fit.
+    n_iter : int, optional (default=10)
+        The number of iterations to fit. Note that 
+        ``n_iter * cv.get_n_splits`` will be fit. If there
+        are 10 folds and 10 iterations, 100 models (plus
+        one) will be fit.
 
-        random_state : int, optional (default=None)
-            The random state for the search
+    random_state : int, optional (default=None)
+        The random state for the search
 
-        scoring : str, optional (default='lift')
-            A valid scoring metric, i.e., "accuracy_score". See
-            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
+    scoring : str, optional (default='lift')
+        A valid scoring metric, i.e., "accuracy_score". See
+        ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.
 
-        scoring_params : dict, optional (default=None)
-            Any kwargs to be passed to the scoring function for
-            scoring at each iteration.
+    scoring_params : dict, optional (default=None)
+        Any kwargs to be passed to the scoring function for
+        scoring at each iteration.
 
-        cv : int or ``H2OCrossValidator``, optional (default=5)
-            The number of folds to be fit for cross validation.
-            Note that ``n_iter * cv.get_n_splits`` will be fit. If there
-            are 10 folds and 10 iterations, 100 models (plus
-            one) will be fit.
+    cv : int or H2OCrossValidator, optional (default=5)
+        The number of folds to be fit for cross validation.
+        Note that ``n_iter * cv.get_n_splits`` will be fit. If there
+        are 10 folds and 10 iterations, 100 models (plus
+        one) will be fit.
 
-        verbose : int, optional (default=0)
-            The level of verbosity. 1,2 or greater.
+    verbose : int, optional (default=0)
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
-        iid : bool, optional (default=True)
-            Whether to consider each fold as IID. The fold scores
-            are normalized at the end by the number of observations
-            in each fold.
+    iid : bool, optional (default=True)
+        Whether to consider each fold as IID. The fold scores
+        are normalized at the end by the number of observations
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
-        validation_frame : ``H2OFrame``, optional (default=None)
-            Whether to score on the full validation frame at the
-            end of all of the model fits. Note that this will NOT be
-            used in the actual model selection process.
+    validation_frame : H2OFrame, optional (default=None)
+        Whether to score on the full validation frame at the
+        end of all of the model fits. Note that this will NOT be
+        used in the actual model selection process.
 
-        minimize : str, optional (default='bias')
-            How the search selects the best model to fit on the entire dataset.
-            One of {'bias','variance'}. The default behavior is 'bias', which is
-            also the default behavior of sklearn. This will select the set of
-            hyper parameters which maximizes the cross validation score mean.
-            Alternatively, 'variance' will select the model which minimizes
-            the standard deviations between cross validation scores.
+    minimize : str, optional (default='bias')
+        How the search selects the best model to fit on the entire dataset.
+        One of {'bias','variance'}. The default behavior is 'bias', which is
+        also the default behavior of sklearn. This will select the set of
+        hyper parameters which maximizes the cross validation score mean.
+        Alternatively, 'variance' will select the model which minimizes
+        the standard deviations between cross validation scores.
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -991,6 +1068,14 @@ class H2ORandomizedSearchCV(BaseH2OSearchCV):
         self.random_state = random_state
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         sampled_params = ParameterSampler(self.param_grid,
                                           self.n_iter,
                                           random_state=self.random_state)
@@ -1017,17 +1102,25 @@ def _val_exp_loss_prem(x, y, z):
     Returns
     -------
 
-    tuple :
-        str, str, (str or None)
+    out : tuple
+        exp : str
+            The name of the exp feature (``x``) 
+
+        loss : str
+            The name of the loss feature (``y``)
+
+        prem : str or None
+            The name of the prem feature (``z``)
     """
-    if not all([isinstance(i, (str, unicode)) for i in (x, y)]):
+    if not all([isinstance(i, six.string_types) for i in (x, y)]):
         raise TypeError('exposure and loss must be strings or unicode')
 
     if z is not None:
-        if not isinstance(z, (str, unicode)):
+        if not isinstance(z, six.string_types):
             raise TypeError('premium must be None or string or unicode')
 
-    return str(x), str(y), str(z) if z is not None else z
+    out = (str(x), str(y), str(z) if z is not None else z)
+    return out
 
 
 class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
@@ -1039,11 +1132,18 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
     Parameters
     ----------
 
-    estimator : ``H2OPipeline`` or ``H2OEstimator``
-        The estimator to fit.
+    estimator : H2OPipeline or H2OEstimator
+        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``
+        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must
+        contain an estimator as the final step.
 
     param_grid : dict
-        The hyper parameter grid over which to search.
+        The hyper parameter grid over which to search. If ``estimator`` is
+        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be
+        in the form of ``{'stepname__param':[values]}``; if there are not named
+        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should
+        be in the form of ``{'param':[values]}``. Note that a ``param_grid`` with
+        named step parameters in the absence of named steps will raise an error.
 
     feature_names : iterable (str)
         The list of feature names on which to fit
@@ -1077,21 +1177,27 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         Any kwargs to be passed to the scoring function for
         scoring at each iteration.
 
-    cv : int or ``H2OCrossValidator``, optional (default=5)
+    cv : int or H2OCrossValidator, optional (default=5)
         The number of folds to be fit for cross validation.
         Note that ``n_iter * cv.get_n_splits`` will be fit. If there
         are 10 folds and 10 iterations, 100 models (plus
         one) will be fit.
 
     verbose : int, optional (default=0)
-        The level of verbosity. 1,2 or greater.
+        The level of verbosity. 1, 2 or greater. A ``verbosity`` of
+        0 will produce no output other than the default H2O fit/predict
+        output. A ``verbosity`` of 1 will print the selected parameters
+        at each fold and iteration, and a ``verbosity`` of 2 will produce
+        all of the aforementioned output plus the intermediate fold scores.
 
     iid : bool, optional (default=True)
         Whether to consider each fold as IID. The fold scores
         are normalized at the end by the number of observations
-        in each fold.
+        in each fold. If True, the data is assumed to be identically 
+        distributed across the folds, and the loss minimized is the total 
+        loss per sample, and not the mean loss across the folds.
 
-    validation_frame : ``H2OFrame``, optional (default=None)
+    validation_frame : H2OFrame, optional (default=None)
         Whether to score on the full validation frame at the
         end of all of the model fits. Note that this will NOT be
         used in the actual model selection process.
@@ -1110,6 +1216,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
 
     error_behavior : str, optional (default='warn')
         How to handle the pd.qcut ValueError. One of {'warn','raise','ignore'}
+
+
+    .. versionadded:: 0.1.0
     """
 
     def __init__(self, estimator, param_grid,
@@ -1152,6 +1261,14 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         self.scoring = None
 
     def fit(self, frame):
+        """Fit the grid search.
+
+        Parameters
+        ----------
+
+        frame : H2OFrame, shape=(n_samples, n_features)
+            The training frame on which to fit.
+        """
         sampled_params = ParameterSampler(self.param_grid,
                                           self.n_iter,
                                           random_state=self.random_state)
@@ -1193,7 +1310,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         Returns
         -------
 
-        rdf : pd.DataFrame
+        rdf : pd.DataFrame, shape=(n_iter, n_params)
             The grid search report
         """
         check_is_fitted(self, 'best_estimator_')
@@ -1201,7 +1318,9 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         n_obs, _ = report_res.shape
 
         # Need to cbind the parameters... we don't care about ["score", "std"]
-        rdf = report_grid_score_detail(self, charts=False).drop(["score", "std"], axis=1)
+        rdf, drops = report_grid_score_detail(self, charts=False, return_drops=True)
+        rdf.drop(drops, axis=1)
+
         assert n_obs == rdf.shape[0], 'Internal error: %d!=%d' % (n_obs, rdf.shape[0])
 
         # change the names in the dataframe...
@@ -1231,7 +1350,7 @@ class H2OGainsRandomizedSearchCV(H2ORandomizedSearchCV):
         Parameters
         ----------
 
-        frame : ``H2OFrame``
+        frame : H2OFrame, shape=(n_samples, n_features)
             The test frame on which to predict and score performance.
 
         Returns

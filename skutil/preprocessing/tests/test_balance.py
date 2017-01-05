@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.preprocessing.balance import _BaseBalancer, _pd_frame_to_np
-from numpy.testing import (assert_almost_equal, assert_array_almost_equal, assert_array_equal)
+from numpy.testing import assert_array_equal
 from skutil.utils.tests.utils import assert_fails
 import warnings
 
@@ -48,7 +48,7 @@ def test_oversample():
     failed = False
     try:
         OversamplingClassBalancer(y=1).balance(X)
-    except ValueError as v:
+    except ValueError:
         failed = True
     assert failed
 
@@ -58,7 +58,7 @@ def test_oversample():
     failed = False
     try:
         OversamplingClassBalancer(y='class').balance(Y)
-    except ValueError as v:
+    except ValueError:
         failed = True
     assert failed
 
@@ -67,7 +67,7 @@ def test_oversample():
     failed = False
     try:
         OversamplingClassBalancer(y='class').balance(Y)
-    except ValueError as v:
+    except ValueError:
         failed = True
     assert failed
 
@@ -76,7 +76,7 @@ def test_oversample():
         failed = False
         try:
             OversamplingClassBalancer(y='target', ratio=r).balance(X)
-        except ValueError as v:
+        except ValueError:
             failed = True
         assert failed
 

@@ -1,17 +1,17 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function, division, absolute_import
-
 from abc import ABCMeta, abstractmethod
-
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.utils.validation import check_is_fitted
 from sklearn.externals import six
-
 from skutil.base import *
 from skutil.base import overrides
 from ..utils import *
+from ..utils.fixes import _cols_if_none, _as_numpy
 
 __all__ = [
     'SelectivePCA',
@@ -19,9 +19,7 @@ __all__ = [
 ]
 
 
-class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator, 
-                                                  TransformerMixin, 
-                                                  SelectiveMixin)):
+class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseSkutil, TransformerMixin)):
     """Base class for selective decompositional transformers.
     Each of these transformers should adhere to the :class:`skutil.base.SelectiveMixin`
     standard of accepting a ``cols`` parameter in the ``__init__`` method, and
@@ -30,10 +28,10 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator,
     Parameters
     ----------
 
-    cols : array_like (string), optional (default=None)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
-        If no column names are provided, the decomposition will be ``fit``
-        on the entire frame. Note that the transormation will also only
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
         apply to the specified columns, and any other non-specified
         columns will still be present after transformation.
 
@@ -42,15 +40,16 @@ class _BaseSelectiveDecomposer(six.with_metaclass(ABCMeta, BaseEstimator,
         being fit, and determines the number of components to extract
         in the transformation.
 
-    as_df : bool, optional (default=None)
-        Whether or not to return a pandas DataFrame object. If
-        False, will return a np.ndarray instead.
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
     """
 
     def __init__(self, cols=None, n_components=None, as_df=True):
-        self.cols = cols
+        super(_BaseSelectiveDecomposer, self).__init__(cols=cols, as_df=as_df)
         self.n_components = n_components
-        self.as_df = as_df
 
     @abstractmethod
     def get_decomposition(self):
@@ -90,10 +89,10 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     Parameters
     ----------
 
-    cols : array_like (string), optional (default=None)
+    cols : array_like, shape=(n_features,), optional (default=None)
         The names of the columns on which to apply the transformation.
-        If no column names are provided, the decomposition will be ``fit``
-        on the entire frame. Note that the transormation will also only
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
         apply to the specified columns, and any other non-specified
         columns will still be present after transformation.
 
@@ -113,9 +112,11 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
         * ``n_components`` cannot be equal to ``n_features`` for ``svd_solver`` == 'arpack'.
 
-    as_df : bool, optional (default=None)
-        Whether or not to return a pandas DataFrame object. If
-        False, will return a np.ndarray instead.
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
 
     whiten : bool, optional (default False)
         When True (False by default) the `components_` vectors are multiplied
@@ -135,12 +136,20 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         (so as not to down sample or upsample everything), then multiply the weights across the
         transformed features.
 
+    
+    Examples
+    --------
+
+        >>> from skutil.decomposition import SelectivePCA
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> pca = SelectivePCA(n_components=2)
+        >>> X_transform = pca.fit_transform(X) # pca suffers sign indeterminancy and results will vary
+        >>> assert X_transform.shape[1] == 2
+
     Attributes
     ----------
-
-    cols : array_like (string)
-        The names of the columns on which to apply 
-        the transformation.
 
     pca_ : the PCA object
     """
@@ -151,61 +160,63 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         self.weight = weight
 
     def fit(self, X, y=None):
-        """Fit the transformer to the provided dataset.
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
-            The data to fit.
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
-        y: None
-            Pass through for grid search and pipeline.
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
 
-        self : SelectivePCA
-            The fit transformer
+        self
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
-        cols = X.columns if not self.cols else self.cols
+        cols = _cols_if_none(X, self.cols)
 
         # fails thru if names don't exist:
         self.pca_ = PCA(
             n_components=self.n_components,
-            whiten=self.whiten).fit(X[cols])
+            whiten=self.whiten).fit(X[cols].as_matrix())
 
         return self
 
-    def transform(self, X, y=None):
-        """Transform the given dataset, provided the transformer
-        has already been fit.
+    def transform(self, X):
+        """Transform a test matrix given the already-fit transformer.
 
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
-            The data to fit.
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The Pandas frame to transform. The operation will
+            be applied to a copy of the input data, and the result
+            will be returned.
 
-        y: None
-            Pass through for grid search and pipeline.
 
         Returns
         -------
 
-        x : pd.DataFrame or np.ndarray
-            The transformed matrix. pd.DataFrame if ``as_df``
-            is True, else np.ndarray.
+        X : Pandas ``DataFrame``
+            The operation is applied to a copy of ``X``,
+            and the result set is returned.
         """
         check_is_fitted(self, 'pca_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
-        cols = X.columns if not self.cols else self.cols
+        cols = _cols_if_none(X, self.cols)
 
         other_nms = [nm for nm in X.columns if nm not in cols]
-        transform = self.pca_.transform(X[cols])
+        transform = self.pca_.transform(X[cols].as_matrix())
 
         # do weighting if necessary
         if self.weight:
@@ -226,13 +237,13 @@ class SelectivePCA(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
-        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        """Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,
         this method returns the internal decomposition class: 
         ``sklearn.decomposition.PCA``
 
         Returns
         -------
-        self.pca_ : sklearn.decomposition.PCA
+        self.pca_ : ``sklearn.decomposition.PCA``
             The fit internal decomposition class
         """
         return self.pca_ if hasattr(self, 'pca_') else None
@@ -240,20 +251,17 @@ class SelectivePCA(_BaseSelectiveDecomposer):
     def score(self, X, y=None):
         """Return the average log-likelihood of all samples.
         This calls sklearn.decomposition.PCA's score method
-        on the specified columns.
-
-        See. "Pattern Recognition and Machine Learning"
-        by C. Bishop, 12.2.1 p. 574
-        or http://www.miketipping.com/papers/met-mppca.pdf
+        on the specified columns [1].
 
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
+        X: Pandas ``DataFrame``, shape=(n_samples, n_features)
             The data to score.
 
         y: None
             Passthrough for pipeline/gridsearch
+
 
         Returns
         -------
@@ -261,12 +269,19 @@ class SelectivePCA(_BaseSelectiveDecomposer):
         ll: float
             Average log-likelihood of the samples under the fit
             PCA model (`self.pca_`)
+
+
+        References
+        ----------
+
+        .. [1] Bishop, C.  "Pattern Recognition and Machine Learning"
+               12.2.1 p. 574 http://www.miketipping.com/papers/met-mppca.pdf
         """
         check_is_fitted(self, 'pca_')
         X, _ = validate_is_pd(X, self.cols)
         cols = X.columns if not self.cols else self.cols
 
-        ll = self.pca_.score(X[cols], y)
+        ll = self.pca_.score(X[cols].as_matrix(), _as_numpy(y))
         return ll
 
 
@@ -280,34 +295,50 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
     Parameters
     ----------
 
-    cols : array_like (string)
-        names of columns on which to apply scaling
+    cols : array_like, shape=(n_features,), optional (default=None)
+        The names of the columns on which to apply the transformation.
+        If no column names are provided, the transformer will be ``fit``
+        on the entire frame. Note that the transformation will also only
+        apply to the specified columns, and any other non-specified
+        columns will still be present after transformation.
 
-    n_components : int, default = 2
+    n_components : int, (default=2)
         Desired dimensionality of output data.
         Must be strictly less than the number of features.
         The default value is useful for visualisation. For LSA, a value of
         100 is recommended.
 
-    algorithm : string, default = "randomized"
+    algorithm : string, (default="randomized")
         SVD solver to use. Either "arpack" for the ARPACK wrapper in SciPy
         (scipy.sparse.linalg.svds), or "randomized" for the randomized
         algorithm due to Halko (2009).
 
-    n_iter : int, optional (default 5)
+    n_iter : int, optional (default=5)
         Number of iterations for randomized SVD solver. Not used by ARPACK.
         The default is larger than the default in `randomized_svd` to handle
         sparse matrices that may have large slowly decaying spectrum.
 
-    as_df : boolean, default True
-        Whether to return a pandas DataFrame
+    as_df : bool, optional (default=True)
+        Whether to return a Pandas ``DataFrame`` in the ``transform``
+        method. If False, will return a Numpy ``ndarray`` instead. 
+        Since most skutil transformers depend on explicitly-named
+        ``DataFrame`` features, the ``as_df`` parameter is True by default.
+
+
+    Examples
+    --------
+
+        >>> from skutil.decomposition import SelectiveTruncatedSVD
+        >>> from skutil.utils import load_iris_df
+        >>>
+        >>> X = load_iris_df(include_tgt=False)
+        >>> svd = SelectiveTruncatedSVD(n_components=2)
+        >>> X_transform = svd.fit_transform(X) # svd suffers sign indeterminancy and results will vary
+        >>> assert X_transform.shape[1] == 2
 
 
     Attributes
     ----------
-
-    cols : array_like (string)
-        the columns
 
     svd_ : the SVD object
     """
@@ -318,16 +349,20 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         self.n_iter = n_iter
 
     def fit(self, X, y=None):
-        """Fit the transformer to the provided dataset.
+        """Fit the transformer.
 
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
-            The data to fit.
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The Pandas frame to fit. The frame will only
+            be fit on the prescribed ``cols`` (see ``__init__``) or
+            all of them if ``cols`` is None. Furthermore, ``X`` will
+            not be altered in the process of the fit.
 
-        y: None
-            Pass through for grid search and pipeline.
+        y : None
+            Passthrough for ``sklearn.pipeline.Pipeline``. Even
+            if explicitly set, will not change behavior of ``fit``.
 
         Returns
         -------
@@ -336,44 +371,47 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
         """
         # check on state of X and cols
         X, self.cols = validate_is_pd(X, self.cols)
+        cols = _cols_if_none(X, self.cols)
 
         # fails thru if names don't exist:
         self.svd_ = TruncatedSVD(
             n_components=self.n_components,
             algorithm=self.algorithm,
-            n_iter=self.n_iter).fit(X[self.cols or X.columns])
+            n_iter=self.n_iter).fit(X[cols].as_matrix())
 
         return self
 
-    def transform(self, X, y=None):
-        """Transform the given dataset, provided the transformer
-        has already been fit.
+    def transform(self, X):
+        """Transform a test matrix given the already-fit transformer.
 
         Parameters
         ----------
 
-        X: pd.DataFrame, shape(n_samples, n_features)
-            The data to fit.
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The Pandas frame to transform. The operation will
+            be applied to a copy of the input data, and the result
+            will be returned.
 
-        y: None
-            Pass through for grid search and pipeline.
 
         Returns
         -------
 
-        x : pd.DataFrame or np.ndarray
-            The transformed matrix. pd.DataFrame if ``as_df``
-            is True, else np.ndarray.
+        X : Pandas ``DataFrame``, shape=(n_samples, n_features)
+            The operation is applied to a copy of ``X``,
+            and the result set is returned.
         """
         check_is_fitted(self, 'svd_')
         # check on state of X and cols
         X, _ = validate_is_pd(X, self.cols)
-        cols = X.columns if not self.cols else self.cols
+        cols = _cols_if_none(X, self.cols)
 
         other_nms = [nm for nm in X.columns if nm not in cols]
-        transform = self.svd_.transform(X[cols])
+        transform = self.svd_.transform(X[cols].as_matrix())
         left = pd.DataFrame.from_records(data=transform,
-                                         columns=[('Concept%i' % (i + 1)) for i in range(transform.shape[1])])
+                                         columns=[
+                                            ('Concept%i' % (i + 1)) 
+                                            for i in range(transform.shape[1])
+                                         ])
 
         # concat if needed
         x = pd.concat([left, X[other_nms]], axis=1) if other_nms else left
@@ -382,13 +420,13 @@ class SelectiveTruncatedSVD(_BaseSelectiveDecomposer):
 
     @overrides(_BaseSelectiveDecomposer)
     def get_decomposition(self):
-        """Overridden from the :class:``_BaseSelectiveDecomposer`` class,
+        """Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,
         this method returns the internal decomposition class: 
         ``sklearn.decomposition.TruncatedSVD``
 
         Returns
         -------
-        self.svd_ : sklearn.decomposition.TruncatedSVD
+        self.svd_ : ``sklearn.decomposition.TruncatedSVD``
             The fit internal decomposition class
         """
         return self.svd_ if hasattr(self, 'svd_') else None

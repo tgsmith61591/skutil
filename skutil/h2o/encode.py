@@ -1,13 +1,16 @@
 from __future__ import print_function, absolute_import, division
 import pandas as pd
-import h2o
+import numpy as np
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_is_fitted
+from sklearn.preprocessing import LabelEncoder
 from ..preprocessing.encode import _get_unseen
 from .frame import _check_is_1d_frame
-from .base import (BaseH2OTransformer, _check_is_frame, _frame_from_x_y)
+from .base import (BaseH2OTransformer, check_frame, _frame_from_x_y)
+from .util import h2o_col_to_numpy
 
 __all__ = [
+    'H2OLabelEncoder',
     'H2OSafeOneHotEncoder'
 ]
 
@@ -17,8 +20,76 @@ def _val_vec(y):
     return y
 
 
+class H2OLabelEncoder(BaseH2OTransformer):
+    """Encode categorical values in a H2OFrame (single column)
+    into ordinal labels 0 - len(column) - 1.
+
+
+    Examples
+    --------
+
+        >>> def example():
+        ...     import pandas as pd
+        ...     from skutil.h2o import from_pandas
+        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     
+        ...     x = pd.DataFrame.from_records(data=[
+        ...                 [5, 4],
+        ...                 [6, 2],
+        ...                 [5, 1],
+        ...                 [7, 9],
+        ...                 [7, 2]], columns=['C1', 'C2'])
+        ...     
+        ...     X = from_pandas(x)
+        ...     encoder = H2OLabelEncoder()
+        ...     encoder.fit_transform(X['C1'])
+        >>>
+        >>> example() # doctest: +SKIP
+          C1
+        ----
+           0
+           1
+           0
+           2
+           2
+        [5 rows x 1 column]
+
+
+    Attributes
+    ----------
+
+    classes_ : np.ndarray
+        The unique class levels
+
+
+    .. versionadded:: 0.1.0
+    """
+    _min_version = '3.8.2.9'
+    _max_version = None
+
+    def __init__(self):
+        super(H2OLabelEncoder, self).__init__(feature_names=None,
+                                              target_feature=None,
+                                              exclude_features=None,
+                                              min_version=self._min_version,
+                                              max_version=self._max_version)
+
+    def fit(self, column):
+        self.encoder_ = LabelEncoder().fit(h2o_col_to_numpy(column))
+        self.classes_ = self.encoder_.classes_
+        return self
+
+    def transform(self, column):
+        check_is_fitted(self, 'encoder_')
+        column = h2o_col_to_numpy(column)
+
+        # transform--
+        # I don't like that we have to re-upload... but we do... for now...
+        return H2OFrame.from_python(self.encoder_.transform(column).reshape(column.shape[0], 1))
+
+
 class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
-    """Safely one-hot encodes an H2OVec into an H2OFrame of
+    """Safely one-hot encodes an H2OVec into an ``H2OFrame`` of
     one-hot encoded dummies. Whereas H2O's default behavior for
     previously-unseen factor levels is to error, the 
     ``_H2OVecSafeOneHotEncoder`` skips previously-unseen levels
@@ -28,15 +99,18 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str), optional (default=None)
+    feature_names : array_like (str) shape=(n_features,), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None, optional (default=None)
+    exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -55,8 +129,9 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        y : ``H2OFrame``, shape=(n_samples, 1)
+            The training frame on which to fit. Should
+            be a single column ``H2OFrame``
 
         Returns
         -------
@@ -86,14 +161,14 @@ class _H2OVecSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame, 1d
-            The 1d frame to transform
+        y : ``H2OFrame``, shape=(n_samples, 1)
+            The 1d ``H2OFrame`` to transform
 
         Returns
         -------
 
-        output : H2OFrame, 1d
-            The transformed H2OFrame
+        output : ``H2OFrame``, shape=(n_samples, 1)
+            The transformed ``H2OFrame``
         """
         # make sure is fitted, validate y
         check_is_fitted(self, 'classes_')
@@ -134,18 +209,21 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
     Parameters
     ----------
 
-    feature_names : array_like (str), optional (default=None)
+    feature_names : array_like (str) shape=(n_features,), optional (default=None)
         The list of names on which to fit the transformer.
 
-    target_feature : str, optional (default None)
+    target_feature : str, optional (default=None)
         The name of the target feature (is excluded from the fit)
         for the estimator.
 
-    exclude_features : iterable or None, optional (default=None)
+    exclude_features : array_like (str) shape=(n_features,), optional (default=None)
         Any names that should be excluded from ``feature_names``
 
     drop_after_encoded : bool (default=True)
         Whether to drop the original columns after transform
+
+
+    .. versionadded:: 0.1.0
     """
 
     _min_version = '3.8.2.9'
@@ -166,25 +244,24 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
-            The frame to fit
+        X : ``H2OFrame``, shape=(n_samples, n_features)
+            The training frame to fit
 
         Returns
         -------
 
         self
         """
-
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=False)
 
         # these are just the features to encode
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         # do fit
         self.encoders_ = {
             str(k): _H2OVecSafeOneHotEncoder().fit(cat[str(k)])
             for k in cat.columns
-            }
+        }
 
         return self
 
@@ -194,22 +271,22 @@ class H2OSafeOneHotEncoder(BaseH2OTransformer):
         Parameters
         ----------
 
-        X : H2OFrame
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The frame to transform
 
         Returns
         -------
 
-        X : H2OFrame
+        X : ``H2OFrame``, shape=(n_samples, n_features)
             The transformed H2OFrame
         """
         check_is_fitted(self, 'encoders_')
-        frame = _check_is_frame(X)
+        X = check_frame(X, copy=True)
         enc = self.encoders_
 
         # these are just the features to encode. (we will return the 
         # entire frame unless told not to...)
-        cat = _frame_from_x_y(frame, self.feature_names, self.target_feature, self.exclude_features)
+        cat = _frame_from_x_y(X, self.feature_names, self.target_feature, self.exclude_features)
 
         output = None
         for name in cat.columns:

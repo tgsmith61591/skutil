@@ -9,7 +9,7 @@ from ..utils import (validate_is_pd, human_bytes, corr_plot,
                      load_boston_df)
 from .frame import _check_is_1d_frame
 from .select import _validate_use
-from .base import _check_is_frame
+from .base import check_frame
 
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_array
@@ -104,13 +104,13 @@ def h2o_col_to_numpy(column):
     Parameters
     ----------
 
-    column : H2OFrame column
+    column : H2OFrame column, shape=(n_samples, 1)
         A column from an H2OFrame
 
     Returns
     -------
 
-    np.ndarray (1d)
+    np.ndarray, shape=(n_samples,)
     """
     x = _check_is_1d_frame(column)
     _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
@@ -256,8 +256,8 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
     Parameters
     ----------
 
-    X : pd.DataFrame
-        The pandas DataFrame
+    X : H2OFrame, shape=(n_samples, n_features)
+        The H2OFrame
 
     plot_type : str, optional (default='cor')
         The type of plot, one of ('cor', 'kde', 'pair')
@@ -303,7 +303,7 @@ def h2o_corr_plot(X, plot_type='cor', cmap='Blues_d', n_levels=5,
     na_rm : bool, optional (default=False)
         Whether to remove NAs
     """
-    X = _check_is_frame(X)
+    X = check_frame(X, copy=False)
     corr = None
 
     if plot_type == 'cor':
@@ -350,7 +350,7 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     mb : str
         The estimated number of UNIT held in the frame
     """
-    X = _check_is_frame(X)
+    X = check_frame(X, copy=False)
 
     n_samples, n_features = X.shape
     n_bits = (n_samples * n_features) * bit_est
@@ -378,7 +378,7 @@ def rbind_all(*args):
     """
     # check all are H2OFrames
     for x in args:
-        _check_is_frame(x)
+        check_frame(x, copy=False)
 
     # check col dim
     if np.unique([x.shape[1] for x in args]).shape[0] != 1:
@@ -412,7 +412,7 @@ def reorder_h2o_frame(X, idcs):
         The reordered H2OFrame
     """
     # hack... slow but functional
-    X = _check_is_frame(X)
+    X = check_frame(X, copy=False)  # we're rbinding. no need to copy
     new_frame = None
 
     for i in idcs:
@@ -442,7 +442,7 @@ def shuffle_h2o_frame(X):
     shuf : H2OFrame
         The shuffled H2OFrame
     """
-    X = _check_is_frame(X)
+    X = check_frame(X, copy=False)
     idcs = np.random.permutation(np.arange(X.shape[0]))
     shuf = reorder_h2o_frame(X, idcs)
     return shuf

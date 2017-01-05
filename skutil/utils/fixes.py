@@ -1,28 +1,43 @@
-from __future__ import division
+# -*- coding: utf-8 -*-
+"""
+The purpose of the utils.fixes module is to provide
+fixes to non version-invariant methods or behavior.
+We want to perform as view version-specific checks
+as possible, so anything that requires version-specific
+behavior should be placed in fixes.
+Author: Taylor G Smith
+"""
+
+from __future__ import division, absolute_import, print_function
+import numbers
 import numpy as np
 import pandas as pd
 import sklearn
+import sys
 from abc import ABCMeta, abstractmethod
 from sklearn.base import BaseEstimator, MetaEstimatorMixin, is_classifier, clone
 from sklearn.externals import six
 from sklearn.externals.joblib import Parallel, delayed
-from sklearn.utils.validation import _num_samples, indexable
+from sklearn.utils.validation import _num_samples, check_is_fitted, check_consistent_length #,indexable
 from sklearn.metrics.scorer import check_scoring
 from collections import namedtuple, Sized
 from .metaestimators import if_delegate_has_method
 import warnings
 
 __all__ = [
-    '_as_numpy',
-    '_validate_X',
-    '_validate_y',
-    '_check_param_grid',
-    '_CVScoreTuple',
-    '_SK17GridSearchCV',
-    '_SK17RandomizedSearchCV'
+    'dict_keys',
+    'dict_values',
+    'is_iterable'
 ]
 
-# deprecation in sklearn 0.18
+VERSION_MAJOR = sys.version_info.major
+NoneType = type(None)  # Python 3 doesn't have a types.NoneType
+
+# easier test for numericism
+if VERSION_MAJOR > 2:
+    long = int
+
+# grid_search deprecation in sklearn 0.18
 if sklearn.__version__ >= '0.18':
     SK18 = True
     from sklearn.model_selection import check_cv
@@ -52,6 +67,7 @@ if sklearn.__version__ >= '0.18':
         # test_score, n_samples, _, parameters
         return [(mod[0], mod[1], None, mod[2]) for mod in out]
 
+
 else:
     SK18 = False
     # catch deprecation warnings
@@ -75,6 +91,194 @@ else:
                 error_score=error_score)
             for parameters in parameter_iterable
             for train, test in cv)
+
+
+def dict_keys(d):
+    """In python 3, the ``d.keys()`` method
+    returns a view and not an actual list.
+
+    Parameters
+    ----------
+
+    d : dict
+        The dictionary
+
+
+    Returns
+    -------
+
+    list
+    """
+    return list(d.keys())
+
+
+def dict_values(d):
+    """In python 3, the ``d.values()`` method
+    returns a view and not an actual list.
+
+    Parameters
+    ----------
+
+    d : dict
+        The dictionary
+
+
+    Returns
+    -------
+
+    list
+    """
+    return list(d.values())
+
+
+def is_iterable(x):
+    """Python 3.x adds the ``__iter__`` attribute
+    to strings. Thus, our previous tests for iterable
+    will fail when using ``hasattr``.
+
+    Parameters
+    ----------
+
+    x : object
+        The object or primitive to test whether
+        or not is an iterable.
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an iterable
+    """
+    if isinstance(x, six.string_types):
+        return False
+    return hasattr(x, '__iter__')
+
+
+def _cols_if_none(X, self_cols):
+    """Since numerous transformers in the preprocessing
+    and feature selection modules take ``cols`` arguments
+    (which could end up as ``None`` via the ``validate_is_pd``
+    method), this will return the columns that should be used.
+
+    Parameters
+    ----------
+
+    X : Pandas ``DataFrame``
+        The data frame being transformed.
+
+    self_cols : list (string) or None
+        The columns.
+    """
+    return X.columns.tolist() if not self_cols else self_cols
+
+
+def _is_integer(x):
+    """Determine whether some object ``x`` is an
+    integer type (int, long, etc). This is part of the 
+    ``fixes`` module, since Python 3 removes the long
+    datatype, we have to check the version major.
+
+    Parameters
+    ----------
+
+    x : object
+        The item to assess whether is an integer.
+
+
+    Returns
+    -------
+
+    bool
+        True if ``x`` is an integer type
+    """
+    return (not isinstance(x, (bool, np.bool))) and \
+        isinstance(x, (numbers.Integral, int, np.int, np.long, long))  # no long type in python 3
+
+
+def _grid_detail(search, z_score, sort_results=True, sort_by='mean_test_score', ascending=True):
+    """Create a dataframe of grid search details for either sklearn 0.17,
+    sklearn 0.18 or a BaseH2OSearchCV instance.
+
+    Parameters
+    ----------
+
+    search : sklearn 0.17 grid search
+        The already fitted grid search.
+
+    z_score : float
+        The z-score by which to multiply the cross validation
+        score standard deviations.
+
+    sort_results : bool, optional (default=True)
+        Whether to sort the results based on score
+
+    sort_by : str, optional (default='mean_test_score')
+        The column to sort by. This is not validated, in case
+        the user wants to sort by a parameter column. If
+        not ``sort_results``, this is unused.
+
+    ascending : bool, optional (default=True)
+        If ``sort_results`` is True, whether to use asc or desc
+        in the sorting process.
+
+
+    Returns
+    -------
+    
+    result_df : pd.DataFrame, shape=(n_iter, n_params)
+        The results of the grid search
+    """
+    check_is_fitted(search, 'best_estimator_')
+
+    if not hasattr(search, 'cv_results_'):
+        # if it has the grid_scores_ attribute, it's either
+        # sklearn 0.17 or it's an H2O grid search. This should handle
+        # both cases.
+
+        # list of dicts
+        df_list = []
+
+        # convert each score tuple into dicts
+        for score in search.grid_scores_:
+            results_dict = dict(score.parameters)  # the parameter tuple or sampler
+            results_dict["mean_test_score"] = score.mean_validation_score
+            results_dict["std_test_score"] = score.cv_validation_scores.std() * z_score
+            df_list.append(results_dict)
+
+        # make into a data frame
+        result_df = pd.DataFrame(df_list)
+        drops = ['mean_test_score', 'std_test_score']
+
+    else:
+        # sklearn made this a bit easier for our purposes... kinda
+        result_df = pd.DataFrame(search.cv_results_)
+
+        # pop off the splitX cols
+        result_df.drop([x for x in result_df.columns if x.startswith('split')], axis=1, inplace=True)
+        result_df.drop(['rank_test_score', 'params'], axis=1, inplace=True)
+
+        # cols that start with param should not.
+        new_cols = [x if not x.startswith('param_') else x[6:] for x in result_df.columns]
+        result_df.columns = new_cols
+
+        # adjust by z-score
+        for col in result_df.columns:
+            if col in ('std_test_score', 'std_train_score', 'std_score_time', 'std_fit_time'):
+                result_df[col] = result_df[col] * z_score
+
+        # assign drops
+        drops = ('mean_fit_time', 'mean_score_time', 
+                 'mean_train_score', 'std_fit_time', 
+                 'std_score_time', 'std_train_score',
+                 'mean_test_score', 'std_test_score')
+
+    # sort if necessary
+    if sort_results:
+        result_df = result_df.sort_values(sort_by, ascending=ascending)
+
+    # return
+    return result_df, drops
 
 
 def _cv_len(cv, X, y):
@@ -150,9 +354,12 @@ def _get_groups(X, y):
     Returns
     -------
 
-    groups
+    groups : indexable
+        The groups
     """
-    return (X, y, None) if not SK18 else indexable(X, y, None)
+    if SK18:
+        X, y = _indexable(X, y)
+    return X, y, None
 
 
 def _as_numpy(y):
@@ -176,9 +383,31 @@ def _as_numpy(y):
         return np.copy(y)
     elif hasattr(y, 'as_matrix'):
         return y.as_matrix()
-    elif hasattr(y, '__iter__'):
-        return np.asarray([i for i in y])
+    elif hasattr(y, 'tolist'):
+        return y.tolist()
+    elif is_iterable(y):
+        return np.asarray([i for i in y])  # might accidentally force object type in 3
     raise TypeError('cannot convert type %s to numpy ndarray' % type(y))
+
+
+def _indexable(X, y):
+    """Make arrays indexable for cross-validation. Checks consistent 
+    length, passes through None, and ensures that everything can be indexed.
+
+    Parameters
+    ----------
+
+    X : array-like or pandas DataFrame, shape = [n_samples, n_features]
+        Input data, where n_samples is the number of samples and
+        n_features is the number of features.
+
+    y : array-like, shape = [n_samples] or [n_samples, n_output], optional
+        Target relative to X for classification or regression;
+        None for unsupervised learning.
+    """
+    result = [_validate_X(X), _validate_y(y)]
+    check_consistent_length(*result)
+    return result
 
 
 def _validate_X(X):
@@ -194,17 +423,20 @@ def _validate_y(y):
 
     # if it's a series
     elif isinstance(y, pd.Series):
-        return np.array(y.tolist())
+        return _as_numpy(y)
 
     # if it's a dataframe:
     elif isinstance(y, pd.DataFrame):
         # check it's X dims
         if y.shape[1] > 1:
             raise ValueError('matrix provided as y')
-        return np.array(y[y.columns[0]].tolist())
+        return _as_numpy(y[y.columns[0]])
 
-    # bail and let the sklearn function handle validation
-    return y
+    elif is_iterable(y):
+        return _as_numpy(y)
+
+    # bail
+    raise ValueError('Cannot create indexable from type=%s' % type(y))
 
 
 def _check_param_grid(param_grid):
@@ -444,8 +676,7 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
     def _fit(self, X, y, parameter_iterable):
         """Actual fitting,  performing the search over parameters."""
-        X = _validate_X(X)  # if it's a frame, will be turned into a matrix
-        y = _validate_y(y)  # if it's a series, make it into a list
+        X, y = _indexable(X, y)
 
         # for debugging
         assert not isinstance(X, pd.DataFrame)
@@ -453,17 +684,10 @@ class _SK17BaseSearchCV(six.with_metaclass(ABCMeta, BaseEstimator,
 
         # begin sklearn code
         estimator = self.estimator
-        cv = self.cv
         self.scorer_ = check_scoring(self.estimator, scoring=self.scoring)
 
-        n_samples = _num_samples(X)
-        X, y = indexable(X, y)
-
-        if y is not None:
-            if len(y) != n_samples:
-                raise ValueError('Target variable (y) has a different number '
-                                 'of samples (%i) than data (X: %i samples)'
-                                 % (len(y), n_samples))
+        # n_samples = _num_samples(X)  # don't need for now...
+        cv = self.cv
         cv = _set_cv(cv, X, y, classifier=is_classifier(estimator))
 
         if self.verbose > 0:

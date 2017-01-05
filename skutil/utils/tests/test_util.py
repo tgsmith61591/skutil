@@ -1,16 +1,14 @@
 from __future__ import print_function, absolute_import, division
-
 import warnings
-
+import sys
 import numpy as np
 import pandas as pd
 from numpy.testing import (assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
-
 from skutil.base import suppress_warnings
 from skutil.utils import *
 from skutil.utils.tests.utils import assert_fails
-from skutil.utils.fixes import *
+from skutil.utils.fixes import _SK17GridSearchCV, _SK17RandomizedSearchCV
 from skutil.decomposition import SelectivePCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -18,7 +16,15 @@ from skutil.utils.util import __min_log__, __max_exp__
 from skutil.utils.fixes import _validate_y, _check_param_grid
 from skutil.utils.metaestimators import if_delegate_has_method, if_delegate_isinstance
 
-from matplotlib.testing.decorators import cleanup
+try:
+    # this causes a UserWarning to be thrown by matplotlib... should we squelch this?
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        from matplotlib.testing.decorators import cleanup
+        # log it
+        CAN_CHART_MPL = True
+except ImportError:
+    CAN_CHART_MPL = False
 
 # Def data for testing
 iris = load_iris()
@@ -33,7 +39,9 @@ X['perfect'] = X[[1]]
 
 
 def _check_equal(L1, L2):
-    return len(L1) == len(L2) and sorted(L1) == sorted(L2)
+    first = len(L1) == len(L2)
+    a, b = set(L1), set(L2)
+    return first and len(a.intersection(b)) == len(a)
 
 
 def test_suppress():
@@ -59,7 +67,6 @@ def test_delegate_decorator():
         def do_something(self):
             return 'something'
 
-
     class B(object):
         def __init__(self):
             pass
@@ -74,7 +81,6 @@ def test_delegate_decorator():
         def __init__(self):
             pass
 
-
     class C(object):
         def __init__(self):
             self.a = A()
@@ -82,7 +88,7 @@ def test_delegate_decorator():
             self.c = Other()
             self.d = 4
 
-        @if_delegate_has_method(delegate=['a','b'])
+        @if_delegate_has_method(delegate=['a', 'b'])
         def foo(self):
             return self.b.foo()
 
@@ -111,14 +117,12 @@ def test_delegate_decorator():
         def some_other_instance_method(self):
             return True
 
-        @if_delegate_isinstance(('e','d'), instance_type=(int, float))
+        @if_delegate_isinstance(('e', 'd'), instance_type=(int, float))
         def yet_another_instance_method(self):
             return True
 
-
     # purely for coverage...
     A().foo()
-
 
     c = C()
     assert hasattr(c, 'foo')
@@ -131,7 +135,6 @@ def test_delegate_decorator():
     assert c.some_other_instance_method()
     assert c.yet_another_instance_method()
 
-
     # these don't work with assert_fails
     try:
         c.wont_work()
@@ -142,7 +145,7 @@ def test_delegate_decorator():
 
     try:
         c.some_instance_method()
-    except TypeError as t:
+    except TypeError:
         pass
     else:
         raise AssertionError('should have failed')
@@ -176,8 +179,8 @@ def test_grid_search_fix():
     pipe = Pipeline([('rf', RandomForestClassifier())])
     pipe2 = Pipeline([('pca', SelectivePCA())])
 
-    hyp  = {'rf__n_estimators'  : [10, 15]}
-    hyp2 = {'pca__n_components' : [ 1,  2]}
+    hyp = {'rf__n_estimators':  [10, 15]}
+    hyp2 = {'pca__n_components': [1,  2]}
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -204,7 +207,7 @@ def test_grid_search_fix():
         grid3.grid_scores_[0]
 
         # test fail with mismatched dims
-        assert_fails(grid3.fit, ValueError, X, np.array([1,2,3]))
+        assert_fails(grid3.fit, ValueError, X, np.array([1, 2, 3]))
 
         # test value error on missing scorer_
         sco = grid2.scorer_
@@ -217,19 +220,18 @@ def test_grid_search_fix():
         grid2.predict_log_proba(df)
 
 
-
 def test_fixes():
     assert _validate_y(None) is None
-    assert_fails(_validate_y, ValueError, X) # dim 1 is greater than 1
+    assert_fails(_validate_y, ValueError, X)  # dim 1 is greater than 1
 
     # try with one column
-    X_copy = X.copy().pop(X.columns[0]) # copy and get first column
+    X_copy = X.copy().pop(X.columns[0])  # copy and get first column
     assert isinstance(_validate_y(X_copy), np.ndarray)
-    assert isinstance(_validate_y(np.array([1,2,3])), np.ndarray) # return the np.ndarray
+    assert isinstance(_validate_y(np.array([1, 2, 3])), np.ndarray)  # return the np.ndarray
 
     # Testing param grid
     param_grid = {
-        'a' : np.ones((3,3))
+        'a': np.ones((3, 3))
     }
 
     # fails because value has more than 1 dim
@@ -237,14 +239,14 @@ def test_fixes():
 
     # test param grid with a dictionary as the value
     param_grid2 = {
-        'a' : {'a':1}
+        'a': {'a': 1}
     }
 
     # fails because v must be a tuple, list or np.ndarray
     assert_fails(_check_param_grid, ValueError, param_grid2)
 
     # fails because v is len 0
-    assert_fails(_check_param_grid, ValueError, {'a':[]})
+    assert_fails(_check_param_grid, ValueError, {'a': []})
 
 
 def test_pd_stats():
@@ -263,7 +265,7 @@ def test_pd_stats():
 
     # test with numerics
     stats = pd_stats(Y, col_type='numeric')
-    assert not 'species_factor' in stats.columns
+    assert 'species_factor' not in stats.columns
     assert stats.shape[1] == (Y.shape[1] - 1)
 
     # test with object
@@ -282,17 +284,18 @@ def test_pd_stats():
     assert_fails(pd_stats, ValueError, Y, 'bad_type')
 
 
-@cleanup
-def test_corr():
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+if CAN_CHART_MPL:
+    @cleanup
+    def test_corr():
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
 
-        corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
-        corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
-        corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
-        corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='cor', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='cor', corr='not_precomputed')
+            corr_plot(X=X_no_targ, plot_type='pair', corr='precomputed')
+            corr_plot(X=X_no_targ, plot_type='kde', corr='precomputed')
 
-        assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
+            assert_fails(corr_plot, ValueError, **{'X': X_no_targ, 'plot_type': 'bad_type'})
 
 
 def test_bytes():
@@ -317,7 +320,7 @@ def test_is_entirely_numeric():
 def test_is_numeric():
     assert is_numeric(1)
     assert is_numeric(1.)
-    assert is_numeric(1L)
+    assert is_numeric(np.long(1))
     assert is_numeric(np.int(1.0))
     assert is_numeric(np.float(1))
     assert is_numeric(1e-12)

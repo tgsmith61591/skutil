@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 from h2o.frame import H2OFrame
+from ..utils.fixes import is_iterable, dict_keys
 import pandas as pd
 import numpy as np
 import warnings
@@ -29,14 +30,14 @@ def _as_numpy(*args):
                     raise ValueError('must be 1d column')
                 _1d = x[x.columns[0]].as_data_frame(use_pandas=True)
                 return _1d[_1d.columns[0]].values
-            elif hasattr(x, '__iter__'):
+            elif is_iterable(x):
                 return np.asarray(x)
             else:
                 raise TypeError('cannot create numpy array out of type=%s' % type(x))
         else:
             return np.copy(x)
 
-    arrs = [_single_as_numpy(x) for x in args]
+    arrs = [_single_as_numpy(i) for i in args]
     if len(arrs) == 1:
         arrs = arrs[0]
 
@@ -82,7 +83,7 @@ class GainsStatisticalReport(object):
         self.n_groups = 10
         self.score_by = score_by
 
-        met = self._signs.keys()
+        met = dict_keys(self._signs)
         self.stats = {m: [] for m in met}
         self.sample_sizes = []
 
@@ -93,7 +94,7 @@ class GainsStatisticalReport(object):
         self.error_behavior = error_behavior
 
         # validate score_by
-        if not score_by in self._signs:
+        if score_by not in self._signs:
             raise ValueError('score_by must be in %s, but got %s'
                              % (', '.join(met), score_by))
 
@@ -119,16 +120,16 @@ class GainsStatisticalReport(object):
         else:
             # otherwise they are cross validation scores...
             # ensure divisibility...
-            n_obs, n_folds, n_iter = len(self.stats[self._signs.keys()[0]]), self.n_folds, self.n_iter
+            n_obs, n_folds, n_iter = len(self.stats[dict_keys(self._signs)[0]]), self.n_folds, self.n_iter
             if not (n_folds * n_iter) == n_obs:
                 raise ValueError('n_obs is not divisible by n_folds and n_iter')
 
             new_stats = {}
-            for metric in self._signs.keys():
-                new_stats['%s_mean' % metric] = [] # the mean scores
-                new_stats['%s_std' % metric] = []  # the std scores
-                new_stats['%s_min' % metric] = []  # the min scores
-                new_stats['%s_max' % metric] = []  # the max scores
+            for metric in dict_keys(self._signs):
+                new_stats['%s_mean' % metric] = []  # the mean scores
+                new_stats['%s_std' % metric] = []   # the std scores
+                new_stats['%s_min' % metric] = []   # the min scores
+                new_stats['%s_max' % metric] = []   # the max scores
                 idx = 0
 
                 for _ in range(n_iter):
@@ -170,7 +171,7 @@ class GainsStatisticalReport(object):
 
         rank = pd.qcut(pred_ser, n_groups, labels=False)
         n_groups = np.amax(rank) + 1
-        groups = np.arange(n_groups)
+        groups = np.arange(n_groups)  # if we ever go back to using n_groups...
 
         tab = pd.DataFrame({
             'rank': rank,
@@ -294,7 +295,7 @@ class GainsStatisticalReport(object):
         self
         """
         # check params
-        if not self.error_behavior in ('warn', 'raise', 'ignore'):
+        if self.error_behavior not in ('warn', 'raise', 'ignore'):
             raise ValueError('error_behavior must be one of ("warn", "raise", "ignore"). '
                              'Encountered %s' % str(self.error_behavior))
 
@@ -319,7 +320,7 @@ class GainsStatisticalReport(object):
             # that the computation method is the name of the metric
             # preceded by an underscore...
             if store:
-                for metric in self._signs.keys():
+                for metric in dict_keys(self._signs):
                     self.stats[metric].append(
                         getattr(self, '_%s' % metric)(**kwargs)
                     )
@@ -332,7 +333,7 @@ class GainsStatisticalReport(object):
 
             # if it's ignore, it will pass.
             if store:
-                for metric in self._signs.keys():
+                for metric in dict_keys(self._signs):
                     self.stats[metric].append(self.error_score)
 
         self.sample_sizes.append(pred.shape[0])

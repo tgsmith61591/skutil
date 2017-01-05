@@ -2,9 +2,11 @@
 sklearn-esque transformers for python
 """
 import sys
-from .utils import log, exp  # want these visible at module level
 
-__version__ = '0.1.3'
+# want these visible at module level
+from .utils import log, exp
+
+__version__ = '0.1.5'
 
 try:
     # This variable is injected in the __builtins__ by the build
@@ -31,7 +33,8 @@ else:
 
 
 def setup_module(module):
-    import numpy as np, random
+    import numpy as np
+    import random
 
     _random_seed = int(np.random.uniform() * (2 ** 31 - 1))
     np.random.seed(_random_seed)
