@@ -31,7 +31,7 @@ from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df, flatten_all
-from skutil.utils.tests.utils import assert_fails
+from skutil.utils.tests.utils import assert_fails, suppress_test_warnings
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold,
                               H2OStratifiedKFold, h2o_train_test_split,
@@ -42,7 +42,7 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
-from skutil.base import overrides, suppress_warnings
+from skutil.base import overrides
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -153,7 +153,7 @@ def test_h2o_no_conn_needed():
 
 
 # if we can't start an h2o instance, let's just pass all these tests
-@suppress_warnings  # old versions of h2o throw warnings all day in the requests library... causes travis failures.
+@suppress_test_warnings  # old versions of h2o throw warnings all day in the requests library... causes travis failures.
 def test_h2o_with_conn():
     iris = load_iris()
     F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
