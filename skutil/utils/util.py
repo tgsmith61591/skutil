@@ -550,7 +550,10 @@ def _is_int(x, tp):
         return False
 
     # if there's no difference between the two, then it's an int.
-    return (x - x.astype('int')).abs().sum() == 0
+    try:
+        return (x - x.astype('int')).abs().sum() == 0
+    except ValueError:  # happens when there are NaNs
+        return False
 
 
 def pd_stats(X, col_type='all', na_str='--', hi_skew_thresh=1.0, mod_skew_thresh=0.5):
