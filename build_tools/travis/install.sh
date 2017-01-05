@@ -43,7 +43,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
-    conda create -n testenv --yes python=$PYTHON_VERSION numpy scipy pandas coverage cython
+    conda create -n testenv --yes python=$PYTHON_VERSION numpy scipy coverage cython
 
     source activate testenv
 
@@ -52,6 +52,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
 
     pip install scikit-learn==$SCIKIT_LEARN_VERSION
+    pip install pandas==0.19.0
 
     if [[ "$WITH_MATPLOTLIB" == "true" ]]; then
         pip install matplotlib;
