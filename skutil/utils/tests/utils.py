@@ -4,8 +4,7 @@ from __future__ import print_function, absolute_import, division
 import warnings
 
 __all__ = [
-    'assert_fails',
-    'suppress_test_warnings'
+    'assert_fails'
 ]
 
 
