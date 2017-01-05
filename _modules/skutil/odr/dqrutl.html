@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.odr.dqrutl &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.odr.dqrutl &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -137,6 +137,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">skutil.odr</span> <span class="k">import</span> <span class="n">dqrsl</span> <span class="c1"># what happens if we make this absolute?</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">check_array</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span>
 <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="k">import</span> <span class="n">matrix_rank</span>
 
 <span class="c1"># WARNING: there is little-to-no validation of input in these functions,</span>
@@ -153,9 +154,9 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;too many elements for Fortran LINPACK routine&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_safecall</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_safecall</span><span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A method to call a LAPACK or LINPACK subroutine internally&quot;&quot;&quot;</span>
-    <span class="n">ret</span> <span class="o">=</span> <span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">fun</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="qr_decomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.qr_decomposition">[docs]</a><span class="k">def</span> <span class="nf">qr_decomposition</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -210,7 +211,7 @@
     <span class="k">assert</span> <span class="n">work</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">,</span> <span class="s1">&#39;expected work to be of length </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span>
 
     <span class="c1"># call the fortran module IN PLACE</span>
-    <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrdc</span><span class="p">,</span> <span class="s1">&#39;dqrdc&#39;</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="n">job_</span><span class="p">)</span>
+    <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrdc</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">pivot</span><span class="p">,</span> <span class="n">work</span><span class="p">,</span> <span class="n">job_</span><span class="p">)</span>
 
     <span class="c1"># do returns</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span>
@@ -225,7 +226,7 @@
     <span class="k">return</span> <span class="n">qr</span><span class="p">[:</span><span class="n">min_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
 
 
-<div class="viewcode-block" id="QRDecomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition">[docs]</a><span class="k">class</span> <span class="nc">QRDecomposition</span><span class="p">():</span>
+<div class="viewcode-block" id="QRDecomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_odr.html#skutil.odr.QRDecomposition">[docs]</a><span class="k">class</span> <span class="nc">QRDecomposition</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Performs the QR decomposition using LINPACK, BLAS and LAPACK</span>
 <span class="sd">    Fortran subroutines, and provides an interface for other useful</span>
 <span class="sd">    QR utility methods.</span>
@@ -298,7 +299,7 @@
                       <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span>
 
         <span class="c1"># call the fortran module IN PLACE</span>
-        <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrcf</span><span class="p">,</span> <span class="s1">&#39;dqrcf&#39;</span><span class="p">,</span> <span class="n">qr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">_safecall</span><span class="p">(</span><span class="n">dqrsl</span><span class="o">.</span><span class="n">dqrcf</span><span class="p">,</span> <span class="n">qr</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">qraux</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="c1"># post-processing</span>
         <span class="c1"># if k &lt; p:</span>
@@ -372,7 +373,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

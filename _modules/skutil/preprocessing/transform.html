@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.preprocessing.transform &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.preprocessing.transform &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -133,7 +133,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.preprocessing.transform</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
@@ -145,7 +147,7 @@
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
 <span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">_cols_if_none</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;BoxCoxTransformer&#39;</span><span class="p">,</span>
@@ -176,31 +178,63 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_samples should be at least two, but got </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">m</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_BaseSelectiveTransformer</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">BaseEstimator</span><span class="p">,</span>
-                                                   <span class="n">TransformerMixin</span><span class="p">,</span>
-                                                   <span class="n">SelectiveMixin</span><span class="p">)):</span>
-    <span class="sd">&quot;&quot;&quot;Base class for skutil transformers&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
-
-
-<div class="viewcode-block" id="FunctionMapper"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper">[docs]</a><span class="k">class</span> <span class="nc">FunctionMapper</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="FunctionMapper"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper">[docs]</a><span class="k">class</span> <span class="nc">FunctionMapper</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply a function to a column or set of columns.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation.</span>
 
-<span class="sd">    fun : function, default None</span>
-<span class="sd">        The function to apply to the feature(s)</span>
+<span class="sd">    fun : function, (default=None)</span>
+<span class="sd">        The function to apply to the feature(s). This function will be</span>
+<span class="sd">        applied via lambda expression to each column (independent of</span>
+<span class="sd">        one another). Therefore, the callable should accept an array-like</span>
+<span class="sd">        argument.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    is_fit_ : bool</span>
+<span class="sd">        The ``FunctionMapper`` callable is set in the constructor,</span>
+<span class="sd">        but to remain true to the sklearn API, we need to ensure ``fit``</span>
+<span class="sd">        is called prior to ``transform``. Thus, we set this attribute in</span>
+<span class="sd">        the ``fit`` method, which performs some validation, to ensure the</span>
+<span class="sd">        ``fun`` parameter has been validated.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    </span>
+<span class="sd">    The following example will apply a cube-root transformation</span>
+<span class="sd">    to the first two columns in the iris dataset.</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # define the function</span>
+<span class="sd">        &gt;&gt;&gt; def cube_root(x):</span>
+<span class="sd">        ...     return np.power(x, 0.333)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; # make our transformer</span>
+<span class="sd">        &gt;&gt;&gt; trans = FunctionMapper(cols=X.columns[:2], fun=cube_root)</span>
+<span class="sd">        &gt;&gt;&gt; trans.fit_transform(X).head()</span>
+<span class="sd">           sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)</span>
+<span class="sd">        0           1.720366          1.517661                1.4               0.2</span>
+<span class="sd">        1           1.697600          1.441722                1.4               0.2</span>
+<span class="sd">        2           1.674205          1.473041                1.3               0.2</span>
+<span class="sd">        3           1.662258          1.457550                1.5               0.2</span>
+<span class="sd">        4           1.709059          1.531965                1.4               0.2</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fun</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -210,15 +244,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
 
 <div class="viewcode-block" id="FunctionMapper.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Validate the args</span>
-<span class="sd">        </span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : pandas DF, shape [n_samples, n_features]</span>
-<span class="sd">            The data used for estimating the lambdas</span>
-<span class="sd">        </span>
-<span class="sd">        y : Passthrough for Pipeline compatibility</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
+
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -239,31 +278,41 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;passed fun arg is not a function&#39;</span><span class="p">)</span>
 
+        <span class="c1"># since we aren&#39;t checking is fit, we should set</span>
+        <span class="c1"># an arbitrary value to show validation has already occurred</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_fit_</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># TODO: this might cause issues in de-pickling, as we&#39;re</span>
+        <span class="c1"># going to be pickling a non-instance method... solve this.</span>
+
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="FunctionMapper.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+<div class="viewcode-block" id="FunctionMapper.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.FunctionMapper.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;is_fit_&#39;</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># apply the function</span>
+        <span class="c1"># TODO: do we want to change the behavior to where the function</span>
+        <span class="c1"># should accept an entire frame and not a series?</span>
         <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">X</span></div></div>
 
@@ -275,8 +324,14 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    a : pd.Series</span>
-<span class="sd">    b : pd.Series</span>
+<span class="sd">    a : Pandas ``Series``</span>
+<span class="sd">        One of two Pandas ``Series`` objects that will</span>
+<span class="sd">        be interacted together.</span>
+
+<span class="sd">    b : Pandas ``Series``</span>
+<span class="sd">        One of two Pandas ``Series`` objects that will</span>
+<span class="sd">        be interacted together.</span>
+
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -286,7 +341,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
 
 
-<div class="viewcode-block" id="InteractionTermTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.InteractionTermTransformer">[docs]</a><span class="k">class</span> <span class="nc">InteractionTermTransformer</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="InteractionTermTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.InteractionTermTransformer">[docs]</a><span class="k">class</span> <span class="nc">InteractionTermTransformer</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A class that will generate interaction terms between selected columns.</span>
 <span class="sd">    An interaction captures some relationship between two independent variables</span>
 <span class="sd">    in the form of In = (xi * xj).</span>
@@ -294,18 +349,20 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that since </span>
+<span class="sd">        this transformer can only operate on numeric columns, not explicitly </span>
+<span class="sd">        setting the ``cols`` parameter may result in errors for categorical data.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
 
 <span class="sd">    interaction : callable, optional (default=None)</span>
 <span class="sd">        A callable for interactions. Default None will</span>
@@ -319,11 +376,38 @@
 <span class="sd">        If set to True, will only return features in feature_names</span>
 <span class="sd">        and their respective generated interaction terms.</span>
 
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 
 <span class="sd">    fun_ : callable</span>
 <span class="sd">        The interaction term function</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    The following example interacts the first two columns of the iris</span>
+<span class="sd">    dataset using the default ``_mul`` function (product).</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.preprocessing import InteractionTermTransformer</span>
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; trans = InteractionTermTransformer(cols=X.columns[:2])</span>
+<span class="sd">        &gt;&gt;&gt; X_transform = trans.fit_transform(X)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; assert X_transform.shape[1] == X.shape[1] + 1 # only added one column</span>
+<span class="sd">        &gt;&gt;&gt; X_transform[X_transform.columns[-1]].head()</span>
+<span class="sd">        0    17.85</span>
+<span class="sd">        1    14.70</span>
+<span class="sd">        2    15.04</span>
+<span class="sd">        3    14.26</span>
+<span class="sd">        4    18.00</span>
+<span class="sd">        Name: sepal length (cm)_sepal width (cm)_I, dtype: float64</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">interaction_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -340,10 +424,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -354,37 +439,43 @@
 
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
 
         <span class="c1"># validate function</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;require callable for interaction_function&#39;</span><span class="p">)</span>
 
         <span class="c1"># validate cols</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;need at least two columns&#39;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="InteractionTermTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.InteractionTermTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;fun_&#39;</span><span class="p">)</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
         <span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
         <span class="n">suff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_suffix</span>
 
@@ -392,7 +483,7 @@
         <span class="n">append_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">interaction_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
 
-        <span class="c1"># we can do this in N^2 or we can do it in an uglier N choose 2...</span>
+        <span class="c1"># we can do this in N^2 or we can do it in the uglier N choose 2...</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
                 <span class="n">col_i</span><span class="p">,</span> <span class="n">col_j</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
@@ -411,48 +502,89 @@
         <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="SelectiveScaler"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler">[docs]</a><span class="k">class</span> <span class="nc">SelectiveScaler</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectiveScaler"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler">[docs]</a><span class="k">class</span> <span class="nc">SelectiveScaler</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A class that will apply scaling only to a select group</span>
-<span class="sd">    of columns. Useful for data that contains categorical features</span>
-<span class="sd">    that have not yet been dummied, for dummied features that we</span>
-<span class="sd">    may not want to scale, or for any already-in-scale features.</span>
-<span class="sd">    Perhaps, even, there are some features you&#39;d like to impute in</span>
+<span class="sd">    of columns. Useful for data that may contain features that should not</span>
+<span class="sd">    be scaled, such as those that have been dummied, or for any already-in-scale </span>
+<span class="sd">    features. Perhaps, even, there are some features you&#39;d like to scale in</span>
 <span class="sd">    a different manner than others. This, then, allows two back-to-back</span>
-<span class="sd">    SelectiveScalers with different columns &amp; strategies in a pipeline object.</span>
+<span class="sd">    ``SelectiveScaler`` instances with different columns &amp; strategies in a </span>
+<span class="sd">    pipeline object.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that since </span>
+<span class="sd">        this transformer can only operate on numeric columns, not explicitly </span>
+<span class="sd">        setting the ``cols`` parameter may result in errors for categorical data.</span>
 
-<span class="sd">    scaler : instance of a sklearn Scaler, default StandardScaler</span>
+<span class="sd">    scaler : instance of a sklearn Scaler, optional (default=StandardScaler)</span>
+<span class="sd">        The scaler to fit against ``cols``. Must be an instance of</span>
+<span class="sd">        ``sklearn.preprocessing.BaseScaler``.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    is_fit_ : bool</span>
+<span class="sd">        The ``SelectiveScaler`` parameter ``scaler`` is set in the constructor,</span>
+<span class="sd">        but to remain true to the sklearn API, we need to ensure ``fit``</span>
+<span class="sd">        is called prior to ``transform``. Thus, we set this attribute in</span>
+<span class="sd">        the ``fit`` method, which performs some validation, to ensure the</span>
+<span class="sd">        ``scaler`` parameter has been validated.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    The following example will scale only the first two features</span>
+<span class="sd">    in the iris dataset:</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.preprocessing import SelectiveScaler</span>
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; trans = SelectiveScaler(cols=X.columns[:2])</span>
+<span class="sd">        &gt;&gt;&gt; X_transform = trans.fit_transform(X)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; X_transform.head()</span>
+<span class="sd">           sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)</span>
+<span class="sd">        0          -0.900681          1.032057                1.4               0.2</span>
+<span class="sd">        1          -1.143017         -0.124958                1.4               0.2</span>
+<span class="sd">        2          -1.385353          0.337848                1.3               0.2</span>
+<span class="sd">        3          -1.506521          0.106445                1.5               0.2</span>
+<span class="sd">        4          -1.021849          1.263460                1.4               0.2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SelectiveScaler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">scaler</span>
 
-<div class="viewcode-block" id="SelectiveScaler.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectiveScaler.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -465,55 +597,59 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># throws exception if the cols don&#39;t exist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
+
+        <span class="c1"># this is our fit param</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_fit_</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SelectiveScaler.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+<div class="viewcode-block" id="SelectiveScaler.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SelectiveScaler.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># Fails through if cols don&#39;t exist or if the scaler isn&#39;t fit yet</span>
         <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="BoxCoxTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer">[docs]</a><span class="k">class</span> <span class="nc">BoxCoxTransformer</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="BoxCoxTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer">[docs]</a><span class="k">class</span> <span class="nc">BoxCoxTransformer</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Estimate a lambda parameter for each feature, and transform</span>
 <span class="sd">       it to a distribution more-closely resembling a Gaussian bell</span>
-<span class="sd">       using the Box-Cox transformation. By default, will ignore sparse</span>
-<span class="sd">       features that are generated via the OneHotCategoricalTransformer.</span>
+<span class="sd">       using the Box-Cox transformation.</span>
 <span class="sd">       </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that since </span>
+<span class="sd">        this transformer can only operate on numeric columns, not explicitly </span>
+<span class="sd">        setting the ``cols`` parameter may result in errors for categorical data.</span>
 
 <span class="sd">    n_jobs : int, 1 by default</span>
 <span class="sd">       The number of jobs to use for the computation. This works by</span>
@@ -525,10 +661,17 @@
 <span class="sd">       one are used.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+<span class="sd">    shift_amt : float, optional (default=1e-6)</span>
+<span class="sd">        Since the Box-Cox transformation requires that all values be positive</span>
+<span class="sd">        (above zero), any features that contain sub-zero elements will be shifted</span>
+<span class="sd">        up by the absolute value of the minimum element plus this amount in the ``fit`` </span>
+<span class="sd">        method. In the ``transform`` method, if any of the test data is less than zero </span>
+<span class="sd">        after shifting, it will be truncated at the ``shift_amt`` value.</span>
 
 
 <span class="sd">    Attributes</span>
@@ -542,9 +685,10 @@
 <span class="sd">       The lambda values corresponding to each feature</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shift_amt</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">BoxCoxTransformer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">n_jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_amt</span> <span class="o">=</span> <span class="n">shift_amt</span>
 
 <div class="viewcode-block" id="BoxCoxTransformer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
@@ -552,10 +696,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -567,15 +712,15 @@
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># creates a copy -- we need all to be finite</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># ensure enough rows</span>
         <span class="n">_validate_rows</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
         <span class="c1"># First step is to compute all the shifts needed, then add back to X...</span>
         <span class="n">min_Xs</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">min_Xs</span><span class="p">])</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_amt</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">min_Xs</span><span class="p">])</span>
         <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
 
         <span class="c1"># now put shift into a dict</span>
@@ -589,32 +734,32 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="BoxCoxTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+<div class="viewcode-block" id="BoxCoxTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.BoxCoxTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;shift_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="n">_</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">lambdas_</span><span class="p">,</span> <span class="n">shifts_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift_</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
 
         <span class="c1"># Add the shifts in, and if they&#39;re too low,</span>
         <span class="c1"># we have to truncate at some low value: 1e-6</span>
@@ -622,7 +767,7 @@
             <span class="n">X</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shifts_</span><span class="p">[</span><span class="n">nm</span><span class="p">]</span>
 
         <span class="c1"># If the shifts are too low, truncate...</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shift_amt</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
 
         <span class="c1"># do transformations</span>
         <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
@@ -638,7 +783,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    y : ndarray, shape (n_samples,)</span>
+<span class="sd">    y : array_like, shape (n_samples,)</span>
 <span class="sd">       The vector being transformed</span>
 <span class="sd">       </span>
 <span class="sd">    lam : ndarray, shape (n_lambdas,)</span>
@@ -646,7 +791,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># ensure np array</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-    <span class="n">y_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lam</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">lam</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_eqls</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span> <span class="n">ZERO</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="p">))</span>
+    <span class="n">y_prime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lam</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">lam</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">_eqls</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span> <span class="n">ZERO</span><span class="p">)</span> <span class="k">else</span> <span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">y</span><span class="p">])</span>
 
     <span class="c1"># rarely -- very rarely -- we can get a NaN. Why?</span>
     <span class="k">return</span> <span class="n">y_prime</span>
@@ -661,9 +806,6 @@
 
 <span class="sd">    y : ndarray, shape (n_samples,)</span>
 <span class="sd">       The vector being estimated against</span>
-<span class="sd">       </span>
-<span class="sd">    lambdas : ndarray, shape (n_lambdas,)</span>
-<span class="sd">       The vector of lambdas to estimate with</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># ensure is array</span>
@@ -676,7 +818,7 @@
     <span class="k">return</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="YeoJohnsonTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer">[docs]</a><span class="k">class</span> <span class="nc">YeoJohnsonTransformer</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="YeoJohnsonTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer">[docs]</a><span class="k">class</span> <span class="nc">YeoJohnsonTransformer</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Estimate a lambda parameter for each feature, and transform</span>
 <span class="sd">       it to a distribution more-closely resembling a Gaussian bell</span>
 <span class="sd">       using the Yeo-Johnson transformation.</span>
@@ -684,12 +826,14 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that since </span>
+<span class="sd">        this transformer can only operate on numeric columns, not explicitly </span>
+<span class="sd">        setting the ``cols`` parameter may result in errors for categorical data.</span>
 
 <span class="sd">    n_jobs : int, 1 by default</span>
 <span class="sd">       The number of jobs to use for the computation. This works by</span>
@@ -701,10 +845,10 @@
 <span class="sd">       one are used.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
 
 
 <span class="sd">    Attributes</span>
@@ -724,10 +868,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -739,8 +884,8 @@
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># creates a copy -- we need all to be finite</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># ensure enough rows</span>
         <span class="n">_validate_rows</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
@@ -753,29 +898,29 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="YeoJohnsonTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+<div class="viewcode-block" id="YeoJohnsonTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.YeoJohnsonTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lambda_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cols</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># creates a copy -- we need all to be finite</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="n">lambdas_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_</span>
 
@@ -831,9 +976,6 @@
 
 <span class="sd">    y : ndarray, shape (n_samples,)</span>
 <span class="sd">       The vector being estimated against</span>
-
-<span class="sd">    lambdas : ndarray, shape (n_lambdas,)</span>
-<span class="sd">       The vector of lambdas to estimate with</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
     <span class="c1"># Use customlog-likelihood estimator</span>
@@ -853,12 +995,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Use MLE to compute the optimal YJ parameter</span>
-    <span class="k">def</span> <span class="nf">_mle_opt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">brack</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_mle_opt</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">brck</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">_eval_mle</span><span class="p">(</span><span class="n">lmb</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
             <span class="c1"># Function to minimize</span>
             <span class="k">return</span> <span class="o">-</span><span class="n">_yj_llf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">lmb</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brent</span><span class="p">(</span><span class="n">_eval_mle</span><span class="p">,</span> <span class="n">brack</span><span class="o">=</span><span class="n">brack</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brent</span><span class="p">(</span><span class="n">_eval_mle</span><span class="p">,</span> <span class="n">brack</span><span class="o">=</span><span class="n">brck</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">i</span><span class="p">,))</span>
 
     <span class="k">return</span> <span class="n">_mle_opt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">brack</span><span class="p">)</span>  <span class="c1"># _mle(x, brack)</span>
 
@@ -912,19 +1054,21 @@
     <span class="k">return</span> <span class="n">llf</span>
 
 
-<div class="viewcode-block" id="SpatialSignTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer">[docs]</a><span class="k">class</span> <span class="nc">SpatialSignTransformer</span><span class="p">(</span><span class="n">_BaseSelectiveTransformer</span><span class="p">):</span>
+<div class="viewcode-block" id="SpatialSignTransformer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer">[docs]</a><span class="k">class</span> <span class="nc">SpatialSignTransformer</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Project the feature space of a matrix into a multi-dimensional sphere</span>
 <span class="sd">    by dividing each feature by its squared norm.</span>
 <span class="sd">       </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that since </span>
+<span class="sd">        this transformer can only operate on numeric columns, not explicitly </span>
+<span class="sd">        setting the ``cols`` parameter may result in errors for categorical data.</span>
 
 <span class="sd">    n_jobs : int, 1 by default</span>
 <span class="sd">       The number of jobs to use for the computation. This works by</span>
@@ -936,10 +1080,10 @@
 <span class="sd">       one are used.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
 
 
 <span class="sd">    Attributes</span>
@@ -959,10 +1103,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -975,7 +1120,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># Now get sqnms in parallel</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sq_nms_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span>
@@ -985,24 +1130,24 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SpatialSignTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Apply the transformation to test data.</span>
+<div class="viewcode-block" id="SpatialSignTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.SpatialSignTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;sq_nms_&#39;</span><span class="p">)</span>
 
@@ -1057,7 +1202,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

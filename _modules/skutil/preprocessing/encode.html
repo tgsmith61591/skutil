@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.preprocessing.encode &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.preprocessing.encode &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -141,6 +141,7 @@
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing.label</span> <span class="k">import</span> <span class="n">_check_numpy_unicode_bug</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">BaseSkutil</span>
 <span class="kn">from</span> <span class="nn">skutil.utils</span> <span class="k">import</span> <span class="n">validate_is_pd</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -201,7 +202,7 @@
         <span class="k">return</span> <span class="n">e</span></div></div>
 
 
-<div class="viewcode-block" id="OneHotCategoricalEncoder"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OneHotCategoricalEncoder">[docs]</a><span class="k">class</span> <span class="nc">OneHotCategoricalEncoder</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="OneHotCategoricalEncoder"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OneHotCategoricalEncoder">[docs]</a><span class="k">class</span> <span class="nc">OneHotCategoricalEncoder</span><span class="p">(</span><span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class achieves three things: first, it will fill in </span>
 <span class="sd">    any NaN values with a provided surrogate (if desired). Second,</span>
 <span class="sd">    it will dummy out any categorical features using OneHotEncoding</span>
@@ -216,10 +217,32 @@
 <span class="sd">        The value that will fill the missing values in the column</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from skutil.preprocessing import OneHotCategoricalEncoder</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; X = pd.DataFrame.from_records(data=np.array([</span>
+<span class="sd">        ...                                  [&#39;USA&#39;,&#39;RED&#39;,&#39;a&#39;],</span>
+<span class="sd">        ...                                  [&#39;MEX&#39;,&#39;GRN&#39;,&#39;b&#39;],</span>
+<span class="sd">        ...                                  [&#39;FRA&#39;,&#39;RED&#39;,&#39;b&#39;]]), </span>
+<span class="sd">        ...                               columns=[&#39;A&#39;,&#39;B&#39;,&#39;C&#39;])</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; o = OneHotCategoricalEncoder(as_df=True)</span>
+<span class="sd">        &gt;&gt;&gt; o.fit_transform(X)</span>
+<span class="sd">           A.FRA  A.MEX  A.USA  A.NA  B.GRN  B.RED  B.NA  C.a  C.b  C.NA</span>
+<span class="sd">        0    0.0    0.0    1.0   0.0    0.0    1.0   0.0  1.0  0.0   0.0</span>
+<span class="sd">        1    0.0    1.0    0.0   0.0    1.0    0.0   0.0  0.0  1.0   0.0</span>
+<span class="sd">        2    1.0    0.0    0.0   0.0    0.0    1.0   0.0  0.0  1.0   0.0</span>
+
 <span class="sd">        </span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -236,8 +259,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;Missing&#39;</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OneHotCategoricalEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fill</span> <span class="o">=</span> <span class="n">fill</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
 
 <div class="viewcode-block" id="OneHotCategoricalEncoder.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_preprocessing.html#skutil.preprocessing.OneHotCategoricalEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit the encoder.</span>
@@ -245,7 +268,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the object columns of the dataframe.</span>
 
@@ -327,13 +350,13 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The Pandas frame to transform.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        x : Pandas DataFrame or NumPy ndarray</span>
+<span class="sd">        x : Pandas ``DataFrame`` or np.ndarray, shape=(n_samples, n_features)</span>
 <span class="sd">            The encoded dataframe or array</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;obj_cols_&#39;</span><span class="p">)</span>
@@ -394,7 +417,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

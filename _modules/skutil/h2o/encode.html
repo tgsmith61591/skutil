@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.encode &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.h2o.encode &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -135,14 +135,17 @@
   <h1>Source code for skutil.h2o.encode</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">h2o</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">LabelEncoder</span>
 <span class="kn">from</span> <span class="nn">..preprocessing.encode</span> <span class="k">import</span> <span class="n">_get_unseen</span>
 <span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">check_frame</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">h2o_col_to_numpy</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;H2OLabelEncoder&#39;</span><span class="p">,</span>
     <span class="s1">&#39;H2OSafeOneHotEncoder&#39;</span>
 <span class="p">]</span>
 
@@ -152,8 +155,76 @@
     <span class="k">return</span> <span class="n">y</span>
 
 
+<div class="viewcode-block" id="H2OLabelEncoder"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder">[docs]</a><span class="k">class</span> <span class="nc">H2OLabelEncoder</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Encode categorical values in a H2OFrame (single column)</span>
+<span class="sd">    into ordinal labels 0 - len(column) - 1.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; def example():</span>
+<span class="sd">        ...     import pandas as pd</span>
+<span class="sd">        ...     from skutil.h2o import from_pandas</span>
+<span class="sd">        ...     from sktuil.h2o.transform import H2OLabelEncoder</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     x = pd.DataFrame.from_records(data=[</span>
+<span class="sd">        ...                 [5, 4],</span>
+<span class="sd">        ...                 [6, 2],</span>
+<span class="sd">        ...                 [5, 1],</span>
+<span class="sd">        ...                 [7, 9],</span>
+<span class="sd">        ...                 [7, 2]], columns=[&#39;C1&#39;, &#39;C2&#39;])</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     X = from_pandas(x)</span>
+<span class="sd">        ...     encoder = H2OLabelEncoder()</span>
+<span class="sd">        ...     encoder.fit_transform(X[&#39;C1&#39;])</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; example() # doctest: +SKIP</span>
+<span class="sd">          C1</span>
+<span class="sd">        ----</span>
+<span class="sd">           0</span>
+<span class="sd">           1</span>
+<span class="sd">           0</span>
+<span class="sd">           2</span>
+<span class="sd">           2</span>
+<span class="sd">        [5 rows x 1 column]</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    classes_ : np.ndarray</span>
+<span class="sd">        The unique class levels</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
+    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">H2OLabelEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                              <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                              <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                              <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
+                                              <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
+
+<div class="viewcode-block" id="H2OLabelEncoder.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder_</span> <span class="o">=</span> <span class="n">LabelEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">column</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder_</span><span class="o">.</span><span class="n">classes_</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="H2OLabelEncoder.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;encoder_&#39;</span><span class="p">)</span>
+        <span class="n">column</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+
+        <span class="c1"># transform--</span>
+        <span class="c1"># I don&#39;t like that we have to re-upload... but we do... for now...</span>
+        <span class="k">return</span> <span class="n">H2OFrame</span><span class="o">.</span><span class="n">from_python</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encoder_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">column</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span></div></div>
+
+
 <span class="k">class</span> <span class="nc">_H2OVecSafeOneHotEncoder</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Safely one-hot encodes an H2OVec into an H2OFrame of</span>
+    <span class="sd">&quot;&quot;&quot;Safely one-hot encodes an H2OVec into an ``H2OFrame`` of</span>
 <span class="sd">    one-hot encoded dummies. Whereas H2O&#39;s default behavior for</span>
 <span class="sd">    previously-unseen factor levels is to error, the </span>
 <span class="sd">    ``_H2OVecSafeOneHotEncoder`` skips previously-unseen levels</span>
@@ -163,15 +234,18 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">    feature_names : array_like (str) shape=(n_features,), optional (default=None)</span>
 <span class="sd">        The list of names on which to fit the transformer.</span>
 
-<span class="sd">    target_feature : str, optional (default None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit)</span>
 <span class="sd">        for the estimator.</span>
 
-<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">    exclude_features : array_like (str) shape=(n_features,), optional (default=None)</span>
 <span class="sd">        Any names that should be excluded from ``feature_names``</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -190,8 +264,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame</span>
-<span class="sd">            The frame to fit</span>
+<span class="sd">        y : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">            The training frame on which to fit. Should</span>
+<span class="sd">            be a single column ``H2OFrame``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -221,14 +296,14 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame, 1d</span>
-<span class="sd">            The 1d frame to transform</span>
+<span class="sd">        y : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">            The 1d ``H2OFrame`` to transform</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        output : H2OFrame, 1d</span>
-<span class="sd">            The transformed H2OFrame</span>
+<span class="sd">        output : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">            The transformed ``H2OFrame``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># make sure is fitted, validate y</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;classes_&#39;</span><span class="p">)</span>
@@ -269,18 +344,21 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
+<span class="sd">    feature_names : array_like (str) shape=(n_features,), optional (default=None)</span>
 <span class="sd">        The list of names on which to fit the transformer.</span>
 
-<span class="sd">    target_feature : str, optional (default None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit)</span>
 <span class="sd">        for the estimator.</span>
 
-<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
+<span class="sd">    exclude_features : array_like (str) shape=(n_features,), optional (default=None)</span>
 <span class="sd">        Any names that should be excluded from ``feature_names``</span>
 
 <span class="sd">    drop_after_encoded : bool (default=True)</span>
 <span class="sd">        Whether to drop the original columns after transform</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -301,25 +379,24 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame</span>
-<span class="sd">            The frame to fit</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The training frame to fit</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="c1"># these are just the features to encode</span>
-        <span class="n">cat</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
 
         <span class="c1"># do fit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoders_</span> <span class="o">=</span> <span class="p">{</span>
             <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">_H2OVecSafeOneHotEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">cat</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)])</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cat</span><span class="o">.</span><span class="n">columns</span>
-            <span class="p">}</span>
+        <span class="p">}</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
@@ -329,22 +406,22 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The frame to transform</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        X : H2OFrame</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The transformed H2OFrame</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;encoders_&#39;</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">enc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoders_</span>
 
         <span class="c1"># these are just the features to encode. (we will return the </span>
         <span class="c1"># entire frame unless told not to...)</span>
-        <span class="n">cat</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
 
         <span class="n">output</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">cat</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
@@ -396,7 +473,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

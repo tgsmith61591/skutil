@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.base &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.base &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -133,16 +133,21 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.base</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
+<span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;ModuleImportWarning&#39;</span><span class="p">,</span>
     <span class="s1">&#39;overrides&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;SamplingWarning&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;SelectiveMixin&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;SelectiveWarning&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;suppress_warnings&#39;</span>
+    <span class="s1">&#39;since&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;suppress_warnings&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;BaseSkutil&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;SelectiveMixin&#39;</span>
 <span class="p">]</span>
 
 
@@ -151,12 +156,21 @@
 <span class="sd">    runtime validation that the method is, in fact, inherited from the</span>
 <span class="sd">    superclass. If not, will raise an ``AssertionError``.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    interface_class : type</span>
+<span class="sd">        The class/type from which the specified method is inherited.</span>
+<span class="sd">        If the method does not exist in the specified type, a ``RuntimeError``</span>
+<span class="sd">        will be raised.</span>
+
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    </span>
 <span class="sd">    The following is valid use:</span>
 
-<span class="sd">        &gt;&gt;&gt; class A():</span>
+<span class="sd">        &gt;&gt;&gt; class A(object):</span>
 <span class="sd">        ...     def a(self):</span>
 <span class="sd">        ...         return 1</span>
 
@@ -171,10 +185,15 @@
 <span class="sd">    The following would be an invalid ``overrides`` statement, since</span>
 <span class="sd">    ``A`` does not have a ``b`` method to override.</span>
 
-<span class="sd">        &gt;&gt;&gt; class C(B):</span>
+<span class="sd">        &gt;&gt;&gt; class C(B): # doctest: +IGNORE_EXCEPTION_DETAIL</span>
 <span class="sd">        ...     @overrides(A) # should override B, not A</span>
 <span class="sd">        ...     def b(self):</span>
 <span class="sd">        ...         return 1</span>
+<span class="sd">        Traceback (most recent call last):  </span>
+<span class="sd">        AssertionError: A.b must override a super method!</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">overrider</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
@@ -185,40 +204,85 @@
     <span class="k">return</span> <span class="n">overrider</span>
 
 
+<span class="k">def</span> <span class="nf">since</span><span class="p">(</span><span class="n">version</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A decorator that annotates a function to append the version </span>
+<span class="sd">    of skutil the function was added. This decorator is an adaptation of PySpark&#39;s.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    version : str, float or int</span>
+<span class="sd">        The version the specified method was added to skutil.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; @since(&#39;0.1.5&#39;)</span>
+<span class="sd">        ... def some_fun():</span>
+<span class="sd">        ...     &#39;&#39;&#39;Some docstring&#39;&#39;&#39;</span>
+<span class="sd">        ...     return None</span>
+<span class="sd">        ...</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; some_fun.__doc__ # doctest: +SKIP</span>
+<span class="sd">        &#39;Some docstring\n\n.. versionadded:: 0.1.5&#39;</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indent_p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">r&#39;\n( +)&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">deco</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+        <span class="n">indents</span> <span class="o">=</span> <span class="n">indent_p</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="p">)</span>
+        <span class="n">indent</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">indents</span><span class="p">)</span> <span class="k">if</span> <span class="n">indents</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">__doc__</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="si">%s</span><span class="s2">.. versionadded:: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">deco</span>
+
+
 <span class="k">def</span> <span class="nf">suppress_warnings</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decorator that forces a method to suppress</span>
 <span class="sd">    all warnings it may raise. This should be used with caution,</span>
 <span class="sd">    as it may complicate debugging. For internal purposes, this is</span>
 <span class="sd">    used for imports that cause consistent warnings (like pandas or</span>
 <span class="sd">    matplotlib)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    func : callable</span>
+<span class="sd">        Automatically passed to the decorator. This</span>
+<span class="sd">        function is run within the context of the warning</span>
+<span class="sd">        filterer.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    When any function is decorated with the ``suppress_warnings``</span>
+<span class="sd">    decorator, any warnings that are raised will be suppressed.</span>
+
+<span class="sd">        &gt;&gt;&gt; import warnings</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; @suppress_warnings</span>
+<span class="sd">        ... def fun_that_warns():</span>
+<span class="sd">        ...     warnings.warn(&quot;This is a warning&quot;, UserWarning)</span>
+<span class="sd">        ...     return 1</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; fun_that_warns()</span>
+<span class="sd">        1</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">suppressor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">suppressor</span>
-
-
-<div class="viewcode-block" id="ModuleImportWarning"><a class="viewcode-back" href="../../rsts/codebase/skutil_base.html#skutil.base.ModuleImportWarning">[docs]</a><span class="k">class</span> <span class="nc">ModuleImportWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Custom warning used to notify user a non-critical import failed, and to</span>
-<span class="sd">    suggest the installation of the module for optimal results.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="SamplingWarning"><a class="viewcode-back" href="../../rsts/codebase/skutil_base.html#skutil.base.SamplingWarning">[docs]</a><span class="k">class</span> <span class="nc">SamplingWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Custom warning used to notify the user that sub-optimal sampling behavior</span>
-<span class="sd">    has occurred. For instance, performing oversampling on a minority class with only</span>
-<span class="sd">    one instance will cause this warning to be thrown.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
-
-
-<div class="viewcode-block" id="SelectiveWarning"><a class="viewcode-back" href="../../rsts/codebase/skutil_base.html#skutil.base.SelectiveWarning">[docs]</a><span class="k">class</span> <span class="nc">SelectiveWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Custom warning used to notify user when a structure implementing SelectiveMixin</span>
-<span class="sd">    operates improperly. A common usecase is when the fit method receives a non-DataFrame</span>
-<span class="sd">    X, and no cols.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="SelectiveMixin"><a class="viewcode-back" href="../../rsts/codebase/skutil_base.html#skutil.base.SelectiveMixin">[docs]</a><span class="k">class</span> <span class="nc">SelectiveMixin</span><span class="p">:</span>
@@ -228,6 +292,48 @@
 <span class="sd">    &quot;&quot;&quot;</span></div>
     <span class="c1"># at one time, this contained methods. But They&#39;ve since</span>
     <span class="c1"># been weeded out one-by-one... do we want to keep it?</span>
+    <span class="c1"># TODO: in future versions, remove this mixin or add</span>
+    <span class="c1"># concrete functionality</span>
+
+
+<span class="k">class</span> <span class="nc">BaseSkutil</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">SelectiveMixin</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;Provides the base class for all non-h2o skutil transformers.</span>
+<span class="sd">    Implements ``SelectiveMixin``. Also provides the &quot;pretty-print&quot; </span>
+<span class="sd">    ``__repr__`` implemented in sklearn&#39;s ``BaseEstimator``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation.</span>
+
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.base import BaseSkutil</span>
+<span class="sd">        &gt;&gt;&gt; class A(BaseSkutil):</span>
+<span class="sd">        ...     def __init__(self, cols=None, as_df=None):</span>
+<span class="sd">        ...             super(A, self).__init__(cols, as_df)</span>
+<span class="sd">        ...</span>
+<span class="sd">        &gt;&gt;&gt; A()</span>
+<span class="sd">        A(as_df=None, cols=None)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
 </pre></div>
 
            </div>
@@ -261,7 +367,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.utils module &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.utils module &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="Code Examples" href="../examples/index.html"/>
         <link rel="prev" title="skutil.preprocessing module" href="skutil_preprocessing.html"/> 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -164,16 +164,19 @@ skutil.utils.metaestimators adapts scikit-learns metaestimator for more specific
 
 <dl class="function">
 <dt id="skutil.utils.corr_plot">
-<code class="descclassname">skutil.utils.</code><code class="descname">corr_plot</code><span class="sig-paren">(</span><em>X</em>, <em>plot_type='cor'</em>, <em>cmap='Blues_d'</em>, <em>n_levels=5</em>, <em>corr=None</em>, <em>method='pearson'</em>, <em>figsize=(11</em>, <em>9)</em>, <em>cmap_a=220</em>, <em>cmap_b=10</em>, <em>vmax=0.3</em>, <em>xticklabels=5</em>, <em>yticklabels=5</em>, <em>linewidths=0.5</em>, <em>cbar_kws={'shrink': 0.5}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#corr_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.corr_plot" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.utils.</code><code class="descname">corr_plot</code><span class="sig-paren">(</span><em>X</em>, <em>plot_type='cor'</em>, <em>cmap='Blues_d'</em>, <em>n_levels=5</em>, <em>corr=None</em>, <em>method='pearson'</em>, <em>figsize=(11</em>, <em>9)</em>, <em>cmap_a=220</em>, <em>cmap_b=10</em>, <em>vmax=0.3</em>, <em>xticklabels=5</em>, <em>yticklabels=5</em>, <em>linewidths=0.5</em>, <em>cbar_kws=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#corr_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.corr_plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a simple correlation plot given a dataframe.
 Note that this requires all datatypes to be numeric and finite!</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The pandas DataFrame</p>
+<div><p>The pandas DataFrame on which to compute correlations,
+or if <code class="docutils literal"><span class="pre">corr</span></code> is &#8216;precomputed&#8217;, the correlation matrix.
+In the case that <code class="docutils literal"><span class="pre">X</span></code> is a correlation matrix, it must
+be square, i.e., shape=(n_features, n_features).</p>
 </div></blockquote>
 <p><strong>plot_type</strong> : str, optional (default=&#8217;cor&#8217;)</p>
 <blockquote>
@@ -182,23 +185,23 @@ Note that this requires all datatypes to be numeric and finite!</p>
 <p><strong>cmap</strong> : str, optional (default=&#8217;Blues_d&#8217;)</p>
 <blockquote>
 <div><p>The color to use for the kernel density estimate plot
-if plot_type == &#8216;kde&#8217;</p>
+if <code class="docutils literal"><span class="pre">plot_type</span></code> == &#8216;kde&#8217;. Otherwise unused.</p>
 </div></blockquote>
 <p><strong>n_levels</strong> : int, optional (default=5)</p>
 <blockquote>
 <div><p>The number of levels to use for the kde plot 
-if plot_type == &#8216;kde&#8217;</p>
+if <code class="docutils literal"><span class="pre">plot_type</span></code> == &#8216;kde&#8217;. Otherwise unused.</p>
 </div></blockquote>
 <p><strong>corr</strong> : &#8216;precomputed&#8217; or None, optional (default=None)</p>
 <blockquote>
 <div><p>If None, the correlation matrix is computed, otherwise
-if &#8216;precomputed&#8217;, X is treated as a correlation matrix.</p>
+if &#8216;precomputed&#8217;, <code class="docutils literal"><span class="pre">X</span></code> is treated as a correlation matrix.</p>
 </div></blockquote>
 <p><strong>method</strong> : str, optional (default=&#8217;pearson&#8217;)</p>
 <blockquote>
 <div><p>The method to use for correlation</p>
 </div></blockquote>
-<p><strong>figsize</strong> : tuple (int), optional (default=(11,9))</p>
+<p><strong>figsize</strong> : tuple (int), shape=(w,h), optional (default=(11,9))</p>
 <blockquote>
 <div><p>The size of the image</p>
 </div></blockquote>
@@ -226,9 +229,10 @@ if &#8216;precomputed&#8217;, X is treated as a correlation matrix.</p>
 <blockquote>
 <div><p>The width of the lines</p>
 </div></blockquote>
-<p><strong>cbar_kws</strong> : dict, optional</p>
+<p><strong>cbar_kws</strong> : dict, optional (default=None)</p>
 <blockquote class="last">
-<div><p>Any KWs to pass to seaborn&#8217;s heatmap when plot_type = &#8216;cor&#8217;</p>
+<div><p>Any KWs to pass to seaborn&#8217;s heatmap when <code class="docutils literal"><span class="pre">plot_type</span></code> = &#8216;cor&#8217;.
+If None, will default to {&#8216;shrink&#8217;: 0.5}</p>
 </div></blockquote>
 </td>
 </tr>
@@ -238,26 +242,25 @@ if &#8216;precomputed&#8217;, X is treated as a correlation matrix.</p>
 
 <dl class="function">
 <dt id="skutil.utils.df_memory_estimate">
-<code class="descclassname">skutil.utils.</code><code class="descname">df_memory_estimate</code><span class="sig-paren">(</span><em>X</em>, <em>bit_est=32</em>, <em>unit='MB'</em>, <em>index=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#df_memory_estimate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.df_memory_estimate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.utils.</code><code class="descname">df_memory_estimate</code><span class="sig-paren">(</span><em>X</em>, <em>unit='MB'</em>, <em>index=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#df_memory_estimate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.df_memory_estimate" title="Permalink to this definition">¶</a></dt>
 <dd><p>We estimate the memory footprint of an H2OFrame
-to determine, possibly, whether it&#8217;s capable of being
-held in memory or not.</p>
+to determine whether it&#8217;s capable of being held in memory 
+or not.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
 <div><p>The DataFrame in question</p>
-</div></blockquote>
-<p><strong>bit_est</strong> : int, optional (default=32)</p>
-<blockquote>
-<div><p>The estimated bit-size of each cell. The default
-assumes each cell is a signed 32-bit float</p>
 </div></blockquote>
 <p><strong>unit</strong> : str, optional (default=&#8217;MB&#8217;)</p>
 <blockquote>
 <div><p>The units to report. One of (&#8216;MB&#8217;, &#8216;KB&#8217;, &#8216;GB&#8217;, &#8216;TB&#8217;)</p>
+</div></blockquote>
+<p><strong>index</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>Whether to also estimate the memory footprint of the index.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -272,9 +275,54 @@ assumes each cell is a signed 32-bit float</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="skutil.utils.dict_keys">
+<code class="descclassname">skutil.utils.</code><code class="descname">dict_keys</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/fixes.html#dict_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.dict_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>In python 3, the <code class="docutils literal"><span class="pre">d.keys()</span></code> method
+returns a view and not an actual list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>d</strong> : dict</p>
+<blockquote>
+<div><p>The dictionary</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>list</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.utils.dict_values">
+<code class="descclassname">skutil.utils.</code><code class="descname">dict_values</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/fixes.html#dict_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.dict_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>In python 3, the <code class="docutils literal"><span class="pre">d.values()</span></code> method
+returns a view and not an actual list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>d</strong> : dict</p>
+<blockquote>
+<div><p>The dictionary</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>list</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="skutil.utils.exp">
 <code class="descclassname">skutil.utils.</code><code class="descname">exp</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.exp" title="Permalink to this definition">¶</a></dt>
-<dd><p>A safe mechanism for computing the exponential function.</p>
+<dd><p>A safe mechanism for computing the exponential function
+while avoiding overflows.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -301,7 +349,7 @@ WARNING: this function may produce a list of mixed types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : iterable, object</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : array_like, shape=(n_items,)</p>
 <blockquote>
 <div><p>The iterable to flatten. If the <code class="docutils literal"><span class="pre">container</span></code> is
 not iterable, it will be returned in a list as 
@@ -309,7 +357,7 @@ not iterable, it will be returned in a list as
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>l</strong> : list</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>l</strong> : list, shape=(n_items,)</p>
 <blockquote class="last">
 <div><p>The flattened list</p>
 </div></blockquote>
@@ -321,7 +369,7 @@ not iterable, it will be returned in a list as
 <p>The example below produces a list of mixed results:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2]</span>
+<span class="go">[3, 4, &#39;1&#39;, &#39;a&#39;, 1, 1, 2]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -335,10 +383,15 @@ WARNING: this function may produce a list of mixed types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : iterable, object</p>
-<blockquote class="last">
-<div><p>The iterable to flatten.</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>container</strong> : array_like, shape=(n_items,)</p>
+<blockquote>
+<div><p>The iterable to flatten. If the <code class="docutils literal"><span class="pre">container</span></code> is
+not iterable, it will be returned in a list as
+<code class="docutils literal"><span class="pre">[container]</span></code></p>
 </div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>generator object</strong> :</p>
 </td>
 </tr>
 </tbody>
@@ -346,8 +399,8 @@ WARNING: this function may produce a list of mixed types.</p>
 <p class="rubric">Examples</p>
 <p>The example below produces a list of mixed results:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="p">[[[],</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">],[[[</span><span class="mi">1</span><span class="p">]]],</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="go">[3,4,&#39;1&#39;,&#39;a&#39;,1,1,2] # yields a generator for this iterable</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flatten_all</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># yields a generator for this iterable</span>
+<span class="go">[3, 4, &#39;1&#39;, &#39;a&#39;, 1, 1, 2]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -360,7 +413,7 @@ WARNING: this function may produce a list of mixed types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pandas DF</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
 <div><p>The dataframe</p>
 </div></blockquote>
@@ -413,7 +466,7 @@ is numeric in dtypes.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
 <div><p>The dataframe to test</p>
 </div></blockquote>
@@ -481,6 +534,33 @@ integer type (int, long, etc).</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="skutil.utils.is_iterable">
+<code class="descclassname">skutil.utils.</code><code class="descname">is_iterable</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/fixes.html#is_iterable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_iterable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python 3.x adds the <code class="docutils literal"><span class="pre">__iter__</span></code> attribute
+to strings. Thus, our previous tests for iterable
+will fail when using <code class="docutils literal"><span class="pre">hasattr</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : object</p>
+<blockquote>
+<div><p>The object or primitive to test whether
+or not is an iterable.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>bool</strong> :</p>
+<blockquote class="last">
+<div><p>True if <code class="docutils literal"><span class="pre">x</span></code> is an iterable</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="skutil.utils.is_numeric">
 <code class="descclassname">skutil.utils.</code><code class="descname">is_numeric</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#is_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.is_numeric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine whether some object <code class="docutils literal"><span class="pre">x</span></code> is a
@@ -529,7 +609,7 @@ is specified in <code class="docutils literal"><span class="pre">tgt_name</span>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote class="last">
 <div><p>The loaded dataset</p>
 </div></blockquote>
@@ -563,7 +643,7 @@ is specified in <code class="docutils literal"><span class="pre">tgt_name</span>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame, shape=(n_samples, n_features)</p>
 <blockquote class="last">
 <div><p>The loaded dataset</p>
 </div></blockquote>
@@ -597,7 +677,7 @@ is specified in <code class="docutils literal"><span class="pre">tgt_name</span>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame, shape=(n_samples, n_features)</p>
 <blockquote class="last">
 <div><p>The loaded dataset</p>
 </div></blockquote>
@@ -610,7 +690,8 @@ is specified in <code class="docutils literal"><span class="pre">tgt_name</span>
 <dl class="function">
 <dt id="skutil.utils.log">
 <code class="descclassname">skutil.utils.</code><code class="descname">log</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.log" title="Permalink to this definition">¶</a></dt>
-<dd><p>A safe mechanism for computing a log.</p>
+<dd><p>A safe mechanism for computing a log while
+avoiding NaNs or exceptions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -632,20 +713,27 @@ is specified in <code class="docutils literal"><span class="pre">tgt_name</span>
 <dt id="skutil.utils.pd_stats">
 <code class="descclassname">skutil.utils.</code><code class="descname">pd_stats</code><span class="sig-paren">(</span><em>X</em>, <em>col_type='all'</em>, <em>na_str='--'</em>, <em>hi_skew_thresh=1.0</em>, <em>mod_skew_thresh=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#pd_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.pd_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a descriptive report of the elements in the data frame.
-Builds on existing pandas <cite>describe</cite> method.</p>
+Builds on existing pandas <code class="docutils literal"><span class="pre">describe</span></code> method by adding counts of
+factor-level features, a skewness rating and several other helpful
+statistics.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The DataFrame</p>
+<div><p>The DataFrame on which to compute stats.</p>
 </div></blockquote>
 <p><strong>col_type</strong> : str, optional (default=&#8217;all&#8217;)</p>
 <blockquote>
 <div><p>The types of columns to analyze. One of (&#8216;all&#8217;,
 &#8216;numeric&#8217;, &#8216;object&#8217;). If not all, will only return
 corresponding typed columns.</p>
+</div></blockquote>
+<p><strong>na_str</strong> : str, optional (default=&#8217;&#8211;&#8217;)</p>
+<blockquote>
+<div><p>The string to display in a cell that is not applicable
+for the column&#8217;s datatype.</p>
 </div></blockquote>
 <p><strong>hi_skew_thresh</strong> : float, optional (default=1.0)</p>
 <blockquote>
@@ -660,9 +748,9 @@ be deemed &#8220;moderate,&#8221; so long as it does not exceed
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>pd.DataFrame</strong> :</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>s</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote class="last">
-<div><p>The stats dataframe.</p>
+<div><p>The resulting stats dataframe</p>
 </div></blockquote>
 </td>
 </tr>
@@ -689,11 +777,12 @@ with the classification performance metrics.</p>
 </div></blockquote>
 <p><strong>return_metrics</strong> : bool, optional (default=True)</p>
 <blockquote>
-<div><p>Whether to return the metrics in a pd.Series</p>
+<div><p>Whether to return the metrics in a pd.Series. If False,
+index 1 of the returned tuple will be None.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>conf</strong> : pd.DataFrame</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>conf</strong> : pd.DataFrame, shape=(2, 2)</p>
 <blockquote>
 <div><p>The confusion matrix</p>
 </div></blockquote>
@@ -709,7 +798,7 @@ with the classification performance metrics.</p>
 
 <dl class="function">
 <dt id="skutil.utils.report_grid_score_detail">
-<code class="descclassname">skutil.utils.</code><code class="descname">report_grid_score_detail</code><span class="sig-paren">(</span><em>random_search</em>, <em>charts=True</em>, <em>sort_results=True</em>, <em>ascending=True</em>, <em>percentile=0.975</em>, <em>y_axis='score'</em>, <em>sort_by='score'</em>, <em>highlight_best=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#report_grid_score_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.report_grid_score_detail" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.utils.</code><code class="descname">report_grid_score_detail</code><span class="sig-paren">(</span><em>random_search</em>, <em>charts=True</em>, <em>sort_results=True</em>, <em>ascending=True</em>, <em>percentile=0.975</em>, <em>y_axis='mean_test_score'</em>, <em>sort_by='mean_test_score'</em>, <em>highlight_best=True</em>, <em>highlight_col='red'</em>, <em>def_color='blue'</em>, <em>return_drops=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#report_grid_score_detail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.report_grid_score_detail" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return plots and dataframe of results, given a fitted grid search.
 Note that if Matplotlib is not installed, a warning will be thrown
 and no plots will be generated.</p>
@@ -717,7 +806,7 @@ and no plots will be generated.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>random_search</strong> : BaseGridSearch</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>random_search</strong> : <code class="docutils literal"><span class="pre">BaseSearchCV</span></code> or <code class="docutils literal"><span class="pre">BaseH2OSearchCV</span></code></p>
 <blockquote>
 <div><p>The fitted grid search</p>
 </div></blockquote>
@@ -731,7 +820,8 @@ and no plots will be generated.</p>
 </div></blockquote>
 <p><strong>ascending</strong> : bool, optional (default=True)</p>
 <blockquote>
-<div><p>If sorted, whether to use asc or desc</p>
+<div><p>If <code class="docutils literal"><span class="pre">sort_results</span></code> is True, whether to use asc or desc
+in the sorting process.</p>
 </div></blockquote>
 <p><strong>percentile</strong> : float, optional (default=0.975)</p>
 <blockquote>
@@ -739,14 +829,15 @@ and no plots will be generated.</p>
 corresponding z-score will be multiplied
 by the cross validation score standard deviations.</p>
 </div></blockquote>
-<p><strong>y_axis</strong> : str, optional (default=&#8217;score&#8217;)</p>
+<p><strong>y_axis</strong> : str, optional (default=&#8217;mean_test_score&#8217;)</p>
 <blockquote>
 <div><p>The y-axis of the charts. One of (&#8216;score&#8217;,&#8217;std&#8217;)</p>
 </div></blockquote>
-<p><strong>sort_by</strong> : str, optional (default=&#8217;score&#8217;)</p>
+<p><strong>sort_by</strong> : str, optional (default=&#8217;mean_test_score&#8217;)</p>
 <blockquote>
-<div><p>The col to sort by. This is not validated, in case
-the user wants to sort by a parameter column.</p>
+<div><p>The column to sort by. This is not validated, in case
+the user wants to sort by a parameter column. If
+not <code class="docutils literal"><span class="pre">sort_results</span></code>, this is unused.</p>
 </div></blockquote>
 <p><strong>highlight_best</strong> : bool, optional (default=True)</p>
 <blockquote>
@@ -754,11 +845,34 @@ the user wants to sort by a parameter column.</p>
 also True, then highlights the point in the top
 position of the model DF.</p>
 </div></blockquote>
+<p><strong>highlight_col</strong> : str, optional (default=&#8217;red&#8217;)</p>
+<blockquote>
+<div><p>What color to use for <code class="docutils literal"><span class="pre">highlight_best</span></code> if both
+<code class="docutils literal"><span class="pre">charts</span></code> and <code class="docutils literal"><span class="pre">highlight_best</span></code>. If either is False,
+this is unused.</p>
+</div></blockquote>
+<p><strong>def_color</strong> : str, optional (default=&#8217;blue&#8217;)</p>
+<blockquote>
+<div><p>What color to use for the points if <code class="docutils literal"><span class="pre">charts</span></code> is True.
+This should differ from <code class="docutils literal"><span class="pre">highlight_col</span></code>, but no validation
+is performed.</p>
+</div></blockquote>
+<p><strong>return_drops</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>If True, will return the list of names that can be dropped
+out (i.e., were generated by sklearn and are not parameters
+of interest).</p>
+</div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>results_df</strong> : pd.DataFrame</p>
-<blockquote class="last">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>result_df</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> or <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, n_features)</p>
+<blockquote>
 <div><p>The grid search results</p>
+</div></blockquote>
+<p><strong>drops</strong> : list</p>
+<blockquote class="last">
+<div><p>List of sklearn-generated names. Only returned if
+<code class="docutils literal"><span class="pre">return_drops</span></code> is True.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -776,7 +890,7 @@ numpy&#8217;s random state.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame, shape=(n_samples, n_features)</p>
 <blockquote class="last">
 <div><p>The dataframe to shuffle</p>
 </div></blockquote>
@@ -790,7 +904,7 @@ numpy&#8217;s random state.</p>
 <dt id="skutil.utils.validate_is_pd">
 <code class="descclassname">skutil.utils.</code><code class="descname">validate_is_pd</code><span class="sig-paren">(</span><em>X</em>, <em>cols</em>, <em>assert_all_finite=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/utils/util.html#validate_is_pd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.utils.validate_is_pd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used within each SelectiveMixin fit method to determine whether
-the passed X is a dataframe, and whether the cols is appropriate.
+the passed <code class="docutils literal"><span class="pre">X</span></code> is a dataframe, and whether the cols is appropriate.
 There are four scenarios (in the order in which they&#8217;re checked):</p>
 <ol class="arabic">
 <li><dl class="first docutils">
@@ -828,9 +942,34 @@ Otherwise, there will be a ValueError thrown.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X, cols</strong> : tuple</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array_like, shape=(n_samples, n_features)</p>
+<blockquote>
+<div><p>The dataframe to validate. If <code class="docutils literal"><span class="pre">X</span></code> is not a DataFrame,
+but it can be made into one, no exceptions will be raised.
+However, if <code class="docutils literal"><span class="pre">X</span></code> cannot naturally be made into a DataFrame,
+a TypeError will be raised.</p>
+</div></blockquote>
+<p><strong>cols</strong> : array_like (str), shape=(n_features,)</p>
+<blockquote>
+<div><p>The list of column names. Used particularly in SelectiveMixin
+transformers that validate column names.</p>
+</div></blockquote>
+<p><strong>assert_all_finite</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>If True, will raise an AssertionError if any np.nan or np.inf
+values reside in <code class="docutils literal"><span class="pre">X</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : pd.DataFrame, shape=(n_samples, n_features)</p>
+<blockquote>
+<div><p>A copy of the original input <code class="docutils literal"><span class="pre">X</span></code></p>
+</div></blockquote>
+<p><strong>cols</strong> : list or None, shape=(n_features,)</p>
 <blockquote class="last">
-<div><p>the pd.DataFrame and the list of columns</p>
+<div><p>If <code class="docutils literal"><span class="pre">cols</span></code> was not None and did not raise a TypeError,
+it is converted into a list of strings and returned
+as a copy. Else None.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -881,7 +1020,7 @@ Otherwise, there will be a ValueError thrown.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

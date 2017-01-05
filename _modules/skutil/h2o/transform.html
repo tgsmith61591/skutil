@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.transform &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.h2o.transform &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -134,17 +134,16 @@
             
   <h1>Source code for skutil.h2o.transform</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> <span class="n">_check_is_frame</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> <span class="n">check_frame</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span><span class="p">,</span> <span class="n">flatten_all</span>
-<span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">h2o_col_to_numpy</span><span class="p">,</span> <span class="n">_unq_vals_col</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">dict_values</span>
 <span class="kn">from</span> <span class="nn">..preprocessing</span> <span class="k">import</span> <span class="n">ImputerMixin</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;H2OInteractionTermTransformer&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;H2OLabelEncoder&#39;</span><span class="p">,</span>
     <span class="s1">&#39;H2OSelectiveImputer&#39;</span><span class="p">,</span>
     <span class="s1">&#39;H2OSelectiveScaler&#39;</span>
 <span class="p">]</span>
@@ -156,93 +155,22 @@
 <span class="sd">    a list is. This will determine the proper </span>
 <span class="sd">    type for each item in the vec.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="n">x</span>
 
 
-<div class="viewcode-block" id="H2OLabelEncoder"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder">[docs]</a><span class="k">class</span> <span class="nc">H2OLabelEncoder</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Encode categorical values in a H2OFrame (single column)</span>
-<span class="sd">    into ordinal labels 0 - len(column) - 1.</span>
-
-<span class="sd">    Example (given ``column``):</span>
-<span class="sd">        </span>
-<span class="sd">    &gt;&gt;&gt; column</span>
-<span class="sd">      C1</span>
-<span class="sd">    ----</span>
-<span class="sd">       5</span>
-<span class="sd">       6</span>
-<span class="sd">       5</span>
-<span class="sd">       7</span>
-<span class="sd">       7</span>
-<span class="sd">    [5 rows x 1 column]</span>
-
-<span class="sd">    &gt;&gt;&gt; H2OLabelEncoder().fit_transform(column)</span>
-<span class="sd">      C1</span>
-<span class="sd">    ----</span>
-<span class="sd">       0</span>
-<span class="sd">       1</span>
-<span class="sd">       0</span>
-<span class="sd">       2</span>
-<span class="sd">       2</span>
-<span class="sd">    [5 rows x 1 column]</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-
-<span class="sd">    feature_names : array_like (str), optional (default=None)</span>
-<span class="sd">        The list of names on which to fit the transformer.</span>
-
-<span class="sd">    target_feature : str, optional (default None)</span>
-<span class="sd">        The name of the target feature (is excluded from the fit)</span>
-<span class="sd">        for the estimator.</span>
-
-<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
-<span class="sd">        Any names that should be excluded from ``feature_names``</span>
-
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-
-<span class="sd">    classes_ : np.ndarray</span>
-<span class="sd">        The unique class levels</span>
+<span class="k">def</span> <span class="nf">_transform_col</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;If an imputation value does not match column</span>
+<span class="sd">    type, we&#39;ll get some errors. So this is going to manipulate</span>
+<span class="sd">    the column type based on the value type. This is</span>
+<span class="sd">    necessary as opposed to the opposite way because an </span>
+<span class="sd">    int column might still have a &#39;mean&#39; fill. Thus, we&#39;ll</span>
+<span class="sd">    just treat everything as float.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
-    <span class="n">_max_version</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">dict_values</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">types</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">,</span> <span class="s1">&#39;real&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">col</span><span class="o">.</span><span class="n">asnumeric</span><span class="p">(),</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">H2OLabelEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                              <span class="n">min_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">,</span>
-                                              <span class="n">max_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span><span class="p">)</span>
-
-<div class="viewcode-block" id="H2OLabelEncoder.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
-        <span class="n">column</span> <span class="o">=</span> <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
-        <span class="n">c1_nm</span><span class="p">,</span> <span class="n">unq</span> <span class="o">=</span> <span class="n">_unq_vals_col</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
-
-        <span class="c1"># get sorted classes, and map of classes to order</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="o">=</span> <span class="n">unq</span><span class="p">[</span><span class="n">c1_nm</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">map_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unq</span><span class="p">[</span><span class="n">c1_nm</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">unq</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="bp">self</span></div>
-
-<div class="viewcode-block" id="H2OLabelEncoder.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OLabelEncoder.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;classes_&#39;</span><span class="p">)</span>
-        <span class="n">column</span> <span class="o">=</span> <span class="n">_check_is_1d_frame</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
-
-        <span class="c1"># ensure no unseen labels</span>
-        <span class="n">unq</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">column</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
-
-        <span class="c1"># get a copy</span>
-        <span class="n">column</span> <span class="o">=</span> <span class="n">column</span><span class="p">[</span><span class="n">column</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-
-        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">classes_</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">unq</span><span class="p">]):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;seen labels include: </span><span class="si">%s</span><span class="s1">, but got </span><span class="si">%s</span><span class="s1"> (unseen labels)&#39;</span>
-                             <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classes_</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">unq</span><span class="p">)))</span>
-
-        <span class="c1"># encode</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">map_</span><span class="p">):</span>
-            <span class="n">column</span><span class="p">[</span><span class="n">column</span> <span class="o">==</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
-
-        <span class="k">return</span> <span class="n">column</span></div></div>
+    <span class="c1"># for enums, character, etc...</span>
+    <span class="k">return</span> <span class="n">col</span><span class="p">,</span> <span class="n">val</span>
 
 
 <span class="k">class</span> <span class="nc">_H2OBaseImputer</span><span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">ImputerMixin</span><span class="p">):</span>
@@ -256,6 +184,24 @@
                                               <span class="n">min_version</span><span class="o">=</span><span class="n">min_version</span><span class="p">,</span>
                                               <span class="n">max_version</span><span class="o">=</span><span class="n">max_version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_def_fill</span> <span class="k">if</span> <span class="n">def_fill</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">def_fill</span>
+
+
+<span class="k">def</span> <span class="nf">_mode</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">def_fill</span><span class="o">=</span><span class="n">ImputerMixin</span><span class="o">.</span><span class="n">_def_fill</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the most common value in a 1d</span>
+<span class="sd">    H2OFrame. Ties will be handled in a non-specified</span>
+<span class="sd">    manner.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    x : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">        The 1d frame from which to derive the mode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">index</span>
+
+    <span class="c1"># if the most common is null, then return the next most common.</span>
+    <span class="c1"># if there is no next common (i.e., 100% null) then we return the def_fill</span>
+    <span class="k">return</span> <span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="n">idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">def_fill</span>
 
 
 <div class="viewcode-block" id="H2OSelectiveImputer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OSelectiveImputer">[docs]</a><span class="k">class</span> <span class="nc">H2OSelectiveImputer</span><span class="p">(</span><span class="n">_H2OBaseImputer</span><span class="p">):</span>
@@ -290,6 +236,9 @@
 <span class="sd">    fill_val_ : int, float or iterable</span>
 <span class="sd">        The fill value(s) provided or </span>
 <span class="sd">        derived in the ``fit`` method.</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -309,16 +258,16 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame</span>
-<span class="sd">            The H2OFrame to fit</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The training data on which to fit.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
 
         <span class="c1"># at this point, the entirety of frame can be operated on...</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># convert to string...</span>
@@ -327,14 +276,14 @@
         <span class="n">fill</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="n">fill</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fill</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">fill</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fill</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;self.fill must be either &quot;mode&quot;, &quot;mean&quot;, &quot;median&quot;, None, &#39;</span>
                                 <span class="s1">&#39;a number, or an iterable. Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fill</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">fill</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
                 <span class="c1"># for each column to impute, we go through and get the value counts</span>
                 <span class="c1"># of each, sorting by the max...</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;h2o has not yet implemented &quot;mode&quot; functionality&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="p">[</span><span class="n">_mode</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]))</span>
 
             <span class="k">elif</span> <span class="n">fill</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
@@ -342,7 +291,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">flatten_all</span><span class="p">([</span><span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])))</span>
 
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">fill</span><span class="p">):</span>
 
             <span class="c1"># if fill is a dictionary</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -370,7 +319,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">the_col</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">f</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;h2o has not yet implemented &quot;mode&quot; functionality&#39;</span><span class="p">)</span>
+                        <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mode</span><span class="p">(</span><span class="n">the_col</span><span class="p">)</span>
                         <span class="c1"># d[c] = _col_mode(the_col)</span>
                     <span class="k">elif</span> <span class="n">f</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
                         <span class="n">d</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">the_col</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">na_rm</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -397,16 +346,16 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame</span>
-<span class="sd">            The frame to fit</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The test data to transform.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        X : H2OFrame</span>
-<span class="sd">            The transformed (imputed) H2OFrame</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The transformed (imputed) test data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;fill_val_&#39;</span><span class="p">)</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># make a copy</span>
 
         <span class="c1"># get the fills</span>
         <span class="n">fill_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_val_</span>
@@ -433,6 +382,10 @@
             <span class="c1"># if it&#39;s a single int, easy, otherwise query dict</span>
             <span class="n">col_imp_value</span> <span class="o">=</span> <span class="n">fill_val</span> <span class="k">if</span> <span class="n">is_int</span> <span class="k">else</span> <span class="n">fill_val</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
 
+            <span class="c1"># reassign the column itself, as we might need to make it</span>
+            <span class="c1"># a float column for imputation to avoid numpy int64 bug</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">col_imp_value</span> <span class="o">=</span> <span class="n">_transform_col</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">col_imp_value</span><span class="p">)</span>
+
             <span class="c1"># unfortunately, since we can&#39;t boolean index the</span>
             <span class="c1"># h2oframe, we have to convert pandas</span>
             <span class="n">the_na_col</span> <span class="o">=</span> <span class="n">na_frame</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
@@ -441,7 +394,7 @@
             <span class="k">for</span> <span class="n">na_row</span> <span class="ow">in</span> <span class="n">na_mask_idcs</span><span class="p">:</span>
                 <span class="n">X</span><span class="p">[</span><span class="n">na_row</span><span class="p">,</span> <span class="n">col_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_imp_value</span>
 
-        <span class="c1"># this is going to impact it in place...</span>
+        <span class="c1"># return the copy</span>
         <span class="k">return</span> <span class="n">X</span></div></div>
 
 
@@ -454,7 +407,7 @@
 <span class="sd">    feature_names : array_like (str), optional (default=None)</span>
 <span class="sd">        The list of names on which to fit the transformer.</span>
 
-<span class="sd">    target_feature : str, optional (default None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit)</span>
 <span class="sd">        for the estimator.</span>
 
@@ -467,6 +420,7 @@
 <span class="sd">    with_std : bool, optional (default=True)</span>
 <span class="sd">        should divide by std?</span>
 
+
 <span class="sd">    Attributes</span>
 <span class="sd">    -------</span>
 <span class="sd">    </span>
@@ -475,6 +429,9 @@
 
 <span class="sd">    stds : dict (string:float)</span>
 <span class="sd">        The mapping of column names to column standard deviations</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -497,11 +454,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame, shape [n_samples, n_features]</span>
-<span class="sd">            The data to transform</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The training data on which to fit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols_</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
 
         <span class="c1"># get and std</span>
@@ -519,11 +476,17 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : H2OFrame, shape [n_samples, n_features]</span>
-<span class="sd">            The data to transform</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The test data to transform</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        frame : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The transformed test data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cols_&#39;</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># get a copy...</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># get a copy...</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_mean</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_std</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">frame</span>  <span class="c1"># nothing to change...</span>
@@ -544,13 +507,17 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    a : H2OFrame</span>
-<span class="sd">    b : H2OFrame</span>
+<span class="sd">    a : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">        The first feature</span>
+
+<span class="sd">    b : ``H2OFrame``, shape=(n_samples, 1)</span>
+<span class="sd">        The second feature</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    product H2OFrame</span>
+<span class="sd">    ``a`` * ``b`` : H2OFrame</span>
+<span class="sd">        The product of ``a`` and ``b``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
 
@@ -572,7 +539,7 @@
 <span class="sd">    feature_names : array_like (str), optional (default=None)</span>
 <span class="sd">        The list of names on which to fit the transformer.</span>
 
-<span class="sd">    target_feature : str, optional (default None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit)</span>
 <span class="sd">        for the estimator.</span>
 
@@ -591,12 +558,16 @@
 <span class="sd">        If set to True, will only return features in feature_names</span>
 <span class="sd">        and their respective generated interaction terms.</span>
 
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 
 <span class="sd">    fun_ : callable</span>
 <span class="sd">        The interaction term function assigned </span>
 <span class="sd">        in the ``fit`` method.</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -621,8 +592,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        </span>
-<span class="sd">        frame : H2OFrame, shape=[n_samples, n_features]</span>
-<span class="sd">            The data to transform</span>
+<span class="sd">        frame : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The training data on which to fit.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -631,7 +602,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frame</span> <span class="o">=</span> <span class="n">_frame_from_x_y</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclude_features</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># the cols we&#39;ll ultimately operate on</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interaction_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_mul</span>
 
         <span class="c1"># validate function</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
@@ -643,26 +614,24 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="H2OInteractionTermTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OInteractionTermTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Perform the interaction term expansion</span>
+<div class="viewcode-block" id="H2OInteractionTermTransformer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OInteractionTermTransformer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform the interaction term expansion.</span>
 <span class="sd">        </span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : H2OFrame, shape=[n_samples, n_features]</span>
-<span class="sd">            The data to transform</span>
+<span class="sd">        X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The test data to transform.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        frame : H2OFrame</span>
-<span class="sd">            The expanded H2OFrame</span>
+<span class="sd">        frame : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The expanded (interacted) test data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;fun_&#39;</span><span class="p">)</span>
-        <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-
-        <span class="c1"># this creates a copy...</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># get a copy</span>
+        
         <span class="n">cols</span><span class="p">,</span> <span class="n">fun</span><span class="p">,</span> <span class="n">suff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_suffix</span>
         <span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
 
@@ -719,7 +688,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

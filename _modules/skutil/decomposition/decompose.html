@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.decomposition.decompose &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.decomposition.decompose &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -133,20 +133,20 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.decomposition.decompose</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
 <span class="kn">from</span> <span class="nn">sklearn.decomposition</span> <span class="k">import</span> <span class="n">PCA</span><span class="p">,</span> <span class="n">TruncatedSVD</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-
 <span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">_cols_if_none</span><span class="p">,</span> <span class="n">_as_numpy</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;SelectivePCA&#39;</span><span class="p">,</span>
@@ -154,9 +154,7 @@
 <span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">_BaseSelectiveDecomposer</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">BaseEstimator</span><span class="p">,</span> 
-                                                  <span class="n">TransformerMixin</span><span class="p">,</span> 
-                                                  <span class="n">SelectiveMixin</span><span class="p">)):</span>
+<span class="k">class</span> <span class="nc">_BaseSelectiveDecomposer</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">with_metaclass</span><span class="p">(</span><span class="n">ABCMeta</span><span class="p">,</span> <span class="n">BaseSkutil</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">)):</span>
     <span class="sd">&quot;&quot;&quot;Base class for selective decompositional transformers.</span>
 <span class="sd">    Each of these transformers should adhere to the :class:`skutil.base.SelectiveMixin`</span>
 <span class="sd">    standard of accepting a ``cols`` parameter in the ``__init__`` method, and</span>
@@ -165,10 +163,10 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like (string), optional (default=None)</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
 <span class="sd">        The names of the columns on which to apply the transformation.</span>
-<span class="sd">        If no column names are provided, the decomposition will be ``fit``</span>
-<span class="sd">        on the entire frame. Note that the transormation will also only</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
 <span class="sd">        apply to the specified columns, and any other non-specified</span>
 <span class="sd">        columns will still be present after transformation.</span>
 
@@ -177,15 +175,16 @@
 <span class="sd">        being fit, and determines the number of components to extract</span>
 <span class="sd">        in the transformation.</span>
 
-<span class="sd">    as_df : bool, optional (default=None)</span>
-<span class="sd">        Whether or not to return a pandas DataFrame object. If</span>
-<span class="sd">        False, will return a np.ndarray instead.</span>
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">cols</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">_BaseSelectiveDecomposer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_components</span> <span class="o">=</span> <span class="n">n_components</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="o">=</span> <span class="n">as_df</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">get_decomposition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -225,10 +224,10 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like (string), optional (default=None)</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
 <span class="sd">        The names of the columns on which to apply the transformation.</span>
-<span class="sd">        If no column names are provided, the decomposition will be ``fit``</span>
-<span class="sd">        on the entire frame. Note that the transormation will also only</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
 <span class="sd">        apply to the specified columns, and any other non-specified</span>
 <span class="sd">        columns will still be present after transformation.</span>
 
@@ -248,9 +247,11 @@
 
 <span class="sd">        * ``n_components`` cannot be equal to ``n_features`` for ``svd_solver`` == &#39;arpack&#39;.</span>
 
-<span class="sd">    as_df : bool, optional (default=None)</span>
-<span class="sd">        Whether or not to return a pandas DataFrame object. If</span>
-<span class="sd">        False, will return a np.ndarray instead.</span>
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
 
 <span class="sd">    whiten : bool, optional (default False)</span>
 <span class="sd">        When True (False by default) the `components_` vectors are multiplied</span>
@@ -270,12 +271,20 @@
 <span class="sd">        (so as not to down sample or upsample everything), then multiply the weights across the</span>
 <span class="sd">        transformed features.</span>
 
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.decomposition import SelectivePCA</span>
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt; pca = SelectivePCA(n_components=2)</span>
+<span class="sd">        &gt;&gt;&gt; X_transform = pca.fit_transform(X) # pca suffers sign indeterminancy and results will vary</span>
+<span class="sd">        &gt;&gt;&gt; assert X_transform.shape[1] == 2</span>
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-
-<span class="sd">    cols : array_like (string)</span>
-<span class="sd">        The names of the columns on which to apply </span>
-<span class="sd">        the transformation.</span>
 
 <span class="sd">    pca_ : the PCA object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -286,61 +295,63 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span>
 
 <div class="viewcode-block" id="SelectivePCA.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectivePCA.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit the transformer to the provided dataset.</span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X: pd.DataFrame, shape(n_samples, n_features)</span>
-<span class="sd">            The data to fit.</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
-<span class="sd">        y: None</span>
-<span class="sd">            Pass through for grid search and pipeline.</span>
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        self : SelectivePCA</span>
-<span class="sd">            The fit transformer</span>
+<span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># fails thru if names don&#39;t exist:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span> <span class="o">=</span> <span class="n">PCA</span><span class="p">(</span>
             <span class="n">n_components</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span>
-            <span class="n">whiten</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">whiten</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
+            <span class="n">whiten</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">whiten</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SelectivePCA.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectivePCA.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Transform the given dataset, provided the transformer</span>
-<span class="sd">        has already been fit.</span>
+<div class="viewcode-block" id="SelectivePCA.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectivePCA.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X: pd.DataFrame, shape(n_samples, n_features)</span>
-<span class="sd">            The data to fit.</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y: None</span>
-<span class="sd">            Pass through for grid search and pipeline.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        x : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix. pd.DataFrame if ``as_df``</span>
-<span class="sd">            is True, else np.ndarray.</span>
+<span class="sd">        X : Pandas ``DataFrame``</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pca_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="n">other_nms</span> <span class="o">=</span> <span class="p">[</span><span class="n">nm</span> <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">nm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
-        <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
 
         <span class="c1"># do weighting if necessary</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">:</span>
@@ -361,13 +372,13 @@
 
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">_BaseSelectiveDecomposer</span><span class="p">)</span>
 <div class="viewcode-block" id="SelectivePCA.get_decomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectivePCA.get_decomposition">[docs]</a>    <span class="k">def</span> <span class="nf">get_decomposition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Overridden from the :class:``_BaseSelectiveDecomposer`` class,</span>
+        <span class="sd">&quot;&quot;&quot;Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,</span>
 <span class="sd">        this method returns the internal decomposition class: </span>
 <span class="sd">        ``sklearn.decomposition.PCA``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        self.pca_ : sklearn.decomposition.PCA</span>
+<span class="sd">        self.pca_ : ``sklearn.decomposition.PCA``</span>
 <span class="sd">            The fit internal decomposition class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pca_&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
@@ -375,20 +386,17 @@
 <div class="viewcode-block" id="SelectivePCA.score"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectivePCA.score">[docs]</a>    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the average log-likelihood of all samples.</span>
 <span class="sd">        This calls sklearn.decomposition.PCA&#39;s score method</span>
-<span class="sd">        on the specified columns.</span>
-
-<span class="sd">        See. &quot;Pattern Recognition and Machine Learning&quot;</span>
-<span class="sd">        by C. Bishop, 12.2.1 p. 574</span>
-<span class="sd">        or http://www.miketipping.com/papers/met-mppca.pdf</span>
+<span class="sd">        on the specified columns [1].</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X: pd.DataFrame, shape(n_samples, n_features)</span>
+<span class="sd">        X: Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The data to score.</span>
 
 <span class="sd">        y: None</span>
 <span class="sd">            Passthrough for pipeline/gridsearch</span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -396,12 +404,19 @@
 <span class="sd">        ll: float</span>
 <span class="sd">            Average log-likelihood of the samples under the fit</span>
 <span class="sd">            PCA model (`self.pca_`)</span>
+
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        .. [1] Bishop, C.  &quot;Pattern Recognition and Machine Learning&quot;</span>
+<span class="sd">               12.2.1 p. 574 http://www.miketipping.com/papers/met-mppca.pdf</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pca_&#39;</span><span class="p">)</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
 
-        <span class="n">ll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">ll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pca_</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">(),</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">ll</span></div></div>
 
 
@@ -415,34 +430,50 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like (string)</span>
-<span class="sd">        names of columns on which to apply scaling</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation.</span>
 
-<span class="sd">    n_components : int, default = 2</span>
+<span class="sd">    n_components : int, (default=2)</span>
 <span class="sd">        Desired dimensionality of output data.</span>
 <span class="sd">        Must be strictly less than the number of features.</span>
 <span class="sd">        The default value is useful for visualisation. For LSA, a value of</span>
 <span class="sd">        100 is recommended.</span>
 
-<span class="sd">    algorithm : string, default = &quot;randomized&quot;</span>
+<span class="sd">    algorithm : string, (default=&quot;randomized&quot;)</span>
 <span class="sd">        SVD solver to use. Either &quot;arpack&quot; for the ARPACK wrapper in SciPy</span>
 <span class="sd">        (scipy.sparse.linalg.svds), or &quot;randomized&quot; for the randomized</span>
 <span class="sd">        algorithm due to Halko (2009).</span>
 
-<span class="sd">    n_iter : int, optional (default 5)</span>
+<span class="sd">    n_iter : int, optional (default=5)</span>
 <span class="sd">        Number of iterations for randomized SVD solver. Not used by ARPACK.</span>
 <span class="sd">        The default is larger than the default in `randomized_svd` to handle</span>
 <span class="sd">        sparse matrices that may have large slowly decaying spectrum.</span>
 
-<span class="sd">    as_df : boolean, default True</span>
-<span class="sd">        Whether to return a pandas DataFrame</span>
+<span class="sd">    as_df : bool, optional (default=True)</span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
+<span class="sd">        Since most skutil transformers depend on explicitly-named</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.decomposition import SelectiveTruncatedSVD</span>
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt; svd = SelectiveTruncatedSVD(n_components=2)</span>
+<span class="sd">        &gt;&gt;&gt; X_transform = svd.fit_transform(X) # svd suffers sign indeterminancy and results will vary</span>
+<span class="sd">        &gt;&gt;&gt; assert X_transform.shape[1] == 2</span>
 
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
-
-<span class="sd">    cols : array_like (string)</span>
-<span class="sd">        the columns</span>
 
 <span class="sd">    svd_ : the SVD object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -453,16 +484,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span> <span class="o">=</span> <span class="n">n_iter</span>
 
 <div class="viewcode-block" id="SelectiveTruncatedSVD.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectiveTruncatedSVD.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit the transformer to the provided dataset.</span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X: pd.DataFrame, shape(n_samples, n_features)</span>
-<span class="sd">            The data to fit.</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The Pandas frame to fit. The frame will only</span>
+<span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
-<span class="sd">        y: None</span>
-<span class="sd">            Pass through for grid search and pipeline.</span>
+<span class="sd">        y : None</span>
+<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
+<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -471,44 +506,47 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># fails thru if names don&#39;t exist:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">svd_</span> <span class="o">=</span> <span class="n">TruncatedSVD</span><span class="p">(</span>
             <span class="n">n_components</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_components</span><span class="p">,</span>
             <span class="n">algorithm</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="p">,</span>
-            <span class="n">n_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">or</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span>
+            <span class="n">n_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="SelectiveTruncatedSVD.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectiveTruncatedSVD.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Transform the given dataset, provided the transformer</span>
-<span class="sd">        has already been fit.</span>
+<div class="viewcode-block" id="SelectiveTruncatedSVD.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectiveTruncatedSVD.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Transform a test matrix given the already-fit transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X: pd.DataFrame, shape(n_samples, n_features)</span>
-<span class="sd">            The data to fit.</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The Pandas frame to transform. The operation will</span>
+<span class="sd">            be applied to a copy of the input data, and the result</span>
+<span class="sd">            will be returned.</span>
 
-<span class="sd">        y: None</span>
-<span class="sd">            Pass through for grid search and pipeline.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        x : pd.DataFrame or np.ndarray</span>
-<span class="sd">            The transformed matrix. pd.DataFrame if ``as_df``</span>
-<span class="sd">            is True, else np.ndarray.</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            The operation is applied to a copy of ``X``,</span>
+<span class="sd">            and the result set is returned.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;svd_&#39;</span><span class="p">)</span>
         <span class="c1"># check on state of X and cols</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="n">other_nms</span> <span class="o">=</span> <span class="p">[</span><span class="n">nm</span> <span class="k">for</span> <span class="n">nm</span> <span class="ow">in</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">nm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">]</span>
-        <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">svd_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">])</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">svd_</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">())</span>
         <span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">transform</span><span class="p">,</span>
-                                         <span class="n">columns</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Concept</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+                                         <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
+                                            <span class="p">(</span><span class="s1">&#39;Concept</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> 
+                                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                                         <span class="p">])</span>
 
         <span class="c1"># concat if needed</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">left</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">other_nms</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">other_nms</span> <span class="k">else</span> <span class="n">left</span>
@@ -517,13 +555,13 @@
 
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">_BaseSelectiveDecomposer</span><span class="p">)</span>
 <div class="viewcode-block" id="SelectiveTruncatedSVD.get_decomposition"><a class="viewcode-back" href="../../../rsts/codebase/skutil_decomposition.html#skutil.decomposition.SelectiveTruncatedSVD.get_decomposition">[docs]</a>    <span class="k">def</span> <span class="nf">get_decomposition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Overridden from the :class:``_BaseSelectiveDecomposer`` class,</span>
+        <span class="sd">&quot;&quot;&quot;Overridden from the :class:``skutil.decomposition.decompose._BaseSelectiveDecomposer`` class,</span>
 <span class="sd">        this method returns the internal decomposition class: </span>
 <span class="sd">        ``sklearn.decomposition.TruncatedSVD``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        self.svd_ : sklearn.decomposition.TruncatedSVD</span>
+<span class="sd">        self.svd_ : ``sklearn.decomposition.TruncatedSVD``</span>
 <span class="sd">            The fit internal decomposition class</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">svd_</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;svd_&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div></div>
@@ -560,7 +598,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

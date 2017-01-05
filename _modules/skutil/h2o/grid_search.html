@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.grid_search &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.h2o.grid_search &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -138,27 +138,25 @@
 <span class="c1"># License: BSD</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">abstractmethod</span>
-
 <span class="kn">import</span> <span class="nn">h2o</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">h2o</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">h2o.estimators.estimator_base</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
 
 <span class="kn">from</span> <span class="nn">.pipeline</span> <span class="k">import</span> <span class="n">H2OPipeline</span>
 <span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_check_is_frame</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span> <span class="n">validate_x_y</span><span class="p">,</span> <span class="n">VizMixin</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">check_frame</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span> <span class="n">validate_x_y</span><span class="p">,</span> <span class="n">VizMixin</span>
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">since</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">report_grid_score_detail</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">dict_keys</span>
 <span class="kn">from</span> <span class="nn">..utils.metaestimators</span> <span class="k">import</span> <span class="n">if_delegate_has_method</span><span class="p">,</span> <span class="n">if_delegate_isinstance</span>
-<span class="kn">from</span> <span class="nn">skutil.grid_search</span> <span class="k">import</span> <span class="n">_CVScoreTuple</span><span class="p">,</span> <span class="n">_check_param_grid</span>
+<span class="kn">from</span> <span class="nn">..grid_search</span> <span class="k">import</span> <span class="n">_CVScoreTuple</span><span class="p">,</span> <span class="n">_check_param_grid</span>
 <span class="kn">from</span> <span class="nn">..metrics</span> <span class="k">import</span> <span class="n">GainsStatisticalReport</span>
 <span class="kn">from</span> <span class="nn">.split</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.metrics</span> <span class="k">import</span> <span class="p">(</span><span class="n">h2o_accuracy_score</span><span class="p">,</span>
@@ -183,7 +181,7 @@
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="c1"># &gt;= sklearn 0.18</span>
@@ -191,7 +189,7 @@
     <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">ParameterSampler</span><span class="p">,</span> <span class="n">ParameterGrid</span>
 
     <span class="n">SK18</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">i</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="k">import</span> <span class="n">ParameterSampler</span><span class="p">,</span> <span class="n">ParameterGrid</span>
 
     <span class="n">SK18</span> <span class="o">=</span> <span class="kc">False</span>
@@ -203,15 +201,15 @@
 <span class="p">]</span>
 
 <span class="n">SCORERS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;accuracy_score&#39;</span><span class="p">:</span> <span class="n">h2o_accuracy_score</span><span class="p">,</span>
-    <span class="s1">&#39;f1_score&#39;</span><span class="p">:</span> <span class="n">h2o_f1_score</span><span class="p">,</span>
-    <span class="c1"># &#39;log_loss&#39;             :,</span>
-    <span class="s1">&#39;mean_absolute_error&#39;</span><span class="p">:</span> <span class="n">h2o_mean_absolute_error</span><span class="p">,</span>
-    <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span> <span class="n">h2o_mean_squared_error</span><span class="p">,</span>
+    <span class="s1">&#39;accuracy_score&#39;</span><span class="p">:</span>        <span class="n">h2o_accuracy_score</span><span class="p">,</span>
+    <span class="s1">&#39;f1_score&#39;</span><span class="p">:</span>              <span class="n">h2o_f1_score</span><span class="p">,</span>
+    <span class="c1"># &#39;log_loss&#39; :,</span>
+    <span class="s1">&#39;mean_absolute_error&#39;</span><span class="p">:</span>   <span class="n">h2o_mean_absolute_error</span><span class="p">,</span>
+    <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span>    <span class="n">h2o_mean_squared_error</span><span class="p">,</span>
     <span class="s1">&#39;median_absolute_error&#39;</span><span class="p">:</span> <span class="n">h2o_median_absolute_error</span><span class="p">,</span>
-    <span class="s1">&#39;precision_score&#39;</span><span class="p">:</span> <span class="n">h2o_precision_score</span><span class="p">,</span>
-    <span class="s1">&#39;r2_score&#39;</span><span class="p">:</span> <span class="n">h2o_r2_score</span><span class="p">,</span>
-    <span class="s1">&#39;recall_score&#39;</span><span class="p">:</span> <span class="n">h2o_recall_score</span>
+    <span class="s1">&#39;precision_score&#39;</span><span class="p">:</span>       <span class="n">h2o_precision_score</span><span class="p">,</span>
+    <span class="s1">&#39;r2_score&#39;</span><span class="p">:</span>              <span class="n">h2o_r2_score</span><span class="p">,</span>
+    <span class="s1">&#39;recall_score&#39;</span><span class="p">:</span>          <span class="n">h2o_recall_score</span>
 <span class="p">}</span>
 
 <span class="sd">&quot;&quot;&quot;These parameters are ones h2o stores</span>
@@ -257,7 +255,7 @@
 <span class="k">def</span> <span class="nf">_kv_str</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
     <span class="n">k</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># h2o likes unicode...</span>
     <span class="c1"># likewise, if the v is unicode, let&#39;s make it a string.</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span>
 
 
@@ -309,13 +307,13 @@
 <span class="sd">        The cloned base estimator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">est_map</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;dl&#39;</span><span class="p">:</span> <span class="n">H2ODeepLearningEstimator</span><span class="p">,</span>
-        <span class="s1">&#39;gbm&#39;</span><span class="p">:</span> <span class="n">H2OGradientBoostingEstimator</span><span class="p">,</span>
-        <span class="s1">&#39;glm&#39;</span><span class="p">:</span> <span class="n">H2OGeneralizedLinearEstimator</span><span class="p">,</span>
+        <span class="s1">&#39;dl&#39;</span><span class="p">:</span>   <span class="n">H2ODeepLearningEstimator</span><span class="p">,</span>
+        <span class="s1">&#39;gbm&#39;</span><span class="p">:</span>  <span class="n">H2OGradientBoostingEstimator</span><span class="p">,</span>
+        <span class="s1">&#39;glm&#39;</span><span class="p">:</span>  <span class="n">H2OGeneralizedLinearEstimator</span><span class="p">,</span>
         <span class="c1"># &#39;glrm&#39;: H2OGeneralizedLowRankEstimator,</span>
         <span class="c1"># &#39;km&#39;  : H2OKMeansEstimator,</span>
-        <span class="s1">&#39;nb&#39;</span><span class="p">:</span> <span class="n">H2ONaiveBayesEstimator</span><span class="p">,</span>
-        <span class="s1">&#39;rf&#39;</span><span class="p">:</span> <span class="n">H2ORandomForestEstimator</span>
+        <span class="s1">&#39;nb&#39;</span><span class="p">:</span>   <span class="n">H2ONaiveBayesEstimator</span><span class="p">,</span>
+        <span class="s1">&#39;rf&#39;</span><span class="p">:</span>   <span class="n">H2ORandomForestEstimator</span>
     <span class="p">}</span>
 
     <span class="n">estimator</span> <span class="o">=</span> <span class="n">est_map</span><span class="p">[</span><span class="n">est</span><span class="p">]()</span>  <span class="c1"># initialize the new ones</span>
@@ -334,7 +332,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    estimator : ``H2OEstimator``</span>
+<span class="sd">    estimator : H2OEstimator</span>
 <span class="sd">        The estimator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">H2ODeepLearningEstimator</span><span class="p">):</span>
@@ -375,10 +373,10 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
+<span class="sd">        estimator : H2OPipeline or H2OEstimator</span>
 <span class="sd">            The estimator to fit</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The training frame</span>
 
 <span class="sd">        feature_names : iterable (str)</span>
@@ -387,7 +385,7 @@
 <span class="sd">        target_feature : str</span>
 <span class="sd">            The name of the target feature</span>
 
-<span class="sd">        scorer : ``H2OScorer``</span>
+<span class="sd">        scorer : H2OScorer</span>
 <span class="sd">            The scoring function</span>
 
 <span class="sd">        parameters : dict</span>
@@ -399,29 +397,45 @@
 <span class="sd">        scoring_params : dict</span>
 <span class="sd">            The parameters to pass as kwargs to the scoring function</span>
 
-<span class="sd">        train : iterable</span>
+<span class="sd">        train : iterable, shape=(n_train_samples,)</span>
 <span class="sd">            The train fold indices</span>
 
-<span class="sd">        test : iterable</span>
+<span class="sd">        test : iterable, shape=(n_test_samples,)</span>
 <span class="sd">            The test fold indices</span>
 
 <span class="sd">        is_regression : bool</span>
 <span class="sd">            Whether we are fitting a continuous target</span>
 
 <span class="sd">        act_args : dict</span>
-<span class="sd">            ``GainsStatisticalReport`` args if called from a </span>
-<span class="sd">            ``H2OGainsRandomizedSearchCV``</span>
+<span class="sd">            :class:``skutil.metrics.GainsStatisticalReport`` args if called </span>
+<span class="sd">            from a :class:``skutil.h2o.H2OGainsRandomizedSearchCV``. Otherwise,</span>
+<span class="sd">            these are unused.</span>
 
 <span class="sd">        cv_fold : int</span>
 <span class="sd">            The fold number for reporting</span>
 
-<span class="sd">        iteration : int``</span>
+<span class="sd">        iteration : int</span>
 <span class="sd">            The iteration number for reporting</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        list : [test_score, len(test), estimator, parameters]</span>
+<span class="sd">        out : list, shape=(4,)</span>
+<span class="sd">            test_score : float</span>
+<span class="sd">                The score produced by the ``_score`` method</span>
+<span class="sd">                on the test fold of the training set.</span>
+
+<span class="sd">            len(test) : int</span>
+<span class="sd">                The number of samples included in the</span>
+<span class="sd">                test fold of the training set. Used later</span>
+<span class="sd">                for IID normalizing of test scores.</span>
+
+<span class="sd">            estimator : ``H2OEstimator`` or ``H2OPipeline``</span>
+<span class="sd">                The fit pipeline or estimator. Used for later</span>
+<span class="sd">                scoring on the validation set.</span>
+
+<span class="sd">            parameters : dict</span>
+<span class="sd">                The parameters used to fit this estimator.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
@@ -496,7 +510,8 @@
         <span class="nb">print</span><span class="p">()</span>  <span class="c1"># new line</span>
         <span class="nb">print</span><span class="p">()</span>  <span class="c1"># new line</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="n">test_score</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">),</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">parameters</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">test_score</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">),</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">parameters</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="k">class</span> <span class="nc">BaseH2OSearchCV</span><span class="p">(</span><span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span> <span class="n">VizMixin</span><span class="p">):</span>
@@ -527,10 +542,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">validation_frame</span> <span class="o">=</span> <span class="n">validation_frame</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">minimize</span> <span class="o">=</span> <span class="n">minimize</span>
 
-
     <span class="k">def</span> <span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">parameter_iterable</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Actual fitting,  performing the search over parameters.&quot;&quot;&quot;</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>  <span class="c1"># if it&#39;s a frame, will be turned into a matrix</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># copy because who knows what people do inside of score...</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span> <span class="o">=</span> <span class="n">validate_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_regression_</span> <span class="o">=</span> <span class="p">(</span><span class="ow">not</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">]</span><span class="o">.</span><span class="n">isfactor</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
 
@@ -574,12 +589,13 @@
                     <span class="n">scoring</span> <span class="o">=</span> <span class="s1">&#39;accuracy_score&#39;</span>
 
             <span class="c1"># make strs into scoring functions</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">scoring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SCORERS</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Scoring must be one of (</span><span class="si">%s</span><span class="s1">) or a callable. &#39;</span>
-                                     <span class="s1">&#39;Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SCORERS</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">scoring</span><span class="p">))</span>
+                                     <span class="s1">&#39;Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dict_keys</span><span class="p">(</span><span class="n">SCORERS</span><span class="p">)),</span> <span class="n">scoring</span><span class="p">))</span>
 
                 <span class="n">scoring</span> <span class="o">=</span> <span class="n">SCORERS</span><span class="p">[</span><span class="n">scoring</span><span class="p">]</span>
+                
             <span class="c1"># make it a scorer</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span> <span class="o">=</span> <span class="n">make_h2o_scorer</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">])</span>
@@ -634,7 +650,7 @@
                     <span class="s1">&#39;expo&#39;</span><span class="p">:</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_frame</span><span class="p">[</span><span class="n">xtra_nms</span><span class="p">[</span><span class="s1">&#39;expo&#39;</span><span class="p">]]),</span>
                     <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_frame</span><span class="p">[</span><span class="n">xtra_nms</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]]),</span>
                     <span class="s1">&#39;prem&#39;</span><span class="p">:</span> <span class="n">_as_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">validation_frame</span><span class="p">[</span><span class="n">xtra_nms</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]])</span> <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">xtra_nms</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                        <span class="n">xtra_nms</span><span class="p">[</span><span class="s1">&#39;prem&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
                 <span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scoring_params</span>
@@ -718,7 +734,6 @@
 
         <span class="k">return</span> <span class="bp">self</span>
 
-
     <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;After the grid search is fit, generates and scores </span>
 <span class="sd">        the predictions of the ``best_estimator_``.</span>
@@ -726,7 +741,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The test frame on which to predict</span>
 
 <span class="sd">        Returns</span>
@@ -736,13 +751,13 @@
 <span class="sd">            The score of the test predictions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># copy because who knows what people do inside of score...</span>
         <span class="n">scor</span> <span class="o">=</span> <span class="n">_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">,</span>
                       <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_regression_</span><span class="p">,</span>
                       <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring_params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">scor</span>
 
-
+    <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;After the grid search is fit, generates predictions </span>
 <span class="sd">        on the test frame using the ``best_estimator_``.</span>
@@ -750,20 +765,18 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The test frame on which to predict</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        p : ``H2OFrame``</span>
+<span class="sd">        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)</span>
 <span class="sd">            The test predictions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
-        <span class="n">frame</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># don&#39;t copy because predict doesn&#39;t need it</span>
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">p</span>
-
 
     <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;First, fits the grid search and then generates predictions </span>
@@ -772,19 +785,19 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The training frame on which to predict</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        p : ``H2OFrame``</span>
+<span class="sd">        p : H2OFrame, shape=(n_samples, 3 if is_classif else 1)</span>
 <span class="sd">            The training predictions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">p</span>
 
-
+    <span class="nd">@since</span><span class="p">(</span><span class="s1">&#39;0.1.2&#39;</span><span class="p">)</span>
     <span class="nd">@if_delegate_isinstance</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;best_estimator_&#39;</span><span class="p">,</span> <span class="n">instance_type</span><span class="o">=</span><span class="p">(</span><span class="n">H2OEstimator</span><span class="p">,</span> <span class="n">H2OPipeline</span><span class="p">))</span>
     <span class="k">def</span> <span class="nf">download_pojo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This method is injected at runtime if the ``best_estimator_``</span>
@@ -815,6 +828,21 @@
 
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">VizMixin</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot an H2OEstimator&#39;s performance over a</span>
+<span class="sd">        given ``timestep`` (x-axis) against a provided </span>
+<span class="sd">        ``metric`` (y-axis).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        timestep : str</span>
+<span class="sd">            A timestep as defined in the H2O API. One of</span>
+<span class="sd">            (&quot;AUTO&quot;, &quot;duration&quot;, &quot;number_of_trees&quot;).</span>
+
+<span class="sd">        metric : str</span>
+<span class="sd">            The performance metric to evaluate. One of</span>
+<span class="sd">            (&quot;log_likelihood&quot;, &quot;objective&quot;, &quot;MSE&quot;, &quot;AUTO&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
 
         <span class="c1"># then it&#39;s a pipeline:</span>
@@ -826,38 +854,47 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``BaseH2OSearchCV``</span>
-<span class="sd">        from disk. This method will handle loading ``H2OEstimator`` models separately </span>
-<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
+        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of BaseH2OSearchCV</span>
+<span class="sd">        from disk. This method will handle loading H2OEstimator models separately </span>
+<span class="sd">        and outside of the constraints of the pickle package. </span>
 
 <span class="sd">        Note that this is a static method and should be called accordingly:</span>
 
-<span class="sd">            &gt;&gt;&gt; search = BaseH2OSearchCV.load(&#39;path/to/h2o/search.pkl&#39;) # GOOD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_search():</span>
+<span class="sd">            ...     return BaseH2OSearchCV.load(&#39;path/to/h2o/search.pkl&#39;) # GOOD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; search = load_search() # doctest: +SKIP</span>
 
-<span class="sd">        Also note that since ``BaseH2OSearchCV`` will contain an ``H2OEstimator``, it&#39;s</span>
-<span class="sd">        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        Also note that since BaseH2OSearchCV will contain an H2OEstimator, it&#39;s</span>
+<span class="sd">        ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper</span>
 <span class="sd">        and will not function properly if called at the highest level of abstraction:</span>
 
-<span class="sd">            &gt;&gt;&gt; search = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/search.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_search():</span>
+<span class="sd">            ...     return BaseH2OFunctionWrapper.load(&#39;path/to/h2o/search.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; search = load_search() # doctest: +SKIP</span>
 
-<span class="sd">        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from</span>
-<span class="sd">        this method will raise a ``TypeError``:</span>
+<span class="sd">        Furthermore, trying to load a different type of BaseH2OFunctionWrapper from</span>
+<span class="sd">        this method will raise a TypeError:</span>
 
-<span class="sd">            &gt;&gt;&gt; mcf = BaseH2OSearchCV.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_search():</span>
+<span class="sd">            ...     return BaseH2OSearchCV.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; search = load_search() # doctest: +SKIP</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        location : str</span>
-<span class="sd">            The location where the persisted ``BaseH2OSearchCV`` model resides.</span>
+<span class="sd">            The location where the persisted BaseH2OSearchCV model resides.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        model : ``BaseH2OSearchCV``</span>
-<span class="sd">            The unpickled instance of the ``BaseH2OSearchCV`` model</span>
+<span class="sd">        model : BaseH2OSearchCV</span>
+<span class="sd">            The unpickled instance of the BaseH2OSearchCV model</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">BaseH2OSearchCV</span><span class="p">):</span>
@@ -969,52 +1006,68 @@
     <span class="sd">&quot;&quot;&quot;An exhaustive grid search that will fit models across the</span>
 <span class="sd">    entire hyperparameter grid provided.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
 
-<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
-<span class="sd">            The estimator to fit.</span>
+<span class="sd">    estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``</span>
+<span class="sd">        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must</span>
+<span class="sd">        contain an estimator as the final step.</span>
 
-<span class="sd">        param_grid : dict</span>
-<span class="sd">            The hyper parameter grid over which to search.</span>
+<span class="sd">    param_grid : dict</span>
+<span class="sd">        The hyper parameter grid over which to search. If ``estimator`` is</span>
+<span class="sd">        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be</span>
+<span class="sd">        in the form of ``{&#39;stepname__param&#39;:[values]}``; if there are not named</span>
+<span class="sd">        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should</span>
+<span class="sd">        be in the form of ``{&#39;param&#39;:[values]}``. Note that a ``param_grid`` with</span>
+<span class="sd">        named step parameters in the absence of named steps will raise an error.</span>
 
-<span class="sd">        feature_names : iterable (str)</span>
-<span class="sd">            The list of feature names on which to fit</span>
+<span class="sd">    feature_names : iterable (str)</span>
+<span class="sd">        The list of feature names on which to fit</span>
 
-<span class="sd">        target_feature : str</span>
-<span class="sd">            The name of the target</span>
+<span class="sd">    target_feature : str</span>
+<span class="sd">        The name of the target</span>
 
-<span class="sd">        scoring : str, optional (default=&#39;lift&#39;)</span>
-<span class="sd">            A valid scoring metric, i.e., &quot;accuracy_score&quot;. See</span>
-<span class="sd">            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.</span>
+<span class="sd">    scoring : str, optional (default=&#39;lift&#39;)</span>
+<span class="sd">        A valid scoring metric, i.e., &quot;accuracy_score&quot;. See</span>
+<span class="sd">        ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.</span>
 
-<span class="sd">        scoring_params : dict, optional (default=None)</span>
-<span class="sd">            Any kwargs to be passed to the scoring function for</span>
-<span class="sd">            scoring at each iteration.</span>
+<span class="sd">    scoring_params : dict, optional (default=None)</span>
+<span class="sd">        Any kwargs to be passed to the scoring function for</span>
+<span class="sd">        scoring at each iteration.</span>
 
-<span class="sd">        cv : int or ``H2OCrossValidator``, optional (default=5)</span>
-<span class="sd">            The number of folds to be fit for cross validation.</span>
+<span class="sd">    cv : int or H2OCrossValidator, optional (default=5)</span>
+<span class="sd">        The number of folds to be fit for cross validation.</span>
 
-<span class="sd">        verbose : int, optional (default=0)</span>
-<span class="sd">            The level of verbosity. 1,2 or greater.</span>
+<span class="sd">    verbose : int, optional (default=0)</span>
+<span class="sd">        The level of verbosity. 1, 2 or greater. A ``verbosity`` of</span>
+<span class="sd">        0 will produce no output other than the default H2O fit/predict</span>
+<span class="sd">        output. A ``verbosity`` of 1 will print the selected parameters</span>
+<span class="sd">        at each fold and iteration, and a ``verbosity`` of 2 will produce</span>
+<span class="sd">        all of the aforementioned output plus the intermediate fold scores.</span>
 
-<span class="sd">        iid : bool, optional (default=True)</span>
-<span class="sd">            Whether to consider each fold as IID. The fold scores</span>
-<span class="sd">            are normalized at the end by the number of observations</span>
-<span class="sd">            in each fold.</span>
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold. If True, the data is assumed to be identically </span>
+<span class="sd">        distributed across the folds, and the loss minimized is the total </span>
+<span class="sd">        loss per sample, and not the mean loss across the folds.</span>
 
-<span class="sd">        validation_frame : ``H2OFrame``, optional (default=None)</span>
-<span class="sd">            Whether to score on the full validation frame at the</span>
-<span class="sd">            end of all of the model fits. Note that this will NOT be</span>
-<span class="sd">            used in the actual model selection process.</span>
+<span class="sd">    validation_frame : H2OFrame, optional (default=None)</span>
+<span class="sd">        Whether to score on the full validation frame at the</span>
+<span class="sd">        end of all of the model fits. Note that this will NOT be</span>
+<span class="sd">        used in the actual model selection process.</span>
 
-<span class="sd">        minimize : str, optional (default=&#39;bias&#39;)</span>
-<span class="sd">            How the search selects the best model to fit on the entire dataset.</span>
-<span class="sd">            One of {&#39;bias&#39;,&#39;variance&#39;}. The default behavior is &#39;bias&#39;, which is</span>
-<span class="sd">            also the default behavior of sklearn. This will select the set of</span>
-<span class="sd">            hyper parameters which maximizes the cross validation score mean.</span>
-<span class="sd">            Alternatively, &#39;variance&#39; will select the model which minimizes</span>
-<span class="sd">            the standard deviations between cross validation scores.</span>
+<span class="sd">    minimize : str, optional (default=&#39;bias&#39;)</span>
+<span class="sd">        How the search selects the best model to fit on the entire dataset.</span>
+<span class="sd">        One of {&#39;bias&#39;,&#39;variance&#39;}. The default behavior is &#39;bias&#39;, which is</span>
+<span class="sd">        also the default behavior of sklearn. This will select the set of</span>
+<span class="sd">        hyper parameters which maximizes the cross validation score mean.</span>
+<span class="sd">        Alternatively, &#39;variance&#39; will select the model which minimizes</span>
+<span class="sd">        the standard deviations between cross validation scores.</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">param_grid</span><span class="p">,</span>
@@ -1037,6 +1090,14 @@
         <span class="n">_check_param_grid</span><span class="p">(</span><span class="n">param_grid</span><span class="p">)</span>
 
 <div class="viewcode-block" id="H2OGridSearchCV.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OGridSearchCV.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the grid search.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">            The training frame on which to fit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">ParameterGrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span><span class="p">))</span></div></div>
 
 
@@ -1044,64 +1105,80 @@
     <span class="sd">&quot;&quot;&quot;A grid search that operates over a random sub-hyperparameter space</span>
 <span class="sd">    at each iteration.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
 
-<span class="sd">        estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
-<span class="sd">            The estimator to fit.</span>
+<span class="sd">    estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``</span>
+<span class="sd">        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must</span>
+<span class="sd">        contain an estimator as the final step.</span>
 
-<span class="sd">        param_grid : dict</span>
-<span class="sd">            The hyper parameter grid over which to search.</span>
+<span class="sd">    param_grid : dict</span>
+<span class="sd">        The hyper parameter grid over which to search. If ``estimator`` is</span>
+<span class="sd">        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be</span>
+<span class="sd">        in the form of ``{&#39;stepname__param&#39;:[values]}``; if there are not named</span>
+<span class="sd">        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should</span>
+<span class="sd">        be in the form of ``{&#39;param&#39;:[values]}``. Note that a ``param_grid`` with</span>
+<span class="sd">        named step parameters in the absence of named steps will raise an error.</span>
 
-<span class="sd">        feature_names : iterable (str)</span>
-<span class="sd">            The list of feature names on which to fit</span>
+<span class="sd">    feature_names : iterable (str)</span>
+<span class="sd">        The list of feature names on which to fit</span>
 
-<span class="sd">        target_feature : str</span>
-<span class="sd">            The name of the target</span>
+<span class="sd">    target_feature : str</span>
+<span class="sd">        The name of the target</span>
 
-<span class="sd">        n_iter : int, optional (default=10)</span>
-<span class="sd">            The number of iterations to fit. Note that </span>
-<span class="sd">            ``n_iter * cv.get_n_splits`` will be fit. If there</span>
-<span class="sd">            are 10 folds and 10 iterations, 100 models (plus</span>
-<span class="sd">            one) will be fit.</span>
+<span class="sd">    n_iter : int, optional (default=10)</span>
+<span class="sd">        The number of iterations to fit. Note that </span>
+<span class="sd">        ``n_iter * cv.get_n_splits`` will be fit. If there</span>
+<span class="sd">        are 10 folds and 10 iterations, 100 models (plus</span>
+<span class="sd">        one) will be fit.</span>
 
-<span class="sd">        random_state : int, optional (default=None)</span>
-<span class="sd">            The random state for the search</span>
+<span class="sd">    random_state : int, optional (default=None)</span>
+<span class="sd">        The random state for the search</span>
 
-<span class="sd">        scoring : str, optional (default=&#39;lift&#39;)</span>
-<span class="sd">            A valid scoring metric, i.e., &quot;accuracy_score&quot;. See</span>
-<span class="sd">            ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.</span>
+<span class="sd">    scoring : str, optional (default=&#39;lift&#39;)</span>
+<span class="sd">        A valid scoring metric, i.e., &quot;accuracy_score&quot;. See</span>
+<span class="sd">        ``skutil.h2o.grid_search.SCORERS`` for a comprehensive list.</span>
 
-<span class="sd">        scoring_params : dict, optional (default=None)</span>
-<span class="sd">            Any kwargs to be passed to the scoring function for</span>
-<span class="sd">            scoring at each iteration.</span>
+<span class="sd">    scoring_params : dict, optional (default=None)</span>
+<span class="sd">        Any kwargs to be passed to the scoring function for</span>
+<span class="sd">        scoring at each iteration.</span>
 
-<span class="sd">        cv : int or ``H2OCrossValidator``, optional (default=5)</span>
-<span class="sd">            The number of folds to be fit for cross validation.</span>
-<span class="sd">            Note that ``n_iter * cv.get_n_splits`` will be fit. If there</span>
-<span class="sd">            are 10 folds and 10 iterations, 100 models (plus</span>
-<span class="sd">            one) will be fit.</span>
+<span class="sd">    cv : int or H2OCrossValidator, optional (default=5)</span>
+<span class="sd">        The number of folds to be fit for cross validation.</span>
+<span class="sd">        Note that ``n_iter * cv.get_n_splits`` will be fit. If there</span>
+<span class="sd">        are 10 folds and 10 iterations, 100 models (plus</span>
+<span class="sd">        one) will be fit.</span>
 
-<span class="sd">        verbose : int, optional (default=0)</span>
-<span class="sd">            The level of verbosity. 1,2 or greater.</span>
+<span class="sd">    verbose : int, optional (default=0)</span>
+<span class="sd">        The level of verbosity. 1, 2 or greater. A ``verbosity`` of</span>
+<span class="sd">        0 will produce no output other than the default H2O fit/predict</span>
+<span class="sd">        output. A ``verbosity`` of 1 will print the selected parameters</span>
+<span class="sd">        at each fold and iteration, and a ``verbosity`` of 2 will produce</span>
+<span class="sd">        all of the aforementioned output plus the intermediate fold scores.</span>
 
-<span class="sd">        iid : bool, optional (default=True)</span>
-<span class="sd">            Whether to consider each fold as IID. The fold scores</span>
-<span class="sd">            are normalized at the end by the number of observations</span>
-<span class="sd">            in each fold.</span>
+<span class="sd">    iid : bool, optional (default=True)</span>
+<span class="sd">        Whether to consider each fold as IID. The fold scores</span>
+<span class="sd">        are normalized at the end by the number of observations</span>
+<span class="sd">        in each fold. If True, the data is assumed to be identically </span>
+<span class="sd">        distributed across the folds, and the loss minimized is the total </span>
+<span class="sd">        loss per sample, and not the mean loss across the folds.</span>
 
-<span class="sd">        validation_frame : ``H2OFrame``, optional (default=None)</span>
-<span class="sd">            Whether to score on the full validation frame at the</span>
-<span class="sd">            end of all of the model fits. Note that this will NOT be</span>
-<span class="sd">            used in the actual model selection process.</span>
+<span class="sd">    validation_frame : H2OFrame, optional (default=None)</span>
+<span class="sd">        Whether to score on the full validation frame at the</span>
+<span class="sd">        end of all of the model fits. Note that this will NOT be</span>
+<span class="sd">        used in the actual model selection process.</span>
 
-<span class="sd">        minimize : str, optional (default=&#39;bias&#39;)</span>
-<span class="sd">            How the search selects the best model to fit on the entire dataset.</span>
-<span class="sd">            One of {&#39;bias&#39;,&#39;variance&#39;}. The default behavior is &#39;bias&#39;, which is</span>
-<span class="sd">            also the default behavior of sklearn. This will select the set of</span>
-<span class="sd">            hyper parameters which maximizes the cross validation score mean.</span>
-<span class="sd">            Alternatively, &#39;variance&#39; will select the model which minimizes</span>
-<span class="sd">            the standard deviations between cross validation scores.</span>
+<span class="sd">    minimize : str, optional (default=&#39;bias&#39;)</span>
+<span class="sd">        How the search selects the best model to fit on the entire dataset.</span>
+<span class="sd">        One of {&#39;bias&#39;,&#39;variance&#39;}. The default behavior is &#39;bias&#39;, which is</span>
+<span class="sd">        also the default behavior of sklearn. This will select the set of</span>
+<span class="sd">        hyper parameters which maximizes the cross validation score mean.</span>
+<span class="sd">        Alternatively, &#39;variance&#39; will select the model which minimizes</span>
+<span class="sd">        the standard deviations between cross validation scores.</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">param_grid</span><span class="p">,</span>
@@ -1126,6 +1203,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">random_state</span> <span class="o">=</span> <span class="n">random_state</span>
 
 <div class="viewcode-block" id="H2ORandomizedSearchCV.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2ORandomizedSearchCV.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the grid search.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">            The training frame on which to fit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sampled_params</span> <span class="o">=</span> <span class="n">ParameterSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span><span class="p">,</span>
                                           <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">,</span>
                                           <span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
@@ -1152,17 +1237,25 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    tuple :</span>
-<span class="sd">        str, str, (str or None)</span>
+<span class="sd">    out : tuple</span>
+<span class="sd">        exp : str</span>
+<span class="sd">            The name of the exp feature (``x``) </span>
+
+<span class="sd">        loss : str</span>
+<span class="sd">            The name of the loss feature (``y``)</span>
+
+<span class="sd">        prem : str or None</span>
+<span class="sd">            The name of the prem feature (``z``)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">unicode</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;exposure and loss must be strings or unicode&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;premium must be None or string or unicode&#39;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">z</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <div class="viewcode-block" id="H2OGainsRandomizedSearchCV"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OGainsRandomizedSearchCV">[docs]</a><span class="k">class</span> <span class="nc">H2OGainsRandomizedSearchCV</span><span class="p">(</span><span class="n">H2ORandomizedSearchCV</span><span class="p">):</span>
@@ -1174,11 +1267,18 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    estimator : ``H2OPipeline`` or ``H2OEstimator``</span>
-<span class="sd">        The estimator to fit.</span>
+<span class="sd">    estimator : H2OPipeline or H2OEstimator</span>
+<span class="sd">        The estimator to fit. Either an :class:``skutil.h2o.H2OPipeline``</span>
+<span class="sd">        or a ``H2OEstimator``. If the ``estimator`` is a pipeline, it must</span>
+<span class="sd">        contain an estimator as the final step.</span>
 
 <span class="sd">    param_grid : dict</span>
-<span class="sd">        The hyper parameter grid over which to search.</span>
+<span class="sd">        The hyper parameter grid over which to search. If ``estimator`` is</span>
+<span class="sd">        an :class:``skutil.h2o.H2OPipeline``, the ``param_grid`` should be</span>
+<span class="sd">        in the form of ``{&#39;stepname__param&#39;:[values]}``; if there are not named</span>
+<span class="sd">        steps (i.e., if ``estimator`` is an ``H2OEstimator``), ``param_grid`` should</span>
+<span class="sd">        be in the form of ``{&#39;param&#39;:[values]}``. Note that a ``param_grid`` with</span>
+<span class="sd">        named step parameters in the absence of named steps will raise an error.</span>
 
 <span class="sd">    feature_names : iterable (str)</span>
 <span class="sd">        The list of feature names on which to fit</span>
@@ -1212,21 +1312,27 @@
 <span class="sd">        Any kwargs to be passed to the scoring function for</span>
 <span class="sd">        scoring at each iteration.</span>
 
-<span class="sd">    cv : int or ``H2OCrossValidator``, optional (default=5)</span>
+<span class="sd">    cv : int or H2OCrossValidator, optional (default=5)</span>
 <span class="sd">        The number of folds to be fit for cross validation.</span>
 <span class="sd">        Note that ``n_iter * cv.get_n_splits`` will be fit. If there</span>
 <span class="sd">        are 10 folds and 10 iterations, 100 models (plus</span>
 <span class="sd">        one) will be fit.</span>
 
 <span class="sd">    verbose : int, optional (default=0)</span>
-<span class="sd">        The level of verbosity. 1,2 or greater.</span>
+<span class="sd">        The level of verbosity. 1, 2 or greater. A ``verbosity`` of</span>
+<span class="sd">        0 will produce no output other than the default H2O fit/predict</span>
+<span class="sd">        output. A ``verbosity`` of 1 will print the selected parameters</span>
+<span class="sd">        at each fold and iteration, and a ``verbosity`` of 2 will produce</span>
+<span class="sd">        all of the aforementioned output plus the intermediate fold scores.</span>
 
 <span class="sd">    iid : bool, optional (default=True)</span>
 <span class="sd">        Whether to consider each fold as IID. The fold scores</span>
 <span class="sd">        are normalized at the end by the number of observations</span>
-<span class="sd">        in each fold.</span>
+<span class="sd">        in each fold. If True, the data is assumed to be identically </span>
+<span class="sd">        distributed across the folds, and the loss minimized is the total </span>
+<span class="sd">        loss per sample, and not the mean loss across the folds.</span>
 
-<span class="sd">    validation_frame : ``H2OFrame``, optional (default=None)</span>
+<span class="sd">    validation_frame : H2OFrame, optional (default=None)</span>
 <span class="sd">        Whether to score on the full validation frame at the</span>
 <span class="sd">        end of all of the model fits. Note that this will NOT be</span>
 <span class="sd">        used in the actual model selection process.</span>
@@ -1245,6 +1351,9 @@
 
 <span class="sd">    error_behavior : str, optional (default=&#39;warn&#39;)</span>
 <span class="sd">        How to handle the pd.qcut ValueError. One of {&#39;warn&#39;,&#39;raise&#39;,&#39;ignore&#39;}</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">param_grid</span><span class="p">,</span>
@@ -1287,6 +1396,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">scoring</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="H2OGainsRandomizedSearchCV.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OGainsRandomizedSearchCV.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fit the grid search.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">            The training frame on which to fit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sampled_params</span> <span class="o">=</span> <span class="n">ParameterSampler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param_grid</span><span class="p">,</span>
                                           <span class="bp">self</span><span class="o">.</span><span class="n">n_iter</span><span class="p">,</span>
                                           <span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_state</span><span class="p">)</span>
@@ -1328,7 +1445,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        rdf : pd.DataFrame</span>
+<span class="sd">        rdf : pd.DataFrame, shape=(n_iter, n_params)</span>
 <span class="sd">            The grid search report</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;best_estimator_&#39;</span><span class="p">)</span>
@@ -1336,7 +1453,9 @@
         <span class="n">n_obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">report_res</span><span class="o">.</span><span class="n">shape</span>
 
         <span class="c1"># Need to cbind the parameters... we don&#39;t care about [&quot;score&quot;, &quot;std&quot;]</span>
-        <span class="n">rdf</span> <span class="o">=</span> <span class="n">report_grid_score_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">charts</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">rdf</span><span class="p">,</span> <span class="n">drops</span> <span class="o">=</span> <span class="n">report_grid_score_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">charts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_drops</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">rdf</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">drops</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
         <span class="k">assert</span> <span class="n">n_obs</span> <span class="o">==</span> <span class="n">rdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;Internal error: </span><span class="si">%d</span><span class="s1">!=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">rdf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="c1"># change the names in the dataframe...</span>
@@ -1366,7 +1485,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The test frame on which to predict and score performance.</span>
 
 <span class="sd">        Returns</span>
@@ -1422,7 +1541,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.decomposition module &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.decomposition module &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="skutil.feature_selection module" href="skutil_feature_selection.html"/>
         <link rel="prev" title="skutil.base" href="skutil_base.html"/> 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -169,11 +169,11 @@ that we do and don&#8217;t want to decompose.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string), optional (default=None)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, shape=(n_features,), optional (default=None)</p>
 <blockquote>
 <div><p>The names of the columns on which to apply the transformation.
-If no column names are provided, the decomposition will be <code class="docutils literal"><span class="pre">fit</span></code>
-on the entire frame. Note that the transormation will also only
+If no column names are provided, the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>
+on the entire frame. Note that the transformation will also only
 apply to the specified columns, and any other non-specified
 columns will still be present after transformation.</p>
 </div></blockquote>
@@ -199,10 +199,12 @@ explained is greater than the percentage specified by <code class="docutils lite
 <li><code class="docutils literal"><span class="pre">n_components</span></code> cannot be equal to <code class="docutils literal"><span class="pre">n_features</span></code> for <code class="docutils literal"><span class="pre">svd_solver</span></code> == &#8216;arpack&#8217;.</li>
 </ul>
 </div></blockquote>
-<p><strong>as_df</strong> : bool, optional (default=None)</p>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
 <blockquote>
-<div><p>Whether or not to return a pandas DataFrame object. If
-False, will return a np.ndarray instead.</p>
+<div><p>Whether to return a Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a Numpy <code class="docutils literal"><span class="pre">ndarray</span></code> instead. 
+Since most skutil transformers depend on explicitly-named
+<code class="docutils literal"><span class="pre">DataFrame</span></code> features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
 </div></blockquote>
 <p><strong>whiten</strong> : bool, optional (default False)</p>
 <blockquote>
@@ -226,16 +228,21 @@ transformed features.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
-<blockquote>
-<div><p>The names of the columns on which to apply 
-the transformation.</p>
-</div></blockquote>
-<p class="last"><strong>pca_</strong> : the PCA object</p>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first last"><strong>pca_</strong> : the PCA object</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skutil.decomposition</span> <span class="k">import</span> <span class="n">SelectivePCA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skutil.utils</span> <span class="k">import</span> <span class="n">load_iris_df</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pca</span> <span class="o">=</span> <span class="n">SelectivePCA</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_transform</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c1"># pca suffers sign indeterminancy and results will vary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">X_transform</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -244,13 +251,13 @@ the transformation.</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.fit" title="skutil.decomposition.SelectivePCA.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
-<td>Fit the transformer to the provided dataset.</td>
+<td>Fit the transformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
 <td>Fit to data, then transform it.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.get_decomposition" title="skutil.decomposition.SelectivePCA.get_decomposition"><code class="xref py py-obj docutils literal"><span class="pre">get_decomposition</span></code></a>()</td>
-<td>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,</td>
+<td>Overridden from the :class:<code class="docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code> class,</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
@@ -264,33 +271,34 @@ the transformation.</p>
 <tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.transform" title="skutil.decomposition.SelectivePCA.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
-<td>Transform the given dataset, provided the transformer has already been fit.</td>
+<tr class="row-even"><td><a class="reference internal" href="#skutil.decomposition.SelectivePCA.transform" title="skutil.decomposition.SelectivePCA.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform a test matrix given the already-fit transformer.</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="skutil.decomposition.SelectivePCA.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit the transformer to the provided dataset.</p>
+<dd><p>Fit the transformer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The data to fit.</p>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None. Furthermore, <code class="docutils literal"><span class="pre">X</span></code> will
+not be altered in the process of the fit.</p>
 </div></blockquote>
-<p><strong>y: None</strong> :</p>
+<p><strong>y</strong> : None</p>
 <blockquote>
-<div><p>Pass through for grid search and pipeline.</p>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self</strong> : SelectivePCA</p>
-<blockquote class="last">
-<div><p>The fit transformer</p>
-</div></blockquote>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
 </td>
 </tr>
 </tbody>
@@ -300,14 +308,14 @@ the transformation.</p>
 <dl class="method">
 <dt id="skutil.decomposition.SelectivePCA.get_decomposition">
 <code class="descname">get_decomposition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.get_decomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.get_decomposition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,
+<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code> class,
 this method returns the internal decomposition class: 
 <code class="docutils literal"><span class="pre">sklearn.decomposition.PCA</span></code></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.pca_</strong> : sklearn.decomposition.PCA</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.pca_</strong> : <code class="docutils literal"><span class="pre">sklearn.decomposition.PCA</span></code></p>
 <blockquote class="last">
 <div><p>The fit internal decomposition class</p>
 </div></blockquote>
@@ -322,15 +330,12 @@ this method returns the internal decomposition class:
 <code class="descname">score</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.score" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the average log-likelihood of all samples.
 This calls sklearn.decomposition.PCA&#8217;s score method
-on the specified columns.</p>
-<p>See. &#8220;Pattern Recognition and Machine Learning&#8221;
-by C. Bishop, 12.2.1 p. 574
-or <a class="reference external" href="http://www.miketipping.com/papers/met-mppca.pdf">http://www.miketipping.com/papers/met-mppca.pdf</a></p>
+on the specified columns [1].</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: Pandas ``DataFrame``, shape=(n_samples, n_features)</strong> :</p>
 <blockquote>
 <div><p>The data to score.</p>
 </div></blockquote>
@@ -349,31 +354,36 @@ PCA model (<cite>self.pca_</cite>)</p>
 </tr>
 </tbody>
 </table>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[R1]</a></td><td>Bishop, C.  &#8220;Pattern Recognition and Machine Learning&#8221;
+12.2.1 p. 574 <a class="reference external" href="http://www.miketipping.com/papers/met-mppca.pdf">http://www.miketipping.com/papers/met-mppca.pdf</a></td></tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="skutil.decomposition.SelectivePCA.transform">
-<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform the given dataset, provided the transformer
-has already been fit.</p>
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectivePCA.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectivePCA.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a test matrix given the already-fit transformer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The data to fit.</p>
-</div></blockquote>
-<p><strong>y: None</strong> :</p>
-<blockquote>
-<div><p>Pass through for grid search and pipeline.</p>
+<div><p>The Pandas frame to transform. The operation will
+be applied to a copy of the input data, and the result
+will be returned.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : pd.DataFrame or np.ndarray</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code></p>
 <blockquote class="last">
-<div><p>The transformed matrix. pd.DataFrame if <code class="docutils literal"><span class="pre">as_df</span></code>
-is True, else np.ndarray.</p>
+<div><p>The operation is applied to a copy of <code class="docutils literal"><span class="pre">X</span></code>,
+and the result set is returned.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -396,44 +406,57 @@ and returns the &#8220;concept space&#8221; of the decomposed features.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like, shape=(n_features,), optional (default=None)</p>
 <blockquote>
-<div><p>names of columns on which to apply scaling</p>
+<div><p>The names of the columns on which to apply the transformation.
+If no column names are provided, the transformer will be <code class="docutils literal"><span class="pre">fit</span></code>
+on the entire frame. Note that the transformation will also only
+apply to the specified columns, and any other non-specified
+columns will still be present after transformation.</p>
 </div></blockquote>
-<p><strong>n_components</strong> : int, default = 2</p>
+<p><strong>n_components</strong> : int, (default=2)</p>
 <blockquote>
 <div><p>Desired dimensionality of output data.
 Must be strictly less than the number of features.
 The default value is useful for visualisation. For LSA, a value of
 100 is recommended.</p>
 </div></blockquote>
-<p><strong>algorithm</strong> : string, default = &#8220;randomized&#8221;</p>
+<p><strong>algorithm</strong> : string, (default=&#8221;randomized&#8221;)</p>
 <blockquote>
 <div><p>SVD solver to use. Either &#8220;arpack&#8221; for the ARPACK wrapper in SciPy
 (scipy.sparse.linalg.svds), or &#8220;randomized&#8221; for the randomized
 algorithm due to Halko (2009).</p>
 </div></blockquote>
-<p><strong>n_iter</strong> : int, optional (default 5)</p>
+<p><strong>n_iter</strong> : int, optional (default=5)</p>
 <blockquote>
 <div><p>Number of iterations for randomized SVD solver. Not used by ARPACK.
 The default is larger than the default in <cite>randomized_svd</cite> to handle
 sparse matrices that may have large slowly decaying spectrum.</p>
 </div></blockquote>
-<p><strong>as_df</strong> : boolean, default True</p>
+<p><strong>as_df</strong> : bool, optional (default=True)</p>
 <blockquote>
-<div><p>Whether to return a pandas DataFrame</p>
+<div><p>Whether to return a Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code> in the <code class="docutils literal"><span class="pre">transform</span></code>
+method. If False, will return a Numpy <code class="docutils literal"><span class="pre">ndarray</span></code> instead. 
+Since most skutil transformers depend on explicitly-named
+<code class="docutils literal"><span class="pre">DataFrame</span></code> features, the <code class="docutils literal"><span class="pre">as_df</span></code> parameter is True by default.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cols</strong> : array_like (string)</p>
-<blockquote>
-<div><p>the columns</p>
-</div></blockquote>
-<p class="last"><strong>svd_</strong> : the SVD object</p>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first last"><strong>svd_</strong> : the SVD object</p>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skutil.decomposition</span> <span class="k">import</span> <span class="n">SelectiveTruncatedSVD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">skutil.utils</span> <span class="k">import</span> <span class="n">load_iris_df</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span> <span class="o">=</span> <span class="n">load_iris_df</span><span class="p">(</span><span class="n">include_tgt</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">svd</span> <span class="o">=</span> <span class="n">SelectiveTruncatedSVD</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_transform</span> <span class="o">=</span> <span class="n">svd</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c1"># svd suffers sign indeterminancy and results will vary</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">X_transform</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -442,13 +465,13 @@ sparse matrices that may have large slowly decaying spectrum.</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.fit" title="skutil.decomposition.SelectiveTruncatedSVD.fit"><code class="xref py py-obj docutils literal"><span class="pre">fit</span></code></a>(X[,&nbsp;y])</td>
-<td>Fit the transformer to the provided dataset.</td>
+<td>Fit the transformer.</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fit_transform</span></code>(X[,&nbsp;y])</td>
 <td>Fit to data, then transform it.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.get_decomposition" title="skutil.decomposition.SelectiveTruncatedSVD.get_decomposition"><code class="xref py py-obj docutils literal"><span class="pre">get_decomposition</span></code></a>()</td>
-<td>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,</td>
+<td>Overridden from the :class:<code class="docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code> class,</td>
 </tr>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_params</span></code>([deep])</td>
 <td>Get parameters for this estimator.</td>
@@ -459,26 +482,30 @@ sparse matrices that may have large slowly decaying spectrum.</p>
 <tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_params</span></code>(\*\*params)</td>
 <td>Set the parameters of this estimator.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="skutil.decomposition.SelectiveTruncatedSVD.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X[,&nbsp;y])</td>
-<td>Transform the given dataset, provided the transformer has already been fit.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="skutil.decomposition.SelectiveTruncatedSVD.transform"><code class="xref py py-obj docutils literal"><span class="pre">transform</span></code></a>(X)</td>
+<td>Transform a test matrix given the already-fit transformer.</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="skutil.decomposition.SelectiveTruncatedSVD.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fit the transformer to the provided dataset.</p>
+<dd><p>Fit the transformer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The data to fit.</p>
+<div><p>The Pandas frame to fit. The frame will only
+be fit on the prescribed <code class="docutils literal"><span class="pre">cols</span></code> (see <code class="docutils literal"><span class="pre">__init__</span></code>) or
+all of them if <code class="docutils literal"><span class="pre">cols</span></code> is None. Furthermore, <code class="docutils literal"><span class="pre">X</span></code> will
+not be altered in the process of the fit.</p>
 </div></blockquote>
-<p><strong>y: None</strong> :</p>
+<p><strong>y</strong> : None</p>
 <blockquote>
-<div><p>Pass through for grid search and pipeline.</p>
+<div><p>Passthrough for <code class="docutils literal"><span class="pre">sklearn.pipeline.Pipeline</span></code>. Even
+if explicitly set, will not change behavior of <code class="docutils literal"><span class="pre">fit</span></code>.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -492,14 +519,14 @@ sparse matrices that may have large slowly decaying spectrum.</p>
 <dl class="method">
 <dt id="skutil.decomposition.SelectiveTruncatedSVD.get_decomposition">
 <code class="descname">get_decomposition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.get_decomposition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.get_decomposition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">_BaseSelectiveDecomposer</span></code> class,
+<dd><p>Overridden from the :class:<code class="docutils literal"><span class="pre">skutil.decomposition.decompose._BaseSelectiveDecomposer</span></code> class,
 this method returns the internal decomposition class: 
 <code class="docutils literal"><span class="pre">sklearn.decomposition.TruncatedSVD</span></code></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.svd_</strong> : sklearn.decomposition.TruncatedSVD</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>self.svd_</strong> : <code class="docutils literal"><span class="pre">sklearn.decomposition.TruncatedSVD</span></code></p>
 <blockquote class="last">
 <div><p>The fit internal decomposition class</p>
 </div></blockquote>
@@ -511,27 +538,24 @@ this method returns the internal decomposition class:
 
 <dl class="method">
 <dt id="skutil.decomposition.SelectiveTruncatedSVD.transform">
-<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform the given dataset, provided the transformer
-has already been fit.</p>
+<code class="descname">transform</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/decomposition/decompose.html#SelectiveTruncatedSVD.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.decomposition.SelectiveTruncatedSVD.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a test matrix given the already-fit transformer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X: pd.DataFrame, shape(n_samples, n_features)</strong> :</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote>
-<div><p>The data to fit.</p>
-</div></blockquote>
-<p><strong>y: None</strong> :</p>
-<blockquote>
-<div><p>Pass through for grid search and pipeline.</p>
+<div><p>The Pandas frame to transform. The operation will
+be applied to a copy of the input data, and the result
+will be returned.</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>x</strong> : pd.DataFrame or np.ndarray</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>X</strong> : Pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>, shape=(n_samples, n_features)</p>
 <blockquote class="last">
-<div><p>The transformed matrix. pd.DataFrame if <code class="docutils literal"><span class="pre">as_df</span></code>
-is True, else np.ndarray.</p>
+<div><p>The operation is applied to a copy of <code class="docutils literal"><span class="pre">X</span></code>,
+and the result set is returned.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -584,7 +608,7 @@ is True, else np.ndarray.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

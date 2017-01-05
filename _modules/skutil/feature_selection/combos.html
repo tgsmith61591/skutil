@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.feature_selection.combos &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.feature_selection.combos &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -136,11 +136,11 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-<span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_is_fitted</span>
 <span class="kn">from</span> <span class="nn">skutil.odr</span> <span class="k">import</span> <span class="n">QRDecomposition</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">_BaseFeatureSelector</span>
 <span class="kn">from</span> <span class="nn">.select</span> <span class="k">import</span> <span class="n">_validate_cols</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">flatten_all</span><span class="p">,</span> <span class="n">validate_is_pd</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">_cols_if_none</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -157,18 +157,33 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    cols : array_like, optional (default=None)</span>
-<span class="sd">        The columns on which the transformer will be ``fit``. In</span>
-<span class="sd">        the case that ``cols`` is None, the transformer will be fit</span>
-<span class="sd">        on all columns. Note that since this transformer can only operate</span>
-<span class="sd">        on numeric columns, not explicitly setting the ``cols`` parameter</span>
-<span class="sd">        may result in errors for categorical data.</span>
+<span class="sd">    cols : array_like, shape=(n_features,), optional (default=None)</span>
+<span class="sd">        The names of the columns on which to apply the transformation.</span>
+<span class="sd">        If no column names are provided, the transformer will be ``fit``</span>
+<span class="sd">        on the entire frame. Note that the transformation will also only</span>
+<span class="sd">        apply to the specified columns, and any other non-specified</span>
+<span class="sd">        columns will still be present after transformation. Note that </span>
+<span class="sd">        since this transformer can only operate on numeric columns, not </span>
+<span class="sd">        explicitly setting the ``cols`` parameter may result in errors </span>
+<span class="sd">        for categorical data.</span>
 
 <span class="sd">    as_df : bool, optional (default=True)</span>
-<span class="sd">        Whether to return a Pandas DataFrame in the ``transform``</span>
-<span class="sd">        method. If False, will return a NumPy ndarray instead. </span>
+<span class="sd">        Whether to return a Pandas ``DataFrame`` in the ``transform``</span>
+<span class="sd">        method. If False, will return a Numpy ``ndarray`` instead. </span>
 <span class="sd">        Since most skutil transformers depend on explicitly-named</span>
-<span class="sd">        DataFrame features, the ``as_df`` parameter is True by default.</span>
+<span class="sd">        ``DataFrame`` features, the ``as_df`` parameter is True by default.</span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from skutil.utils import load_iris_df</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; X = load_iris_df(include_tgt=False)</span>
+<span class="sd">        &gt;&gt;&gt; filterer = LinearCombinationFilterer()</span>
+<span class="sd">        &gt;&gt;&gt; X_transform = filterer.fit_transform(X)</span>
+<span class="sd">        &gt;&gt;&gt; assert X_transform.shape[1] == 4 # no combos in iris...</span>
+
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -183,15 +198,16 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">LinearCombinationFilterer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">cols</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">as_df</span><span class="o">=</span><span class="n">as_df</span><span class="p">)</span>
 
 <div class="viewcode-block" id="LinearCombinationFilterer.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.LinearCombinationFilterer.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit the linear combination filterer.</span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -206,16 +222,17 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="LinearCombinationFilterer.fit_transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.LinearCombinationFilterer.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fit the linear combination filterer and return</span>
-<span class="sd">        the transformed matrix or DataFrame.</span>
+        <span class="sd">&quot;&quot;&quot;Fit the transformer and return the transformed</span>
+<span class="sd">        training array.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        X : Pandas DataFrame</span>
+<span class="sd">        X : Pandas ``DataFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The Pandas frame to fit. The frame will only</span>
 <span class="sd">            be fit on the prescribed ``cols`` (see ``__init__``) or</span>
-<span class="sd">            all of them if ``cols`` is None.</span>
+<span class="sd">            all of them if ``cols`` is None. Furthermore, ``X`` will</span>
+<span class="sd">            not be altered in the process of the fit.</span>
 
 <span class="sd">        y : None</span>
 <span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
@@ -224,24 +241,23 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        dropped : Pandas DataFrame or NumPy ndarray</span>
-<span class="sd">            The training frame sans &quot;bad&quot; columns</span>
+<span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">assert_all_finite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># must all be finite for fortran</span>
         <span class="n">_validate_cols</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
 
         <span class="c1"># init drops list</span>
         <span class="n">drops</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c1"># Generate sub matrix for qr decomposition</span>
-        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>  <span class="c1"># get a copy of the cols</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">_cols_if_none</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>  <span class="c1"># get a copy of the cols</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>  <span class="c1"># so we can do boolean indexing</span>
 
         <span class="c1"># do subroutines</span>
-        <span class="n">lc_list</span> <span class="o">=</span> <span class="n">_enumLC</span><span class="p">(</span><span class="n">QRDecomposition</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">lc_list</span> <span class="o">=</span> <span class="n">_enum_lc</span><span class="p">(</span><span class="n">QRDecomposition</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">lc_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">while</span> <span class="n">lc_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -257,68 +273,41 @@
                 <span class="n">cols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="n">bad</span><span class="p">)</span>
 
                 <span class="c1"># keep removing linear dependencies until it resolves</span>
-                <span class="n">lc_list</span> <span class="o">=</span> <span class="n">_enumLC</span><span class="p">(</span><span class="n">QRDecomposition</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+                <span class="n">lc_list</span> <span class="o">=</span> <span class="n">_enum_lc</span><span class="p">(</span><span class="n">QRDecomposition</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 
                 <span class="c1"># will break when lc_list returns None</span>
 
         <span class="c1"># Assign attributes, return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">drops</span><span class="p">)]</span> <span class="c1"># a list from the a set of the drops</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">drops</span><span class="p">)]</span>  <span class="c1"># a list from the a set of the drops</span>
         <span class="n">dropped</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">dropped</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">dropped</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="LinearCombinationFilterer.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_feature_selection.html#skutil.feature_selection.LinearCombinationFilterer.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Drops the linear combination features from the new</span>
-<span class="sd">        input frame.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        X : Pandas DataFrame</span>
-<span class="sd">            The Pandas frame to transform.</span>
-
-<span class="sd">        y : None</span>
-<span class="sd">            Passthrough for ``sklearn.pipeline.Pipeline``. Even</span>
-<span class="sd">            if explicitly set, will not change behavior of ``fit``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-
-<span class="sd">        dropped : Pandas DataFrame or NumPy ndarray</span>
-<span class="sd">            The test frame sans &quot;bad&quot; columns</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">check_is_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;drop_&#39;</span><span class="p">)</span>
-        <span class="c1"># check on state of X and cols</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">validate_is_pd</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-
-        <span class="n">dropped</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dropped</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">as_df</span> <span class="k">else</span> <span class="n">dropped</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span></div></div>
         
 
-<span class="k">def</span> <span class="nf">_enumLC</span><span class="p">(</span><span class="n">decomp</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_enum_lc</span><span class="p">(</span><span class="n">decomp</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Perform a single iteration of linear combo scoping.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    decomp : a QRDecomposition object</span>
+<span class="sd">    decomp : a ``QRDecomposition`` object</span>
 <span class="sd">        The QR decomposition of the matrix</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">qr</span> <span class="o">=</span> <span class="n">decomp</span><span class="o">.</span><span class="n">qr</span>  <span class="c1"># the decomposition matrix</span>
+    <span class="c1"># qr = decomp.qr  # the decomposition matrix</span>
 
     <span class="c1"># extract the R matrix</span>
     <span class="n">R</span> <span class="o">=</span> <span class="n">decomp</span><span class="o">.</span><span class="n">get_R</span><span class="p">()</span>         <span class="c1"># the R matrix</span>
     <span class="n">n_features</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>    <span class="c1"># number of columns in R</span>
-    <span class="n">is_zero</span> <span class="o">=</span> <span class="n">n_features</span> <span class="o">==</span> <span class="mi">0</span>  <span class="c1"># whether there are no features</span>
+    <span class="c1"># is_zero = n_features == 0  # whether there are no features</span>
     <span class="n">rank</span> <span class="o">=</span> <span class="n">decomp</span><span class="o">.</span><span class="n">get_rank</span><span class="p">()</span>   <span class="c1"># the rank of the original matrix, or num of independent cols</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">rank</span> <span class="o">==</span> <span class="n">n_features</span><span class="p">):</span>
-        <span class="n">pivot</span> <span class="o">=</span> <span class="n">decomp</span><span class="o">.</span><span class="n">pivot</span>        <span class="c1"># the pivot vector</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">R</span><span class="p">[:</span><span class="n">rank</span><span class="p">,</span> <span class="p">:</span><span class="n">rank</span><span class="p">]</span>         <span class="c1"># extract the independent cols</span>
-        <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="p">[:</span><span class="n">rank</span><span class="p">,</span> <span class="n">rank</span><span class="p">:]</span>  <span class="c1"># +1?     # extract the dependent columns</span>
+        <span class="n">pivot</span> <span class="o">=</span> <span class="n">decomp</span><span class="o">.</span><span class="n">pivot</span>         <span class="c1"># the pivot vector</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">R</span><span class="p">[:</span><span class="n">rank</span><span class="p">,</span> <span class="p">:</span><span class="n">rank</span><span class="p">]</span>          <span class="c1"># extract the independent cols</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="p">[:</span><span class="n">rank</span><span class="p">,</span> <span class="n">rank</span><span class="p">:]</span>  <span class="c1"># +1?   # extract the dependent columns</span>
 
         <span class="n">new_qr</span> <span class="o">=</span> <span class="n">QRDecomposition</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>  <span class="c1"># factor the independent columns</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">new_qr</span><span class="o">.</span><span class="n">get_coef</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>      <span class="c1"># get regression coefficients of dependent cols</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">new_qr</span><span class="o">.</span><span class="n">get_coef</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>       <span class="c1"># get regression coefficients of dependent cols</span>
 
         <span class="c1"># if b is None, then there were no dependent columns</span>
         <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -371,7 +360,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

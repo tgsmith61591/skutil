@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.grid_search &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.grid_search &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="skutil.h2o module" href="skutil_h2o.html"/>
         <link rel="prev" title="skutil.feature_selection module" href="skutil_feature_selection.html"/> 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -158,8 +158,235 @@
 <dt id="skutil.grid_search.GridSearchCV">
 <em class="property">class </em><code class="descclassname">skutil.grid_search.</code><code class="descname">GridSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_grid</em>, <em>scoring=None</em>, <em>fit_params=None</em>, <em>n_jobs=1</em>, <em>iid=True</em>, <em>refit=True</em>, <em>cv=None</em>, <em>verbose=0</em>, <em>pre_dispatch='2*n_jobs'</em>, <em>error_score='raise'</em>, <em>return_train_score=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#GridSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.GridSearchCV" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.model_selection._search.GridSearchCV</span></code></p>
-<p>Had to wrap GridSearchCV in order to allow
-fitting a series as Y.</p>
+<p>Exhaustive search over specified parameter values for an estimator.
+This class is a skutil fix of the sklearn 0.18 GridSearchCV module, and allows
+use with SelectiveMixins and other skutil classes that don&#8217;t interact so kindly
+with other sklearn 0.18 structures (i.e. when <code class="docutils literal"><span class="pre">as_df</span></code> is True in many transformers,
+predicting on a column vector from a pd.DataFrame will cause issues in sklearn).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : estimator object.</p>
+<blockquote>
+<div><p>This is assumed to implement the scikit-learn estimator interface.
+Either estimator needs to provide a <code class="docutils literal"><span class="pre">score</span></code> function,
+or <code class="docutils literal"><span class="pre">scoring</span></code> must be passed.</p>
+</div></blockquote>
+<p><strong>param_grid</strong> : dict or list of dictionaries</p>
+<blockquote>
+<div><p>Dictionary with parameters names (string) as keys and lists of
+parameter settings to try as values, or a list of such
+dictionaries, in which case the grids spanned by each dictionary
+in the list are explored. This enables searching over any sequence
+of parameter settings.</p>
+</div></blockquote>
+<p><strong>scoring</strong> : string, callable or None, default=None</p>
+<blockquote>
+<div><p>A string (see model evaluation documentation) or
+a scorer callable object / function with signature
+<code class="docutils literal"><span class="pre">scorer(estimator,</span> <span class="pre">X,</span> <span class="pre">y)</span></code>.
+If <code class="docutils literal"><span class="pre">None</span></code>, the <code class="docutils literal"><span class="pre">score</span></code> method of the estimator is used.</p>
+</div></blockquote>
+<p><strong>fit_params</strong> : dict, optional</p>
+<blockquote>
+<div><p>Parameters to pass to the fit method.</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : int, default=1</p>
+<blockquote>
+<div><p>Number of jobs to run in parallel.</p>
+</div></blockquote>
+<p><strong>pre_dispatch</strong> : int, or string, optional</p>
+<blockquote>
+<div><p>Controls the number of jobs that get dispatched during parallel
+execution. Reducing this number can be useful to avoid an
+explosion of memory consumption when more jobs get dispatched
+than CPUs can process. This parameter can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li>None, in which case all the jobs are immediately
+created and spawned. Use this for lightweight and
+fast-running jobs, to avoid delays due to on-demand
+spawning of the jobs</li>
+<li>An int, giving the exact number of total jobs that are
+spawned</li>
+<li>A string, giving an expression as a function of n_jobs,
+as in &#8216;2*n_jobs&#8217;</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>iid</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>If True, the data is assumed to be identically distributed across
+the folds, and the loss minimized is the total loss per sample,
+and not the mean loss across the folds.</p>
+</div></blockquote>
+<p><strong>cv</strong> : int, cross-validation generator or an iterable, optional</p>
+<blockquote>
+<div><p>Determines the cross-validation splitting strategy.
+Possible inputs for cv are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>None, to use the default 3-fold cross validation,</li>
+<li>integer, to specify the number of folds in a <code class="docutils literal"><span class="pre">(Stratified)KFold</span></code>,</li>
+<li>An object to be used as a cross-validation generator.</li>
+<li>An iterable yielding train, test splits.</li>
+</ul>
+</div></blockquote>
+<p>For integer/None inputs, if the estimator is a classifier and <code class="docutils literal"><span class="pre">y</span></code> is
+either binary or multiclass, <code class="docutils literal"><span class="pre">StratifiedKFold</span></code> is used. In all
+other cases, <code class="docutils literal"><span class="pre">KFold</span></code> is used.</p>
+</div></blockquote>
+<p><strong>refit</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>Refit the best estimator with the entire dataset.
+If &#8220;False&#8221;, it is impossible to make predictions using
+this GridSearchCV instance after fitting.</p>
+</div></blockquote>
+<p><strong>verbose</strong> : integer</p>
+<blockquote>
+<div><p>Controls the verbosity: the higher, the more messages.</p>
+</div></blockquote>
+<p><strong>error_score</strong> : &#8216;raise&#8217; (default) or numeric</p>
+<blockquote>
+<div><p>Value to assign to the score if an error occurs in estimator fitting.
+If set to &#8216;raise&#8217;, the error is raised. If a numeric value is given,
+FitFailedWarning is raised. This parameter does not affect the refit
+step, which will always raise the error.</p>
+</div></blockquote>
+<p><strong>return_train_score</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>If <code class="docutils literal"><span class="pre">'False'</span></code>, the <code class="docutils literal"><span class="pre">cv_results_</span></code> attribute will not include training
+scores.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cv_results_</strong> : dict of numpy (masked) ndarrays</p>
+<blockquote>
+<div><p>A dict with keys as column headers and values as columns, that can be
+imported into a pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>.</p>
+<p>For instance, the following table</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="17%" />
+<col width="19%" />
+<col width="27%" />
+<col width="5%" />
+<col width="14%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">param_kernel</th>
+<th class="head">param_gamma</th>
+<th class="head">param_degree</th>
+<th class="head">split0_test_score</th>
+<th class="head">...</th>
+<th class="head"><a href="#id1"><span class="problematic" id="id2">rank_</span></a>....</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8216;poly&#8217;</td>
+<td>&#8211;</td>
+<td>2</td>
+<td>0.8</td>
+<td>...</td>
+<td>2</td>
+</tr>
+<tr class="row-odd"><td>&#8216;poly&#8217;</td>
+<td>&#8211;</td>
+<td>3</td>
+<td>0.7</td>
+<td>...</td>
+<td>4</td>
+</tr>
+<tr class="row-even"><td>&#8216;rbf&#8217;</td>
+<td>0.1</td>
+<td>&#8211;</td>
+<td>0.8</td>
+<td>...</td>
+<td>3</td>
+</tr>
+<tr class="row-odd"><td>&#8216;rbf&#8217;</td>
+<td>0.2</td>
+<td>&#8211;</td>
+<td>0.9</td>
+<td>...</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>will be represented by a <code class="docutils literal"><span class="pre">cv_results_</span></code> dict of:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>{</dt>
+<dd><dl class="first docutils">
+<dt>&#8216;param_kernel&#8217;: masked_array(data = [&#8216;poly&#8217;, &#8216;poly&#8217;, &#8216;rbf&#8217;, &#8216;rbf&#8217;],</dt>
+<dd><p class="first last">mask = [False False False False]...)</p>
+</dd>
+<dt>&#8216;param_gamma&#8217;: masked_array(data = [&#8211; &#8211; 0.1 0.2],</dt>
+<dd><p class="first last">mask = [ True  True False False]...),</p>
+</dd>
+<dt>&#8216;param_degree&#8217;: masked_array(data = [2.0 3.0 &#8211; &#8211;],</dt>
+<dd><p class="first last">mask = [False False  True  True]...),</p>
+</dd>
+</dl>
+<p class="last">&#8216;split0_test_score&#8217;  : [0.8, 0.7, 0.8, 0.9],
+&#8216;split1_test_score&#8217;  : [0.82, 0.5, 0.7, 0.78],
+&#8216;mean_test_score&#8217;    : [0.81, 0.60, 0.75, 0.82],
+&#8216;std_test_score&#8217;     : [0.02, 0.01, 0.03, 0.03],
+&#8216;rank_test_score&#8217;    : [2, 4, 3, 1],
+&#8216;split0_train_score&#8217; : [0.8, 0.9, 0.7],
+&#8216;split1_train_score&#8217; : [0.82, 0.5, 0.7],
+&#8216;mean_train_score&#8217;   : [0.81, 0.7, 0.7],
+&#8216;std_train_score&#8217;    : [0.03, 0.03, 0.04],
+&#8216;mean_fit_time&#8217;      : [0.73, 0.63, 0.43, 0.49],
+&#8216;std_fit_time&#8217;       : [0.01, 0.02, 0.01, 0.01],
+&#8216;mean_score_time&#8217;    : [0.007, 0.06, 0.04, 0.04],
+&#8216;std_score_time&#8217;     : [0.001, 0.002, 0.003, 0.005],
+&#8216;params&#8217;             : [{&#8216;kernel&#8217;: &#8216;poly&#8217;, &#8216;degree&#8217;: 2}, ...],</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>NOTE that the key <code class="docutils literal"><span class="pre">'params'</span></code> is used to store a list of parameter
+settings dict for all the parameter candidates. The <code class="docutils literal"><span class="pre">mean_fit_time</span></code>, 
+<code class="docutils literal"><span class="pre">std_fit_time</span></code>, <code class="docutils literal"><span class="pre">mean_score_time</span></code> and <code class="docutils literal"><span class="pre">std_score_time</span></code> are all in seconds.</p>
+</div></blockquote>
+<p><strong>best_estimator_</strong> : estimator</p>
+<blockquote>
+<div><p>Estimator that was chosen by the search, i.e. estimator
+which gave highest score (or smallest loss if specified)
+on the left out data. Not available if refit=False.</p>
+</div></blockquote>
+<p><strong>best_score_</strong> : float</p>
+<blockquote>
+<div><p>Score of best_estimator on the left out data.</p>
+</div></blockquote>
+<p><strong>best_params_</strong> : dict</p>
+<blockquote>
+<div><p>Parameter setting that gave the best results on the hold out data.</p>
+</div></blockquote>
+<p><strong>best_index_</strong> : int</p>
+<blockquote>
+<div><p>The index (of the <code class="docutils literal"><span class="pre">cv_results_</span></code> arrays) which corresponds to the best
+candidate parameter setting.
+The dict at <code class="docutils literal"><span class="pre">search.cv_results_['params'][search.best_index_]</span></code> gives
+the parameter setting for the best model, that gives the highest
+mean score (<code class="docutils literal"><span class="pre">search.best_score_</span></code>).</p>
+</div></blockquote>
+<p><strong>scorer_</strong> : function</p>
+<blockquote>
+<div><p>Scorer function used on the held out data to choose the best
+parameters for the model.</p>
+</div></blockquote>
+<p><strong>n_splits_</strong> : int</p>
+<blockquote class="last">
+<div><p>The number of cross-validation splits (folds/iterations).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -201,8 +428,32 @@ fitting a series as Y.</p>
 </table>
 <dl class="method">
 <dt id="skutil.grid_search.GridSearchCV.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#GridSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.GridSearchCV.fit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>groups=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#GridSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.GridSearchCV.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run fit with all sets of parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array-like, shape=(n_samples, n_features)</p>
+<blockquote>
+<div><p>Training vector, where n_samples is the number of samples and
+n_features is the number of features.</p>
+</div></blockquote>
+<p><strong>y</strong> : array-like, shape=(n_samples,) or (n_samples, n_output), optional (default=None)</p>
+<blockquote>
+<div><p>Target relative to X for classification or regression;
+None for unsupervised learning.</p>
+</div></blockquote>
+<p><strong>groups</strong> : array-like, shape=(n_samples,), optional (default=None)</p>
+<blockquote class="last">
+<div><p>Group labels for the samples used while splitting the dataset into
+train/test set.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -210,8 +461,228 @@ fitting a series as Y.</p>
 <dt id="skutil.grid_search.RandomizedSearchCV">
 <em class="property">class </em><code class="descclassname">skutil.grid_search.</code><code class="descname">RandomizedSearchCV</code><span class="sig-paren">(</span><em>estimator</em>, <em>param_distributions</em>, <em>n_iter=10</em>, <em>scoring=None</em>, <em>fit_params=None</em>, <em>n_jobs=1</em>, <em>iid=True</em>, <em>refit=True</em>, <em>cv=None</em>, <em>verbose=0</em>, <em>pre_dispatch='2*n_jobs'</em>, <em>random_state=None</em>, <em>error_score='raise'</em>, <em>return_train_score=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#RandomizedSearchCV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.RandomizedSearchCV" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sklearn.model_selection._search.RandomizedSearchCV</span></code></p>
-<p>Had to wrap RandomizedSearchCV in order to allow
-fitting a series as Y.</p>
+<p>Randomized search on hyper parameters.
+This class is a skutil fix of the sklearn 0.18 RandomizedSearchCV module, and allows
+use with SelectiveMixins and other skutil classes that don&#8217;t interact so kindly
+with other sklearn 0.18 structures (i.e. when <code class="docutils literal"><span class="pre">as_df</span></code> is True in many transformers,
+predicting on a column vector from a pd.DataFrame will cause issues in sklearn).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>estimator</strong> : estimator object.</p>
+<blockquote>
+<div><p>A object of that type is instantiated for each grid point.
+This is assumed to implement the scikit-learn estimator interface.
+Either estimator needs to provide a <code class="docutils literal"><span class="pre">score</span></code> function,
+or <code class="docutils literal"><span class="pre">scoring</span></code> must be passed.</p>
+</div></blockquote>
+<p><strong>param_distributions</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary with parameters names (string) as keys and distributions
+or lists of parameters to try. Distributions must provide a <code class="docutils literal"><span class="pre">rvs</span></code>
+method for sampling (such as those from scipy.stats.distributions).
+If a list is given, it is sampled uniformly.</p>
+</div></blockquote>
+<p><strong>n_iter</strong> : int, default=10</p>
+<blockquote>
+<div><p>Number of parameter settings that are sampled. n_iter trades
+off runtime vs quality of the solution.</p>
+</div></blockquote>
+<p><strong>scoring</strong> : string, callable or None, default=None</p>
+<blockquote>
+<div><p>A string (see model evaluation documentation) or
+a scorer callable object / function with signature
+<code class="docutils literal"><span class="pre">scorer(estimator,</span> <span class="pre">X,</span> <span class="pre">y)</span></code>.
+If <code class="docutils literal"><span class="pre">None</span></code>, the <code class="docutils literal"><span class="pre">score</span></code> method of the estimator is used.</p>
+</div></blockquote>
+<p><strong>fit_params</strong> : dict, optional</p>
+<blockquote>
+<div><p>Parameters to pass to the fit method.</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : int, default=1</p>
+<blockquote>
+<div><p>Number of jobs to run in parallel.</p>
+</div></blockquote>
+<p><strong>pre_dispatch</strong> : int, or string, optional</p>
+<blockquote>
+<div><p>Controls the number of jobs that get dispatched during parallel
+execution. Reducing this number can be useful to avoid an
+explosion of memory consumption when more jobs get dispatched
+than CPUs can process. This parameter can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li>None, in which case all the jobs are immediately
+created and spawned. Use this for lightweight and
+fast-running jobs, to avoid delays due to on-demand
+spawning of the jobs</li>
+<li>An int, giving the exact number of total jobs that are
+spawned</li>
+<li>A string, giving an expression as a function of n_jobs,
+as in &#8216;2*n_jobs&#8217;</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>iid</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>If True, the data is assumed to be identically distributed across
+the folds, and the loss minimized is the total loss per sample,
+and not the mean loss across the folds.</p>
+</div></blockquote>
+<p><strong>cv</strong> : int, cross-validation generator or an iterable, optional</p>
+<blockquote>
+<div><p>Determines the cross-validation splitting strategy.
+Possible inputs for cv are:</p>
+<blockquote>
+<div><ul class="simple">
+<li>None, to use the default 3-fold cross validation,</li>
+<li>integer, to specify the number of folds in a <code class="docutils literal"><span class="pre">(Stratified)KFold</span></code>,</li>
+<li>An object to be used as a cross-validation generator.</li>
+<li>An iterable yielding train, test splits.</li>
+</ul>
+</div></blockquote>
+<p>For integer/None inputs, if the estimator is a classifier and <code class="docutils literal"><span class="pre">y</span></code> is
+either binary or multiclass, <code class="docutils literal"><span class="pre">StratifiedKFold</span></code> is used. In all
+other cases, <code class="docutils literal"><span class="pre">KFold</span></code> is used.</p>
+</div></blockquote>
+<p><strong>refit</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>Refit the best estimator with the entire dataset.
+If &#8220;False&#8221;, it is impossible to make predictions using
+this RandomizedSearchCV instance after fitting.</p>
+</div></blockquote>
+<p><strong>verbose</strong> : integer</p>
+<blockquote>
+<div><p>Controls the verbosity: the higher, the more messages.</p>
+</div></blockquote>
+<p><strong>random_state</strong> : int or RandomState</p>
+<blockquote>
+<div><p>Pseudo random number generator state used for random uniform sampling
+from lists of possible values instead of scipy.stats distributions.</p>
+</div></blockquote>
+<p><strong>error_score</strong> : &#8216;raise&#8217; (default) or numeric</p>
+<blockquote>
+<div><p>Value to assign to the score if an error occurs in estimator fitting.
+If set to &#8216;raise&#8217;, the error is raised. If a numeric value is given,
+FitFailedWarning is raised. This parameter does not affect the refit
+step, which will always raise the error.</p>
+</div></blockquote>
+<p><strong>return_train_score</strong> : boolean, default=True</p>
+<blockquote>
+<div><p>If <code class="docutils literal"><span class="pre">'False'</span></code>, the <code class="docutils literal"><span class="pre">cv_results_</span></code> attribute will not include training
+scores.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><p class="first"><strong>cv_results_</strong> : dict of numpy (masked) ndarrays</p>
+<blockquote>
+<div><p>A dict with keys as column headers and values as columns, that can be
+imported into a pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>.</p>
+<p>For instance the following table:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="20%" />
+<col width="30%" />
+<col width="5%" />
+<col width="23%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">param_kernel</th>
+<th class="head">param_gamma</th>
+<th class="head">split0_test_score</th>
+<th class="head">...</th>
+<th class="head">rank_test_score</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8216;rbf&#8217;</td>
+<td>0.1</td>
+<td>0.8</td>
+<td>...</td>
+<td>2</td>
+</tr>
+<tr class="row-odd"><td>&#8216;rbf&#8217;</td>
+<td>0.2</td>
+<td>0.9</td>
+<td>...</td>
+<td>1</td>
+</tr>
+<tr class="row-even"><td>&#8216;rbf&#8217;</td>
+<td>0.3</td>
+<td>0.7</td>
+<td>...</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>will be represented by a <code class="docutils literal"><span class="pre">cv_results_</span></code> dict of:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>{</dt>
+<dd><dl class="first docutils">
+<dt>&#8216;param_kernel&#8217;</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">masked_array(data = [&#8216;rbf&#8217;, &#8216;rbf&#8217;, &#8216;rbf&#8217;],</span><dd><p class="first last">mask = False),</p>
+</dd>
+</dl>
+<p class="last">&#8216;param_gamma&#8217;  : masked_array(data = [0.1 0.2 0.3], mask = False),
+&#8216;split0_test_score&#8217;  : [0.8, 0.9, 0.7],
+&#8216;split1_test_score&#8217;  : [0.82, 0.5, 0.7],
+&#8216;mean_test_score&#8217;    : [0.81, 0.7, 0.7],
+&#8216;std_test_score&#8217;     : [0.02, 0.2, 0.],
+&#8216;rank_test_score&#8217;    : [3, 1, 1],
+&#8216;split0_train_score&#8217; : [0.8, 0.9, 0.7],
+&#8216;split1_train_score&#8217; : [0.82, 0.5, 0.7],
+&#8216;mean_train_score&#8217;   : [0.81, 0.7, 0.7],
+&#8216;std_train_score&#8217;    : [0.03, 0.03, 0.04],
+&#8216;mean_fit_time&#8217;      : [0.73, 0.63, 0.43, 0.49],
+&#8216;std_fit_time&#8217;       : [0.01, 0.02, 0.01, 0.01],
+&#8216;mean_score_time&#8217;    : [0.007, 0.06, 0.04, 0.04],
+&#8216;std_score_time&#8217;     : [0.001, 0.002, 0.003, 0.005],
+&#8216;params&#8217; : [{&#8216;kernel&#8217; : &#8216;rbf&#8217;, &#8216;gamma&#8217; : 0.1}, ...],</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>NOTE that the key <code class="docutils literal"><span class="pre">'params'</span></code> is used to store a list of parameter
+settings dict for all the parameter candidates. The <code class="docutils literal"><span class="pre">mean_fit_time</span></code>, 
+<code class="docutils literal"><span class="pre">std_fit_time</span></code>, <code class="docutils literal"><span class="pre">mean_score_time</span></code> and <code class="docutils literal"><span class="pre">std_score_time</span></code> are all in seconds.</p>
+</div></blockquote>
+<p><strong>best_estimator_</strong> : estimator</p>
+<blockquote>
+<div><p>Estimator that was chosen by the search, i.e. estimator
+which gave highest score (or smallest loss if specified)
+on the left out data. Not available if refit=False.</p>
+</div></blockquote>
+<p><strong>best_score_</strong> : float</p>
+<blockquote>
+<div><p>Score of best_estimator on the left out data.</p>
+</div></blockquote>
+<p><strong>best_params_</strong> : dict</p>
+<blockquote>
+<div><p>Parameter setting that gave the best results on the hold out data.</p>
+</div></blockquote>
+<p><strong>best_index_</strong> : int</p>
+<blockquote>
+<div><p>The index (of the <code class="docutils literal"><span class="pre">cv_results_</span></code> arrays) which corresponds to the best
+candidate parameter setting.
+The dict at <code class="docutils literal"><span class="pre">search.cv_results_['params'][search.best_index_]</span></code> gives
+the parameter setting for the best model, that gives the highest
+mean score (<code class="docutils literal"><span class="pre">search.best_score_</span></code>).</p>
+</div></blockquote>
+<p><strong>scorer_</strong> : function</p>
+<blockquote>
+<div><p>Scorer function used on the held out data to choose the best
+parameters for the model.</p>
+</div></blockquote>
+<p><strong>n_splits_</strong> : int</p>
+<blockquote class="last">
+<div><p>The number of cross-validation splits (folds/iterations).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Methods</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -253,8 +724,32 @@ fitting a series as Y.</p>
 </table>
 <dl class="method">
 <dt id="skutil.grid_search.RandomizedSearchCV.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#RandomizedSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.RandomizedSearchCV.fit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y=None</em>, <em>groups=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/grid_search.html#RandomizedSearchCV.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.grid_search.RandomizedSearchCV.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run fit on the estimator with randomly drawn parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>X</strong> : array-like, shape=(n_samples, n_features)</p>
+<blockquote>
+<div><p>Training vector, where n_samples is the number of samples and
+n_features is the number of features.</p>
+</div></blockquote>
+<p><strong>y</strong> : array-like, shape=(n_samples,) or (n_samples, n_output), optional (default=None)</p>
+<blockquote>
+<div><p>Target relative to X for classification or regression;
+None for unsupervised learning.</p>
+</div></blockquote>
+<p><strong>groups</strong> : array-like, shape=(n_samples,), optional (default=None)</p>
+<blockquote class="last">
+<div><p>Group labels for the samples used while splitting the dataset into
+train/test set.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -301,7 +796,7 @@ fitting a series as Y.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

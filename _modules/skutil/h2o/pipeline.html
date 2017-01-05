@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.pipeline &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.h2o.pipeline &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -134,27 +134,24 @@
             
   <h1>Source code for skutil.h2o.pipeline</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
-
 <span class="kn">import</span> <span class="nn">h2o</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">h2o</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">h2o.estimators.estimator_base</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
-
-<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span>
-                   <span class="n">validate_x_y</span><span class="p">,</span> <span class="n">validate_x</span><span class="p">,</span> <span class="n">VizMixin</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
-
+<span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">since</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils</span> <span class="k">import</span> <span class="n">tosequence</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span>
 <span class="kn">from</span> <span class="nn">..utils.metaestimators</span> <span class="k">import</span> <span class="n">if_delegate_has_method</span><span class="p">,</span> <span class="n">if_delegate_isinstance</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">flatten_all</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="p">(</span><span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span>
+                   <span class="n">validate_x_y</span><span class="p">,</span> <span class="n">validate_x</span><span class="p">,</span> <span class="n">VizMixin</span><span class="p">,</span> <span class="n">check_frame</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">h2o</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">h2o.estimators.estimator_base</span> <span class="k">import</span> <span class="n">H2OEstimator</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">ie</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -178,24 +175,24 @@
 
 <div class="viewcode-block" id="H2OPipeline"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline">[docs]</a><span class="k">class</span> <span class="nc">H2OPipeline</span><span class="p">(</span><span class="n">BaseH2OFunctionWrapper</span><span class="p">,</span> <span class="n">VizMixin</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a sklearn-esque pipeline of H2O steps finished with an </span>
-<span class="sd">    optional `H2OEstimator`. Note that as of version 0.1.0, the behavior</span>
+<span class="sd">    optional H2OEstimator. Note that as of version 0.1.0, the behavior</span>
 <span class="sd">    of the H2OPipeline has slightly changed, given the inclusion of the</span>
 <span class="sd">    ``exclude_from_ppc`` and ``exclude_from_fit`` parameters.</span>
 
 <span class="sd">    The pipeline, at the core, is comprised of a list of length-two tuples</span>
 <span class="sd">    in the form of ``(&#39;name&#39;, SomeH2OTransformer())``, punctuated with an</span>
-<span class="sd">    optional `H2OEstimator` as the final step. The pipeline will procedurally </span>
+<span class="sd">    optional H2OEstimator as the final step. The pipeline will procedurally </span>
 <span class="sd">    fit each stage, transforming the training data prior to fitting the next stage.</span>
 <span class="sd">    When predicting or transforming new (test) data, each stage calls either</span>
 <span class="sd">    ``transform`` or ``predict`` at the respective step.</span>
 
 <span class="sd">    **On the topic of exclusions and ``feature_names``:**</span>
 
-<span class="sd">    Prior to version 0.1.0, ``H2OTransformer``s did not take the keyword ``exclude_features``.</span>
-<span class="sd">    Its addition necessitated two new keywords in the ``H2OPipeline``, and a slight change</span>
+<span class="sd">    Prior to version 0.1.0, H2OTransformers did not take the keyword ``exclude_features``.</span>
+<span class="sd">    Its addition necessitated two new keywords in the H2OPipeline, and a slight change</span>
 <span class="sd">    in behavior of ``feature_names``:</span>
 
-<span class="sd">        * ``exclude_from_ppc`` - If set in the ``H2OPipeline`` constructor, these features</span>
+<span class="sd">        * ``exclude_from_ppc`` - If set in the H2OPipeline constructor, these features</span>
 <span class="sd">                                 will be universally omitted from every preprocessing stage.</span>
 <span class="sd">                                 Since ``exclude_features`` can be set individually in each</span>
 <span class="sd">                                 separate transformer, in the case that ``exclude_features`` has</span>
@@ -203,18 +200,18 @@
 <span class="sd">                                 will include the union of ``exclude_from_ppc`` and </span>
 <span class="sd">                                 ``exclude_features``.</span>
 
-<span class="sd">        * ``exclude_from_fit`` - If set in the ``H2OPipeline`` constructor, these features</span>
+<span class="sd">        * ``exclude_from_fit`` - If set in the H2OPipeline constructor, these features</span>
 <span class="sd">                                 will be omitted from the ``training_cols_`` fit attribute,</span>
 <span class="sd">                                 which are the columns passed to the final stage in the pipeline.</span>
 
-<span class="sd">        * ``feature_names`` - The former behavior of the ``H2OPipeline`` only used ``feature_names``</span>
+<span class="sd">        * ``feature_names`` - The former behavior of the H2OPipeline only used ``feature_names``</span>
 <span class="sd">                              in the fit of the first transformer, passing the remaining columns to</span>
 <span class="sd">                              the next transformer as the ``feature_names`` parameter. The new</span>
 <span class="sd">                              behavior is more discriminating in the case of explicitly-set attributes.</span>
 <span class="sd">                              In the case where a transformer&#39;s ``feature_names`` parameter has been</span>
 <span class="sd">                              explicitly set, *only those names* will be used in the fit. This is useful</span>
 <span class="sd">                              in cases where someone may only want to, for instance, drop one of two</span>
-<span class="sd">                              multicollinear features using the ``H2OMulticollinearityFilterer`` rather than</span>
+<span class="sd">                              multicollinear features using the H2OMulticollinearityFilterer rather than</span>
 <span class="sd">                              fitting against the entire dataset. It also adheres to the now expected</span>
 <span class="sd">                              behavior of the exclusion parameters.</span>
 
@@ -244,6 +241,71 @@
 <span class="sd">    exclude_from_fit : iterable, optional (default=None)</span>
 <span class="sd">        Any names to be excluded from the final model fit</span>
 
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    The following is a simple example of an ``H2OPipeline`` in use:</span>
+
+<span class="sd">        &gt;&gt;&gt; def example():</span>
+<span class="sd">        ...     import h2o</span>
+<span class="sd">        ...     from h2o.estimators import H2ORandomForestEstimator</span>
+<span class="sd">        ...     from skutil.h2o import H2OMulticollinearityFilterer</span>
+<span class="sd">        ...     from skutil.h2o import load_iris_h2o</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     # initialize h2o</span>
+<span class="sd">        ...     h2o.init()</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     # load into h2o</span>
+<span class="sd">        ...     X = load_iris_h2o(tgt_name=&quot;Species&quot;) # doctest:+ELLIPSIS</span>
+<span class="sd">        ...</span>
+<span class="sd">        ...     # get feature names and target</span>
+<span class="sd">        ...     x, y = X.columns[:-1], X.columns[-1]</span>
+<span class="sd">        ...</span>
+<span class="sd">        ...     # define and fit the pipe</span>
+<span class="sd">        ...     pipe = H2OPipeline([</span>
+<span class="sd">        ...         (&#39;mcf&#39;, H2OMulticollinearityFilterer()),</span>
+<span class="sd">        ...         (&#39;clf&#39;, H2ORandomForestEstimator())</span>
+<span class="sd">        ...     ], feature_names=x, target_feature=y).fit()</span>
+<span class="sd">        &gt;&gt;&gt;     </span>
+<span class="sd">        &gt;&gt;&gt; example() # doctest: +SKIP</span>
+
+<span class="sd">    This a more advanced example of the ``H2OPipeline`` (including use</span>
+<span class="sd">    of the ``exclude_from_ppc`` and ``exclude_from_fit`` parameters):</span>
+
+<span class="sd">        &gt;&gt;&gt; def example():</span>
+<span class="sd">        ...     import h2o</span>
+<span class="sd">        ...     from skutil.h2o import load_boston_h2o</span>
+<span class="sd">        ...     from skutil.h2o import h2o_train_test_split</span>
+<span class="sd">        ...     from skutil.h2o.transform import H2OSelectiveScaler</span>
+<span class="sd">        ...     from skutil.h2o.select import H2OMulticollinearityFilterer</span>
+<span class="sd">        ...     from h2o.estimators import H2OGradientBoostingEstimator</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     # initialize h2o</span>
+<span class="sd">        ...     h2o.init() # doctest:+ELLIPSIS</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     # load into h2o</span>
+<span class="sd">        ...     X = load_boston_h2o(include_tgt=True, shuffle=True, tgt_name=&#39;target&#39;) # doctest:+ELLIPSIS</span>
+<span class="sd">        ...</span>
+<span class="sd">        ...     # this splits our data</span>
+<span class="sd">        ...     X_train, X_test = h2o_train_test_split(X, train_size=0.7)</span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     </span>
+<span class="sd">        ...     # Declare our pipe - this one is intentionally a bit complex in behavior</span>
+<span class="sd">        ...     pipe = H2OPipeline([</span>
+<span class="sd">        ...             (&#39;scl&#39;, H2OSelectiveScaler(feature_names=[&#39;B&#39;,&#39;PTRATIO&#39;,&#39;CRIM&#39;])),  # will ONLY operate on these</span>
+<span class="sd">        ...             (&#39;mcf&#39;, H2OMulticollinearityFilterer(exclude_features=[&#39;CHAS&#39;])),   # will exclude this &amp; &#39;TAX&#39;</span>
+<span class="sd">        ...             (&#39;gbm&#39;, H2OGradientBoostingEstimator())</span>
+<span class="sd">        ...         ], exclude_from_ppc=[&#39;TAX&#39;], # excluded from all preprocessor fits</span>
+<span class="sd">        ...            feature_names=None,       # fit the first stage on ALL features (minus exceptions)</span>
+<span class="sd">        ...            target_feature=&#39;target&#39;   # will be excluded from all preprocessor fits, as it&#39;s the target</span>
+<span class="sd">        ...     ).fit(X_train)</span>
+<span class="sd">        &gt;&gt;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; example() # doctest: +SKIP</span>
+
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 
@@ -251,6 +313,9 @@
 <span class="sd">        The columns that are retained for training purposes</span>
 <span class="sd">        after the ``_pre_transform`` operation, which fits</span>
 <span class="sd">        the series of transformers but not the final estimator.</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_min_version</span> <span class="o">=</span> <span class="s1">&#39;3.8.2.9&#39;</span>
@@ -289,13 +354,12 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Last step of chain should be an H2OEstimator or BaseH2OTransformer, &quot;</span>
                             <span class="s2">&quot;not of type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">estimator</span><span class="p">))</span>
 
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">named_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generates a dictionary of all of the stages</span>
 <span class="sd">        where the stage name is the key, and the stage is the</span>
-<span class="sd">        value. Note that dictionaries are not guaranteed a</span>
-<span class="sd">        specific order!!!</span>
+<span class="sd">        value. *Note that dictionaries are not guaranteed a</span>
+<span class="sd">        specific order!!!*</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -306,21 +370,19 @@
         <span class="n">d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">d</span>
 
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_final_estimator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the last stage in the ``H2OPipeline``,</span>
-<span class="sd">        which is either an ``H2OTransformer`` or an ``H2OEstimator``.</span>
+        <span class="sd">&quot;&quot;&quot;Returns the last stage in the H2OPipeline,</span>
+<span class="sd">        which is either an H2OTransformer or an H2OEstimator.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        s : ``H2OTransformer`` or ``H2OEstimator``</span>
+<span class="sd">        s : H2OTransformer or H2OEstimator</span>
 <span class="sd">            The last step in the pipeline</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">s</span>
-
 
     <span class="k">def</span> <span class="nf">_pre_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">frame_t</span> <span class="o">=</span> <span class="n">frame</span>
@@ -330,16 +392,16 @@
         <span class="n">next_feature_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_names</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="c1"># for each transformer in the steps sequence, we need</span>
-            <span class="c1"># to ensure the target_feature has been set... we do</span>
+            <span class="c1"># to ensure the ``target_feature`` has been set... we do</span>
             <span class="c1"># this in the fit method and not the init because we&#39;ve</span>
-            <span class="c1"># now validated the y/target_feature. Also this way if</span>
-            <span class="c1"># target_feature is ever changed, this will be updated...</span>
+            <span class="c1"># now validated the ``target_feature``. Also this way if</span>
+            <span class="c1"># ``target_feature`` is ever changed, this will be updated...</span>
             <span class="n">transform</span><span class="o">.</span><span class="n">target_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span>
 
             <span class="c1"># if the feature names are explicitly set in this estimator,</span>
-            <span class="c1"># we won&#39;t set them to the `next_feature_names`, however,</span>
+            <span class="c1"># we won&#39;t set them to the ``next_feature_names``, however,</span>
             <span class="c1"># if the names are *not* explicitly set, we will set the </span>
-            <span class="c1"># estimator&#39;s `feature_names` to the `next_feature_names`</span>
+            <span class="c1"># estimator&#39;s ``feature_names`` to the ``next_feature_names``</span>
             <span class="c1"># variable set...</span>
             <span class="k">if</span> <span class="n">transform</span><span class="o">.</span><span class="n">feature_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">transform</span><span class="o">.</span><span class="n">feature_names</span> <span class="o">=</span> <span class="n">next_feature_names</span>
@@ -361,7 +423,6 @@
         <span class="c1"># this will have y re-combined in the matrix</span>
         <span class="k">return</span> <span class="n">frame_t</span><span class="p">,</span> <span class="n">next_feature_names</span>
 
-
     <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Each individual step should handle its own</span>
 <span class="sd">        state resets, but this method will reset any Pipeline</span>
@@ -370,7 +431,6 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;training_cols_&#39;</span><span class="p">):</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_cols_</span>
 
-
 <div class="viewcode-block" id="H2OPipeline.fit"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit all the transforms one after the other and transform the</span>
 <span class="sd">        data, then fit the transformed data using the final estimator.</span>
@@ -378,15 +438,16 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : h2o Frame</span>
-<span class="sd">            Training data. Must fulfill input requirements of first step of the</span>
-<span class="sd">            pipeline.</span>
+<span class="sd">        frame : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">            Training data on which to fit. Must fulfill input requirements </span>
+<span class="sd">            of first step of the pipeline.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
 <span class="sd">        self</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># copied in each transformer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>  <span class="c1"># reset if needed</span>
 
         <span class="c1"># reset to the cleaned ones, if necessary...</span>
@@ -415,27 +476,26 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">VizMixin</span><span class="p">)</span>
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;_plot&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.plot"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;If the ``_final_estimator`` is an ``H2OEstimator``,</span>
-<span class="sd">        this method is injected at runtime. This method generates</span>
-<span class="sd">        a plot of the estimator&#39;s scoring over a provided timestep.</span>
+        <span class="sd">&quot;&quot;&quot;If the ``_final_estimator`` is an H2OEstimator,</span>
+<span class="sd">        this method is injected at runtime. This method plots an </span>
+<span class="sd">        H2OEstimator&#39;s performance over a given ``timestep`` (x-axis) </span>
+<span class="sd">        against a provided ``metric`` (y-axis).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        timestep : string</span>
-<span class="sd">            Might be one of (&#39;epochs&#39;, &#39;number_of_trees&#39;) and</span>
-<span class="sd">            provides the x-axis of the plot.</span>
+<span class="sd">        timestep : str</span>
+<span class="sd">            A timestep as defined in the H2O API. One of</span>
+<span class="sd">            (&quot;AUTO&quot;, &quot;duration&quot;, &quot;number_of_trees&quot;).</span>
 
-<span class="sd">        metric : string</span>
-<span class="sd">            Might be one of (&#39;MSE&#39;, &#39;logloss&#39;) and provides</span>
-<span class="sd">            the y-axis of the plot.</span>
+<span class="sd">        metric : str</span>
+<span class="sd">            The performance metric to evaluate. One of</span>
+<span class="sd">            (&quot;log_likelihood&quot;, &quot;objective&quot;, &quot;MSE&quot;, &quot;AUTO&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_final_estimator</span><span class="o">.</span><span class="n">_plot</span><span class="p">(</span><span class="n">timestep</span><span class="o">=</span><span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">)</span></div>
-
 
     <span class="nd">@overrides</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.set_params"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.set_params">[docs]</a>    <span class="k">def</span> <span class="nf">set_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
@@ -444,14 +504,21 @@
 <span class="sd">        is a **kwargs-style dictionary whose keys should be prefixed by the</span>
 <span class="sd">        name of the step targeted and a double underscore:</span>
 
-<span class="sd">            &gt;&gt;&gt; pipeline = H2OPipeline([</span>
-<span class="sd">            ...     (&#39;mcf&#39;, H2OMulticollinearityFilterer()),</span>
-<span class="sd">            ...     (&#39;rf&#39;,  H2ORandomForestEstimator())</span>
-<span class="sd">            ... ])</span>
-<span class="sd">            &gt;&gt;&gt; pipe.set_params(**{</span>
-<span class="sd">            ...     &#39;rf__ntrees&#39;:     100, </span>
-<span class="sd">            ...     &#39;mcf__threshold&#39;: 0.75</span>
-<span class="sd">            ... })</span>
+<span class="sd">            &gt;&gt;&gt; def example():</span>
+<span class="sd">            ...     from skutil.h2o.select import H2OMulticollinearityFilterer</span>
+<span class="sd">            ...     from h2o.estimators import H2ORandomForestEstimator</span>
+<span class="sd">            ...     </span>
+<span class="sd">            ...     pipe = H2OPipeline([</span>
+<span class="sd">            ...         (&#39;mcf&#39;, H2OMulticollinearityFilterer()),</span>
+<span class="sd">            ...         (&#39;rf&#39;,  H2ORandomForestEstimator())</span>
+<span class="sd">            ...     ])</span>
+<span class="sd">            ...</span>
+<span class="sd">            ...     pipe.set_params(**{</span>
+<span class="sd">            ...         &#39;rf__ntrees&#39;:     100,</span>
+<span class="sd">            ...         &#39;mcf__threshold&#39;: 0.75</span>
+<span class="sd">            ...     })</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; example() # doctest: +SKIP</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -487,7 +554,7 @@
                 <span class="k">for</span> <span class="n">parm</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">parm_dict</span><span class="p">[</span><span class="n">est_name</span><span class="p">]):</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">last_step</span><span class="o">.</span><span class="n">_parms</span><span class="p">[</span><span class="n">parm</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid parameter for </span><span class="si">%s</span><span class="s1">: </span><span class="si">%s</span><span class="s1">&#39;</span>
                                          <span class="o">%</span> <span class="p">(</span><span class="n">parm</span><span class="p">,</span> <span class="n">last_step</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
 
@@ -501,41 +568,49 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="H2OPipeline.load"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">location</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``H2OPipeline``</span>
-<span class="sd">        from disk. This method will handle loading ``H2OEstimator`` models separately </span>
-<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
+        <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of H2OPipeline</span>
+<span class="sd">        from disk. This method will handle loading H2OEstimator models separately </span>
+<span class="sd">        and outside of the constraints of the pickle package. </span>
 
 <span class="sd">        Note that this is a static method and should be called accordingly:</span>
 
-<span class="sd">            &gt;&gt;&gt; pipeline = H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;) # GOOD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_pipe():</span>
+<span class="sd">            ...     return H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;) # GOOD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; pipe = load_pipe() # doctest: +SKIP</span>
 
-<span class="sd">        Also note that since ``H2OPipeline`` can contain an ``H2OEstimator``, it&#39;s</span>
-<span class="sd">        ``load`` functionality differs from that of its superclass, ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        Also note that since H2OPipeline can contain an H2OEstimator, it&#39;s</span>
+<span class="sd">        ``load`` functionality differs from that of its superclass, BaseH2OFunctionWrapper</span>
 <span class="sd">        and will not function properly if called at the highest level of abstraction:</span>
 
-<span class="sd">            &gt;&gt;&gt; pipeline = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_pipe():</span>
+<span class="sd">            ...     return BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; pipe = load_pipe() # doctest: +SKIP</span>
 
-<span class="sd">        Furthermore, trying to load a different type of ``BaseH2OFunctionWrapper`` from</span>
-<span class="sd">        this method will raise a ``TypeError``:</span>
+<span class="sd">        Furthermore, trying to load a different type of BaseH2OFunctionWrapper from</span>
+<span class="sd">        this method will raise a TypeError:</span>
 
-<span class="sd">            &gt;&gt;&gt; mcf = H2OPipeline.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt; def load_pipe():</span>
+<span class="sd">            ...     return H2OPipeline.load(&#39;path/to/some/other/transformer.pkl&#39;) # BAD!</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; pipe = load_pipe() # doctest: +SKIP</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        location : str</span>
-<span class="sd">            The location where the persisted ``H2OPipeline`` model resides.</span>
+<span class="sd">            The location where the persisted H2OPipeline model resides.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        model : ``H2OPipeline``</span>
-<span class="sd">            The unpickled instance of the ``H2OPipeline`` model</span>
+<span class="sd">        model : H2OPipeline</span>
+<span class="sd">            The unpickled instance of the H2OPipeline model</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">H2OPipeline</span><span class="p">):</span>
@@ -560,7 +635,6 @@
             <span class="n">model</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">est_name_</span><span class="p">,</span> <span class="n">the_h2o_model</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">model</span></div>
-
 
     <span class="k">def</span> <span class="nf">_save_internal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">loc</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
@@ -589,7 +663,6 @@
         <span class="k">if</span> <span class="n">ends_in_h2o</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_step_</span>
 
-
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.predict"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Applies transforms to the data, and the predict method of the</span>
@@ -599,16 +672,15 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : an h2o Frame</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            Data to predict on. Must fulfill input requirements of first step</span>
 <span class="sd">            of the pipeline.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Xt</span> <span class="o">=</span> <span class="n">frame</span>
+        <span class="n">Xt</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># copied in each transformer</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">Xt</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Xt</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xt</span><span class="p">)</span></div>
-
 
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;predict&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.fit_predict"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.fit_predict">[docs]</a>    <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
@@ -619,12 +691,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : h2o Frame</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            Training data. Must fulfill input requirements of first step of the</span>
 <span class="sd">            pipeline.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div>
-
 
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
@@ -634,16 +705,21 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : an h2o Frame</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            Data to predict on. Must fulfill input requirements of first step</span>
 <span class="sd">            of the pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        Xt : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">            The transformed test data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Xt</span> <span class="o">=</span> <span class="n">frame</span>
+        <span class="n">Xt</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># copied in each transformer</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">:</span>
             <span class="n">Xt</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Xt</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">Xt</span></div>
-
 
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;transform&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.fit_transform"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.fit_transform">[docs]</a>    <span class="k">def</span> <span class="nf">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
@@ -654,12 +730,18 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : h2o Frame</span>
+<span class="sd">        frame : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            Training data. Must fulfill input requirements of first step of the</span>
 <span class="sd">            pipeline.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span></div>
 
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        Xt : H2OFrame, shape=(n_samples, n_features)</span>
+<span class="sd">            The transformed training data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Xt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Xt</span></div>
 
     <span class="nd">@if_delegate_has_method</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.varimp"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.varimp">[docs]</a>    <span class="k">def</span> <span class="nf">varimp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -674,7 +756,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_final_estimator</span><span class="o">.</span><span class="n">varimp</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="n">use_pandas</span><span class="p">)</span></div>
 
-
+    <span class="nd">@since</span><span class="p">(</span><span class="s1">&#39;0.1.2&#39;</span><span class="p">)</span>
     <span class="nd">@if_delegate_isinstance</span><span class="p">(</span><span class="n">delegate</span><span class="o">=</span><span class="s1">&#39;_final_estimator&#39;</span><span class="p">,</span> <span class="n">instance_type</span><span class="o">=</span><span class="n">H2OEstimator</span><span class="p">)</span>
 <div class="viewcode-block" id="H2OPipeline.download_pojo"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OPipeline.download_pojo">[docs]</a>    <span class="k">def</span> <span class="nf">download_pojo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">get_jar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This method is injected at runtime if the ``_final_estimator``</span>
@@ -731,7 +813,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

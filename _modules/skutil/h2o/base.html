@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.base &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.h2o.base &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -135,34 +135,33 @@
   <h1>Source code for skutil.h2o.base</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">h2o</span>
 <span class="kn">import</span> <span class="nn">os</span>
-
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">is_iterable</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
-
-<span class="kn">import</span> <span class="nn">h2o</span>
 <span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span>
 
 <span class="c1"># in different versions, we get different exceptions</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">h2o.backend.connection</span> <span class="k">import</span> <span class="n">H2OServerError</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">H2OServerError</span> <span class="o">=</span> <span class="ne">EnvironmentError</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">h2o.exceptions</span> <span class="k">import</span> <span class="n">H2OConnectionError</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">H2OConnectionError</span> <span class="o">=</span> <span class="ne">EnvironmentError</span>
-
-<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
-<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">pickle</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;check_frame&#39;</span><span class="p">,</span>
     <span class="s1">&#39;check_version&#39;</span><span class="p">,</span>
     <span class="s1">&#39;NAWarning&#39;</span><span class="p">,</span>
     <span class="s1">&#39;BaseH2OFunctionWrapper&#39;</span><span class="p">,</span>
@@ -187,10 +186,10 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    X : H2OFrame</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">        The frame from which to drop</span>
 
-<span class="sd">    x : array_like</span>
+<span class="sd">    x : array_like, shape=(n_features,)</span>
 <span class="sd">        The feature names. These will be retained in the frame</span>
 
 <span class="sd">    y : str</span>
@@ -203,36 +202,44 @@
 <span class="sd">        Whether to return the sanitized ``x``, ``y`` variables.</span>
 <span class="sd">        If False, will only return ``X``.</span>
 
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    X : pd.DataFrame</span>
-<span class="sd">        The sanitized dataframe</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">        The sanitized H2OFrame</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">validate_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">exclude_features</span><span class="p">)</span>
-    <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="n">x</span><span class="p">]</span>  <span class="c1"># make a copy</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># don&#39;t copy here</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>  <span class="c1"># make a copy of only the x features</span>
 
     <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">return_x_y</span> <span class="k">else</span> <span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns X if X is a frame else throws a TypeError</span>
+<div class="viewcode-block" id="check_frame"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.check_frame">[docs]</a><span class="k">def</span> <span class="nf">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns ``X`` if ``X`` is an H2OFrame</span>
+<span class="sd">    else raises a TypeError. If ``copy`` is True,</span>
+<span class="sd">    will return a copy of ``X`` instead.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    X : H2OFrame</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">        The frame to evaluate</span>
+
+<span class="sd">    copy : bool, optional (default=False)</span>
+<span class="sd">        Whether to return a copy of the H2OFrame.</span>
+
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    X</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
+<span class="sd">        The frame or the copy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;expected H2OFrame but got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">X</span>
+    <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">copy</span> <span class="k">else</span> <span class="n">X</span><span class="p">[</span><span class="n">X</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span></div>
 
 
 <span class="k">def</span> <span class="nf">_retain_features</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">exclude</span><span class="p">):</span>
@@ -243,11 +250,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    X : H2OFrame</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">        The frame from which to drop</span>
 
 <span class="sd">    exclude : array_like</span>
 <span class="sd">        The columns to exclude</span>
+
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -271,6 +279,7 @@
 <span class="sd">    exclude : array_like</span>
 <span class="sd">        The columns to exclude</span>
 
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -286,18 +295,19 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    x : None, iterable</span>
+<span class="sd">    x : None or iterable, shape=(n_features,)</span>
 <span class="sd">        The feature names</span>
+
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    x : iterable or None</span>
+<span class="sd">    x : None or iterable, shape=(n_features,)</span>
 <span class="sd">        The feature names</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># validate feature_names</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;x must be an iterable of strings. &#39;</span>
                             <span class="s1">&#39;Got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 
@@ -306,12 +316,12 @@
 
 <div class="viewcode-block" id="validate_x_y"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.validate_x_y">[docs]</a><span class="k">def</span> <span class="nf">validate_x_y</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">feature_names</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Validate the feature_names and target_feature arguments</span>
-<span class="sd">    passed to an ``H2OTransformer``.</span>
+<span class="sd">    passed to an H2OTransformer.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    X : H2OFrame</span>
+<span class="sd">    X : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">        The frame from which to drop</span>
 
 <span class="sd">    feature_names : iterable or None</span>
@@ -324,19 +334,25 @@
 <span class="sd">        The target name to exclude from the transformer analysis. If None,</span>
 <span class="sd">        unsupervised is assumed, otherwise must be string or unicode.</span>
 
-<span class="sd">    exclude_features : iterable or None</span>
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
 <span class="sd">        Any names that should be excluded from ``x``</span>
+
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
-<span class="sd">    (feature_names, target_feature)</span>
+<span class="sd">    feature_names : list, str</span>
+<span class="sd">        A list of the ``feature_names`` as strings</span>
+
+<span class="sd">    target_feature : str or None</span>
+<span class="sd">        The ``target_feature`` as a string if it is not </span>
+<span class="sd">        None, else None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">feature_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># validate feature_names</span>
         <span class="n">feature_names</span> <span class="o">=</span> <span class="n">validate_x</span><span class="p">(</span><span class="n">feature_names</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">_check_is_frame</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">feature_names</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">columns</span>
 
     <span class="c1"># validate exclude_features</span>
@@ -359,33 +375,35 @@
     <span class="c1"># the target_feature from the feature_names</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">_retain_from_list</span><span class="p">([</span>
-                              <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feature_names</span>
-                              <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="n">target_feature</span>
-                              <span class="p">],</span> <span class="n">exclude_features</span><span class="p">),</span>
+              <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feature_names</span>
+              <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="n">target_feature</span>
+        <span class="p">],</span> <span class="n">exclude_features</span><span class="p">),</span>
         <span class="n">target_feature</span>
     <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="VizMixin"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.VizMixin">[docs]</a><span class="k">class</span> <span class="nc">VizMixin</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;This mixin class provides the interface to plot</span>
-<span class="sd">    an H2OEstimator&#39;s fit performance over a timestep.</span>
+<span class="sd">    an ``H2OEstimator``&#39;s fit performance over a timestep.</span>
 <span class="sd">    Any structure that wraps an H2OEstimator&#39;s fitting</span>
 <span class="sd">    functionality should derive from this mixin.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="VizMixin.plot"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.VizMixin.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot an H2OEstimator&#39;s performance over a</span>
-<span class="sd">        given timestep.</span>
+<span class="sd">        given ``timestep`` (x-axis) against a provided </span>
+<span class="sd">        ``metric`` (y-axis).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        timestep : str</span>
-<span class="sd">            A timestep as defined in the H2O API. Examples</span>
-<span class="sd">            include number_of_trees, epochs</span>
+<span class="sd">            A timestep as defined in the H2O API. One of</span>
+<span class="sd">            (&quot;AUTO&quot;, &quot;duration&quot;, &quot;number_of_trees&quot;).</span>
 
 <span class="sd">        metric : str</span>
-<span class="sd">            The performance metric to evaluate, i.e., MSE</span>
+<span class="sd">            The performance metric to evaluate. One of</span>
+<span class="sd">            (&quot;log_likelihood&quot;, &quot;objective&quot;, &quot;MSE&quot;, &quot;AUTO&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Initially were raising but now want to just return NI.</span>
@@ -461,11 +479,14 @@
 <span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit).</span>
 
-<span class="sd">    min_version : str, float, optional (default=&#39;any&#39;)</span>
+<span class="sd">    min_version : str or float, optional (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float, optional (default=None)</span>
+<span class="sd">    max_version : str or float, optional (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">min_version</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">max_version</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -476,8 +497,8 @@
 
         <span class="c1"># test connection, warn where needed</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="n">h2o</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>  <span class="c1"># returns a dict of frames</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">EnvironmentError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">H2OServerError</span><span class="p">,</span> <span class="n">H2OConnectionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">v</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">h2o</span><span class="o">.</span><span class="n">frames</span><span class="p">()</span>  <span class="c1"># returns a dict of frames</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">EnvironmentError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">H2OServerError</span><span class="p">,</span> <span class="n">H2OConnectionError</span><span class="p">):</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;h2o has not been started; &#39;</span>
                           <span class="s1">&#39;initializing an H2O transformer without &#39;</span>
                           <span class="s1">&#39;a connection will not cause any issues, &#39;</span>
@@ -502,7 +523,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">mv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_version</span>
             <span class="k">return</span> <span class="n">mv</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">mv</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">mv</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
@@ -522,7 +543,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">mv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_min_version</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">n</span><span class="p">:</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="n">mv</span> <span class="o">=</span> <span class="s1">&#39;any&#39;</span>
         <span class="k">return</span> <span class="n">mv</span>
 
@@ -531,24 +552,35 @@
         <span class="sd">&quot;&quot;&quot;Loads a persisted state of an instance of ``BaseH2OFunctionWrapper``</span>
 <span class="sd">        from disk. If the instance is of a more complex class, i.e., one that contains</span>
 <span class="sd">        an ``H2OEstimator``, this method will handle loading these models separately </span>
-<span class="sd">        and outside of the constraints of the ``pickle`` package. </span>
+<span class="sd">        and outside of the constraints of the pickle package. </span>
 
 <span class="sd">        Note that this is a static method and should be called accordingly:</span>
 
-<span class="sd">            &gt;&gt;&gt; mcf = H2OMulticollinearityFilterer.load(location=&#39;example/path.pkl&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; mcf.transform(X)</span>
+<span class="sd">            &gt;&gt;&gt; def load_and_transform(X):</span>
+<span class="sd">            ...     from skutil.h2o.select import H2OMulticollinearityFilterer</span>
+<span class="sd">            ...     mcf = H2OMulticollinearityFilterer.load(location=&#39;example/path.pkl&#39;)</span>
+<span class="sd">            ...     return mcf.transform(X)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; load_and_transform(X) # doctest: +SKIP</span>
 
-<span class="sd">        Some classes define their own ``load`` functionality, and will not</span>
+<span class="sd">        Some classes define their own load functionality, and will not</span>
 <span class="sd">        work as expected if called in the following manner:</span>
 
-<span class="sd">            &gt;&gt;&gt; pipeline = BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; def load_pipe():</span>
+<span class="sd">            ...     return BaseH2OFunctionWrapper.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; pipe = load_pipe() # doctest: +SKIP</span>
 
 <span class="sd">        This is because of the aforementioned situation wherein some classes</span>
-<span class="sd">        handle saves and loads of ``H2OEstimator`` objects differently. Thus, any</span>
+<span class="sd">        handle saves and loads of H2OEstimator objects differently. Thus, any</span>
 <span class="sd">        class that is being loaded should be statically referenced at the level of</span>
 <span class="sd">        lowest abstraction possible:</span>
 
-<span class="sd">            &gt;&gt;&gt; pipeline = H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; def load_pipe():</span>
+<span class="sd">            ...     from skutil.h2o.pipeline import H2OPipeline</span>
+<span class="sd">            ...     return H2OPipeline.load(&#39;path/to/h2o/pipeline.pkl&#39;)</span>
+<span class="sd">            &gt;&gt;&gt;</span>
+<span class="sd">            &gt;&gt;&gt; pipe = load_pipe() # doctest: +SKIP</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -559,20 +591,20 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        m : ``BaseH2OFunctionWrapper``</span>
+<span class="sd">        m : BaseH2OFunctionWrapper</span>
 <span class="sd">            The unpickled instance of the model</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">m</span></div>
 
 <div class="viewcode-block" id="BaseH2OFunctionWrapper.save"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.BaseH2OFunctionWrapper.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">warn_if_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Saves the ``BaseH2OFunctionWrapper`` to disk. If the </span>
 <span class="sd">        instance is of a more complex class, i.e., one that contains</span>
-<span class="sd">        an ``H2OEstimator``, this method will handle saving these </span>
+<span class="sd">        an H2OEstimator, this method will handle saving these </span>
 <span class="sd">        models separately and outside of the constraints of the </span>
-<span class="sd">        ``pickle`` package. Any key-word arguments will be passed to</span>
-<span class="sd">        the ``_save_internal`` method (if it exists).</span>
+<span class="sd">        pickle package. Any key-word arguments will be passed to</span>
+<span class="sd">        the _save_internal method (if it exists).</span>
 
 
 <span class="sd">        Parameters</span>
@@ -616,22 +648,25 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 
-<span class="sd">    feature_names : array_like (str)</span>
+<span class="sd">    feature_names : array_like, str</span>
 <span class="sd">        The list of names on which to fit the feature selector.</span>
 
-<span class="sd">    target_feature : str (default None)</span>
+<span class="sd">    target_feature : str, optional (default=None)</span>
 <span class="sd">        The name of the target feature (is excluded from the fit)</span>
 <span class="sd">        for the estimator.</span>
 
-<span class="sd">    exclude_features : iterable or None</span>
+<span class="sd">    exclude_features : iterable or None, optional (default=None)</span>
 <span class="sd">        Any names that should be excluded from ``feature_names``</span>
 <span class="sd">        during the fit.</span>
 
-<span class="sd">    min_version : str, float (default &#39;any&#39;)</span>
+<span class="sd">    min_version : str or float, optional (default=&#39;any&#39;)</span>
 <span class="sd">        The minimum version of h2o that is compatible with the transformer</span>
 
-<span class="sd">    max_version : str, float (default None)</span>
+<span class="sd">    max_version : str or float, optional (default=None)</span>
 <span class="sd">        The maximum version of h2o that is compatible with the transformer</span>
+
+
+<span class="sd">    .. versionadded:: 0.1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_feature</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -650,13 +685,13 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        frame : ``H2OFrame``</span>
+<span class="sd">        frame : ``H2OFrame``, shape=(n_samples, n_features)</span>
 <span class="sd">            The training frame</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        ft : ``H2OFrame``</span>
+<span class="sd">        ft : H2OFrame, shape=(n_samples, n_features)</span>
 <span class="sd">            The transformed training frame</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
@@ -694,7 +729,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

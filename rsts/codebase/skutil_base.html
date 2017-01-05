@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.base &mdash; skutil 0.1.3 documentation</title>
+  <title>skutil.base &mdash; skutil 0.1.5 documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.3 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="skutil.decomposition module" href="skutil_decomposition.html"/>
         <link rel="prev" title="skutil package" href="index.html"/> 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1.3
+                0.1.5
               </div>
             
           
@@ -155,32 +155,6 @@
   <div class="section" id="skutil-base">
 <h1>skutil.base<a class="headerlink" href="#skutil-base" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="skutil.base.SamplingWarning">
-<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SamplingWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#SamplingWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SamplingWarning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
-<p>Custom warning used to notify the user that sub-optimal sampling behavior
-has occurred. For instance, performing oversampling on a minority class with only
-one instance will cause this warning to be thrown.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="skutil.base.SelectiveWarning">
-<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SelectiveWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#SelectiveWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SelectiveWarning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
-<p>Custom warning used to notify user when a structure implementing SelectiveMixin
-operates improperly. A common usecase is when the fit method receives a non-DataFrame
-X, and no cols.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="skutil.base.ModuleImportWarning">
-<em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">ModuleImportWarning</code><a class="reference internal" href="../../_modules/skutil/base.html#ModuleImportWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.ModuleImportWarning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.UserWarning</span></code></p>
-<p>Custom warning used to notify user a non-critical import failed, and to
-suggest the installation of the module for optimal results.</p>
-</dd></dl>
-
-<dl class="class">
 <dt id="skutil.base.SelectiveMixin">
 <em class="property">class </em><code class="descclassname">skutil.base.</code><code class="descname">SelectiveMixin</code><a class="reference internal" href="../../_modules/skutil/base.html#SelectiveMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.base.SelectiveMixin" title="Permalink to this definition">¶</a></dt>
 <dd><p>A mixin class that all selective transformers
@@ -231,7 +205,7 @@ should only apply their <code class="docutils literal"><span class="pre">fit</sp
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.3',
+            VERSION:'0.1.5',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
