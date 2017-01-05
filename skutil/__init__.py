@@ -6,7 +6,7 @@ import sys
 # want these visible at module level
 from .utils import log, exp
 
-__version__ = '0.1.5.dev'
+__version__ = '0.1.5'
 
 try:
     # This variable is injected in the __builtins__ by the build
