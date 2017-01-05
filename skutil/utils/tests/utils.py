@@ -17,6 +17,7 @@ def assert_fails(fun, expected=ValueError, *args, **kwargs):
         failed = True
     assert failed, 'expected %s in function' % expected
 
+
 def suppress_test_warnings(func):
     def test_warning_suppressor(*args, **kwargs):
         with warnings.catch_warnings(record=True):
