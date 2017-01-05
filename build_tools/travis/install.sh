@@ -52,7 +52,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
 
     pip install scikit-learn==$SCIKIT_LEARN_VERSION
-    pip install pandas==0.19.0
+    pip install pandas # ==0.19.0
 
     if [[ "$WITH_MATPLOTLIB" == "true" ]]; then
         pip install matplotlib;

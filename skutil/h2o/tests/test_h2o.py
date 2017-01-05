@@ -153,6 +153,7 @@ def test_h2o_no_conn_needed():
 
 
 # if we can't start an h2o instance, let's just pass all these tests
+@suppress_warnings  # old versions of h2o throw warnings all day in the requests library... causes travis failures.
 def test_h2o_with_conn():
     iris = load_iris()
     F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
