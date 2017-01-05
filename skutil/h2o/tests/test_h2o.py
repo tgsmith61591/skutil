@@ -42,7 +42,7 @@ from skutil.h2o.transform import H2OSelectiveImputer, H2OInteractionTermTransfor
 from skutil.h2o.frame import is_integer, is_float, value_counts
 from skutil.h2o.pipeline import _union_exclusions
 from skutil.h2o.select import _validate_use
-from skutil.base import overrides, suppress_warnings
+from skutil.base import overrides
 
 from sklearn.datasets import load_iris, load_boston
 from sklearn.ensemble import RandomForestClassifier
@@ -153,1047 +153,1077 @@ def test_h2o_no_conn_needed():
 
 
 # if we can't start an h2o instance, let's just pass all these tests
-@suppress_warnings  # old versions of h2o throw warnings all day in the requests library... causes travis failures.
 def test_h2o_with_conn():
-    iris = load_iris()
-    F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
-    # F = load_iris_df(include_tgt=False)
-    X = None
+    # old versions of h2o throw warnings all day in the requests library... causes travis failures.
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter("ignore")
 
-    try:
-        h2o.init()
-        # h2o.init(ip='localhost', port=54321)  # this might throw a warning
+        iris = load_iris()
+        F = pd.DataFrame.from_records(data=iris.data, columns=iris.feature_names)
+        # F = load_iris_df(include_tgt=False)
+        X = None
 
-        # sleep before trying this:
-        time.sleep(10)
-        X = new_h2o_frame(F)
-    except Exception:
-        # raise #for debugging
+        try:
+            h2o.init()
+            # h2o.init(ip='localhost', port=54321)  # this might throw a warning
 
-        # if we can't start on localhost, try default (127.0.0.1)
-        # we'll try it a few times, since H2O is SUPER finnicky
-        max_tries = 3
-        count = 0
+            # sleep before trying this:
+            time.sleep(10)
+            X = new_h2o_frame(F)
+        except Exception:
+            # raise #for debugging
 
-        while (count < max_tries) and (X is None):
-            try:
-                h2o.init()
-                X = new_h2o_frame(F)
-            except Exception:
-                count += 1
+            # if we can't start on localhost, try default (127.0.0.1)
+            # we'll try it a few times, since H2O is SUPER finnicky
+            max_tries = 3
+            count = 0
 
-        if X is None:
-            warnings.warn('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
+            while (count < max_tries) and (X is None):
+                try:
+                    h2o.init()
+                    X = new_h2o_frame(F)
+                except Exception:
+                    count += 1
 
-    def catch_warning_assert_thrown(fun, kwargs):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
+            if X is None:
+                print('could not successfully start H2O instance, tried %d times' % max_tries, UserWarning)
 
-            ret = fun(**kwargs)
-            # assert len(w) > 0 if X is None else True, 'expected warning to be thrown'
-            return ret
-
-    def valid_use():
-        if X is not None:
-            df = pd.DataFrame.from_records(data=[[1,'NA'], [2,'NA'], [3, 3]],
-                                           columns=['a','b'])
-
-            try:
-                dfh = new_h2o_frame(df)
-            except Exception as e:
-                dfh = None
-                return
-
+        def catch_warning_assert_thrown(fun, kwargs):
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
 
-                assert _validate_use(dfh, 'all.obs', True) == 'complete.obs'
-                assert len(w) > 0
+                ret = fun(**kwargs)
+                # assert len(w) > 0 if X is None else True, 'expected warning to be thrown'
+                return ret
 
-    def feature_dropper_coverage():
-        if X is not None:
-            dropper = H2OFeatureDropper(feature_names=None)
-            y = dropper.fit_transform(X)
+        def valid_use():
+            if X is not None:
+                df = pd.DataFrame.from_records(data=[[1,'NA'], [2,'NA'], [3, 3]],
+                                               columns=['a','b'])
 
-            # assert nothing dropped
-            assert len(y.columns) == len(X.columns)
+                try:
+                    dfh = new_h2o_frame(df)
+                except Exception as e:
+                    dfh = None
+                    return
 
-            # try feature dropper with non-iterable
-            dropper = H2OFeatureDropper(feature_names=1)
-            assert_fails(dropper.fit, ValueError, X)
+                with warnings.catch_warnings(record=True) as w:
+                    warnings.simplefilter("always")
 
-    def multicollinearity():
-        # one way or another, we can initialize it
-        filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold': 0.6})
-        assert not filterer.max_version
+                    assert _validate_use(dfh, 'all.obs', True) == 'complete.obs'
+                    assert len(w) > 0
 
-        if X is not None:
-            x = filterer.fit_transform(X)
-            assert x.shape[1] == 2
+        def feature_dropper_coverage():
+            if X is not None:
+                dropper = H2OFeatureDropper(feature_names=None)
+                y = dropper.fit_transform(X)
 
-            # test some exceptions...
-            assert_fails(filterer.fit, TypeError, F)
+                # assert nothing dropped
+                assert len(y.columns) == len(X.columns)
+
+                # try feature dropper with non-iterable
+                dropper = H2OFeatureDropper(feature_names=1)
+                assert_fails(dropper.fit, ValueError, X)
+
+        def multicollinearity():
+            # one way or another, we can initialize it
+            filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer, {'threshold': 0.6})
+            assert not filterer.max_version
+
+            if X is not None:
+                x = filterer.fit_transform(X)
+                assert x.shape[1] == 2
+
+                # test some exceptions...
+                assert_fails(filterer.fit, TypeError, F)
+
+                # test with a target feature
+                tgt = 'sepal length (cm)'
+                new_filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer,
+                                                           {'threshold': 0.6, 'target_feature': tgt})
+                x = new_filterer.fit_transform(X)
+
+                # h2o throws weird error because it override __contains__, so use the comprehension
+                assert tgt in [c for c in x.columns], 'target feature was accidentally dropped...'
+
+                # assert save/load works
+                filterer.fit(X)
+                the_path = 'mcf.pkl'
+                filterer.save(the_path, warn_if_exists=False)
+                assert os.path.exists(the_path)
+
+                # load and transform...
+                filterer = H2OMulticollinearityFilterer.load(the_path)
+                x = filterer.transform(X)
+                assert x.shape[1] == 2
+
+            else:
+                pass
+
+        def nzv():
+            filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold': 1e-8})
+            assert not filterer.max_version
+
+            # let's add a zero var feature to F
+            f = F.copy()
+            f['zerovar'] = np.zeros(F.shape[0])
+
+            try:
+                Y = new_h2o_frame(f)
+            except Exception as e:
+                Y = None
+
+            if Y is not None:
+                y = filterer.fit_transform(Y)
+                assert len(filterer.drop_) == 1
+                assert y.shape[1] == 4
+            else:
+                pass
 
             # test with a target feature
-            tgt = 'sepal length (cm)'
-            new_filterer = catch_warning_assert_thrown(H2OMulticollinearityFilterer,
-                                                       {'threshold': 0.6, 'target_feature': tgt})
-            x = new_filterer.fit_transform(X)
-
-            # h2o throws weird error because it override __contains__, so use the comprehension
-            assert tgt in [c for c in x.columns], 'target feature was accidentally dropped...'
-
-            # assert save/load works
-            filterer.fit(X)
-            the_path = 'mcf.pkl'
-            filterer.save(the_path, warn_if_exists=False)
-            assert os.path.exists(the_path)
-
-            # load and transform...
-            filterer = H2OMulticollinearityFilterer.load(the_path)
-            x = filterer.transform(X)
-            assert x.shape[1] == 2
-
-        else:
-            pass
-
-    def nzv():
-        filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer, {'threshold': 1e-8})
-        assert not filterer.max_version
-
-        # let's add a zero var feature to F
-        f = F.copy()
-        f['zerovar'] = np.zeros(F.shape[0])
-
-        try:
-            Y = new_h2o_frame(f)
-        except Exception as e:
-            Y = None
-
-        if Y is not None:
-            y = filterer.fit_transform(Y)
-            assert len(filterer.drop_) == 1
-            assert y.shape[1] == 4
-        else:
-            pass
-
-        # test with a target feature
-        if X is not None:
-            tgt = 'sepal length (cm)'
-            new_filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer,
-                                                       {'threshold': 1e-8, 'target_feature': tgt})
-            y = new_filterer.fit_transform(Y)
-
-            assert len(new_filterer.drop_) == 1
-            assert y.shape[1] == 4
-
-            # h2o throws weird error because it override __contains__, so use the comprehension
-            assert tgt in [c for c in y.columns], 'target feature was accidentally dropped...'
-
-        # test with strategy == ratio
-        if X is not None:
-            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
-            assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
-
-            x = np.array([
-                [1, 2, 3],
-                [1, 5, 3],
-                [1, 2, 4],
-                [2, 5, 4]
-            ])
-
-            df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
-            DF = new_h2o_frame(df)
-
-            transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(DF)
-            assert len(transformer.drop_) == 1
-            assert transformer.drop_[0] == 'a'
-            assert len(transformer.var_) == 1
-            assert transformer.var_['a'] == 3.0
-
-        else:
-            pass
-
-    def pipeline():
-        f = F.copy()
-        targ = iris.target
-        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-
-        # do split
-        X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
-
-        # add the y into the matrix for h2o's sake -- pandas will throw a warning here...
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("ignore")
-            X_train['species'] = y_train
-            X_test['species'] = y_test
-
-        try:
-            train = new_h2o_frame(X_train)
-            test = new_h2o_frame(X_test)
-        except Exception as e:
-            train = None
-            test = None
-
-        if train is not None:
-            for estimator in new_estimators():
-                # define pipe
-                pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer()),
-                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                    ('est', estimator)
-                ],
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
-                )
-
-                # fit pipe...
-                pipe.fit(train)
-
-                # refit for _reset coverage...
-                pipe.fit(train)
-
-                # try predicting
-                pipe.predict(test)
-
-                # coverage:
-                fe = pipe._final_estimator
-                ns = pipe.named_steps
-
-                # test pojo
-                assert not pipe.download_pojo()
-
-            # test with all transformers and no estimator
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer(threshold=0.9))
-            ],
-                feature_names=F.columns.tolist(),
-                target_feature='species'
-            )
-
-            X_transformed = pipe.fit_transform(train)
-
-            # test with all transformers and no estimator -- but this time, we
-            # are testing that we can set the params even when the last step
-            # is not an H2OEstimator
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer())
-            ],
-                feature_names=F.columns.tolist(),
-                target_feature='species'
-            )
-
-            # here's where we test...
-            pipe.set_params(**{'mc__threshold': 0.9})
-            assert pipe._final_estimator.threshold == 0.9
-
-            # test some failures -- first, Y
-            for y in [None, 1]:
-                pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer()),
-                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                    ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
-                ],
-                    feature_names=F.columns.tolist(),
-                    target_feature=y
-                )
-
-                excepted = False
-                try:
-                    pipe.fit(train)
-                except (TypeError, ValueError, EnvironmentError) as e:
-                    excepted = True
-                assert excepted, 'expected failure for y=%s' % str(y)
-
-            # now X
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
-            ],
-                feature_names=1,
-                target_feature='species'
-            )
-
-            assert_fails(pipe.fit, TypeError, train)
-
-            # now non-unique names
-            failed = False
-            try:
-                pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer()),
-                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                    ('mc', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
-                ],
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
-                )
-
-                # won't even get here...
-                pipe.fit(train)
-            except ValueError as v:
-                failed = True
-            assert failed
-
-            # fails for non-h2o transformers
-            failed = False
-            try:
-                pipe = H2OPipeline([
-                    ('nzv', NearZeroVarianceFilterer()),
-                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                    ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
-                ],
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
-                )
-
-                # won't even get here...
-                # pipe.fit(train)
-            except TypeError as t:
-                failed = True
-            assert failed
-
-            # type error for non-h2o estimators
-            failed = False
-            try:
-                pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer()),
-                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                    ('est', RandomForestClassifier())
-                ],
-                    feature_names=F.columns.tolist(),
-                    target_feature='species'
-                )
-
-                # won't even get here...
-                # pipe.fit(train)
-            except TypeError as t:
-                failed = True
-            assert failed
-
-            # test with such stringent thresholds that no features are retained
-            pipe = H2OPipeline([
-                ('mcf', H2OMulticollinearityFilterer(threshold=0.1)),  # will retain one
-                ('nzv', H2ONearZeroVarianceFilterer(threshold=100)),  # super high thresh
-                ('est', H2ORandomForestEstimator())
-            ], feature_names=F.columns.tolist(), target_feature='species'
-            )
-
-            # this will fail because no cols are retained
-            assert_fails(pipe.fit, ValueError, train)
-
-            # test with exclusions
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
-                ('est', H2ORandomForestEstimator())
-            ],
-                feature_names=F.columns.tolist(),
-                target_feature='species',
-                exclude_from_fit=['sepal width (cm)'] # will not be included in the final fit
-            )
-
-            # fit pipe, predict...
-            pipe.fit_predict(train)
-
-            # if we set params to None, assert it just does nothing but return itself
-            pipe.set_params(**{})
-            assert pipe.exclude_from_fit == ['sepal width (cm)']
-        else:
-            pass
-
-    def grid():
-        # test as_numpy
-        assert_fails(_as_numpy, (ValueError, TypeError, AssertionError), F)  # fails because not H2OFrame
-
-        f = F.copy()
-        targ = iris.target
-        names = f.columns.values
-        TGT_NAME = 'species'
-        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-        f[TGT_NAME] = targ
-
-        # shuffle the rows
-        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
-
-        # try uploading...
-        try:
-            frame = new_h2o_frame(f)
-        except Exception as e:
-            frame = None
-
-        def get_param_grid(est):
-            if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
-                return {
-                    'ntrees': [3, 5]
-                }
-            elif isinstance(est, H2ODeepLearningEstimator):
-                return {
-                    'activation': ['Tanh', 'Rectifier']
-                }
-            else:
-                return {
-                    'standardize': [True, False]
-                }
-
-        # most of this is for extreme coverage to make sure it all works...
-        if frame is not None:
-            n_folds = 2
-
-            # first, let's assert things don't work with all transformers and no estimator
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer(threshold=0.9))
-            ],
-                feature_names=names,
-                target_feature=TGT_NAME
-            )
-
-            hyp = {
-                'nzv__threshold': [0.5, 0.6]
-            }
-
-            grd = H2ORandomizedSearchCV(estimator=pipe,
-                                        feature_names=names, target_feature=TGT_NAME,
-                                        param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
-
-            # it will fail in the fit method because there's no estimator at the end...
-            assert_fails(grd.fit, TypeError, frame)
-
-            # test on all the types of classification metrics...
-            mtrcs = [
-                h2o_accuracy_score,
-                h2o_f1_score,
-                h2o_precision_score,
-                h2o_recall_score,
-                None,
-                'bad'
-            ]
-
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('est', H2ORandomForestEstimator())
-            ])
-
-            hyp = {
-                'nzv__threshold': [0.5, 0.6]
-            }
-
-            for mtc in mtrcs:
-                vbs = choice([1, 2])
-                iid = choice([True, False])
-                kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average': 'micro'}
-                grd = H2ORandomizedSearchCV(estimator=pipe,
-                                            feature_names=names, target_feature=TGT_NAME,
-                                            param_grid=hyp, scoring=mtc, cv=2, n_iter=1,
-                                            scoring_params=kwargs, verbose=vbs, iid=iid)
-
-                if mtc == 'bad':
-                    assert_fails(grd.fit, ValueError, frame)
-                else:
-                    # should pass
-                    grd.fit(frame)
-
-            for is_random in [False, True]:
-                for estimator in new_estimators():
-                    for do_pipe in [False, True]:
-                        for iid in [True]:  # just do True for now since we already hit false above
-                            for verbose in [3]:  # just do 3 for now since we already hit 1 or 2 above
-                                for scoring in ['accuracy_score']:
-
-                                    # should we shuffle?
-                                    do_shuffle = choice([True, False])
-                                    minimize = choice(['bias', 'variance'])
-
-                                    # just for coverage...
-                                    which_cv = choice([
-                                        n_folds,
-                                        H2OKFold(n_folds=n_folds, shuffle=do_shuffle)
-                                    ])
-
-                                    # get which module to use
-                                    if is_random:
-                                        grid_module = H2ORandomizedSearchCV
-                                    else:
-                                        grid_module = H2OGridSearchCV
-
-                                    if not do_pipe:
-                                        # we're just testing the search on actual estimators
-                                        grid = grid_module(estimator=estimator,
-                                                           feature_names=F.columns.tolist(), target_feature='species',
-                                                           param_grid=get_param_grid(estimator),
-                                                           scoring=scoring, iid=iid, verbose=verbose,
-                                                           cv=which_cv, minimize=minimize)
-                                    else:
-
-                                        # pipify -- the feature names, etc., will be set in the grid
-                                        pipe = H2OPipeline([
-                                            ('nzv', H2ONearZeroVarianceFilterer()),
-                                            ('est', estimator)
-                                        ])
-
-                                        # determine which params to use
-                                        # we'll just use a NZV filter and tinker with the thresh
-                                        if is_random:
-                                            params = {
-                                                'nzv__threshold': uniform(1e-6, 0.0025)
-                                            }
-                                        else:
-                                            params = {
-                                                'nzv__threshold': [1e-6, 1e-8]
-                                            }
-
-                                        grid = grid_module(pipe, param_grid=params,
-                                                           feature_names=F.columns.tolist(), target_feature='species',
-                                                           scoring=scoring, iid=iid, verbose=verbose,
-                                                           cv=which_cv, minimize=minimize)
-
-                                    # if it's a random search CV obj, let's keep it brief
-                                    if is_random:
-                                        grid.n_iter = n_folds
-
-                                    # sometimes we'll expect it to fail...
-                                    expect_failure = scoring is None or (
-                                    isinstance(scoring, str) and scoring in ('bad'))
-                                    try:
-                                        # fit the grid
-                                        grid.fit(frame)
-
-                                        # we expect the exception to be thrown
-                                        # above, so now we set expect_failure to False
-                                        expect_failure = False
-
-                                        # predict on the grid
-                                        p = grid.predict(frame)
-
-                                        # score on the frame
-                                        s = grid.score(frame)
-                                    except ValueError as v:
-                                        if expect_failure:
-                                            pass
-                                        else:
-                                            raise
-
-                                    # try varimp
-                                    if hasattr(grid, 'varimp'):
-                                        grid.varimp()
-
-            # can we just fit one with a validation frame for coverage?
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('est', H2OGradientBoostingEstimator(ntrees=5))
-            ])
-
-            hyper = {
-                'nzv__threshold': uniform(1e-6, 0.0025)
-            }
-
-            grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
-                                         feature_names=F.columns.tolist(), target_feature='species',
-                                         scoring='accuracy_score', iid=True, verbose=0, cv=2,
-                                         validation_frame=frame)
-
-            grid.fit(frame)
-
-            # test pojo no save
-            assert not grid.download_pojo()
-
-            # test pojo with save
-            pth = 'model_pojo'
-            os.mkdir(pth)
-            grid.download_pojo(path=pth)
-            assert os.path.exists(os.path.join(pth, "h2o-genmodel.jar"))
-            shutil.rmtree(pth)
-
-            # also, can we make it fail for non-permitted minimizer?
-            grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
-                                         feature_names=F.columns.tolist(), target_feature='species',
-                                         scoring='accuracy_score', iid=True, verbose=0, cv=2,
-                                         validation_frame=frame, minimize='bad_string')
-
-            assert_fails(grid.fit, ValueError, frame)  # fails because of the minimize value
-
-
-        else:
-            pass
-
-        # let's do one pass with a stratified K fold... but we need to increase our data length,
-        # lest we lose records on the split, which will throw errors...
-        f = pd.concat([f, f, f, f, f], axis=0)  # times FIVE!
-
-        # shuffle the rows
-        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
-
-        # try uploading again...
-        try:
-            frame = new_h2o_frame(f)
-        except Exception as e:
-            frame = None
-
-        if frame is not None:
-            n_folds = 2
-            for estimator in new_estimators():
-                pipe = H2OPipeline([
-                    ('nzv', H2ONearZeroVarianceFilterer()),
-                    ('est', estimator)
+            if X is not None:
+                tgt = 'sepal length (cm)'
+                new_filterer = catch_warning_assert_thrown(H2ONearZeroVarianceFilterer,
+                                                           {'threshold': 1e-8, 'target_feature': tgt})
+                y = new_filterer.fit_transform(Y)
+
+                assert len(new_filterer.drop_) == 1
+                assert y.shape[1] == 4
+
+                # h2o throws weird error because it override __contains__, so use the comprehension
+                assert tgt in [c for c in y.columns], 'target feature was accidentally dropped...'
+
+            # test with strategy == ratio
+            if X is not None:
+                transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
+                assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
+
+                x = np.array([
+                    [1, 2, 3],
+                    [1, 5, 3],
+                    [1, 2, 4],
+                    [2, 5, 4]
                 ])
 
-                params = {
-                    'nzv__threshold': uniform(1e-6, 0.0025)
+                df = pd.DataFrame.from_records(data=x, columns=['a', 'b', 'c'])
+                DF = new_h2o_frame(df)
+
+                transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=3.0).fit(DF)
+                assert len(transformer.drop_) == 1
+                assert transformer.drop_[0] == 'a'
+                assert len(transformer.var_) == 1
+                assert transformer.var_['a'] == 3.0
+
+            else:
+                pass
+
+        def pipeline():
+            f = F.copy()
+            targ = iris.target
+            targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+
+            # do split
+            X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
+
+            # add the y into the matrix for h2o's sake -- pandas will throw a warning here...
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("ignore")
+                X_train['species'] = y_train
+                X_test['species'] = y_test
+
+            try:
+                train = new_h2o_frame(X_train)
+                test = new_h2o_frame(X_test)
+            except Exception as e:
+                train = None
+                test = None
+
+            if train is not None:
+                for estimator in new_estimators():
+                    # define pipe
+                    pipe = H2OPipeline([
+                        ('nzv', H2ONearZeroVarianceFilterer()),
+                        ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                        ('est', estimator)
+                    ],
+                        feature_names=F.columns.tolist(),
+                        target_feature='species'
+                    )
+
+                    # fit pipe...
+                    pipe.fit(train)
+
+                    # refit for _reset coverage...
+                    pipe.fit(train)
+
+                    # try predicting
+                    pipe.predict(test)
+
+                    # coverage:
+                    fe = pipe._final_estimator
+                    ns = pipe.named_steps
+
+                    # test pojo
+                    assert not pipe.download_pojo()
+
+                # test with all transformers and no estimator
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer(threshold=0.9))
+                ],
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
+                )
+
+                X_transformed = pipe.fit_transform(train)
+
+                # test with all transformers and no estimator -- but this time, we
+                # are testing that we can set the params even when the last step
+                # is not an H2OEstimator
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer())
+                ],
+                    feature_names=F.columns.tolist(),
+                    target_feature='species'
+                )
+
+                # here's where we test...
+                pipe.set_params(**{'mc__threshold': 0.9})
+                assert pipe._final_estimator.threshold == 0.9
+
+                # test some failures -- first, Y
+                for y in [None, 1]:
+                    pipe = H2OPipeline([
+                        ('nzv', H2ONearZeroVarianceFilterer()),
+                        ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                        ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
+                    ],
+                        feature_names=F.columns.tolist(),
+                        target_feature=y
+                    )
+
+                    excepted = False
+                    try:
+                        pipe.fit(train)
+                    except (TypeError, ValueError, EnvironmentError) as e:
+                        excepted = True
+                    assert excepted, 'expected failure for y=%s' % str(y)
+
+                # now X
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                    ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
+                ],
+                    feature_names=1,
+                    target_feature='species'
+                )
+
+                assert_fails(pipe.fit, TypeError, train)
+
+                # now non-unique names
+                failed = False
+                try:
+                    pipe = H2OPipeline([
+                        ('nzv', H2ONearZeroVarianceFilterer()),
+                        ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                        ('mc', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
+                    ],
+                        feature_names=F.columns.tolist(),
+                        target_feature='species'
+                    )
+
+                    # won't even get here...
+                    pipe.fit(train)
+                except ValueError as v:
+                    failed = True
+                assert failed
+
+                # fails for non-h2o transformers
+                failed = False
+                try:
+                    pipe = H2OPipeline([
+                        ('nzv', NearZeroVarianceFilterer()),
+                        ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                        ('est', H2OGradientBoostingEstimator(distribution='multinomial', ntrees=5))
+                    ],
+                        feature_names=F.columns.tolist(),
+                        target_feature='species'
+                    )
+
+                    # won't even get here...
+                    # pipe.fit(train)
+                except TypeError as t:
+                    failed = True
+                assert failed
+
+                # type error for non-h2o estimators
+                failed = False
+                try:
+                    pipe = H2OPipeline([
+                        ('nzv', H2ONearZeroVarianceFilterer()),
+                        ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                        ('est', RandomForestClassifier())
+                    ],
+                        feature_names=F.columns.tolist(),
+                        target_feature='species'
+                    )
+
+                    # won't even get here...
+                    # pipe.fit(train)
+                except TypeError as t:
+                    failed = True
+                assert failed
+
+                # test with such stringent thresholds that no features are retained
+                pipe = H2OPipeline([
+                    ('mcf', H2OMulticollinearityFilterer(threshold=0.1)),  # will retain one
+                    ('nzv', H2ONearZeroVarianceFilterer(threshold=100)),  # super high thresh
+                    ('est', H2ORandomForestEstimator())
+                ], feature_names=F.columns.tolist(), target_feature='species'
+                )
+
+                # this will fail because no cols are retained
+                assert_fails(pipe.fit, ValueError, train)
+
+                # test with exclusions
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
+                    ('est', H2ORandomForestEstimator())
+                ],
+                    feature_names=F.columns.tolist(),
+                    target_feature='species',
+                    exclude_from_fit=['sepal width (cm)'] # will not be included in the final fit
+                )
+
+                # fit pipe, predict...
+                pipe.fit_predict(train)
+
+                # if we set params to None, assert it just does nothing but return itself
+                pipe.set_params(**{})
+                assert pipe.exclude_from_fit == ['sepal width (cm)']
+            else:
+                pass
+
+        def grid():
+            # test as_numpy
+            assert_fails(_as_numpy, (ValueError, TypeError, AssertionError), F)  # fails because not H2OFrame
+
+            f = F.copy()
+            targ = iris.target
+            names = f.columns.values
+            TGT_NAME = 'species'
+            targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+            f[TGT_NAME] = targ
+
+            # shuffle the rows
+            f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+            # try uploading...
+            try:
+                frame = new_h2o_frame(f)
+            except Exception as e:
+                frame = None
+
+            def get_param_grid(est):
+                if isinstance(est, (H2ORandomForestEstimator, H2OGradientBoostingEstimator)):
+                    return {
+                        'ntrees': [3, 5]
+                    }
+                elif isinstance(est, H2ODeepLearningEstimator):
+                    return {
+                        'activation': ['Tanh', 'Rectifier']
+                    }
+                else:
+                    return {
+                        'standardize': [True, False]
+                    }
+
+            # most of this is for extreme coverage to make sure it all works...
+            if frame is not None:
+                n_folds = 2
+
+                # first, let's assert things don't work with all transformers and no estimator
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer(threshold=0.9))
+                ],
+                    feature_names=names,
+                    target_feature=TGT_NAME
+                )
+
+                hyp = {
+                    'nzv__threshold': [0.5, 0.6]
                 }
 
-                grid = H2ORandomizedSearchCV(pipe, param_grid=params,
-                                             feature_names=F.columns.tolist(), target_feature='species',
-                                             scoring='accuracy_score', n_iter=2,
-                                             cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
-
-                # do fit
-                grid.fit(frame)
-        else:
-            pass
-
-    def anon_class():
-        class H2OAnonClass100(BaseH2OFunctionWrapper):
-            _min_version = 100.0
-            _max_version = None
-
-            def __init__(self):
-                super(H2OAnonClass100, self).__init__(
-                    min_version=self._min_version,
-                    max_version=self._max_version)
-
-        # assert fails for min version > current version
-        assert_fails(H2OAnonClass100, EnvironmentError)
-
-        class H2OAnonClassAny(BaseH2OFunctionWrapper):
-            _min_version = 'any'
-            _max_version = 0.1
-
-            def __init__(self):
-                super(H2OAnonClassAny, self).__init__(
-                    min_version=self._min_version,
-                    max_version=self._max_version)
-
-        # assert fails for max version < current version
-        assert_fails(H2OAnonClassAny, EnvironmentError)
-
-        class H2OAnonClassPass(BaseH2OFunctionWrapper):
-            def __init__(self):
-                super(H2OAnonClassPass, self).__init__(
-                    min_version='any',
-                    max_version=None)
-
-        # assert fails for max version < current version
-        h = H2OAnonClassPass()
-        assert h.max_version is None
-        assert h.min_version == 'any'
-
-    def cv():
-        assert check_cv(None).get_n_splits() == 3
-        assert_fails(check_cv, ValueError, 'not_a_valid_arg')
-
-        f = F.copy()
-        targ = iris.target
-        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-        f['species'] = targ
-        f = shuffle_dataframe(pd.concat([f, f, f, f, f], axis=0))  # times FIVE!
-
-        try:
-            Y = from_pandas(f)
-        except Exception as e:
-            Y = None
-
-        if Y is not None:
-            # test the splits
-            def do_split(gen, *args):
-                return [x for x in gen(*args)]
-
-            # test stratifed with shuffle on/off
-            for shuffle in [True, False]:
-                for y in ['species', None]:
-                    strat = H2OStratifiedKFold(shuffle=shuffle)
-
-                    # test the __repr__
-                    strat.__repr__()
-
-                    # only fails if y is None
-                    try:
-                        do_split(strat.split, Y, y)
-                    except ValueError as v:
-                        if y is None:
-                            pass
-                        else:
-                            raise
-
-            # test kfold with too many or too few folds
-            for n_folds in [1, 'blah']:
-                assert_fails(H2OKFold, ValueError, **{'n_folds': n_folds})
-
-            # assert not logical shuffle fails
-            assert_fails(H2OKFold, TypeError, **{'shuffle': 'sure'})
-
-            # assert split with n_splits > n_obs fails
-            failed = False
-            try:
-                do_split(H2OKFold(n_folds=Y.shape[0] + 1).split, Y)
-            except ValueError:
-                failed = True
-            assert failed
-
-        # we'll try the stratified split on the BC dataset
-        try:
-            B = new_h2o_frame(load_breast_cancer_df(tgt_name='target'))
-        except Exception as e:
-            B = None
-
-        if B is not None:
-            # can we force this weird stratified behavior where
-            # n_train and n_train don't add up to enough rows?
-            splitter = H2OStratifiedShuffleSplit(test_size=0.2473)
-            splits = [x for x in splitter.split(B, 'target')]  # it's a list of tuples
-
-    def split_tsts():
-        # testing val_y
-        assert_fails(_val_y, TypeError, 1)
-        assert _val_y(None) is None
-        assert isinstance(_val_y('asdf'), six.string_types)
-
-        # testing _validate_shuffle_split_init
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'test_size': None, 'train_size': None})  # can't both be None
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'test_size': 1.1, 'train_size': 0.0})  # if float, can't be over 1.
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'test_size': 'string', 'train_size': None})  # if not float, must be int
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'train_size': 1.1, 'test_size': 0.0})  # if float, can't be over 1.
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'train_size': 'string', 'test_size': None})  # if not float, must be int
-        assert_fails(_validate_shuffle_split_init, ValueError,
-                     **{'test_size': 0.6, 'train_size': 0.5})  # if both float, must not exceed 1.
-
-        # testing _validate_shuffle_split
-        assert_fails(_validate_shuffle_split, ValueError,
-                     **{'n_samples': 10, 'test_size': 11, 'train_size': 0})  # test_size can't exceed n_samples
-        assert_fails(_validate_shuffle_split, ValueError,
-                     **{'n_samples': 10, 'train_size': 11, 'test_size': 0})  # train_size can't exceed n_samples
-        assert_fails(_validate_shuffle_split, ValueError,
-                     **{'n_samples': 10, 'train_size': 5, 'test_size': 6})  # sum can't exceed n_samples
-
-        # test with train as None
-        n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=30, train_size=None)
-        assert n_train == 70
-
-        # test with test as None
-        n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=None, train_size=70)
-        assert n_test == 30
-
-        # test what works:
-        n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=3, train_size=7)
-        assert n_train == 7
-        assert n_test == 3
-
-        n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=0.3, train_size=0.7)
-        assert n_train == 7
-        assert n_test == 3
-
-        # now actually get the train, test splits...
-        # let's do one pass with a stratified K fold... but we need to increase our data length, 
-        # lest we lose records on the split, which will throw errors...
-        f = F.copy()
-        targ = iris.target
-        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-        f['species'] = targ
-
-        # Times FIVE!
-        f = pd.concat([f, f, f, f, f], axis=0)  # times FIVE!
-
-        # shuffle the rows
-        f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
-
-        # try uploading again...
-        try:
-            frame = new_h2o_frame(f)
-        except Exception as e:
-            frame = None
-
-        if frame is not None:
-            for stratified in [None, 'species']:
-                X_train, X_test = h2o_train_test_split(frame, test_size=0.3, train_size=0.7, stratify=stratified)
-                a, b = (X_train.shape[0] + X_test.shape[0]), frame.shape[0]
-                assert a == b, '%d != %d' % (a, b)
-
-                # do split with train/test sizes = None, assert shapes
-            X_train, X_test = h2o_train_test_split(frame)
-            assert X_test.shape[0] in (187, 188)  # 25%
-        else:
-            pass
-
-    def act_search():
-        tgt = 'target'
-        X_bost = load_boston_df(shuffle=True, include_tgt=True, tgt_name=tgt)
-        names = X_bost.columns[:-1]
-
-        X_bost['expo'] = [1 + np.random.rand() for i in range(X_bost.shape[0])]
-        X_bost['loss'] = [1 + np.random.rand() for i in range(X_bost.shape[0])]
-        X_train, X_test = train_test_split(X_bost, train_size=0.7)
-
-        # now upload to cloud...
-        try:
-            train = from_pandas(X_train)
-            test = from_pandas(X_test)
-        except Exception as e:
-            train = None
-            test = None
-
-        if all([x is not None for x in (train, test)]):
-            pipe = H2OPipeline([
-                ('rf', H2ORandomForestEstimator(seed=42))
-            ])
-
-            hyper = {
-                'rf__ntrees': [10, 15]
-            }
-
-            search = H2OGainsRandomizedSearchCV(
-                estimator=pipe,
-                param_grid=hyper,
-                exposure_feature='expo',
-                loss_feature='loss',
-                feature_names=names,
-                target_feature=tgt,
-                cv=2,
-                n_iter=2)
-
-            search.fit(train)
-            search.score(test)
-
-            # report:
-            report = search.report_scores()
-
-        else:
-            pass
-
-    def sparse():
-        f = F.copy()
-        f['sparse'] = ['NA' for i in range(f.shape[0])]
-
-        # try uploading...
-        try:
-            frame = new_h2o_frame(f)
-        except Exception as e:
-            frame = None
-
-        if frame is not None:
-            filterer = H2OSparseFeatureDropper()
-            filterer.fit(frame)
-            assert 'sparse' in filterer.drop_
-
-            # assert fails for over 1.0 or under 0.0
-            assert_fails(H2OSparseFeatureDropper(threshold=-0.1).fit, ValueError, frame)
-            assert_fails(H2OSparseFeatureDropper(threshold=1.0).fit, ValueError, frame)
-
-        else:
-            pass
-
-    def impute():
-        f = F.copy()
-        choices = [choice(range(f.shape[0]), 15) for i in range(f.shape[1])]  # which indices will be NA?
-        for i, v in enumerate(choices):
-            f.iloc[v, i] = 'NA'
-
-        def _basic_scenario(X, fill):
-            imputer = H2OSelectiveImputer(def_fill=fill)
-            X = imputer.fit_transform(X)
-            na_cnt = sum(X.nacnt())
-            assert not na_cnt, 'expected no NAs, but found %d' % na_cnt
-
-        def scenario_1(X):
-            """Assert functions with 'mean'"""
-            _basic_scenario(X, 'mean')
-
-        def scenario_2(X):
-            """Assert functions with 'median'"""
-            _basic_scenario(X, 'median')
-
-        def scenario_3(X):
-            """Assert fails (for now) with 'mode' -- unimplemented"""
-            _basic_scenario(X, 'mode')
-
-        def scenario_4(X):
-            """Assert fails with unknown string arg"""
-            assert_fails(_basic_scenario, TypeError, X, 'bad_string')
-
-        def scenario_5(X):
-            """Assert functions with list of imputes"""
-            _basic_scenario(X, ['mean', 1.5, 'median', 'median'])
-
-        def scenario_6(X):
-            """Assert fails with list with unknown string args"""
-            assert_fails(_basic_scenario, TypeError, X, ['bad_string', 1.5, 'median', 'median'])
-
-        def scenario_7(X):
-            """Assert fails with 'mode' in the list -- unimplemented"""
-            _basic_scenario(X, ['mode', 1.5, 'median', 'median'])
-
-        def scenario_8(X):
-            """Assert fails with len != ncols"""
-            assert_fails(_basic_scenario, ValueError, X, ['mean', 1.5, 2.0])
-
-        def scenario_9(X):
-            """Assert fails with random object as def_fill"""
-
-            # arbitrary object:
-            class Anon1(object):
-                def __init__(self):
-                    pass
-
-                def __str__(self):
-                    return 'Type: Anon1'
-
-            assert_fails(_basic_scenario, TypeError, X, Anon1)
-
-        def scenario_10(X):
-            """Assert functions feature_names arg"""
-            imputer = H2OSelectiveImputer(feature_names=X.columns[:3], def_fill='median')
-            imputer.fit_transform(X)
-            na_cnt = sum(X.nacnt())
-            assert na_cnt > 0, 'expected some NAs, but found none'
-
-        def scenario_11(X):
-            """Assert functions with target_feature arg"""
-            imputer = H2OSelectiveImputer(target_feature=X.columns[3], def_fill=[1, 1, 1])
-            imputer.fit_transform(X)
-            na_cnt = sum(X.nacnt())
-            assert na_cnt > 0, 'expected some NAs, but found none'
-
-        def scenario_12(X):
-            """Assert functions with both feature_names and target_feature arg"""
-            imputer = H2OSelectiveImputer(feature_names=X.columns[:3], target_feature=X.columns[3], def_fill=[2, 2, 2])
-            imputer.fit_transform(X)
-            na_cnt = sum(X.nacnt())
-            assert na_cnt > 0, 'expected some NAs, but found none'
-
-        def scenario_13(X):
-            """Assert functions with list of imputes"""
-            cols = [str(u) for u in X.columns]
-            vals = ('mean', 1.5, 'median', 'median')
-            fill = dict(zip(cols, vals))
-            _basic_scenario(X, fill)
-
-        # these are our test scenarios:
-        scenarios = [
-            scenario_1, scenario_2, scenario_3, scenario_4,
-            scenario_5, scenario_6, scenario_7, scenario_8,
-            scenario_9, scenario_10, scenario_11, scenario_12,
-            scenario_13
-        ]
-
-        try:
-            M = new_h2o_frame(f.copy())
-        except Exception as e:
-            M = None
-
-        if M is not None:
-            # loop scenarios
-            for scenario in scenarios:
-                scenario(M)
-
-    def persist():
-        f = F.copy()
-        targ = iris.target
-        targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
-        f['species'] = targ
-        f = shuffle_dataframe(pd.concat([f, f, f, f, f], axis=0))  # times FIVE!
-
-        try:
-            Y = from_pandas(f)
-        except Exception as e:
-            Y = None
-
-        if Y is not None:
-            # test on H2OPipeline
-            pipe = H2OPipeline([
-                ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
-                ('est', H2OGradientBoostingEstimator(ntrees=5))
-            ],
-                feature_names=Y.columns[:4],
-                target_feature=Y.columns[4]
-            )
-
-            # fit and save
-            pipe = pipe.fit(Y)
-            the_path = 'pipe.pkl'
-            pipe.save(the_path, warn_if_exists=False)
-            assert os.path.exists(the_path)
-
-            # assert we can predict with it even
-            # when it's not reloaded yet (fix issue #7)
-            pipe.predict(Y)
-
-            # load and predict
-            pipe = H2OPipeline.load(the_path)
-            pred = pipe.predict(Y)
-
-            # assert we can load and predict again (that attributes were not deleted)
-            pipe = H2OPipeline.load(the_path)
-            pred = pipe.predict(Y)
-
-            # test one pipeline with all transformers and no estimator
-            pipe = H2OPipeline([
-                ('nzv', H2ONearZeroVarianceFilterer()),
-                ('mc', H2OMulticollinearityFilterer(threshold=0.9))
-            ],
-                feature_names=Y.columns[:4],
-                target_feature=Y.columns[4]
-            )
-
-            # fit and save
-            pipe = pipe.fit(Y)
-            the_path = 'pipe_2.pkl'
-            pipe.save(the_path, warn_if_exists=False)
-            assert os.path.exists(the_path)
-
-            # assert we can predict with it even
-            # when it's not reloaded yet (fix issue #7)
-            pipe.transform(Y)
-
-            # load and transform
-            pipe = H2OPipeline.load(the_path)
-            pred = pipe.transform(Y)
-
-            # assert we can load and transform again (that attributes were not deleted)
-            pipe = H2OPipeline.load(the_path)
-            pred = pipe.transform(Y)
-
-            # assert that after load, we can refit again if we want
-            pipe.fit(Y)
-
-            # test on grid with different types of estimators (keep em small)
-            for i, HE in enumerate([H2OGradientBoostingEstimator(ntrees=5),
-                                    H2ODeepLearningEstimator(epochs=1, hidden=[5, 5]),
-                                    H2ORandomForestEstimator(ntrees=5),
-                                    H2OGeneralizedLinearEstimator(family='multinomial'),
-                                    H2ONaiveBayesEstimator()]):
-                pipe2 = H2OPipeline([
-                    ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
-                    ('est', HE)
+                grd = H2ORandomizedSearchCV(estimator=pipe,
+                                            feature_names=names, target_feature=TGT_NAME,
+                                            param_grid=hyp, scoring='accuracy_score', cv=2, n_iter=1)
+
+                # it will fail in the fit method because there's no estimator at the end...
+                assert_fails(grd.fit, TypeError, frame)
+
+                # test on all the types of classification metrics...
+                mtrcs = [
+                    h2o_accuracy_score,
+                    h2o_f1_score,
+                    h2o_precision_score,
+                    h2o_recall_score,
+                    None,
+                    'bad'
+                ]
+
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('est', H2ORandomForestEstimator())
                 ])
 
                 hyp = {
-                    'mcf__threshold': [0.80, 0.85, 0.90, 0.95]
+                    'nzv__threshold': [0.5, 0.6]
                 }
 
-                grid = H2ORandomizedSearchCV(estimator=pipe2,
+                for mtc in mtrcs:
+                    vbs = choice([1, 2])
+                    iid = choice([True, False])
+                    kwargs = {} if mtc in (h2o_accuracy_score, None, 'bad') else {'average': 'micro'}
+                    grd = H2ORandomizedSearchCV(estimator=pipe,
+                                                feature_names=names, target_feature=TGT_NAME,
+                                                param_grid=hyp, scoring=mtc, cv=2, n_iter=1,
+                                                scoring_params=kwargs, verbose=vbs, iid=iid)
+
+                    if mtc == 'bad':
+                        assert_fails(grd.fit, ValueError, frame)
+                    else:
+                        # should pass
+                        grd.fit(frame)
+
+                for is_random in [False, True]:
+                    for estimator in new_estimators():
+                        for do_pipe in [False, True]:
+                            for iid in [True]:  # just do True for now since we already hit false above
+                                for verbose in [3]:  # just do 3 for now since we already hit 1 or 2 above
+                                    for scoring in ['accuracy_score']:
+
+                                        # should we shuffle?
+                                        do_shuffle = choice([True, False])
+                                        minimize = choice(['bias', 'variance'])
+
+                                        # just for coverage...
+                                        which_cv = choice([
+                                            n_folds,
+                                            H2OKFold(n_folds=n_folds, shuffle=do_shuffle)
+                                        ])
+
+                                        # get which module to use
+                                        if is_random:
+                                            grid_module = H2ORandomizedSearchCV
+                                        else:
+                                            grid_module = H2OGridSearchCV
+
+                                        if not do_pipe:
+                                            # we're just testing the search on actual estimators
+                                            grid = grid_module(estimator=estimator,
+                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               param_grid=get_param_grid(estimator),
+                                                               scoring=scoring, iid=iid, verbose=verbose,
+                                                               cv=which_cv, minimize=minimize)
+                                        else:
+
+                                            # pipify -- the feature names, etc., will be set in the grid
+                                            pipe = H2OPipeline([
+                                                ('nzv', H2ONearZeroVarianceFilterer()),
+                                                ('est', estimator)
+                                            ])
+
+                                            # determine which params to use
+                                            # we'll just use a NZV filter and tinker with the thresh
+                                            if is_random:
+                                                params = {
+                                                    'nzv__threshold': uniform(1e-6, 0.0025)
+                                                }
+                                            else:
+                                                params = {
+                                                    'nzv__threshold': [1e-6, 1e-8]
+                                                }
+
+                                            grid = grid_module(pipe, param_grid=params,
+                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               scoring=scoring, iid=iid, verbose=verbose,
+                                                               cv=which_cv, minimize=minimize)
+
+                                        # if it's a random search CV obj, let's keep it brief
+                                        if is_random:
+                                            grid.n_iter = n_folds
+
+                                        # sometimes we'll expect it to fail...
+                                        expect_failure = scoring is None or (
+                                        isinstance(scoring, str) and scoring in ('bad'))
+                                        try:
+                                            # fit the grid
+                                            grid.fit(frame)
+
+                                            # we expect the exception to be thrown
+                                            # above, so now we set expect_failure to False
+                                            expect_failure = False
+
+                                            # predict on the grid
+                                            p = grid.predict(frame)
+
+                                            # score on the frame
+                                            s = grid.score(frame)
+                                        except ValueError as v:
+                                            if expect_failure:
+                                                pass
+                                            else:
+                                                raise
+
+                                        # try varimp
+                                        if hasattr(grid, 'varimp'):
+                                            grid.varimp()
+
+                # can we just fit one with a validation frame for coverage?
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('est', H2OGradientBoostingEstimator(ntrees=5))
+                ])
+
+                hyper = {
+                    'nzv__threshold': uniform(1e-6, 0.0025)
+                }
+
+                grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
+                                             feature_names=F.columns.tolist(), target_feature='species',
+                                             scoring='accuracy_score', iid=True, verbose=0, cv=2,
+                                             validation_frame=frame)
+
+                grid.fit(frame)
+
+                # test pojo no save
+                assert not grid.download_pojo()
+
+                # test pojo with save
+                pth = 'model_pojo'
+                os.mkdir(pth)
+                grid.download_pojo(path=pth)
+                assert os.path.exists(os.path.join(pth, "h2o-genmodel.jar"))
+                shutil.rmtree(pth)
+
+                # also, can we make it fail for non-permitted minimizer?
+                grid = H2ORandomizedSearchCV(pipe, param_grid=hyper,
+                                             feature_names=F.columns.tolist(), target_feature='species',
+                                             scoring='accuracy_score', iid=True, verbose=0, cv=2,
+                                             validation_frame=frame, minimize='bad_string')
+
+                assert_fails(grid.fit, ValueError, frame)  # fails because of the minimize value
+
+
+            else:
+                pass
+
+            # let's do one pass with a stratified K fold... but we need to increase our data length,
+            # lest we lose records on the split, which will throw errors...
+            f = pd.concat([f, f, f, f, f], axis=0)  # times FIVE!
+
+            # shuffle the rows
+            f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+            # try uploading again...
+            try:
+                frame = new_h2o_frame(f)
+            except Exception as e:
+                frame = None
+
+            if frame is not None:
+                n_folds = 2
+                for estimator in new_estimators():
+                    pipe = H2OPipeline([
+                        ('nzv', H2ONearZeroVarianceFilterer()),
+                        ('est', estimator)
+                    ])
+
+                    params = {
+                        'nzv__threshold': uniform(1e-6, 0.0025)
+                    }
+
+                    grid = H2ORandomizedSearchCV(pipe, param_grid=params,
+                                                 feature_names=F.columns.tolist(), target_feature='species',
+                                                 scoring='accuracy_score', n_iter=2,
+                                                 cv=H2OStratifiedKFold(n_folds=3, shuffle=True))
+
+                    # do fit
+                    grid.fit(frame)
+            else:
+                pass
+
+        def anon_class():
+            class H2OAnonClass100(BaseH2OFunctionWrapper):
+                _min_version = 100.0
+                _max_version = None
+
+                def __init__(self):
+                    super(H2OAnonClass100, self).__init__(
+                        min_version=self._min_version,
+                        max_version=self._max_version)
+
+            # assert fails for min version > current version
+            assert_fails(H2OAnonClass100, EnvironmentError)
+
+            class H2OAnonClassAny(BaseH2OFunctionWrapper):
+                _min_version = 'any'
+                _max_version = 0.1
+
+                def __init__(self):
+                    super(H2OAnonClassAny, self).__init__(
+                        min_version=self._min_version,
+                        max_version=self._max_version)
+
+            # assert fails for max version < current version
+            assert_fails(H2OAnonClassAny, EnvironmentError)
+
+            class H2OAnonClassPass(BaseH2OFunctionWrapper):
+                def __init__(self):
+                    super(H2OAnonClassPass, self).__init__(
+                        min_version='any',
+                        max_version=None)
+
+            # assert fails for max version < current version
+            h = H2OAnonClassPass()
+            assert h.max_version is None
+            assert h.min_version == 'any'
+
+        def cv():
+            assert check_cv(None).get_n_splits() == 3
+            assert_fails(check_cv, ValueError, 'not_a_valid_arg')
+
+            f = F.copy()
+            targ = iris.target
+            targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+            f['species'] = targ
+            f = shuffle_dataframe(pd.concat([f, f, f, f, f], axis=0))  # times FIVE!
+
+            try:
+                Y = from_pandas(f)
+            except Exception as e:
+                Y = None
+
+            if Y is not None:
+                # test the splits
+                def do_split(gen, *args):
+                    return [x for x in gen(*args)]
+
+                # test stratifed with shuffle on/off
+                for shuffle in [True, False]:
+                    for y in ['species', None]:
+                        strat = H2OStratifiedKFold(shuffle=shuffle)
+
+                        # test the __repr__
+                        strat.__repr__()
+
+                        # only fails if y is None
+                        try:
+                            do_split(strat.split, Y, y)
+                        except ValueError as v:
+                            if y is None:
+                                pass
+                            else:
+                                raise
+
+                # test kfold with too many or too few folds
+                for n_folds in [1, 'blah']:
+                    assert_fails(H2OKFold, ValueError, **{'n_folds': n_folds})
+
+                # assert not logical shuffle fails
+                assert_fails(H2OKFold, TypeError, **{'shuffle': 'sure'})
+
+                # assert split with n_splits > n_obs fails
+                failed = False
+                try:
+                    do_split(H2OKFold(n_folds=Y.shape[0] + 1).split, Y)
+                except ValueError:
+                    failed = True
+                assert failed
+
+            # we'll try the stratified split on the BC dataset
+            try:
+                B = new_h2o_frame(load_breast_cancer_df(tgt_name='target'))
+            except Exception as e:
+                B = None
+
+            if B is not None:
+                # can we force this weird stratified behavior where
+                # n_train and n_train don't add up to enough rows?
+                splitter = H2OStratifiedShuffleSplit(test_size=0.2473)
+                splits = [x for x in splitter.split(B, 'target')]  # it's a list of tuples
+
+        def split_tsts():
+            # testing val_y
+            assert_fails(_val_y, TypeError, 1)
+            assert _val_y(None) is None
+            assert isinstance(_val_y('asdf'), six.string_types)
+
+            # testing _validate_shuffle_split_init
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'test_size': None, 'train_size': None})  # can't both be None
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'test_size': 1.1, 'train_size': 0.0})  # if float, can't be over 1.
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'test_size': 'string', 'train_size': None})  # if not float, must be int
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'train_size': 1.1, 'test_size': 0.0})  # if float, can't be over 1.
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'train_size': 'string', 'test_size': None})  # if not float, must be int
+            assert_fails(_validate_shuffle_split_init, ValueError,
+                         **{'test_size': 0.6, 'train_size': 0.5})  # if both float, must not exceed 1.
+
+            # testing _validate_shuffle_split
+            assert_fails(_validate_shuffle_split, ValueError,
+                         **{'n_samples': 10, 'test_size': 11, 'train_size': 0})  # test_size can't exceed n_samples
+            assert_fails(_validate_shuffle_split, ValueError,
+                         **{'n_samples': 10, 'train_size': 11, 'test_size': 0})  # train_size can't exceed n_samples
+            assert_fails(_validate_shuffle_split, ValueError,
+                         **{'n_samples': 10, 'train_size': 5, 'test_size': 6})  # sum can't exceed n_samples
+
+            # test with train as None
+            n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=30, train_size=None)
+            assert n_train == 70
+
+            # test with test as None
+            n_train, n_test = _validate_shuffle_split(n_samples=100, test_size=None, train_size=70)
+            assert n_test == 30
+
+            # test what works:
+            n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=3, train_size=7)
+            assert n_train == 7
+            assert n_test == 3
+
+            n_train, n_test = _validate_shuffle_split(n_samples=10, test_size=0.3, train_size=0.7)
+            assert n_train == 7
+            assert n_test == 3
+
+            # now actually get the train, test splits...
+            # let's do one pass with a stratified K fold... but we need to increase our data length, 
+            # lest we lose records on the split, which will throw errors...
+            f = F.copy()
+            targ = iris.target
+            targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+            f['species'] = targ
+
+            # Times FIVE!
+            f = pd.concat([f, f, f, f, f], axis=0)  # times FIVE!
+
+            # shuffle the rows
+            f = f.iloc[np.random.permutation(np.arange(f.shape[0]))]
+
+            # try uploading again...
+            try:
+                frame = new_h2o_frame(f)
+            except Exception as e:
+                frame = None
+
+            if frame is not None:
+                for stratified in [None, 'species']:
+                    X_train, X_test = h2o_train_test_split(frame, test_size=0.3, train_size=0.7, stratify=stratified)
+                    a, b = (X_train.shape[0] + X_test.shape[0]), frame.shape[0]
+                    assert a == b, '%d != %d' % (a, b)
+
+                    # do split with train/test sizes = None, assert shapes
+                X_train, X_test = h2o_train_test_split(frame)
+                assert X_test.shape[0] in (187, 188)  # 25%
+            else:
+                pass
+
+        def act_search():
+            tgt = 'target'
+            X_bost = load_boston_df(shuffle=True, include_tgt=True, tgt_name=tgt)
+            names = X_bost.columns[:-1]
+
+            X_bost['expo'] = [1 + np.random.rand() for i in range(X_bost.shape[0])]
+            X_bost['loss'] = [1 + np.random.rand() for i in range(X_bost.shape[0])]
+            X_train, X_test = train_test_split(X_bost, train_size=0.7)
+
+            # now upload to cloud...
+            try:
+                train = from_pandas(X_train)
+                test = from_pandas(X_test)
+            except Exception as e:
+                train = None
+                test = None
+
+            if all([x is not None for x in (train, test)]):
+                pipe = H2OPipeline([
+                    ('rf', H2ORandomForestEstimator(seed=42))
+                ])
+
+                hyper = {
+                    'rf__ntrees': [10, 15]
+                }
+
+                search = H2OGainsRandomizedSearchCV(
+                    estimator=pipe,
+                    param_grid=hyper,
+                    exposure_feature='expo',
+                    loss_feature='loss',
+                    feature_names=names,
+                    target_feature=tgt,
+                    cv=2,
+                    n_iter=2)
+
+                search.fit(train)
+                search.score(test)
+
+                # report:
+                report = search.report_scores()
+
+            else:
+                pass
+
+        def sparse():
+            f = F.copy()
+            f['sparse'] = ['NA' for i in range(f.shape[0])]
+
+            # try uploading...
+            try:
+                frame = new_h2o_frame(f)
+            except Exception as e:
+                frame = None
+
+            if frame is not None:
+                filterer = H2OSparseFeatureDropper()
+                filterer.fit(frame)
+                assert 'sparse' in filterer.drop_
+
+                # assert fails for over 1.0 or under 0.0
+                assert_fails(H2OSparseFeatureDropper(threshold=-0.1).fit, ValueError, frame)
+                assert_fails(H2OSparseFeatureDropper(threshold=1.0).fit, ValueError, frame)
+
+            else:
+                pass
+
+        def impute():
+            f = F.copy()
+            choices = [choice(range(f.shape[0]), 15) for i in range(f.shape[1])]  # which indices will be NA?
+            for i, v in enumerate(choices):
+                f.iloc[v, i] = 'NA'
+
+            def _basic_scenario(X, fill):
+                imputer = H2OSelectiveImputer(def_fill=fill)
+                X = imputer.fit_transform(X)
+                na_cnt = sum(X.nacnt())
+                assert not na_cnt, 'expected no NAs, but found %d' % na_cnt
+
+            def scenario_1(X):
+                """Assert functions with 'mean'"""
+                _basic_scenario(X, 'mean')
+
+            def scenario_2(X):
+                """Assert functions with 'median'"""
+                _basic_scenario(X, 'median')
+
+            def scenario_3(X):
+                """Assert fails (for now) with 'mode' -- unimplemented"""
+                _basic_scenario(X, 'mode')
+
+            def scenario_4(X):
+                """Assert fails with unknown string arg"""
+                assert_fails(_basic_scenario, TypeError, X, 'bad_string')
+
+            def scenario_5(X):
+                """Assert functions with list of imputes"""
+                _basic_scenario(X, ['mean', 1.5, 'median', 'median'])
+
+            def scenario_6(X):
+                """Assert fails with list with unknown string args"""
+                assert_fails(_basic_scenario, TypeError, X, ['bad_string', 1.5, 'median', 'median'])
+
+            def scenario_7(X):
+                """Assert fails with 'mode' in the list -- unimplemented"""
+                _basic_scenario(X, ['mode', 1.5, 'median', 'median'])
+
+            def scenario_8(X):
+                """Assert fails with len != ncols"""
+                assert_fails(_basic_scenario, ValueError, X, ['mean', 1.5, 2.0])
+
+            def scenario_9(X):
+                """Assert fails with random object as def_fill"""
+
+                # arbitrary object:
+                class Anon1(object):
+                    def __init__(self):
+                        pass
+
+                    def __str__(self):
+                        return 'Type: Anon1'
+
+                assert_fails(_basic_scenario, TypeError, X, Anon1)
+
+            def scenario_10(X):
+                """Assert functions feature_names arg"""
+                imputer = H2OSelectiveImputer(feature_names=X.columns[:3], def_fill='median')
+                imputer.fit_transform(X)
+                na_cnt = sum(X.nacnt())
+                assert na_cnt > 0, 'expected some NAs, but found none'
+
+            def scenario_11(X):
+                """Assert functions with target_feature arg"""
+                imputer = H2OSelectiveImputer(target_feature=X.columns[3], def_fill=[1, 1, 1])
+                imputer.fit_transform(X)
+                na_cnt = sum(X.nacnt())
+                assert na_cnt > 0, 'expected some NAs, but found none'
+
+            def scenario_12(X):
+                """Assert functions with both feature_names and target_feature arg"""
+                imputer = H2OSelectiveImputer(feature_names=X.columns[:3], target_feature=X.columns[3], def_fill=[2, 2, 2])
+                imputer.fit_transform(X)
+                na_cnt = sum(X.nacnt())
+                assert na_cnt > 0, 'expected some NAs, but found none'
+
+            def scenario_13(X):
+                """Assert functions with list of imputes"""
+                cols = [str(u) for u in X.columns]
+                vals = ('mean', 1.5, 'median', 'median')
+                fill = dict(zip(cols, vals))
+                _basic_scenario(X, fill)
+
+            # these are our test scenarios:
+            scenarios = [
+                scenario_1, scenario_2, scenario_3, scenario_4,
+                scenario_5, scenario_6, scenario_7, scenario_8,
+                scenario_9, scenario_10, scenario_11, scenario_12,
+                scenario_13
+            ]
+
+            try:
+                M = new_h2o_frame(f.copy())
+            except Exception as e:
+                M = None
+
+            if M is not None:
+                # loop scenarios
+                for scenario in scenarios:
+                    scenario(M)
+
+        def persist():
+            f = F.copy()
+            targ = iris.target
+            targ = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in targ]
+            f['species'] = targ
+            f = shuffle_dataframe(pd.concat([f, f, f, f, f], axis=0))  # times FIVE!
+
+            try:
+                Y = from_pandas(f)
+            except Exception as e:
+                Y = None
+
+            if Y is not None:
+                # test on H2OPipeline
+                pipe = H2OPipeline([
+                    ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
+                    ('est', H2OGradientBoostingEstimator(ntrees=5))
+                ],
+                    feature_names=Y.columns[:4],
+                    target_feature=Y.columns[4]
+                )
+
+                # fit and save
+                pipe = pipe.fit(Y)
+                the_path = 'pipe.pkl'
+                pipe.save(the_path, warn_if_exists=False)
+                assert os.path.exists(the_path)
+
+                # assert we can predict with it even
+                # when it's not reloaded yet (fix issue #7)
+                pipe.predict(Y)
+
+                # load and predict
+                pipe = H2OPipeline.load(the_path)
+                pred = pipe.predict(Y)
+
+                # assert we can load and predict again (that attributes were not deleted)
+                pipe = H2OPipeline.load(the_path)
+                pred = pipe.predict(Y)
+
+                # test one pipeline with all transformers and no estimator
+                pipe = H2OPipeline([
+                    ('nzv', H2ONearZeroVarianceFilterer()),
+                    ('mc', H2OMulticollinearityFilterer(threshold=0.9))
+                ],
+                    feature_names=Y.columns[:4],
+                    target_feature=Y.columns[4]
+                )
+
+                # fit and save
+                pipe = pipe.fit(Y)
+                the_path = 'pipe_2.pkl'
+                pipe.save(the_path, warn_if_exists=False)
+                assert os.path.exists(the_path)
+
+                # assert we can predict with it even
+                # when it's not reloaded yet (fix issue #7)
+                pipe.transform(Y)
+
+                # load and transform
+                pipe = H2OPipeline.load(the_path)
+                pred = pipe.transform(Y)
+
+                # assert we can load and transform again (that attributes were not deleted)
+                pipe = H2OPipeline.load(the_path)
+                pred = pipe.transform(Y)
+
+                # assert that after load, we can refit again if we want
+                pipe.fit(Y)
+
+                # test on grid with different types of estimators (keep em small)
+                for i, HE in enumerate([H2OGradientBoostingEstimator(ntrees=5),
+                                        H2ODeepLearningEstimator(epochs=1, hidden=[5, 5]),
+                                        H2ORandomForestEstimator(ntrees=5),
+                                        H2OGeneralizedLinearEstimator(family='multinomial'),
+                                        H2ONaiveBayesEstimator()]):
+                    pipe2 = H2OPipeline([
+                        ('mcf', H2OMulticollinearityFilterer(threshold=0.65)),
+                        ('est', HE)
+                    ])
+
+                    hyp = {
+                        'mcf__threshold': [0.80, 0.85, 0.90, 0.95]
+                    }
+
+                    grid = H2ORandomizedSearchCV(estimator=pipe2,
+                                                 param_grid=hyp,
+                                                 n_iter=1, cv=2,
+                                                 feature_names=Y.columns[:4],
+                                                 target_feature=Y.columns[4],
+                                                 scoring='accuracy_score')
+                    grid = grid.fit(Y)
+                    the_path = 'grid_%i.pkl' % i
+                    grid.save(the_path, warn_if_exists=False)
+                    assert os.path.exists(the_path)
+
+                    grid = H2ORandomizedSearchCV.load(the_path)
+                    grid.predict(Y)
+
+                    # assert we can load again (that attributes weren't deleted)
+                    grid = H2ORandomizedSearchCV.load(the_path)
+                    grid.predict(Y)
+
+                    # now assert that after load, we can fit again...
+                    grid.fit(Y)
+
+                # can we perform the same thing for a grid search with no pipeline?
+                est = H2OGradientBoostingEstimator(ntrees=5)
+                hyp = {
+                    'ntrees': [5, 10]
+                }
+                grid = H2ORandomizedSearchCV(estimator=est,
                                              param_grid=hyp,
                                              n_iter=1, cv=2,
                                              feature_names=Y.columns[:4],
                                              target_feature=Y.columns[4],
                                              scoring='accuracy_score')
+
                 grid = grid.fit(Y)
-                the_path = 'grid_%i.pkl' % i
+                the_path = 'grid_%i.pkl' % (i + 1)
                 grid.save(the_path, warn_if_exists=False)
                 assert os.path.exists(the_path)
 
@@ -1205,511 +1235,484 @@ def test_h2o_with_conn():
                 grid.predict(Y)
 
                 # now assert that after load, we can fit again...
-                grid.fit(Y)
-
-            # can we perform the same thing for a grid search with no pipeline?
-            est = H2OGradientBoostingEstimator(ntrees=5)
-            hyp = {
-                'ntrees': [5, 10]
-            }
-            grid = H2ORandomizedSearchCV(estimator=est,
-                                         param_grid=hyp,
-                                         n_iter=1, cv=2,
-                                         feature_names=Y.columns[:4],
-                                         target_feature=Y.columns[4],
-                                         scoring='accuracy_score')
-
-            grid = grid.fit(Y)
-            the_path = 'grid_%i.pkl' % (i + 1)
-            grid.save(the_path, warn_if_exists=False)
-            assert os.path.exists(the_path)
-
-            grid = H2ORandomizedSearchCV.load(the_path)
-            grid.predict(Y)
-
-            # assert we can load again (that attributes weren't deleted)
-            grid = H2ORandomizedSearchCV.load(the_path)
-            grid.predict(Y)
-
-            # now assert that after load, we can fit again...
-            grid.fit_predict(Y)
-
-        else:
-            pass
-
-    def mem_est():
-        if X is not None:
-            h2o_frame_memory_estimate(X)
-
-        else:
-            pass
-
-    if CAN_CHART_MPL:
-        @cleanup
-        def corr():
-            if X is not None:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
-
-                # plots for the test, should be cleaned up by the decorator
-                h2o_corr_plot(X, plot_type='cor', na_warn=False)
+                grid.fit_predict(Y)
 
             else:
                 pass
 
-    def interactions():
-        x_dict = {
-            'a': [0, 0, 0, 1],
-            'b': [1, 0, 0, 1],
-            'c': [0, 1, 0, 1],
-            'd': [1, 1, 1, 0]
-        }
+        def mem_est():
+            if X is not None:
+                h2o_frame_memory_estimate(X)
 
-        X_pd = pd.DataFrame.from_dict(x_dict)[['a', 'b', 'c', 'd']]  # ordering
+            else:
+                pass
 
-        try:
-            frame = H2OFrame.from_python(X_pd, column_names=X_pd.columns.tolist())[1:, :]
-        except Exception as e:
-            frame = None
+        if CAN_CHART_MPL:
+            @cleanup
+            def corr():
+                if X is not None:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        assert_fails(h2o_corr_plot, ValueError, **{'X': X, 'plot_type': 'bad_type'})
 
-        if frame is not None:
-            # try with no cols arg
-            trans = H2OInteractionTermTransformer()
-            X_trans = trans.fit_transform(frame)
-            expected_names = ['a', 'b', 'c', 'd', 'a_b_I', 'a_c_I', 'a_d_I', 'b_c_I', 'b_d_I', 'c_d_I']
-            assert all([str(i) == str(j) for i, j in zip(X_trans.columns, expected_names)])  # assert col names equal
-            assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
-                [0, 1, 0, 1, 0, 0, 0, 0, 1, 0],
-                [0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-                [1, 1, 1, 0, 1, 1, 0, 1, 0, 0]
-            ]))
+                    # plots for the test, should be cleaned up by the decorator
+                    h2o_corr_plot(X, plot_type='cor', na_warn=False)
 
-            # try with a custom function...
-            def cust_add(a, b):
-                return a + b
+                else:
+                    pass
 
-            trans = H2OInteractionTermTransformer(interaction_function=cust_add)
-            X_trans = trans.fit_transform(frame).as_data_frame(use_pandas=True).as_matrix()
-            assert_array_equal(X_trans, np.array([
-                [0, 1, 0, 1, 1, 0, 1, 1, 2, 1],
-                [0, 0, 1, 1, 0, 1, 1, 1, 1, 2],
-                [0, 0, 0, 1, 0, 0, 1, 0, 1, 1],
-                [1, 1, 1, 0, 2, 2, 1, 2, 1, 1]
-            ]))
+        def interactions():
+            x_dict = {
+                'a': [0, 0, 0, 1],
+                'b': [1, 0, 0, 1],
+                'c': [0, 1, 0, 1],
+                'd': [1, 1, 1, 0]
+            }
 
-            # assert fails with a non-function arg
-            assert_fails(H2OInteractionTermTransformer(interaction_function='a').fit, TypeError, frame)
-
-            # test with just two cols
-            # try with no cols arg
-            trans = H2OInteractionTermTransformer(feature_names=['a', 'b'])
-            X_trans = trans.fit_transform(frame)
-            expected_names = ['a', 'b', 'c', 'd', 'a_b_I']
-            assert all([i == j for i, j in zip(X_trans.columns, expected_names)])  # assert col names equal
-            assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
-                [0, 1, 0, 1, 0],
-                [0, 0, 1, 1, 0],
-                [0, 0, 0, 1, 0],
-                [1, 1, 1, 0, 1]
-            ]))
-
-            # test with just interaction terms returns
-            trans = H2OInteractionTermTransformer(feature_names=['a', 'b'], only_return_interactions=True)
-            X_trans = trans.fit_transform(frame)
-            expected_names = sorted(['a', 'b', 'a_b_I'])
-            actual_names = sorted([str(u) for u in X_trans.columns])
-            assert all([expected_names[i] == actual_names[i] for i in range(len(expected_names))])
-
-        else:
-            pass
-
-    def balance():
-        if X is not None:
-            # test that we can turn a frame's first col into a np array
-            x = _pd_frame_to_np(X)  # just gets back the first col...
-            assert isinstance(x, np.ndarray)
-
-            # upload to cloud with the target
-            f = F.copy()
-            f['species'] = iris.target
+            X_pd = pd.DataFrame.from_dict(x_dict)[['a', 'b', 'c', 'd']]  # ordering
 
             try:
-                Y = from_pandas(f)
+                frame = H2OFrame.from_python(X_pd, column_names=X_pd.columns.tolist())[1:, :]
+            except Exception as e:
+                frame = None
+
+            if frame is not None:
+                # try with no cols arg
+                trans = H2OInteractionTermTransformer()
+                X_trans = trans.fit_transform(frame)
+                expected_names = ['a', 'b', 'c', 'd', 'a_b_I', 'a_c_I', 'a_d_I', 'b_c_I', 'b_d_I', 'c_d_I']
+                assert all([str(i) == str(j) for i, j in zip(X_trans.columns, expected_names)])  # assert col names equal
+                assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
+                    [0, 1, 0, 1, 0, 0, 0, 0, 1, 0],
+                    [0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+                    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                    [1, 1, 1, 0, 1, 1, 0, 1, 0, 0]
+                ]))
+
+                # try with a custom function...
+                def cust_add(a, b):
+                    return a + b
+
+                trans = H2OInteractionTermTransformer(interaction_function=cust_add)
+                X_trans = trans.fit_transform(frame).as_data_frame(use_pandas=True).as_matrix()
+                assert_array_equal(X_trans, np.array([
+                    [0, 1, 0, 1, 1, 0, 1, 1, 2, 1],
+                    [0, 0, 1, 1, 0, 1, 1, 1, 1, 2],
+                    [0, 0, 0, 1, 0, 0, 1, 0, 1, 1],
+                    [1, 1, 1, 0, 2, 2, 1, 2, 1, 1]
+                ]))
+
+                # assert fails with a non-function arg
+                assert_fails(H2OInteractionTermTransformer(interaction_function='a').fit, TypeError, frame)
+
+                # test with just two cols
+                # try with no cols arg
+                trans = H2OInteractionTermTransformer(feature_names=['a', 'b'])
+                X_trans = trans.fit_transform(frame)
+                expected_names = ['a', 'b', 'c', 'd', 'a_b_I']
+                assert all([i == j for i, j in zip(X_trans.columns, expected_names)])  # assert col names equal
+                assert_array_equal(X_trans.as_data_frame(use_pandas=True).as_matrix(), np.array([
+                    [0, 1, 0, 1, 0],
+                    [0, 0, 1, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [1, 1, 1, 0, 1]
+                ]))
+
+                # test with just interaction terms returns
+                trans = H2OInteractionTermTransformer(feature_names=['a', 'b'], only_return_interactions=True)
+                X_trans = trans.fit_transform(frame)
+                expected_names = sorted(['a', 'b', 'a_b_I'])
+                actual_names = sorted([str(u) for u in X_trans.columns])
+                assert all([expected_names[i] == actual_names[i] for i in range(len(expected_names))])
+
+            else:
+                pass
+
+        def balance():
+            if X is not None:
+                # test that we can turn a frame's first col into a np array
+                x = _pd_frame_to_np(X)  # just gets back the first col...
+                assert isinstance(x, np.ndarray)
+
+                # upload to cloud with the target
+                f = F.copy()
+                f['species'] = iris.target
+
+                try:
+                    Y = from_pandas(f)
+                except Exception as e:
+                    Y = None
+
+                if Y is not None:
+                    # assert undersampling the balance changes nothing:
+                    b = H2OUndersamplingClassBalancer(target_feature='species').balance(Y)
+                    assert b.shape[0] == Y.shape[0]
+
+                    # do a real undersample
+                    x = Y[:60, :]  # 50 zeros, 10 ones
+                    b = H2OUndersamplingClassBalancer(target_feature='species', ratio=0.5).balance(x).as_data_frame(
+                        use_pandas=True)
+                    assert b.shape[0] == 30
+                    cts = b.species.value_counts()
+                    assert cts[0] == 20
+                    assert cts[1] == 10
+
+                    # assert oversampling works
+                    y = Y[:105, :]
+                    d = H2OOversamplingClassBalancer(target_feature='species', ratio=1.0).balance(y).as_data_frame(
+                        use_pandas=True)
+                    assert d.shape[0] == 150
+
+                    cts = d.species.value_counts()
+                    assert cts[0] == 50
+                    assert cts[1] == 50
+                    assert cts[2] == 50
+
+            else:
+                pass
+
+        def encode():
+            P = load_iris_df()
+            P['letter'] = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in P.Species]
+            P.loc[0, 'letter'] = 'NA'
+
+            try:
+                Y = from_pandas(P)
             except Exception as e:
                 Y = None
 
             if Y is not None:
-                # assert undersampling the balance changes nothing:
-                b = H2OUndersamplingClassBalancer(target_feature='species').balance(Y)
-                assert b.shape[0] == Y.shape[0]
+                # default encoder
+                encoder = H2OSafeOneHotEncoder(feature_names=['letter'])
+                y = encoder.fit_transform(Y)
 
-                # do a real undersample
-                x = Y[:60, :]  # 50 zeros, 10 ones
-                b = H2OUndersamplingClassBalancer(target_feature='species', ratio=0.5).balance(x).as_data_frame(
-                    use_pandas=True)
-                assert b.shape[0] == 30
-                cts = b.species.value_counts()
-                assert cts[0] == 20
-                assert cts[1] == 10
+                assert not 'letter' in y.columns
+                assert all([i in y.columns for i in ('letter.nan', 'letter.a', 'letter.b', 'letter.c')])
 
-                # assert oversampling works
-                y = Y[:105, :]
-                d = H2OOversamplingClassBalancer(target_feature='species', ratio=1.0).balance(y).as_data_frame(
-                    use_pandas=True)
-                assert d.shape[0] == 150
+                # no drop encoder
+                encoder = H2OSafeOneHotEncoder(feature_names=['letter'], drop_after_encoded=False)
+                y = encoder.fit_transform(Y)
 
-                cts = d.species.value_counts()
-                assert cts[0] == 50
-                assert cts[1] == 50
-                assert cts[2] == 50
+                assert 'letter' in y.columns
+                assert y[['letter.a', 'letter.b', 'letter.c']].sum() == 149
 
-        else:
-            pass
+            else:
+                pass
 
-    def encode():
-        P = load_iris_df()
-        P['letter'] = ['a' if x == 0 else 'b' if x == 1 else 'c' for x in P.Species]
-        P.loc[0, 'letter'] = 'NA'
+        def feature_dropper():
+            if X is not None:
+                dropper = H2OFeatureDropper(feature_names=[X.columns[0]])
+                Y = dropper.fit_transform(X)
+                assert Y.shape[1] == X.shape[1] - 1
+                assert not X.columns[0] in Y.columns
 
-        try:
-            Y = from_pandas(P)
-        except Exception as e:
-            Y = None
+            else:
+                pass
 
-        if Y is not None:
-            # default encoder
-            encoder = H2OSafeOneHotEncoder(feature_names=['letter'])
-            y = encoder.fit_transform(Y)
+        def scale():
+            def almost_eq(x, y, eps=1e-8):
+                return abs(x - y) < eps
 
-            assert not 'letter' in y.columns
-            assert all([i in y.columns for i in ('letter.nan', 'letter.a', 'letter.b', 'letter.c')])
+            if X is not None:
+                scaler = H2OSelectiveScaler()
+                trans = scaler.fit_transform(X)
 
-            # no drop encoder
-            encoder = H2OSafeOneHotEncoder(feature_names=['letter'], drop_after_encoded=False)
-            y = encoder.fit_transform(Y)
+                # assert mean zero
+                means = flatten_all(trans.mean())
+                assert all([almost_eq(x, 0) for x in means])
 
-            assert 'letter' in y.columns
-            assert y[['letter.a', 'letter.b', 'letter.c']].sum() == 149
+                # assert std one
+                sds = flatten_all(trans.sd())
+                assert all([almost_eq(x, 1) for x in sds])
 
-        else:
-            pass
+                # assert X not affected
+                X_means = flatten_all(X.mean())
+                assert not all([almost_eq(x, 0) for x in X_means])
+            else:
+                pass
 
-    def feature_dropper():
-        if X is not None:
-            dropper = H2OFeatureDropper(feature_names=[X.columns[0]])
-            Y = dropper.fit_transform(X)
-            assert Y.shape[1] == X.shape[1] - 1
-            assert not X.columns[0] in Y.columns
+        def metrics():
+            irs = F.copy()
+            irs['species'] = iris.target
+            irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
+            irs['species2'] = [2 if i == 0 else 1 if i == 0 else 0 for i in iris.target]  # none in common
+            irs['arbitrary'] = [3 for i in range(irs.shape[0])]
+            irs['rand'] = [i%2 for i in iris.target]  # 1 for 1, 0 else
+            irs['zero'] = [0 for i in range(irs.shape[0])]
 
-        else:
-            pass
-
-    def scale():
-        def almost_eq(x, y, eps=1e-8):
-            return abs(x - y) < eps
-
-        if X is not None:
-            scaler = H2OSelectiveScaler()
-            trans = scaler.fit_transform(X)
-
-            # assert mean zero
-            means = flatten_all(trans.mean())
-            assert all([almost_eq(x, 0) for x in means])
-
-            # assert std one
-            sds = flatten_all(trans.sd())
-            assert all([almost_eq(x, 1) for x in sds])
-
-            # assert X not affected
-            X_means = flatten_all(X.mean())
-            assert not all([almost_eq(x, 0) for x in X_means])
-        else:
-            pass
-
-    def metrics():
-        irs = F.copy()
-        irs['species'] = iris.target
-        irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
-        irs['species2'] = [2 if i == 0 else 1 if i == 0 else 0 for i in iris.target]  # none in common
-        irs['arbitrary'] = [3 for i in range(irs.shape[0])]
-        irs['rand'] = [i%2 for i in iris.target]  # 1 for 1, 0 else
-        irs['zero'] = [0 for i in range(irs.shape[0])]
-
-        try:
-            Y = new_h2o_frame(irs)
-        except Exception as e:
-            Y = None
-
-        if Y is not None:
-            assert h2o_accuracy_score(Y['species'], Y['species'], y_type='multiclass') == 1.0
-            assert h2o_accuracy_score(Y['letters'], Y['letters'], y_type='multiclass') == 1.0
-            assert h2o_accuracy_score(Y['species'], Y['arbitrary'], y_type='multiclass') == 0.0
-
-            # weight coverage to make sure it still passes...
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01, y_type='multiclass')
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01, y_type='multiclass')
-            h2o_accuracy_score(Y['species'], Y['species'], normalize=False, y_type='multiclass')
-
-            # test making the scorer
-            accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
-            assert accuracy_scorer.score(Y['species'], Y['species']) == 1.0
-
-            # Test MAE, MSE
-            reg_target = Y['sepal length (cm)']
-            shifted_down = reg_target - 1
-
-            # test on shifted down. Make sure we specify that this is a continuous
-            # type though! Otherwise it'll fail out...
-            assert h2o_mean_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
-            assert h2o_median_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
-            assert h2o_mean_squared_error(reg_target, shifted_down, y_type='continuous') == 1.0
-            assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0, y_type='continuous') == 1.0
-
-            # test on same
-            assert h2o_mean_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
-            assert h2o_median_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
-            assert h2o_mean_squared_error(reg_target, reg_target, y_type='continuous') == 0.0
-            assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 0.0
-
-            # test R^2 on the same
-            assert h2o_r2_score(reg_target, reg_target, y_type='continuous') == 1.0
-            assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 1.0
-
-            # test errors
-            assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
-            assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
-            assert_fails(make_h2o_scorer, TypeError, 'a', Y['species'])  # 'a' is not callable
-
-            # h2o precision recall support
-            y_act, y_pred = Y['species'], Y['species']
-            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
-            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
-            assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
-            h2o_precision_recall_fscore_support(y_act, y_pred, y_type="binary", average="weighted")
-
-            # force all negative labels on recall/support/precision
-            y_act, y_pred = Y['zero'], Y['zero']
-            assert_array_equal(
-                np.asarray(h2o_precision_recall_fscore_support(y_act,
-                                                               y_pred,
-                                                               pos_label=1,
-                                                               y_type='binary',
-                                                               average='binary')),
-                np.asarray([0.0, 0.0, 0.0, 0.0])
-            )
-
-            # now binary
-            y_act, y_pred = Y['rand'], Y['rand']
-            # someone else can figure this bullsh*t out. I'm done today.
-            #assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
-
-            # this will equal zero and force the warning:  # stupid bugs!!!!!
-            # assert h2o_precision_score(Y['species'], Y['species2'], average='weighted', y_type='multiclass') == 0.0
-
-        else:
-            pass
-
-    def encoder():
-        irs = F.copy()
-        irs['species'] = iris.target
-        irs['target'] = [5 if i == 0 else 6 if i == 1 else 7 for i in iris.target]
-
-        try:
-            Y = new_h2o_frame(irs)
-        except Exception as e:
-            Y = None
-
-        if Y is not None:
-            encoder = H2OLabelEncoder()
-            trans = h2o_col_to_numpy(encoder.fit_transform(Y['target'])) # as numpy
-            assert_array_equal(irs['species'].values, trans)
-            assert np.sum(irs['target'].values == trans) == 0
-        else:
-            pass
-
-    def bincount():
-        col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
-        neg = pd.DataFrame(pd.Series([-1, 1, 1, 3, 5], name='a'))
-        flo = pd.DataFrame(pd.Series([1.1, 1.1, 1.1, 3.1, 5.1], name='a'))
-        wt1 = [1, 1, 1, 1, 1]
-        wt2 = [1, 0.5, 1, 1, 1]
-        wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
-        wp2 = pd.DataFrame(pd.Series(wt2, name='a'))
-
-        try:
-            C = new_h2o_frame(col)
-            N = new_h2o_frame(neg)
-            F = new_h2o_frame(flo)
-            W1 = new_h2o_frame(wp1)
-            W2 = new_h2o_frame(wp2)
-        except Exception as e:
-            C = None
-            W1 = None
-            W2 = None
-
-        if not any([i is None for i in (C, W1, W2)]):
-            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
-            assert_array_equal(h2o_bincount(C, weights=wt1), np.array([0., 3., 0., 1., 0., 1.]))
-            assert_array_equal(h2o_bincount(C, weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))
-            assert_array_equal(h2o_bincount(C, weights=wt1, minlength=7), np.array([0., 3., 0., 1., 0., 1., 0.]))
-            assert_array_equal(h2o_bincount(C, weights=wt2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
-
-            assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
-            assert_array_equal(h2o_bincount(C, weights=W1), np.array([0., 3., 0., 1., 0., 1.]))
-            assert_array_equal(h2o_bincount(C, weights=W2), np.array([0., 2.5, 0., 1., 0., 1.]))
-            assert_array_equal(h2o_bincount(C, weights=W1, minlength=7), np.array([0., 3., 0., 1., 0., 1., 0.]))
-            assert_array_equal(h2o_bincount(C, weights=W2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
-
-            # test failures
-            assert_fails(h2o_bincount, TypeError, col)
-            assert_fails(h2o_bincount, ValueError, C, [0, 0, 0, 0])  # fail for dim mismatch
-            assert_fails(h2o_bincount, ValueError, C, wt1, -1)  # negative minlength
-            assert_fails(h2o_bincount, ValueError, N)  # one of them is negative
-            assert_fails(h2o_bincount, ValueError, F)  # they're floats
-        else:
-            pass
-
-    def load_frames():
-        if X is not None:
-            # all of these assertions pass locally, but not on travis
-            # for some strange reason... 
-
-            irs = load_iris_h2o(shuffle=True, include_tgt=True)
-            assert irs.shape[1] == 5
-            # assert irs.isfactor()[-1]
-
-            bc = load_breast_cancer_h2o(shuffle=True, include_tgt=True)
-            # assert bc.isfactor()[-1]
-
-            bo = load_boston_h2o(shuffle=True, include_tgt=True)
-            # assert not bo.isfactor()[-1]
-        else:
-            pass
-
-    def isinteger_isfloat():
-        irs = F.copy()
-        irs['species'] = iris.target
-        irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
-
-        try:
-            I = from_pandas(irs)
-        except Exception as e:
-            I = None
-
-        if I is not None:
-            assert is_integer(I['species'])
-            assert is_float(I['sepal width (cm)'])
-            assert not is_integer(I['letters'])
-            assert not is_float(I['letters'])
-        else:
-            pass
-
-    def shuffle():
-        if X is not None:
-            shuffle_h2o_frame(X)
-
-    def fscore():
-        if X is not None:
             try:
-                t = load_iris_h2o()
+                Y = new_h2o_frame(irs)
             except Exception as e:
-                return
+                Y = None
 
-            # f-score test
-            f,p = h2o_f_classif(t, t.columns[:-1], t.columns[-1])
-            assert_array_almost_equal(f, np.array([119.26450218,47.3644614,1179.0343277,959.32440573]))
-            assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+            if Y is not None:
+                assert h2o_accuracy_score(Y['species'], Y['species'], y_type='multiclass') == 1.0
+                assert h2o_accuracy_score(Y['letters'], Y['letters'], y_type='multiclass') == 1.0
+                assert h2o_accuracy_score(Y['species'], Y['arbitrary'], y_type='multiclass') == 0.0
 
-            # f-score feature selector -- just testing fit works for now...
-            for iid in (True, False):
-                for selector_class in (H2OFScorePercentileSelector, H2OFScoreKBestSelector):
-                    selector = selector_class(target_feature='Species', iid=iid,
-                                              cv=H2OKFold(n_folds=3, shuffle=True))
-                    selector.fit_transform(t)
+                # weight coverage to make sure it still passes...
+                h2o_accuracy_score(Y['species'], Y['species'], normalize=True,  sample_weight=1.01, y_type='multiclass')
+                h2o_accuracy_score(Y['species'], Y['species'], normalize=False, sample_weight=1.01, y_type='multiclass')
+                h2o_accuracy_score(Y['species'], Y['species'], normalize=False, y_type='multiclass')
 
-            # assert kbest fails on non-int or non all
-            assert_fails(
-                H2OFScoreKBestSelector(target_feature='Species', k='10').fit,
-                ValueError, t)
+                # test making the scorer
+                accuracy_scorer = make_h2o_scorer(h2o_accuracy_score, Y['species'])
+                assert accuracy_scorer.score(Y['species'], Y['species']) == 1.0
 
-            # assert fails on non-int percentile
-            assert_fails(
-                H2OFScorePercentileSelector(target_feature='Species', percentile='10').fit,
-                ValueError, t)
+                # Test MAE, MSE
+                reg_target = Y['sepal length (cm)']
+                shifted_down = reg_target - 1
 
-            # this will fail because we need a target
-            assert_fails(
-                H2OFScorePercentileSelector(target_feature=None).fit,
-                ValueError, t)
+                # test on shifted down. Make sure we specify that this is a continuous
+                # type though! Otherwise it'll fail out...
+                assert h2o_mean_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
+                assert h2o_median_absolute_error(reg_target, shifted_down, y_type='continuous') == 1.0
+                assert h2o_mean_squared_error(reg_target, shifted_down, y_type='continuous') == 1.0
+                assert h2o_mean_absolute_error(reg_target, shifted_down, sample_weight=1.0, y_type='continuous') == 1.0
 
-            # assert what happens when percentile is 0 or 100
-            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=100).fit(t).drop_
-            assert len(drops) == 0
+                # test on same
+                assert h2o_mean_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
+                assert h2o_median_absolute_error(reg_target, reg_target, y_type='continuous') == 0.0
+                assert h2o_mean_squared_error(reg_target, reg_target, y_type='continuous') == 0.0
+                assert h2o_mean_squared_error(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 0.0
 
-            drops = H2OFScorePercentileSelector(target_feature='Species', percentile=0).fit(t).drop_
-            assert len(drops) == t.shape[1]-1
+                # test R^2 on the same
+                assert h2o_r2_score(reg_target, reg_target, y_type='continuous') == 1.0
+                assert h2o_r2_score(reg_target, reg_target, sample_weight=1.0, y_type='continuous') == 1.0
 
-            # assert what happens when k is 'all'
-            drops = H2OFScoreKBestSelector(target_feature='Species', k='all').fit(t).drop_
-            assert len(drops) == 0
+                # test errors
+                assert_fails(h2o_mean_squared_error, ValueError, Y['species'], Y['species'])
+                assert_fails(h2o_accuracy_score, ValueError, reg_target, reg_target)
+                assert_fails(make_h2o_scorer, TypeError, 'a', Y['species'])  # 'a' is not callable
 
-            # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
-            # This might evoke the warning we want to cover as well as force a tie
-            # if we're very lucky...
-            irs = load_iris_df()
-            irs['constant'] = [0 if i==0 else 1 if i==1 else 2 for i in irs.Species]
+                # h2o precision recall support
+                y_act, y_pred = Y['species'], Y['species']
+                assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, -0.01) # fails because of negative beta
+                assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'bad'}) # fails because of bad average
+                assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'average':'binary', 'y_type':'multinomial'}) # mismatch in types
+                h2o_precision_recall_fscore_support(y_act, y_pred, y_type="binary", average="weighted")
+
+                # force all negative labels on recall/support/precision
+                y_act, y_pred = Y['zero'], Y['zero']
+                assert_array_equal(
+                    np.asarray(h2o_precision_recall_fscore_support(y_act,
+                                                                   y_pred,
+                                                                   pos_label=1,
+                                                                   y_type='binary',
+                                                                   average='binary')),
+                    np.asarray([0.0, 0.0, 0.0, 0.0])
+                )
+
+                # now binary
+                y_act, y_pred = Y['rand'], Y['rand']
+                # someone else can figure this bullsh*t out. I'm done today.
+                #assert_fails(h2o_precision_recall_fscore_support, ValueError, y_act, y_pred, **{'pos_label':50, 'y_type':'binary', 'average':'binary'}) # pos label not present
+
+                # this will equal zero and force the warning:  # stupid bugs!!!!!
+                # assert h2o_precision_score(Y['species'], Y['species2'], average='weighted', y_type='multiclass') == 0.0
+
+            else:
+                pass
+
+        def encoder():
+            irs = F.copy()
+            irs['species'] = iris.target
+            irs['target'] = [5 if i == 0 else 6 if i == 1 else 7 for i in iris.target]
+
             try:
-                irs = new_h2o_frame(irs)
+                Y = new_h2o_frame(irs)
             except Exception as e:
-                return
+                Y = None
 
-            # make species enum...
-            irs['Species'] = irs['Species'].asfactor()
-            names = [str(i) for i in irs.columns if not str(i)=='Species']
-            selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
-            selector.fit_transform(irs)
+            if Y is not None:
+                encoder = H2OLabelEncoder()
+                trans = h2o_col_to_numpy(encoder.fit_transform(Y['target'])) # as numpy
+                assert_array_equal(irs['species'].values, trans)
+                assert np.sum(irs['target'].values == trans) == 0
+            else:
+                pass
 
-    def val_counts():
-        if X is not None:
+        def bincount():
+            col = pd.DataFrame(pd.Series([1, 1, 1, 3, 5], name='a'))
+            neg = pd.DataFrame(pd.Series([-1, 1, 1, 3, 5], name='a'))
+            flo = pd.DataFrame(pd.Series([1.1, 1.1, 1.1, 3.1, 5.1], name='a'))
+            wt1 = [1, 1, 1, 1, 1]
+            wt2 = [1, 0.5, 1, 1, 1]
+            wp1 = pd.DataFrame(pd.Series(wt1, name='a'))
+            wp2 = pd.DataFrame(pd.Series(wt2, name='a'))
+
             try:
-                Y = new_h2o_frame(load_iris_df())
+                C = new_h2o_frame(col)
+                N = new_h2o_frame(neg)
+                F = new_h2o_frame(flo)
+                W1 = new_h2o_frame(wp1)
+                W2 = new_h2o_frame(wp2)
             except Exception as e:
-                return
+                C = None
+                W1 = None
+                W2 = None
 
-            cts = value_counts(Y['Species'])
-            assert cts.shape[0] == 3
-            assert all([cts.iloc[i] == 50 for i in range(3)])
+            if not any([i is None for i in (C, W1, W2)]):
+                assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+                assert_array_equal(h2o_bincount(C, weights=wt1), np.array([0., 3., 0., 1., 0., 1.]))
+                assert_array_equal(h2o_bincount(C, weights=wt2), np.array([0., 2.5, 0., 1., 0., 1.]))
+                assert_array_equal(h2o_bincount(C, weights=wt1, minlength=7), np.array([0., 3., 0., 1., 0., 1., 0.]))
+                assert_array_equal(h2o_bincount(C, weights=wt2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+                assert_array_equal(h2o_bincount(C), np.array([0, 3, 0, 1, 0, 1]))
+                assert_array_equal(h2o_bincount(C, weights=W1), np.array([0., 3., 0., 1., 0., 1.]))
+                assert_array_equal(h2o_bincount(C, weights=W2), np.array([0., 2.5, 0., 1., 0., 1.]))
+                assert_array_equal(h2o_bincount(C, weights=W1, minlength=7), np.array([0., 3., 0., 1., 0., 1., 0.]))
+                assert_array_equal(h2o_bincount(C, weights=W2, minlength=7), np.array([0., 2.5, 0., 1., 0., 1., 0.]))
+
+                # test failures
+                assert_fails(h2o_bincount, TypeError, col)
+                assert_fails(h2o_bincount, ValueError, C, [0, 0, 0, 0])  # fail for dim mismatch
+                assert_fails(h2o_bincount, ValueError, C, wt1, -1)  # negative minlength
+                assert_fails(h2o_bincount, ValueError, N)  # one of them is negative
+                assert_fails(h2o_bincount, ValueError, F)  # they're floats
+            else:
+                pass
+
+        def load_frames():
+            if X is not None:
+                # all of these assertions pass locally, but not on travis
+                # for some strange reason... 
+
+                irs = load_iris_h2o(shuffle=True, include_tgt=True)
+                assert irs.shape[1] == 5
+                # assert irs.isfactor()[-1]
+
+                bc = load_breast_cancer_h2o(shuffle=True, include_tgt=True)
+                # assert bc.isfactor()[-1]
+
+                bo = load_boston_h2o(shuffle=True, include_tgt=True)
+                # assert not bo.isfactor()[-1]
+            else:
+                pass
+
+        def isinteger_isfloat():
+            irs = F.copy()
+            irs['species'] = iris.target
+            irs['letters'] = ['a' if i == 0 else 'b' if i == 1 else 'c' for i in iris.target]
+
+            try:
+                I = from_pandas(irs)
+            except Exception as e:
+                I = None
+
+            if I is not None:
+                assert is_integer(I['species'])
+                assert is_float(I['sepal width (cm)'])
+                assert not is_integer(I['letters'])
+                assert not is_float(I['letters'])
+            else:
+                pass
+
+        def shuffle():
+            if X is not None:
+                shuffle_h2o_frame(X)
+
+        def fscore():
+            if X is not None:
+                try:
+                    t = load_iris_h2o()
+                except Exception as e:
+                    return
+
+                # f-score test
+                f,p = h2o_f_classif(t, t.columns[:-1], t.columns[-1])
+                assert_array_almost_equal(f, np.array([119.26450218,47.3644614,1179.0343277,959.32440573]))
+                assert_array_almost_equal(p, np.array([1.66966919e-31,1.32791652e-16,3.05197580e-91,4.37695696e-85]))
+
+                # f-score feature selector -- just testing fit works for now...
+                for iid in (True, False):
+                    for selector_class in (H2OFScorePercentileSelector, H2OFScoreKBestSelector):
+                        selector = selector_class(target_feature='Species', iid=iid,
+                                                  cv=H2OKFold(n_folds=3, shuffle=True))
+                        selector.fit_transform(t)
+
+                # assert kbest fails on non-int or non all
+                assert_fails(
+                    H2OFScoreKBestSelector(target_feature='Species', k='10').fit,
+                    ValueError, t)
+
+                # assert fails on non-int percentile
+                assert_fails(
+                    H2OFScorePercentileSelector(target_feature='Species', percentile='10').fit,
+                    ValueError, t)
+
+                # this will fail because we need a target
+                assert_fails(
+                    H2OFScorePercentileSelector(target_feature=None).fit,
+                    ValueError, t)
+
+                # assert what happens when percentile is 0 or 100
+                drops = H2OFScorePercentileSelector(target_feature='Species', percentile=100).fit(t).drop_
+                assert len(drops) == 0
+
+                drops = H2OFScorePercentileSelector(target_feature='Species', percentile=0).fit(t).drop_
+                assert len(drops) == t.shape[1]-1
+
+                # assert what happens when k is 'all'
+                drops = H2OFScoreKBestSelector(target_feature='Species', k='all').fit(t).drop_
+                assert len(drops) == 0
+
+                # Now add a constant feature to each enum, so '0' -> 0, '1' -> 1, etc.
+                # This might evoke the warning we want to cover as well as force a tie
+                # if we're very lucky...
+                irs = load_iris_df()
+                irs['constant'] = [0 if i==0 else 1 if i==1 else 2 for i in irs.Species]
+                try:
+                    irs = new_h2o_frame(irs)
+                except Exception as e:
+                    return
+
+                # make species enum...
+                irs['Species'] = irs['Species'].asfactor()
+                names = [str(i) for i in irs.columns if not str(i)=='Species']
+                selector = H2OFScorePercentileSelector(feature_names=names, target_feature='Species', percentile=50)
+                selector.fit_transform(irs)
+
+        def val_counts():
+            if X is not None:
+                try:
+                    Y = new_h2o_frame(load_iris_df())
+                except Exception as e:
+                    return
+
+                cts = value_counts(Y['Species'])
+                assert cts.shape[0] == 3
+                assert all([cts.iloc[i] == 50 for i in range(3)])
 
 
-    # run the tests -- put new or commonly failing tests
-    # up front as smoke tests. i.e., act, persist and grid
-    impute()
-    fscore()
-    persist()
-    act_search()
-    grid()
-    encoder()
-    bincount()
-    metrics()
-    multicollinearity()
-    nzv()
-    pipeline()
-    anon_class()
-    cv()
-    split_tsts()
-    sparse()
-    mem_est()
-    if CAN_CHART_MPL:
-        corr()
-    interactions()
-    balance()
-    encode()
-    feature_dropper()
-    scale()
-    load_frames()
-    isinteger_isfloat()
-    shuffle()
-    valid_use()
-    feature_dropper_coverage()
+        # run the tests -- put new or commonly failing tests
+        # up front as smoke tests. i.e., act, persist and grid
+        impute()
+        fscore()
+        persist()
+        act_search()
+        grid()
+        encoder()
+        bincount()
+        metrics()
+        multicollinearity()
+        nzv()
+        pipeline()
+        anon_class()
+        cv()
+        split_tsts()
+        sparse()
+        mem_est()
+        if CAN_CHART_MPL:
+            corr()
+        interactions()
+        balance()
+        encode()
+        feature_dropper()
+        scale()
+        load_frames()
+        isinteger_isfloat()
+        shuffle()
+        valid_use()
+        feature_dropper_coverage()

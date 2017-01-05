@@ -1,3 +1,8 @@
+# Utilities for testing
+
+from __future__ import print_function, absolute_import, division
+import warnings
+
 __all__ = [
     'assert_fails'
 ]
