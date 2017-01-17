@@ -35,7 +35,8 @@ def _union_exclusions(a, b):
     if not b:
         return a
 
-    return flatten_all([a, b])
+    # fix 1/17/17, ensure unique values
+    return list(set(flatten_all([a, b])))
 
 
 class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
@@ -328,7 +329,9 @@ class H2OPipeline(BaseH2OFunctionWrapper, VizMixin):
 
         # if the last step is not an h2o estimator, we need to do things differently...
         if isinstance(self.steps[-1][1], H2OEstimator):
-            self.steps[-1][1].train(training_frame=Xt, x=self.training_cols_, y=self.target_feature)
+            self.steps[-1][1].train(training_frame=Xt,
+                                    x=self.training_cols_,
+                                    y=self.target_feature)
         else:
             _est = self.steps[-1][1]
 
