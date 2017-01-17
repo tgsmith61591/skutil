@@ -129,7 +129,9 @@ def test_h2o_no_conn_needed():
     assert not _union_exclusions(None, None)
     assert _union_exclusions(None, b) == b
     assert _union_exclusions(a, None) == a
-    assert _union_exclusions(a, b) == flatten_all([a, b])
+
+    z = _union_exclusions(a, b)
+    assert len(z) == 3 and all([_ in z for _ in ('a', 'b', 'c')])
 
     # test _validate_use
     assert_fails(_validate_use, ValueError, None, 'blah', False)
