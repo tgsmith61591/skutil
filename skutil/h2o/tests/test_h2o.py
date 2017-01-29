@@ -1687,9 +1687,20 @@ def test_h2o_with_conn():
                 assert cts.shape[0] == 3
                 assert all([cts.iloc[i] == 50 for i in range(3)])
 
+        def auc():
+            if X is not None:
+                try:
+                    y = np.array([[0, 0.1], [0, 0.4], [1, 0.35], [1, 0.8]])
+                    Y = from_array(y, ['true', 'score'])
+                except Exception as e:
+                    return
+
+                roc_score = h2o_auc_score(Y['true'], Y['score'])
+                assert roc_score == 0.75
 
         # run the tests -- put new or commonly failing tests
         # up front as smoke tests. i.e., act, persist and grid
+        auc()
         impute()
         fscore()
         persist()
