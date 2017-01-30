@@ -137,6 +137,10 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         # at this point, the entirety of frame can be operated on...
         cols = [str(u) for u in frame.columns]  # convert to string...
 
+        # SHOULD we enforce this??...
+        if any(frame.types[c] == 'enum' for c in cols):
+            raise ValueError('can only impute numeric values')
+
         # validate the fill, do fit
         fill = self.fill_
         if isinstance(fill, six.string_types):
@@ -256,8 +260,9 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
             na_mask_idcs = the_na_col.index[the_na_col == 1].tolist()
 
-            for na_row in na_mask_idcs:
-                X[na_row, col_idx] = col_imp_value
+            # for na_row in na_mask_idcs:
+            #     X[na_row, col_idx] = col_imp_value
+            X[na_mask_idcs, col_idx] = col_imp_value
 
         # return the copy
         return X
