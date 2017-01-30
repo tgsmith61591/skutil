@@ -415,12 +415,35 @@ def reorder_h2o_frame(X, idcs):
     X = check_frame(X, copy=False)  # we're rbinding. no need to copy
     new_frame = None
 
+    # to prevent rbinding rows over, and over, and over
+    # create chunks. Rbind chunks that are progressively increasing.
+    # once we hit an index that decreases, rbind, and then start the next chunk
+    last_index = np.inf
+    chunk = []
+
     for i in idcs:
-        row = X[i, :]
-        if new_frame is None:
-            new_frame = row
+        # while the indices increase adjacently
+        if i < last_index:
+            last_index = i
+            chunk.append(i)
+
+        # otherwise, they are no longer increasing
         else:
-            new_frame = new_frame.rbind(row)
+            last_index = np.inf  # reset...
+
+            # if a chunk exists
+            if chunk:
+                rows = X[chunk, :]
+            else:
+                rows = X[i, :]
+
+            if new_frame is None:
+                new_frame = rows
+            else:
+                new_frame = new_frame.rbind(rows)
+
+            # reset the chunk:
+            chunk = []
 
     return new_frame
 
