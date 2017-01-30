@@ -1692,15 +1692,37 @@ def test_h2o_with_conn():
                 try:
                     y = np.array([[0, 0.1], [0, 0.4], [1, 0.35], [1, 0.8]])
                     Y = from_array(y, ['true', 'score'])
-                except Exception as e:
+                except Exception:
+                    print("WARNING - could not test AUC")
                     return
 
                 roc_score = h2o_auc_score(Y['true'], Y['score'])
                 assert roc_score == 0.75
 
+        def log_loss():
+            if X is not None:
+                try:
+                    # these are the labels
+                    labels = np.array([[1, 0], [0, 0], [0, 0], [1, 0]])
+                    L = from_array(labels, ['true', 'other'])
+
+                    # prob for first part - third col is for second part
+                    p = np.array([[.1, .9, .1], [.9, .1, .9], [.8, .2, .35], [.35, .65, .65]])
+                    P = from_array(p, ['zero', 'one', 'other'])
+                except Exception:
+                    print("WARNING - could not test LOG-LOSS")
+                    return
+
+                log_loss_1 = h2o_log_loss(L['true'], P[['zero', 'one']])
+                assert log_loss_1 == 0.21616187468057912, 'expected %r but got %r' % (0.21616187468057912, log_loss_1)
+
+                log_loss_2 = h2o_log_loss(L['true'], P[['other']])
+                assert log_loss_2 == 1.36668400454325, 'expected %r but got %r' % (1.36668400454325, log_loss_2)
+
         # run the tests -- put new or commonly failing tests
         # up front as smoke tests. i.e., act, persist and grid
         auc()
+        log_loss()
         impute()
         fscore()
         persist()

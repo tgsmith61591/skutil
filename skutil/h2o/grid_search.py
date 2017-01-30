@@ -24,15 +24,7 @@ from ..utils.metaestimators import if_delegate_has_method, if_delegate_isinstanc
 from ..grid_search import _CVScoreTuple, _check_param_grid
 from ..metrics import GainsStatisticalReport
 from .split import *
-from .metrics import (h2o_accuracy_score,
-                      h2o_f1_score,
-                      h2o_mean_absolute_error,
-                      h2o_mean_squared_error,
-                      h2o_median_absolute_error,
-                      h2o_precision_score,
-                      h2o_recall_score,
-                      h2o_r2_score,
-                      make_h2o_scorer)
+from . import metrics
 
 from sklearn.externals.joblib import logger
 from sklearn.base import clone
@@ -65,17 +57,8 @@ __all__ = [
     'H2OGainsRandomizedSearchCV'
 ]
 
-SCORERS = {
-    'accuracy_score':        h2o_accuracy_score,
-    'f1_score':              h2o_f1_score,
-    # 'log_loss' :,
-    'mean_absolute_error':   h2o_mean_absolute_error,
-    'mean_squared_error':    h2o_mean_squared_error,
-    'median_absolute_error': h2o_median_absolute_error,
-    'precision_score':       h2o_precision_score,
-    'r2_score':              h2o_r2_score,
-    'recall_score':          h2o_recall_score
-}
+# map for the metrics
+SCORERS = metrics.SCORERS
 
 """These parameters are ones h2o stores
 that we don't necessarily want to clone.
@@ -463,7 +446,7 @@ class BaseH2OSearchCV(BaseH2OFunctionWrapper, VizMixin):
                 
             # make it a scorer
             if hasattr(scoring, '__call__'):
-                self.scoring_class_ = make_h2o_scorer(scoring, X[self.target_feature])
+                self.scoring_class_ = metrics.make_h2o_scorer(scoring, X[self.target_feature])
             else:  # should be impossible to get here
                 raise TypeError('expected string or callable for scorer, but got %s' % type(self.scoring))
 
