@@ -252,12 +252,16 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
             # reassign the column itself, as we might need to make it
             # a float column for imputation to avoid numpy int64 bug
-            X[col], col_imp_value = _transform_col(X[col], col_imp_value)
+            # X[col], col_imp_value = _transform_col(X[col], col_imp_value)
 
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
             the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
             na_mask_idcs = the_na_col.index[the_na_col.astype(np.bool)].tolist()
+
+            # if the mask is empty, move on
+            if not na_mask_idcs:
+                continue
 
             # get the column index
             # col_idx = X_columns.index(col)
