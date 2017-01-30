@@ -256,10 +256,14 @@ class H2OSelectiveImputer(_H2OBaseImputer):
 
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
-            the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
+            the_na_col_frame = na_frame[col]
+            if not the_na_col_frame.sum():  # if there are no missing ones here, move on... faster than making local
+                continue
+
+            the_na_col = the_na_col_frame.as_data_frame(use_pandas=True)[col]
             na_mask_idcs = the_na_col.index[the_na_col.astype(np.bool)].tolist()
 
-            # if the mask is empty, move on
+            # if the mask is empty, move on - should be handled above...
             if not na_mask_idcs:
                 continue
 
