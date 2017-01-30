@@ -422,27 +422,37 @@ def reorder_h2o_frame(X, idcs):
     chunk = []
 
     for i in idcs:
-        # while the indices increase adjacently
-        if i < last_index:
-            last_index = i
-            chunk.append(i)
-
-        # otherwise, they are no longer increasing
-        else:
-            # if a chunk exists
-            if chunk:  # there should ALWAYS be a chunk
-                rows = X[chunk, :]
-            else:
-                rows = X[i, :]
-
+        # if it's a chunk from balancer:
+        if hasattr(i, '__iter__'):
+            fr = X[i, :]
             if new_frame is None:
-                new_frame = rows
+                new_frame = fr
             else:
-                new_frame = new_frame.rbind(rows)
+                new_frame = new_frame.rbind(fr)
 
-            # reset
-            last_index = np.inf
-            chunk = []
+        # otherwise chunks have not been computed
+        else:
+            # while the indices increase adjacently
+            if i < last_index:
+                last_index = i
+                chunk.append(i)
+
+            # otherwise, they are no longer increasing
+            else:
+                # if a chunk exists
+                if chunk:  # there should ALWAYS be a chunk
+                    rows = X[chunk, :]
+                else:
+                    rows = X[i, :]
+
+                if new_frame is None:
+                    new_frame = rows
+                else:
+                    new_frame = new_frame.rbind(rows)
+
+                # reset
+                last_index = np.inf
+                chunk = []
 
     return new_frame
 

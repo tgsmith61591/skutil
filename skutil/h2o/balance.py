@@ -5,7 +5,6 @@ from abc import ABCMeta
 import warnings
 from sklearn.externals import six
 from skutil.base import overrides
-from skutil.utils import flatten_all
 from .util import reorder_h2o_frame
 from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
@@ -89,18 +88,13 @@ def _gen_optimized_chunks(idcs):
     # 1. populate the chunks each with their first idx (the most common)
     # 2. pop from the counter
     # 3. re-generate the most_common(), repeat
-    while True:
-        val, n_iter = counts[0]
+    while counts:
+        val, n_iter = counts[0]  # the one at the head of the list is the most common
         for i in range(n_iter):
             chunks[i].append(val)
-        # remove the val from the counter, since it's distributed
-        counter.pop(val)
-        if counter:  # if there are still values...
-            counts = counter.most_common()
-        else:
-            break
-    # sort them, and then flatten them:
-    return flatten_all([sorted(chunk) for chunk in chunks])
+        counts.pop(0)  # pop out the first idx...
+    # sort them
+    return [sorted(chunk) for chunk in chunks]
 
 
 class _BaseH2OBalancer(six.with_metaclass(ABCMeta, 
