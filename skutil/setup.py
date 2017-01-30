@@ -21,6 +21,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('linear_model')
     config.add_subpackage('model_selection')
     config.add_subpackage('preprocessing')
+    config.add_subpackage('testing')
     config.add_subpackage('utils')
     config.add_subpackage('h2o')
 

@@ -7,7 +7,7 @@ from skutil.preprocessing import *
 from skutil.decomposition import *
 from skutil.utils import validate_is_pd
 from skutil.utils.fixes import dict_values
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 
 # Def data for testing
 iris = load_iris()

@@ -3,7 +3,7 @@ import numpy as np
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.odr import *
-from skutil.utils.tests import assert_fails
+from skutil.testing import assert_fails
 
 X = load_iris().data
 

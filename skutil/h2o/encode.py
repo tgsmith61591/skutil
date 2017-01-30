@@ -31,7 +31,7 @@ class H2OLabelEncoder(BaseH2OTransformer):
         >>> def example():
         ...     import pandas as pd
         ...     from skutil.h2o import from_pandas
-        ...     from sktuil.h2o.transform import H2OLabelEncoder
+        ...     from skutil.h2o.transform import H2OLabelEncoder
         ...     
         ...     x = pd.DataFrame.from_records(data=[
         ...                 [5, 4],

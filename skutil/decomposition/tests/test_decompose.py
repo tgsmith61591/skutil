@@ -3,7 +3,7 @@ from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.datasets import load_iris
 from skutil.decomposition import *
-from skutil.utils import assert_fails
+from skutil.testing import assert_fails
 from skutil.utils import load_iris_df
 from skutil.decomposition.decompose import _BaseSelectiveDecomposer
 

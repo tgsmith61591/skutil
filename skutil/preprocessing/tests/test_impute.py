@@ -5,7 +5,7 @@ from numpy.random import choice
 from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.utils import shuffle_dataframe
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 from sklearn.ensemble import RandomForestClassifier
 
 
