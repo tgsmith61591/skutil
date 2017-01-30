@@ -31,7 +31,7 @@ from skutil.h2o.metrics import *
 from skutil.h2o.metrics import _get_bool, h2o_precision_recall_fscore_support, _err_for_discrete, _err_for_continuous
 from skutil.h2o.grid_search import _val_exp_loss_prem
 from skutil.utils import load_iris_df, load_breast_cancer_df, shuffle_dataframe, df_memory_estimate, load_boston_df, flatten_all
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 from skutil.feature_selection import NearZeroVarianceFilterer
 from skutil.h2o.split import (check_cv, H2OKFold,
                               H2OStratifiedKFold, h2o_train_test_split,

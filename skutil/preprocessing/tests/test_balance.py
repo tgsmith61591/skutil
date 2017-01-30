@@ -5,7 +5,7 @@ from sklearn.datasets import load_iris
 from skutil.preprocessing import *
 from skutil.preprocessing.balance import _BaseBalancer, _pd_frame_to_np
 from numpy.testing import assert_array_equal
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 import warnings
 
 # Def data for testing

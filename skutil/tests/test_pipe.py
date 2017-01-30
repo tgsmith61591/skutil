@@ -12,7 +12,7 @@ from skutil.feature_selection import *
 from skutil.grid_search import RandomizedSearchCV, GridSearchCV
 from skutil.preprocessing import *
 from skutil.utils import report_grid_score_detail
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 
 # Def data for testing
 iris = load_iris()

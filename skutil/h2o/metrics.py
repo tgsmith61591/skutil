@@ -308,7 +308,7 @@ def h2o_auc_score(y_actual, y_predict, average="macro", sample_weight=None, y_ty
 
 
 @since('0.1.6')
-def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=None, labels=None, y_type=None):
+def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=None, y_type=None):
     """Log loss, aka logistic loss or cross-entropy loss.
     This is the loss function used in (multinomial) logistic regression
     and extensions of it such as neural networks, defined as the negative
@@ -346,11 +346,6 @@ def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=N
         A frame of sample weights of matching dims with
         y_actual and y_predict.
 
-    labels : array-like, optional (default=None)
-        If not provided, labels will be inferred from y_true. If ``labels``
-        is ``None`` and ``y_pred`` has shape (n_samples,) the labels are
-        assumed to be binary and are inferred from ``y_true``.
-
     y_type : string, optional (default=None)
         The type of the column. If None, will be determined.
 
@@ -382,8 +377,7 @@ def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=N
     if len(y_predict.shape) == 2 and y_predict.shape[1] == 1:
         y_predict = y_predict.T
 
-    return log_loss(y_actual, y_predict, eps=eps, normalize=normalize,
-                    sample_weight=sample_weight, labels=labels)
+    return log_loss(y_actual, y_predict, eps=eps, normalize=normalize, sample_weight=sample_weight)
 
 
 @since('0.1.0')

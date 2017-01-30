@@ -28,6 +28,7 @@ else:
         'model_selection',
         'odr',
         'preprocessing',
+        'testing',
         'utils'
     ]
 

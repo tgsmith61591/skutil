@@ -14,4 +14,8 @@ def assert_fails(fun, expected=ValueError, *args, **kwargs):
         fun(*args, **kwargs)
     except expected:
         failed = True
-    assert failed, 'expected %s in function' % expected
+        failing_class = None
+    except Exception as e:
+        failing_class = type(e)
+        failed = False
+    assert failed, 'expected %s in function but got %s' % (expected, failing_class)
