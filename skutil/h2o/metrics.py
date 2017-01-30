@@ -375,7 +375,7 @@ def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=N
 
     # if it's a column, make it a vector.
     if len(y_predict.shape) == 2 and y_predict.shape[1] == 1:
-        y_predict = y_predict.T
+        y_predict = y_predict.T[0]
 
     return log_loss(y_actual, y_predict, eps=eps, normalize=normalize, sample_weight=sample_weight)
 
