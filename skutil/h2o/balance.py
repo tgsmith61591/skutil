@@ -1,13 +1,16 @@
 from __future__ import absolute_import, division, print_function
+from collections import Counter
 import pandas as pd
 from abc import ABCMeta
+import warnings
 from sklearn.externals import six
 from skutil.base import overrides
+from skutil.utils import flatten_all
 from .util import reorder_h2o_frame
 from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
-                                     BalancerMixin, SamplingWarning)
+                                     BalancerMixin)
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -71,6 +74,35 @@ def _validate_x_y_ratio(X, y, ratio):
     return out_tup
 
 
+def _gen_optimized_chunks(idcs):
+    """Given the list of indices, create more efficient chunks to minimize
+    the number of rbind operations required for the H2OFrame ExprNode cache.
+    """
+    idcs = sorted(idcs)
+    counter = Counter(idcs)
+    counts = counter.most_common()  # order desc
+
+    # the first index is the number of chunks we'll need to create.
+    n_chunks = counts[0][1]
+    chunks = [[] for _ in range(n_chunks)]  # gen the number of chunks we'll need
+
+    # 1. populate the chunks each with their first idx (the most common)
+    # 2. pop from the counter
+    # 3. re-generate the most_common(), repeat
+    while True:
+        val, n_iter = counts[0]
+        for i in range(n_iter):
+            chunks[i].append(val)
+        # remove the val from the counter, since it's distributed
+        counter.pop(val)
+        if counter:  # if there are still values...
+            counts = counter.most_common()
+        else:
+            break
+    # sort them, and then flatten them:
+    return flatten_all([sorted(chunk) for chunk in chunks])
+
+
 class _BaseH2OBalancer(six.with_metaclass(ABCMeta, 
                                           BaseH2OFunctionWrapper, 
                                           BalancerMixin)):
@@ -85,6 +117,13 @@ class _BaseH2OBalancer(six.with_metaclass(ABCMeta,
                                                max_version=max_version)
         self.ratio = ratio
         self.shuffle = shuffle
+
+        # this is a new warning
+        if shuffle:
+            warnings.warn('Setting shuffle=True will eventually be deprecated, as H2O '
+                          'does not allow re-ordering of frames by row. The current work-around '
+                          '(rbinding the rows) is known to cause issues in the H2O ExprNode '
+                          'cache for very large frames.', DeprecationWarning)
 
 
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
@@ -183,7 +222,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         # since H2O won't allow us to resample (it's considered rearranging)
         # we need to rbind at each point of duplication... this can be pretty
         # inefficient, so we might need to get clever about this...
-        Xb = reorder_h2o_frame(frame, sample_idcs)
+        Xb = reorder_h2o_frame(frame, _gen_optimized_chunks(sample_idcs))
         return Xb
 
 
@@ -286,5 +325,5 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
         idcs = partitioner.get_indices(self.shuffle)
-        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, idcs)
+        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, _gen_optimized_chunks(idcs))
         return Xb

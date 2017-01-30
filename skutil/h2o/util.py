@@ -429,10 +429,8 @@ def reorder_h2o_frame(X, idcs):
 
         # otherwise, they are no longer increasing
         else:
-            last_index = np.inf  # reset...
-
             # if a chunk exists
-            if chunk:
+            if chunk:  # there should ALWAYS be a chunk
                 rows = X[chunk, :]
             else:
                 rows = X[i, :]
@@ -442,7 +440,8 @@ def reorder_h2o_frame(X, idcs):
             else:
                 new_frame = new_frame.rbind(rows)
 
-            # reset the chunk:
+            # reset
+            last_index = np.inf
             chunk = []
 
     return new_frame
