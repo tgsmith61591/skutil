@@ -1,4 +1,6 @@
+
 from __future__ import print_function, division, absolute_import
+import numpy as np
 from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from ..utils.fixes import is_iterable, dict_values
@@ -245,9 +247,6 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             if not is_int and col not in fill_val:  # then it's a dict and this col doesn't exist in it...
                 continue
 
-            # get the column index
-            col_idx = X_columns.index(col)
-
             # if it's a single int, easy, otherwise query dict
             col_imp_value = fill_val if is_int else fill_val[col]
 
@@ -258,11 +257,13 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
             the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
-            na_mask_idcs = the_na_col.index[the_na_col == 1].tolist()
+            na_mask_idcs = the_na_col.index[the_na_col.astype(np.bool)].tolist()
 
+            # get the column index
+            # col_idx = X_columns.index(col)
             # for na_row in na_mask_idcs:
             #     X[na_row, col_idx] = col_imp_value
-            X[na_mask_idcs, col_idx] = col_imp_value
+            X[na_mask_idcs, col] = col_imp_value
 
         # return the copy
         return X
