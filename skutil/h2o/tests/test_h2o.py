@@ -204,7 +204,7 @@ def test_h2o_with_conn():
 
                 try:
                     dfh = new_h2o_frame(df)
-                except Exception as e:
+                except Exception:
                     dfh = None
                     return
 
@@ -297,7 +297,7 @@ def test_h2o_with_conn():
             # test with strategy == ratio
             if X is not None:
                 transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
-                assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
+                assert_fails(transformer.fit, ValueError, Y)  # will fail because thresh must be greater than 1.0
 
                 x = np.array([
                     [1, 2, 3],
@@ -327,7 +327,7 @@ def test_h2o_with_conn():
             X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
 
             # add the y into the matrix for h2o's sake -- pandas will throw a warning here...
-            with warnings.catch_warnings(record=True) as w:
+            with warnings.catch_warnings(record=True):
                 warnings.simplefilter("ignore")
                 X_train['species'] = y_train
                 X_test['species'] = y_test
@@ -335,7 +335,7 @@ def test_h2o_with_conn():
             try:
                 train = new_h2o_frame(X_train)
                 test = new_h2o_frame(X_test)
-            except Exception as e:
+            except Exception:
                 train = None
                 test = None
 
@@ -361,8 +361,8 @@ def test_h2o_with_conn():
                     pipe.predict(test)
 
                     # coverage:
-                    fe = pipe._final_estimator
-                    ns = pipe.named_steps
+                    _ = pipe._final_estimator
+                    _ = pipe.named_steps
 
                     # test pojo
                     assert not pipe.download_pojo()
@@ -407,7 +407,7 @@ def test_h2o_with_conn():
                     excepted = False
                     try:
                         pipe.fit(train)
-                    except (TypeError, ValueError, EnvironmentError) as e:
+                    except (TypeError, ValueError, EnvironmentError):
                         excepted = True
                     assert excepted, 'expected failure for y=%s' % str(y)
 
@@ -455,14 +455,14 @@ def test_h2o_with_conn():
 
                     # won't even get here...
                     # pipe.fit(train)
-                except TypeError as t:
+                except TypeError:
                     failed = True
                 assert failed
 
                 # type error for non-h2o estimators
                 failed = False
                 try:
-                    pipe = H2OPipeline([
+                    _ = H2OPipeline([
                         ('nzv', H2ONearZeroVarianceFilterer()),
                         ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', RandomForestClassifier())
@@ -473,7 +473,7 @@ def test_h2o_with_conn():
 
                     # won't even get here...
                     # pipe.fit(train)
-                except TypeError as t:
+                except TypeError:
                     failed = True
                 assert failed
 
@@ -496,7 +496,7 @@ def test_h2o_with_conn():
                 ],
                     feature_names=F.columns.tolist(),
                     target_feature='species',
-                    exclude_from_fit=['sepal width (cm)'] # will not be included in the final fit
+                    exclude_from_fit=['sepal width (cm)']  # will not be included in the final fit
                 )
 
                 # fit pipe, predict...
@@ -525,7 +525,7 @@ def test_h2o_with_conn():
             # try uploading...
             try:
                 frame = new_h2o_frame(f)
-            except Exception as e:
+            except Exception:
                 frame = None
 
             def get_param_grid(est):
@@ -626,7 +626,8 @@ def test_h2o_with_conn():
                                         if not do_pipe:
                                             # we're just testing the search on actual estimators
                                             grid = grid_module(estimator=estimator,
-                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               feature_names=F.columns.tolist(),
+                                                               target_feature='species',
                                                                param_grid=get_param_grid(estimator),
                                                                scoring=scoring, iid=iid, verbose=verbose,
                                                                cv=which_cv, minimize=minimize)
@@ -650,7 +651,8 @@ def test_h2o_with_conn():
                                                 }
 
                                             grid = grid_module(pipe, param_grid=params,
-                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               feature_names=F.columns.tolist(),
+                                                               target_feature='species',
                                                                scoring=scoring, iid=iid, verbose=verbose,
                                                                cv=which_cv, minimize=minimize)
 
@@ -659,8 +661,8 @@ def test_h2o_with_conn():
                                             grid.n_iter = n_folds
 
                                         # sometimes we'll expect it to fail...
-                                        expect_failure = scoring is None or (
-                                        isinstance(scoring, str) and scoring in ('bad'))
+                                        expect_failure = scoring is None or (isinstance(scoring, str) and
+                                                                             scoring in ('bad'))
                                         try:
                                             # fit the grid
                                             grid.fit(frame)
@@ -670,10 +672,10 @@ def test_h2o_with_conn():
                                             expect_failure = False
 
                                             # predict on the grid
-                                            p = grid.predict(frame)
+                                            _ = grid.predict(frame)
 
                                             # score on the frame
-                                            s = grid.score(frame)
+                                            _ = grid.score(frame)
                                         except ValueError as v:
                                             if expect_failure:
                                                 pass
@@ -1338,7 +1340,7 @@ def test_h2o_with_conn():
 
                 try:
                     Y = from_pandas(f)
-                except Exception as e:
+                except Exception:
                     Y = None
 
                 if Y is not None:

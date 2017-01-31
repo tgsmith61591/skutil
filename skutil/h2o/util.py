@@ -12,6 +12,7 @@ from ..utils import (validate_is_pd, human_bytes, corr_plot,
 from .frame import _check_is_1d_frame
 from .select import _validate_use
 from .base import check_frame
+from .fixes import rbind_all
 
 from h2o.frame import H2OFrame
 from sklearn.utils.validation import check_array
@@ -26,7 +27,6 @@ __all__ = [
     'load_iris_h2o',
     'load_boston_h2o',
     'load_breast_cancer_h2o',
-    'rbind_all',
     'reorder_h2o_frame',
     'shuffle_h2o_frame'
 ]
@@ -361,38 +361,6 @@ def h2o_frame_memory_estimate(X, bit_est=32, unit='MB'):
     return human_bytes(n_bytes, unit)
 
 
-def rbind_all(*args):
-    """Given a variable set of H2OFrames,
-    rbind all of them into a single H2OFrame.
-
-    Parameters
-    ----------
-
-    array1, array2, ... : H2OFrame, shape=(n_samples, n_features)
-        The H2OFrames to rbind. All should match in column
-        dimensionality.
-
-    Returns
-    -------
-
-    f : H2OFrame
-        The rbound H2OFrame
-    """
-    # check all are H2OFrames
-    for x in args:
-        check_frame(x, copy=False)
-
-    # check col dim
-    if np.unique([x.shape[1] for x in args]).shape[0] != 1:
-        raise ValueError('inconsistent column dimensions')
-
-    f = None
-    for x in args:
-        f = x if f is None else f.rbind(x)
-
-    return f
-
-
 def _gen_optimized_chunks(idcs):
     """Given the list of indices, create more efficient chunks to minimize
     the number of rbind operations required for the H2OFrame ExprNode cache.
@@ -473,7 +441,7 @@ def reorder_h2o_frame(X, idcs):
                 last_index = i
 
     # print([type(c) for c in chunks])  # couldn't figure out an issue for a while...
-    return chunks[0] if len(chunks) == 1 else chunks[0].rbind(chunks[1:])
+    return chunks[0] if len(chunks) == 1 else rbind_all(chunks)
 
 
 def shuffle_h2o_frame(X):

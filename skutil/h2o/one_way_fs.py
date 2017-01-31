@@ -6,7 +6,8 @@ from scipy import special, stats
 from sklearn.externals import six
 from .split import *
 from .select import BaseH2OFeatureSelector
-from .util import _unq_vals_col, rbind_all
+from .util import _unq_vals_col
+from .fixes import rbind_all
 from ..utils import is_integer
 from .base import (check_frame, _frame_from_x_y)
 from ..base import overrides, since

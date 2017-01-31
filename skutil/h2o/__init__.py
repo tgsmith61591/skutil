@@ -7,6 +7,7 @@ class balancers.
 from .base import *
 from .balance import *
 from .encode import *
+from .fixes import *
 from .frame import *
 from .grid_search import *
 from .metrics import *
