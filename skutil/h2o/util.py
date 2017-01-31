@@ -3,6 +3,8 @@ import numpy as np
 import h2o
 import pandas as pd
 
+import warnings
+from collections import Counter
 from pkg_resources import parse_version
 from ..utils import (validate_is_pd, human_bytes, corr_plot,
                      load_breast_cancer_df, load_iris_df,
@@ -391,6 +393,30 @@ def rbind_all(*args):
     return f
 
 
+def _gen_optimized_chunks(idcs):
+    """Given the list of indices, create more efficient chunks to minimize
+    the number of rbind operations required for the H2OFrame ExprNode cache.
+    """
+    idcs = sorted(idcs)
+    counter = Counter(idcs)
+    counts = counter.most_common()  # order desc
+
+    # the first index is the number of chunks we'll need to create.
+    n_chunks = counts[0][1]
+    chunks = [[] for _ in range(n_chunks)]  # gen the number of chunks we'll need
+
+    # 1. populate the chunks each with their first idx (the most common)
+    # 2. pop from the counter
+    # 3. re-generate the most_common(), repeat
+    while counts:
+        val, n_iter = counts[0]  # the one at the head of the list is the most common
+        for i in range(n_iter):
+            chunks[i].append(val)
+        counts.pop(0)  # pop out the first idx...
+    # sort them
+    return [sorted(chunk) for chunk in chunks]
+
+
 def reorder_h2o_frame(X, idcs):
     """Currently, H2O does not allow us to reorder
     frames. This is a hack to rbind rows together in the
@@ -444,7 +470,9 @@ def reorder_h2o_frame(X, idcs):
                 # append the chunk and reset the list
                 chunks.append(rows)
                 chunk = []
+                last_index = i
 
+    print([type(c) for c in chunks])
     return chunks[0] if len(chunks) == 1 else chunks[0].rbind(chunks[1:])
 
 
@@ -465,7 +493,12 @@ def shuffle_h2o_frame(X):
     shuf : H2OFrame
         The shuffled H2OFrame
     """
+    warnings.warn('Shuffling H2O frames will eventually be deprecated, as H2O '
+                  'does not allow re-ordering of frames by row. The current work-around '
+                  '(rbinding the rows) is known to cause issues in the H2O ExprNode '
+                  'cache for very large frames.', DeprecationWarning)
+
     X = check_frame(X, copy=False)
     idcs = np.random.permutation(np.arange(X.shape[0]))
-    shuf = reorder_h2o_frame(X, idcs)
+    shuf = reorder_h2o_frame(X, idcs)  # do not generate optimized chunks here...
     return shuf

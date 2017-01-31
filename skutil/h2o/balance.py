@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function
-from collections import Counter
 import pandas as pd
 from abc import ABCMeta
 import warnings
 from sklearn.externals import six
 from skutil.base import overrides
-from .util import reorder_h2o_frame
+from .transform import _flatten_one
+from .util import reorder_h2o_frame, _gen_optimized_chunks, h2o_col_to_numpy
 from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
@@ -58,43 +58,32 @@ def _validate_x_y_ratio(X, y, ratio):
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
     ratio = _validate_ratio(ratio)
     y = _validate_target(y)  # cast to string type
+    is_factor = _flatten_one(X[y].isfactor())  # is the target a factor?
 
-    # generate cts. Have to get kludgier in h2o...
-    unq_vals = X[y].unique()
-    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values  # numpy array of unique vals
-    unq_cts = dict([(val, X[y][X[y] == val].shape[0]) for val in unq_vals])
+    # if the target is a factor, we might have an issue here...
+    """
+    if is_factor:
+        warnings.warn('Balancing with the target as a factor can cause unpredictable '
+                      'sampling behavior (H2O makes it difficult to assess equality '
+                      'between two factors). Balancing works best when the target '
+                      'is an int. If possible, consider using `asnumeric`.', UserWarning)
+    """
 
-    # validate is < max classes
-    cts = pd.Series(unq_cts).sort_values(ascending=True)
+    # generate cts. Have to get kludgier in h2o... then validate is < max classes
+    # we have to do it this way, because H2O might treat the vals as enum, and we cannot
+    # slice based on equality (dernit, H2O).
+    target_col = pd.Series(h2o_col_to_numpy(X[y]))
+    cts = target_col.value_counts().sort_values(ascending=True)
     n_classes = _validate_num_classes(cts)
     needs_balancing = (cts.values[0] / cts.values[-1]) < ratio
 
-    out_tup = (cts, n_classes, needs_balancing)
+    index = cts.index if not is_factor else cts.index.astype('str')
+    out_tup = (dict(zip(index, cts.values)),  # cts
+               index,  # labels sorted ascending by commonality
+               target_col.values if not is_factor else target_col.astype('str').values,  # the target
+               n_classes,
+               needs_balancing)
     return out_tup
-
-
-def _gen_optimized_chunks(idcs):
-    """Given the list of indices, create more efficient chunks to minimize
-    the number of rbind operations required for the H2OFrame ExprNode cache.
-    """
-    idcs = sorted(idcs)
-    counter = Counter(idcs)
-    counts = counter.most_common()  # order desc
-
-    # the first index is the number of chunks we'll need to create.
-    n_chunks = counts[0][1]
-    chunks = [[] for _ in range(n_chunks)]  # gen the number of chunks we'll need
-
-    # 1. populate the chunks each with their first idx (the most common)
-    # 2. pop from the counter
-    # 3. re-generate the most_common(), repeat
-    while counts:
-        val, n_iter = counts[0]  # the one at the head of the list is the most common
-        for i in range(n_iter):
-            chunks[i].append(val)
-        counts.pop(0)  # pop out the first idx...
-    # sort them
-    return [sorted(chunk) for chunk in chunks]
 
 
 class _BaseH2OBalancer(six.with_metaclass(ABCMeta, 

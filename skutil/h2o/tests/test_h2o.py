@@ -22,7 +22,6 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2OFScoreKBestSelector
-from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
                              shuffle_h2o_frame, h2o_col_to_numpy)
