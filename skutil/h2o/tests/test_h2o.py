@@ -22,7 +22,6 @@ from skutil.h2o.pipeline import *
 from skutil.h2o.grid_search import *
 from skutil.h2o.base import BaseH2OFunctionWrapper
 from skutil.h2o.one_way_fs import h2o_f_classif, H2OFScorePercentileSelector, H2OFScoreKBestSelector
-from skutil.preprocessing.balance import _pd_frame_to_np
 from skutil.h2o.util import (h2o_frame_memory_estimate, h2o_corr_plot, h2o_bincount,
                              load_iris_h2o, load_breast_cancer_h2o, load_boston_h2o,
                              shuffle_h2o_frame, h2o_col_to_numpy)
@@ -205,7 +204,7 @@ def test_h2o_with_conn():
 
                 try:
                     dfh = new_h2o_frame(df)
-                except Exception as e:
+                except Exception:
                     dfh = None
                     return
 
@@ -298,7 +297,7 @@ def test_h2o_with_conn():
             # test with strategy == ratio
             if X is not None:
                 transformer = H2ONearZeroVarianceFilterer(strategy='ratio', threshold=0.1)
-                assert_fails(transformer.fit, ValueError, Y) # will fail because thresh must be greater than 1.0
+                assert_fails(transformer.fit, ValueError, Y)  # will fail because thresh must be greater than 1.0
 
                 x = np.array([
                     [1, 2, 3],
@@ -328,7 +327,7 @@ def test_h2o_with_conn():
             X_train, X_test, y_train, y_test = train_test_split(f, targ, train_size=0.7)
 
             # add the y into the matrix for h2o's sake -- pandas will throw a warning here...
-            with warnings.catch_warnings(record=True) as w:
+            with warnings.catch_warnings(record=True):
                 warnings.simplefilter("ignore")
                 X_train['species'] = y_train
                 X_test['species'] = y_test
@@ -336,7 +335,7 @@ def test_h2o_with_conn():
             try:
                 train = new_h2o_frame(X_train)
                 test = new_h2o_frame(X_test)
-            except Exception as e:
+            except Exception:
                 train = None
                 test = None
 
@@ -362,8 +361,8 @@ def test_h2o_with_conn():
                     pipe.predict(test)
 
                     # coverage:
-                    fe = pipe._final_estimator
-                    ns = pipe.named_steps
+                    _ = pipe._final_estimator
+                    _ = pipe.named_steps
 
                     # test pojo
                     assert not pipe.download_pojo()
@@ -408,7 +407,7 @@ def test_h2o_with_conn():
                     excepted = False
                     try:
                         pipe.fit(train)
-                    except (TypeError, ValueError, EnvironmentError) as e:
+                    except (TypeError, ValueError, EnvironmentError):
                         excepted = True
                     assert excepted, 'expected failure for y=%s' % str(y)
 
@@ -456,14 +455,14 @@ def test_h2o_with_conn():
 
                     # won't even get here...
                     # pipe.fit(train)
-                except TypeError as t:
+                except TypeError:
                     failed = True
                 assert failed
 
                 # type error for non-h2o estimators
                 failed = False
                 try:
-                    pipe = H2OPipeline([
+                    _ = H2OPipeline([
                         ('nzv', H2ONearZeroVarianceFilterer()),
                         ('mc', H2OMulticollinearityFilterer(threshold=0.9)),
                         ('est', RandomForestClassifier())
@@ -474,7 +473,7 @@ def test_h2o_with_conn():
 
                     # won't even get here...
                     # pipe.fit(train)
-                except TypeError as t:
+                except TypeError:
                     failed = True
                 assert failed
 
@@ -497,7 +496,7 @@ def test_h2o_with_conn():
                 ],
                     feature_names=F.columns.tolist(),
                     target_feature='species',
-                    exclude_from_fit=['sepal width (cm)'] # will not be included in the final fit
+                    exclude_from_fit=['sepal width (cm)']  # will not be included in the final fit
                 )
 
                 # fit pipe, predict...
@@ -526,7 +525,7 @@ def test_h2o_with_conn():
             # try uploading...
             try:
                 frame = new_h2o_frame(f)
-            except Exception as e:
+            except Exception:
                 frame = None
 
             def get_param_grid(est):
@@ -627,7 +626,8 @@ def test_h2o_with_conn():
                                         if not do_pipe:
                                             # we're just testing the search on actual estimators
                                             grid = grid_module(estimator=estimator,
-                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               feature_names=F.columns.tolist(),
+                                                               target_feature='species',
                                                                param_grid=get_param_grid(estimator),
                                                                scoring=scoring, iid=iid, verbose=verbose,
                                                                cv=which_cv, minimize=minimize)
@@ -651,7 +651,8 @@ def test_h2o_with_conn():
                                                 }
 
                                             grid = grid_module(pipe, param_grid=params,
-                                                               feature_names=F.columns.tolist(), target_feature='species',
+                                                               feature_names=F.columns.tolist(),
+                                                               target_feature='species',
                                                                scoring=scoring, iid=iid, verbose=verbose,
                                                                cv=which_cv, minimize=minimize)
 
@@ -660,8 +661,8 @@ def test_h2o_with_conn():
                                             grid.n_iter = n_folds
 
                                         # sometimes we'll expect it to fail...
-                                        expect_failure = scoring is None or (
-                                        isinstance(scoring, str) and scoring in ('bad'))
+                                        expect_failure = scoring is None or (isinstance(scoring, str) and
+                                                                             scoring in ('bad'))
                                         try:
                                             # fit the grid
                                             grid.fit(frame)
@@ -671,10 +672,10 @@ def test_h2o_with_conn():
                                             expect_failure = False
 
                                             # predict on the grid
-                                            p = grid.predict(frame)
+                                            _ = grid.predict(frame)
 
                                             # score on the frame
-                                            s = grid.score(frame)
+                                            _ = grid.score(frame)
                                         except ValueError as v:
                                             if expect_failure:
                                                 pass
@@ -1333,27 +1334,25 @@ def test_h2o_with_conn():
         def balance():
             if X is not None:
                 # test that we can turn a frame's first col into a np array
-                x = _pd_frame_to_np(X)  # just gets back the first col...
-                assert isinstance(x, np.ndarray)
-
                 # upload to cloud with the target
                 f = F.copy()
                 f['species'] = iris.target
 
                 try:
                     Y = from_pandas(f)
-                except Exception as e:
+                except Exception:
                     Y = None
 
                 if Y is not None:
                     # assert undersampling the balance changes nothing:
-                    b = H2OUndersamplingClassBalancer(target_feature='species').balance(Y)
+                    b = H2OUndersamplingClassBalancer(target_feature='species', shuffle=False).balance(Y)
                     assert b.shape[0] == Y.shape[0]
 
                     # do a real undersample
                     x = Y[:60, :]  # 50 zeros, 10 ones
-                    b = H2OUndersamplingClassBalancer(target_feature='species', ratio=0.5).balance(x).as_data_frame(
-                        use_pandas=True)
+                    b = H2OUndersamplingClassBalancer(
+                                target_feature='species', shuffle=False, ratio=0.5)\
+                            .balance(x).as_data_frame(use_pandas=True)
                     assert b.shape[0] == 30
                     cts = b.species.value_counts()
                     assert cts[0] == 20
@@ -1361,7 +1360,8 @@ def test_h2o_with_conn():
 
                     # assert oversampling works
                     y = Y[:105, :]
-                    d = H2OOversamplingClassBalancer(target_feature='species', ratio=1.0).balance(y).as_data_frame(
+                    d = H2OOversamplingClassBalancer(
+                                target_feature='species', ratio=1.0, shuffle=False).balance(y).as_data_frame(
                         use_pandas=True)
                     assert d.shape[0] == 150
 
@@ -1726,14 +1726,13 @@ def test_h2o_with_conn():
 
         # run the tests -- put new or commonly failing tests
         # up front as smoke tests. i.e., act, persist and grid
-        auc()
-        log_loss()
+        balance()
+        grid()
         val_counts()
         impute()
         fscore()
         persist()
         act_search()
-        grid()
         encoder()
         bincount()
         metrics()
@@ -1748,7 +1747,6 @@ def test_h2o_with_conn():
         if CAN_CHART_MPL:
             corr()
         interactions()
-        balance()
         encode()
         feature_dropper()
         scale()
@@ -1756,4 +1754,6 @@ def test_h2o_with_conn():
         isinteger_isfloat()
         shuffle()
         valid_use()
+        auc()
+        log_loss()
         feature_dropper_coverage()
