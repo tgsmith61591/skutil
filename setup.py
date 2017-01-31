@@ -32,8 +32,16 @@ builtins.__SKUTIL_SETUP__ = True
 DISTNAME = 'skutil'
 DESCRIPTION = 'A set of sklearn-esque extension modules'
 MAINTAINER = 'Taylor G. Smith'
-MAINTAINER_EMAIL = 'tgsmith61591@gmail.com'
+MAINTAINER_EMAIL = 'skutil.repo@gmail.com'
 LICENSE = 'new BSD'
+URL = 'https://github.com/tgsmith61591/skutil'
+TAR_BALL= 'https://github.com/tgsmith61591/skutil/archive/v0.1.5.tar.gz'
+INSTALL_REQUIRES = ['cython>=0.22'
+                    ,'numpy>=1.6'
+                    ,'scipy>=0.17'
+                    ,'scikit-learn>=0.17'
+                    ,'pandas>=0.18'
+                    ,'h2o>=3.8.2.9']
 
 # Import the restricted version that doesn't need compiled code
 import skutil
@@ -226,14 +234,17 @@ def setup_package():
                     maintainer_email=MAINTAINER_EMAIL,
                     description=DESCRIPTION,
                     license=LICENSE,
+                    url=URL,
+                    download_url=TAR_BALL,
                     version=VERSION,
+                    install_requires=INSTALL_REQUIRES,
                     classifiers=['Intended Audience :: Science/Research',
                                  'Intended Audience :: Developers',
-                                 'Intended Audience :: Scikit-learn users',
+                                 #'Intended Audience :: Scikit-learn users',
                                  'Programming Language :: C',
                                  'Programming Language :: Fortran',
                                  'Programming Language :: Python',
-                                 'Topic :: Machine Learning',
+                                 #'Topic :: Machine Learning',
                                  'Topic :: Software Development',
                                  'Topic :: Scientific/Engineering',
                                  'Operating System :: Microsoft :: Windows',
