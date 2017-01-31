@@ -1332,9 +1332,6 @@ def test_h2o_with_conn():
         def balance():
             if X is not None:
                 # test that we can turn a frame's first col into a np array
-                x = _pd_frame_to_np(X)  # just gets back the first col...
-                assert isinstance(x, np.ndarray)
-
                 # upload to cloud with the target
                 f = F.copy()
                 f['species'] = iris.target
@@ -1346,13 +1343,14 @@ def test_h2o_with_conn():
 
                 if Y is not None:
                     # assert undersampling the balance changes nothing:
-                    b = H2OUndersamplingClassBalancer(target_feature='species').balance(Y)
+                    b = H2OUndersamplingClassBalancer(target_feature='species', shuffle=False).balance(Y)
                     assert b.shape[0] == Y.shape[0]
 
                     # do a real undersample
                     x = Y[:60, :]  # 50 zeros, 10 ones
-                    b = H2OUndersamplingClassBalancer(target_feature='species', ratio=0.5).balance(x).as_data_frame(
-                        use_pandas=True)
+                    b = H2OUndersamplingClassBalancer(
+                                target_feature='species', shuffle=False, ratio=0.5)\
+                            .balance(x).as_data_frame(use_pandas=True)
                     assert b.shape[0] == 30
                     cts = b.species.value_counts()
                     assert cts[0] == 20
@@ -1360,7 +1358,8 @@ def test_h2o_with_conn():
 
                     # assert oversampling works
                     y = Y[:105, :]
-                    d = H2OOversamplingClassBalancer(target_feature='species', ratio=1.0).balance(y).as_data_frame(
+                    d = H2OOversamplingClassBalancer(
+                                target_feature='species', ratio=1.0, shuffle=False).balance(y).as_data_frame(
                         use_pandas=True)
                     assert d.shape[0] == 150
 
@@ -1725,14 +1724,13 @@ def test_h2o_with_conn():
 
         # run the tests -- put new or commonly failing tests
         # up front as smoke tests. i.e., act, persist and grid
-        auc()
-        log_loss()
+        balance()
+        grid()
         val_counts()
         impute()
         fscore()
         persist()
         act_search()
-        grid()
         encoder()
         bincount()
         metrics()
@@ -1747,7 +1745,6 @@ def test_h2o_with_conn():
         if CAN_CHART_MPL:
             corr()
         interactions()
-        balance()
         encode()
         feature_dropper()
         scale()
@@ -1755,4 +1752,6 @@ def test_h2o_with_conn():
         isinteger_isfloat()
         shuffle()
         valid_use()
+        auc()
+        log_loss()
         feature_dropper_coverage()
