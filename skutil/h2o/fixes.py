@@ -1,5 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import h2o
+from h2o.frame import H2OFrame
+from h2o.expr import ExprNode
 import numpy as np
 from pkg_resources import parse_version
 from .base import check_frame
@@ -65,4 +67,21 @@ else:
         # lazily evaluate type on the h2o side
         if len(args) == 1:
             return args[0]
-        return args[0].rbind(args[1:])
+
+        def rbind(*data):
+            slf = data[0]
+            nrow_sum = 0
+
+            for frame in data:
+                if frame.ncol != slf.ncol:
+                    raise ValueError("Cannot row-bind a dataframe with %d columns to a data frame with %d columns: "
+                                     "the columns must match" % (frame.ncol, slf.ncol))
+                if frame.columns != slf.columns or frame.types != slf.types:
+                    raise ValueError("Column names and types must match for rbind() to work")
+                nrow_sum += frame.nrow
+
+            fr = H2OFrame._expr(expr=ExprNode("rbind", slf, *data[1:]), cache=slf._ex._cache)
+            fr._ex._cache.nrows = nrow_sum
+            return fr
+
+        return rbind(*args)
