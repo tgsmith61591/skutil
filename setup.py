@@ -260,15 +260,14 @@ def setup_package():
                     cmdclass=cmdclass,
                     **extra_setuptools_args)
     min_args = 1
-    print(sys.argv)
     if sys.argv[0] == "setup.py":
         min_args = 2
     # pip install -e git+https://github.com/tgsmith61591/skutil.git
-    print(sys.argv)
     if len(sys.argv) == min_args or (
-            len(sys.argv) >= (min_args + 1) and ('--help' in sys.argv[2:] or
-                                    '-q' in sys.argv[2:] or
-                                    sys.argv[2] in ('--help-commands',
+            len(sys.argv) >= (min_args + 1) and ('--help' in sys.argv[1:] or
+                                    '-q' in sys.argv[1:] or
+                                    ('-c'==sys.argv[0] and 'egg_info'==sys.argv[1]) or
+                                    sys.argv[1] in ('--help-commands',
                                                     'egg-info',
                                                     '--version',
                                                     'clean'))):
