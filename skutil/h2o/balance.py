@@ -205,7 +205,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         # since H2O won't allow us to resample (it's considered rearranging)
         # we need to rbind at each point of duplication... this can be pretty
         # inefficient, so we might need to get clever about this...
-        Xb = reorder_h2o_frame(frame, _gen_optimized_chunks(sample_idcs))
+        Xb = reorder_h2o_frame(frame, _gen_optimized_chunks(sample_idcs), from_chunks=True)
         return Xb
 
 
@@ -308,5 +308,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
         idcs = partitioner.get_indices(self.shuffle)
-        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, _gen_optimized_chunks(idcs))
+        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame,
+                                                                       _gen_optimized_chunks(idcs),
+                                                                       from_chunks=True)
         return Xb
