@@ -32,9 +32,9 @@ TAR_BALL= 'https://github.com/tgsmith61591/skutil/archive/'
 INSTALL_REQUIRES = [
                     'cython>=0.22'
                     ,'numpy>=1.6'
+                    ,'pandas>=0.18'
                     ,'scipy>=0.17'
                     ,'scikit-learn>=0.17'
-                    ,'pandas>=0.18'
                     ,'h2o>=3.8.2.9'
                     ]
 
