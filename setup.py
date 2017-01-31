@@ -36,6 +36,7 @@ INSTALL_REQUIRES = [
                     ,'scipy>=0.17'
                     ,'scikit-learn>=0.17'
                     ,'h2o>=3.8.2.9'
+                    ,'pytz'
                     ]
 
 # Import the restricted version that doesn't need compiled code
