@@ -441,7 +441,7 @@ def reorder_h2o_frame(X, idcs):
                 last_index = i
 
     # print([type(c) for c in chunks])  # couldn't figure out an issue for a while...
-    return chunks[0] if len(chunks) == 1 else rbind_all(chunks)
+    return chunks[0] if len(chunks) == 1 else rbind_all(*chunks)
 
 
 def shuffle_h2o_frame(X):
