@@ -413,22 +413,18 @@ def reorder_h2o_frame(X, idcs):
     """
     # hack... slow but functional
     X = check_frame(X, copy=False)  # we're rbinding. no need to copy
-    new_frame = None
 
     # to prevent rbinding rows over, and over, and over
     # create chunks. Rbind chunks that are progressively increasing.
     # once we hit an index that decreases, rbind, and then start the next chunk
     last_index = np.inf
-    chunk = []
+    chunks = []  # all of the chunks
+    chunk = []  # the current chunk being built
 
     for i in idcs:
         # if it's a chunk from balancer:
-        if hasattr(i, '__iter__'):
-            fr = X[i, :]
-            if new_frame is None:
-                new_frame = fr
-            else:
-                new_frame = new_frame.rbind(fr)
+        if hasattr(i, '__iter__'):  # probably a list of indices
+            chunks.append(X[i, :])
 
         # otherwise chunks have not been computed
         else:
@@ -445,16 +441,11 @@ def reorder_h2o_frame(X, idcs):
                 else:
                     rows = X[i, :]
 
-                if new_frame is None:
-                    new_frame = rows
-                else:
-                    new_frame = new_frame.rbind(rows)
-
-                # reset
-                last_index = np.inf
+                # append the chunk and reset the list
+                chunks.append(rows)
                 chunk = []
 
-    return new_frame
+    return chunks[0] if len(chunks) == 1 else chunks[0].rbind(chunks[1:])
 
 
 def shuffle_h2o_frame(X):
