@@ -3,9 +3,6 @@ sklearn-esque transformers for python
 """
 import sys
 
-# want these visible at module level
-from .utils import log, exp
-
 __version__ = '0.1.6-dev'
 
 try:
@@ -34,6 +31,8 @@ else:
 
 
 def setup_module(module):
+    # want these visible at module level
+    from .utils import log, exp
     import numpy as np
     import random
 

@@ -16,13 +16,6 @@ if sys.version_info[0] < 3:
 else:
     import builtins
 
-try:
-    from Cython.Build import cythonize
-    ext = 'pyx'
-except ImportError as e:
-    warnings.warn('Cython needs to be installed')
-    raise e
-
 # Hacky, adopted from sklearn. This sets a global variable
 # so skutil __init__ can detect if it's being loaded in the setup
 # routine, so it won't load submodules that haven't yet been built.
@@ -35,13 +28,15 @@ MAINTAINER = 'Taylor G. Smith'
 MAINTAINER_EMAIL = 'skutil.repo@gmail.com'
 LICENSE = 'new BSD'
 URL = 'https://github.com/tgsmith61591/skutil'
-TAR_BALL= 'https://github.com/tgsmith61591/skutil/archive/v0.1.5.tar.gz'
-INSTALL_REQUIRES = ['cython>=0.22'
+TAR_BALL= 'https://github.com/tgsmith61591/skutil/archive/'
+INSTALL_REQUIRES = [
+                    'cython>=0.22'
                     ,'numpy>=1.6'
                     ,'scipy>=0.17'
                     ,'scikit-learn>=0.17'
                     ,'pandas>=0.18'
-                    ,'h2o>=3.8.2.9']
+                    ,'h2o>=3.8.2.9'
+                    ]
 
 # Import the restricted version that doesn't need compiled code
 import skutil
@@ -75,9 +70,9 @@ if SETUPTOOLS_COMMANDS.intersection(sys.argv):
         extras_require={
             'alldeps': (
                 'pandas >= {0}'.format(pandas_min_version),
-                'scikit-learn >= {0}'.format(sklearn_min_version),
                 'numpy >= {0}'.format(numpy_min_version),
                 'scipy >= {0}'.format(scipy_min_version),
+                'scikit-learn >= {0}'.format(sklearn_min_version),
                 'h2o >= {0}'.format(h2o_min_version)
             ),
         },
@@ -229,6 +224,7 @@ def check_statuses(pkg_nm, status, rs):
 
 
 def setup_package():
+
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -237,7 +233,6 @@ def setup_package():
                     url=URL,
                     download_url=TAR_BALL,
                     version=VERSION,
-                    install_requires=INSTALL_REQUIRES,
                     classifiers=['Intended Audience :: Science/Research',
                                  'Intended Audience :: Developers',
                                  #'Intended Audience :: Scikit-learn users',
@@ -256,9 +251,11 @@ def setup_package():
                     keywords='sklearn smote caret h2o',
                     cmdclass=cmdclass,
                     **extra_setuptools_args)
-
-    if len(sys.argv) == 1 or (
-            len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+    min_args = 1
+    if sys.argv[0] == "setup.py":
+        min_args = 2
+    if len(sys.argv) == min_args or (
+            len(sys.argv) >= (min_args + 1) and ('--help' in sys.argv[1:] or
                                     sys.argv[1] in ('--help-commands',
                                                     'egg-info',
                                                     '--version',
@@ -268,6 +265,12 @@ def setup_package():
         # They are required to succeed without Numpy for example when
         # pip is used to install skutil when Numpy is not yet present in
         # the system.
+        pip_install = "pip install "
+        if sys.argv[-1] == "--user":
+            pip_install += "--user "
+        for package in INSTALL_REQUIRES:
+            subprocess.check_call(pip_install + "{}".format(package), shell=True)
+
         try:
             from setuptools import setup
         except ImportError:
