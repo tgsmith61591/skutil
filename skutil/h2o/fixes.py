@@ -63,11 +63,6 @@ else:
             The rbound H2OFrame
         """
         # lazily evaluate type on the h2o side
-        if isinstance(args, (tuple, list)):
-            lst = args[0]
-            if len(lst) == 1:  # there's only one element
-                return lst[0]
-            return lst[0].rbind(lst[1:])
         if len(args) == 1:
             return args[0]
         return args[0].rbind(args[1:])
