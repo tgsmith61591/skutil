@@ -225,11 +225,19 @@ def check_statuses(pkg_nm, status, rs):
 
 def setup_package():
 
+    """
+    pip_install = "pip install "
+    if sys.argv[-1] == "--user":
+        pip_install += "--user "
+    for package in INSTALL_REQUIRES:
+    subprocess.check_call(pip_install + "{}".format(package), shell=True)
+    """
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
                     description=DESCRIPTION,
                     license=LICENSE,
+                    install_requires=INSTALL_REQUIRES,
                     url=URL,
                     download_url=TAR_BALL,
                     version=VERSION,
@@ -252,11 +260,15 @@ def setup_package():
                     cmdclass=cmdclass,
                     **extra_setuptools_args)
     min_args = 1
+    print(sys.argv)
     if sys.argv[0] == "setup.py":
         min_args = 2
+    # pip install -e git+https://github.com/tgsmith61591/skutil.git
+    print(sys.argv)
     if len(sys.argv) == min_args or (
-            len(sys.argv) >= (min_args + 1) and ('--help' in sys.argv[1:] or
-                                    sys.argv[1] in ('--help-commands',
+            len(sys.argv) >= (min_args + 1) and ('--help' in sys.argv[2:] or
+                                    '-q' in sys.argv[2:] or
+                                    sys.argv[2] in ('--help-commands',
                                                     'egg-info',
                                                     '--version',
                                                     'clean'))):
@@ -265,11 +277,6 @@ def setup_package():
         # They are required to succeed without Numpy for example when
         # pip is used to install skutil when Numpy is not yet present in
         # the system.
-        pip_install = "pip install "
-        if sys.argv[-1] == "--user":
-            pip_install += "--user "
-        for package in INSTALL_REQUIRES:
-            subprocess.check_call(pip_install + "{}".format(package), shell=True)
 
         try:
             from setuptools import setup
