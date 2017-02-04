@@ -27,3 +27,6 @@ gh-pages/
 
 # model directory
 *.mdl
+
+# modules from sphinx
+_modules/
