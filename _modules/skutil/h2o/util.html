@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.util &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o.util &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -138,6 +138,8 @@
 <span class="kn">import</span> <span class="nn">h2o</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
 <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="k">import</span> <span class="n">parse_version</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">validate_is_pd</span><span class="p">,</span> <span class="n">human_bytes</span><span class="p">,</span> <span class="n">corr_plot</span><span class="p">,</span>
                      <span class="n">load_breast_cancer_df</span><span class="p">,</span> <span class="n">load_iris_df</span><span class="p">,</span>
@@ -145,6 +147,7 @@
 <span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span>
 <span class="kn">from</span> <span class="nn">.select</span> <span class="k">import</span> <span class="n">_validate_use</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">check_frame</span>
+<span class="kn">from</span> <span class="nn">.fixes</span> <span class="k">import</span> <span class="n">rbind_all</span>
 
 <span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
 <span class="kn">from</span> <span class="nn">sklearn.utils.validation</span> <span class="k">import</span> <span class="n">check_array</span>
@@ -159,7 +162,6 @@
     <span class="s1">&#39;load_iris_h2o&#39;</span><span class="p">,</span>
     <span class="s1">&#39;load_boston_h2o&#39;</span><span class="p">,</span>
     <span class="s1">&#39;load_breast_cancer_h2o&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;rbind_all&#39;</span><span class="p">,</span>
     <span class="s1">&#39;reorder_h2o_frame&#39;</span><span class="p">,</span>
     <span class="s1">&#39;shuffle_h2o_frame&#39;</span>
 <span class="p">]</span>
@@ -494,39 +496,31 @@
     <span class="k">return</span> <span class="n">human_bytes</span><span class="p">(</span><span class="n">n_bytes</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="rbind_all"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.rbind_all">[docs]</a><span class="k">def</span> <span class="nf">rbind_all</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Given a variable set of H2OFrames,</span>
-<span class="sd">    rbind all of them into a single H2OFrame.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-
-<span class="sd">    array1, array2, ... : H2OFrame, shape=(n_samples, n_features)</span>
-<span class="sd">        The H2OFrames to rbind. All should match in column</span>
-<span class="sd">        dimensionality.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-
-<span class="sd">    f : H2OFrame</span>
-<span class="sd">        The rbound H2OFrame</span>
+<span class="k">def</span> <span class="nf">_gen_optimized_chunks</span><span class="p">(</span><span class="n">idcs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given the list of indices, create more efficient chunks to minimize</span>
+<span class="sd">    the number of rbind operations required for the H2OFrame ExprNode cache.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># check all are H2OFrames</span>
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-        <span class="n">check_frame</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">idcs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">idcs</span><span class="p">)</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">idcs</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">counter</span><span class="o">.</span><span class="n">most_common</span><span class="p">()</span>  <span class="c1"># order desc</span>
 
-    <span class="c1"># check col dim</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;inconsistent column dimensions&#39;</span><span class="p">)</span>
+    <span class="c1"># the first index is the number of chunks we&#39;ll need to create.</span>
+    <span class="n">n_chunks</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_chunks</span><span class="p">)]</span>  <span class="c1"># gen the number of chunks we&#39;ll need</span>
 
-    <span class="n">f</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">x</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">f</span><span class="o">.</span><span class="n">rbind</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># 1. populate the chunks each with their first idx (the most common)</span>
+    <span class="c1"># 2. pop from the counter</span>
+    <span class="c1"># 3. re-generate the most_common(), repeat</span>
+    <span class="k">while</span> <span class="n">counts</span><span class="p">:</span>
+        <span class="n">val</span><span class="p">,</span> <span class="n">n_iter</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># the one at the head of the list is the most common</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iter</span><span class="p">):</span>
+            <span class="n">chunks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">counts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># pop out the first idx...</span>
+    <span class="c1"># sort them</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">f</span></div>
 
-
-<div class="viewcode-block" id="reorder_h2o_frame"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.reorder_h2o_frame">[docs]</a><span class="k">def</span> <span class="nf">reorder_h2o_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idcs</span><span class="p">):</span>
+<div class="viewcode-block" id="reorder_h2o_frame"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.reorder_h2o_frame">[docs]</a><span class="k">def</span> <span class="nf">reorder_h2o_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idcs</span><span class="p">,</span> <span class="n">from_chunks</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Currently, H2O does not allow us to reorder</span>
 <span class="sd">    frames. This is a hack to rbind rows together in the</span>
 <span class="sd">    order prescribed.</span>
@@ -540,6 +534,10 @@
 <span class="sd">    idcs : iterable</span>
 <span class="sd">        The order of the H2OFrame rows to be returned.</span>
 
+<span class="sd">    from_chunks : bool, optional (default=False)</span>
+<span class="sd">        Whether the elements in ``idcs`` are optimized chunks</span>
+<span class="sd">        generated by ``_gen_optimized_chunks``.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
@@ -548,16 +546,41 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># hack... slow but functional</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># we&#39;re rbinding. no need to copy</span>
-    <span class="n">new_frame</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># to prevent rbinding rows over, and over, and over</span>
+    <span class="c1"># create chunks. Rbind chunks that are progressively increasing.</span>
+    <span class="c1"># once we hit an index that decreases, rbind, and then start the next chunk</span>
+    <span class="n">last_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># all of the chunks</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the current chunk being built</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idcs</span><span class="p">:</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
-        <span class="k">if</span> <span class="n">new_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">new_frame</span> <span class="o">=</span> <span class="n">row</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_frame</span> <span class="o">=</span> <span class="n">new_frame</span><span class="o">.</span><span class="n">rbind</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="c1"># if it&#39;s a chunk from balancer:</span>
+        <span class="k">if</span> <span class="n">from_chunks</span><span class="p">:</span>  <span class="c1"># probably a list of indices</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
 
-    <span class="k">return</span> <span class="n">new_frame</span></div>
+        <span class="c1"># otherwise chunks have not been computed</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># while the indices increase adjacently</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">last_index</span><span class="p">:</span>
+                <span class="n">last_index</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="c1"># otherwise, they are no longer increasing</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if a chunk exists</span>
+                <span class="k">if</span> <span class="n">chunk</span><span class="p">:</span>  <span class="c1"># there should ALWAYS be a chunk</span>
+                    <span class="n">rows</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">chunk</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rows</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+
+                <span class="c1"># append the chunk and reset the list</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+                <span class="n">chunk</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">last_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="c1"># print([type(c) for c in chunks])  # couldn&#39;t figure out an issue for a while...</span>
+    <span class="k">return</span> <span class="n">rbind_all</span><span class="p">(</span><span class="o">*</span><span class="n">chunks</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="shuffle_h2o_frame"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.shuffle_h2o_frame">[docs]</a><span class="k">def</span> <span class="nf">shuffle_h2o_frame</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
@@ -577,9 +600,14 @@
 <span class="sd">    shuf : H2OFrame</span>
 <span class="sd">        The shuffled H2OFrame</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Shuffling H2O frames will eventually be deprecated, as H2O &#39;</span>
+                  <span class="s1">&#39;does not allow re-ordering of frames by row. The current work-around &#39;</span>
+                  <span class="s1">&#39;(rbinding the rows) is known to cause issues in the H2O ExprNode &#39;</span>
+                  <span class="s1">&#39;cache for very large frames.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+
     <span class="n">X</span> <span class="o">=</span> <span class="n">check_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">idcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-    <span class="n">shuf</span> <span class="o">=</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idcs</span><span class="p">)</span>
+    <span class="n">shuf</span> <span class="o">=</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idcs</span><span class="p">)</span>  <span class="c1"># do not generate optimized chunks here...</span>
     <span class="k">return</span> <span class="n">shuf</span></div>
 </pre></div>
 
@@ -614,7 +642,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

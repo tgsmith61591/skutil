@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o module &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o module &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../index.html"/>
         <link rel="up" title="skutil package" href="index.html"/>
         <link rel="next" title="skutil.linear_model module" href="skutil_linear_model.html"/>
         <link rel="prev" title="skutil.grid_search" href="skutil_grid_search.html"/> 
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -1412,7 +1412,7 @@ into ordinal labels 0 - len(column) - 1.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">example</span><span class="p">():</span>
 <span class="gp">... </span>    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="gp">... </span>    <span class="kn">from</span> <span class="nn">skutil.h2o</span> <span class="k">import</span> <span class="n">from_pandas</span>
-<span class="gp">... </span>    <span class="kn">from</span> <span class="nn">sktuil.h2o.transform</span> <span class="k">import</span> <span class="n">H2OLabelEncoder</span>
+<span class="gp">... </span>    <span class="kn">from</span> <span class="nn">skutil.h2o.transform</span> <span class="k">import</span> <span class="n">H2OLabelEncoder</span>
 <span class="gp">... </span>    
 <span class="gp">... </span>    <span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span>
 <span class="gp">... </span>                <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
@@ -1527,7 +1527,7 @@ A string indicating how to handle missing values.</p>
 </div></blockquote>
 <p><strong>mean_abs_correlations_</strong> : list, float</p>
 <blockquote>
-<div><p>The corresponding mean absolute correlations of each <a href="#id8"><span class="problematic" id="id9">drop_</span></a> name</p>
+<div><p>The corresponding mean absolute correlations of each <a href="#id10"><span class="problematic" id="id11">drop_</span></a> name</p>
 </div></blockquote>
 <p><strong>correlations_</strong> : named tuple</p>
 <blockquote>
@@ -3518,6 +3518,69 @@ y_actual and y_predict.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="skutil.h2o.h2o_auc_score">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_auc_score</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>average='macro'</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_auc_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_auc_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Area Under the Curve (AUC) using the trapezoidal rule.
+This implementation is restricted to the binary classification task
+or multilabel classification task in label indicator format.</p>
+<p>NOTE: using H2OFrames, this would require moving the predict vector locally for
+each task in the average binary score task. It&#8217;s more efficient simply to bring both
+vectors local, and then use the sklearn h2o score. That&#8217;s what we&#8217;ll do for now.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The one-dimensional ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The one-dimensional predicted labels</p>
+</div></blockquote>
+<p><strong>average</strong> : string, optional (default=&#8217;macro&#8217;)</p>
+<blockquote>
+<div><p>One of [None, &#8216;micro&#8217;, &#8216;macro&#8217; (default), &#8216;samples&#8217;, &#8216;weighted&#8217;].
+If <code class="docutils literal"><span class="pre">None</span></code>, the scores for each class are returned. Otherwise,
+this determines the type of averaging performed on the data:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'micro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics globally by considering each element of the label
+indicator matrix as a label.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'macro'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their unweighted
+mean.  This does not take label imbalance into account.</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'weighted'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each label, and find their average, weighted
+by support (the number of true instances for each label).</p>
+</dd>
+<dt><code class="docutils literal"><span class="pre">'samples'</span></code>:</dt>
+<dd><p class="first last">Calculate metrics for each instance, and find their average.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame or float, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>auc</strong> : float</p>
+<p class="last"><strong>.. versionadded:: 0.1.6</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="skutil.h2o.h2o_bincount">
 <code class="descclassname">skutil.h2o.</code><code class="descname">h2o_bincount</code><span class="sig-paren">(</span><em>bins</em>, <em>weights=None</em>, <em>minlength=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#h2o_bincount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_bincount" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a 1d column of non-negative ints, <code class="docutils literal"><span class="pre">bins</span></code>, return
@@ -3940,6 +4003,68 @@ assumes each cell is a signed 32-bit float</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="skutil.h2o.h2o_log_loss">
+<code class="descclassname">skutil.h2o.</code><code class="descname">h2o_log_loss</code><span class="sig-paren">(</span><em>y_actual</em>, <em>y_predict</em>, <em>eps=1e-15</em>, <em>normalize=True</em>, <em>sample_weight=None</em>, <em>y_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/metrics.html#h2o_log_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.h2o_log_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log loss, aka logistic loss or cross-entropy loss.
+This is the loss function used in (multinomial) logistic regression
+and extensions of it such as neural networks, defined as the negative
+log-likelihood of the true labels given a probabilistic classifier&#8217;s
+predictions. The log loss is only defined for two or more labels.
+For a single sample with true label yt in {0,1} and
+estimated probability yp that yt = 1, the log loss is</p>
+<blockquote>
+<div>-log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))</div></blockquote>
+<p>This method is adapted from the <code class="docutils literal"><span class="pre">sklearn.metrics.classification.log_loss</span></code>
+function for use with <a href="#id8"><span class="problematic" id="id9">``</span></a>H2OFrame``s in skutil.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y_actual</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples,)</p>
+<blockquote>
+<div><p>The one-dimensional ground truth</p>
+</div></blockquote>
+<p><strong>y_predict</strong> : <code class="docutils literal"><span class="pre">H2OFrame</span></code>, shape=(n_samples, [n_classes])</p>
+<blockquote>
+<div><p>The predicted labels. Can represent a matrix. If
+<code class="docutils literal"><span class="pre">y_predict.shape</span> <span class="pre">=</span> <span class="pre">(n_samples,)</span></code> the probabilities provided
+are assumed to be that of the positive class. The labels in
+<code class="docutils literal"><span class="pre">y_predict</span></code> are assumed to be ordered ordinally.</p>
+</div></blockquote>
+<p><strong>eps</strong> : float, optional (default=1e-15)</p>
+<blockquote>
+<div><p>Log loss is undefined for p=0 or p=1, so probabilities are
+clipped to max(eps, min(1 - eps, p)).</p>
+</div></blockquote>
+<p><strong>normalize</strong> : bool, optional (default=True)</p>
+<blockquote>
+<div><p>If true, return the mean loss per sample.
+Otherwise, return the sum of the per-sample losses.</p>
+</div></blockquote>
+<p><strong>sample_weight</strong> : H2OFrame or float, optional (default=None)</p>
+<blockquote>
+<div><p>A frame of sample weights of matching dims with
+y_actual and y_predict.</p>
+</div></blockquote>
+<p><strong>y_type</strong> : string, optional (default=None)</p>
+<blockquote>
+<div><p>The type of the column. If None, will be determined.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>loss</strong> : float</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The logarithm used is the natural logarithm (base-e).</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 0.1.6.</span></p>
+</div>
 </dd></dl>
 
 <dl class="function">
@@ -4483,7 +4608,7 @@ module.</p>
 
 <dl class="function">
 <dt id="skutil.h2o.rbind_all">
-<code class="descclassname">skutil.h2o.</code><code class="descname">rbind_all</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#rbind_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.rbind_all" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.h2o.</code><code class="descname">rbind_all</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/fixes.html#rbind_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.rbind_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a variable set of H2OFrames,
 rbind all of them into a single H2OFrame.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4509,7 +4634,7 @@ dimensionality.</p>
 
 <dl class="function">
 <dt id="skutil.h2o.reorder_h2o_frame">
-<code class="descclassname">skutil.h2o.</code><code class="descname">reorder_h2o_frame</code><span class="sig-paren">(</span><em>X</em>, <em>idcs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#reorder_h2o_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.reorder_h2o_frame" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">skutil.h2o.</code><code class="descname">reorder_h2o_frame</code><span class="sig-paren">(</span><em>X</em>, <em>idcs</em>, <em>from_chunks=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/skutil/h2o/util.html#reorder_h2o_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#skutil.h2o.reorder_h2o_frame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Currently, H2O does not allow us to reorder
 frames. This is a hack to rbind rows together in the
 order prescribed.</p>
@@ -4524,6 +4649,11 @@ order prescribed.</p>
 <p><strong>idcs</strong> : iterable</p>
 <blockquote>
 <div><p>The order of the H2OFrame rows to be returned.</p>
+</div></blockquote>
+<p><strong>from_chunks</strong> : bool, optional (default=False)</p>
+<blockquote>
+<div><p>Whether the elements in <code class="docutils literal"><span class="pre">idcs</span></code> are optimized chunks
+generated by <code class="docutils literal"><span class="pre">_gen_optimized_chunks</span></code>.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -4702,7 +4832,7 @@ on a 1d H2OFrame.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

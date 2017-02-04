@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.preprocessing.balance &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.preprocessing.balance &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -143,6 +143,7 @@
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
 <span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">NearestNeighbors</span>
 <span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">BaseSkutil</span>
+<span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">dict_keys</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="o">*</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -222,24 +223,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ratio</span> <span class="o">=</span> <span class="n">_validate_ratio</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">_validate_target</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>  <span class="c1"># force to string</span>
+    <span class="n">is_factor</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">dtypes</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;object&#39;</span>
 
     <span class="c1"># validate is &lt; max classes</span>
     <span class="n">cts</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">n_classes</span> <span class="o">=</span> <span class="n">_validate_num_classes</span><span class="p">(</span><span class="n">cts</span><span class="p">)</span>
     <span class="n">needs_balancing</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">ratio</span>
 
-    <span class="n">out_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_factor</span> <span class="k">else</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
+    <span class="n">out_tup</span> <span class="o">=</span> <span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">)),</span>  <span class="c1"># cts</span>
+               <span class="n">index</span><span class="p">,</span>  <span class="c1"># labels sorted ascending by commonality</span>
+               <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_factor</span> <span class="k">else</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>  <span class="c1"># the target</span>
+               <span class="n">n_classes</span><span class="p">,</span>
+               <span class="n">needs_balancing</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_tup</span>
-
-
-<span class="k">def</span> <span class="nf">_pd_frame_to_np</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">x</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
-
-    <span class="c1"># assume is np and return</span>
-    <span class="k">return</span> <span class="n">x</span>
 
 
 <span class="k">class</span> <span class="nc">BalancerMixin</span><span class="p">:</span>
@@ -300,9 +297,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
 
         <span class="c1"># perform validation_function</span>
-        <span class="n">cts</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span> <span class="o">=</span> <span class="n">validation_function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
+        <span class="n">cts</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">target_col</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span> <span class="o">=</span> <span class="n">validation_function</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_name</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cts</span> <span class="o">=</span> <span class="n">cts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span> <span class="o">=</span> <span class="n">n_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_col</span> <span class="o">=</span> <span class="n">target_col</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">needs_balancing</span> <span class="o">=</span> <span class="n">needs_balancing</span>
 
     <span class="k">def</span> <span class="nf">get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">):</span>
@@ -328,20 +326,19 @@
             <span class="k">return</span> <span class="n">_default_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shuffle</span><span class="p">)</span>
 
         <span class="n">cts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cts</span>
-        <span class="n">n_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
 
         <span class="c1"># get the maj class</span>
-        <span class="n">majority</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">majority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">n_required</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">ratio</span> <span class="o">*</span> <span class="n">cts</span><span class="p">[</span><span class="n">majority</span><span class="p">]))</span>
 
         <span class="c1"># target_col needs to be np array</span>
-        <span class="n">target_col</span> <span class="o">=</span> <span class="n">_pd_frame_to_np</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">])</span>
+        <span class="n">target_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_col</span>  <span class="c1"># already computed and in a NP array</span>
         <span class="n">all_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="n">sample_indices</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">minority</span> <span class="ow">in</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">minority</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
             <span class="c1"># since it&#39;s sorted, it means we&#39;ve hit the end</span>
             <span class="k">if</span> <span class="n">minority</span> <span class="o">==</span> <span class="n">majority</span><span class="p">:</span>
                 <span class="k">break</span>
@@ -385,13 +382,12 @@
             <span class="k">return</span> <span class="n">_default_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shuffle</span><span class="p">)</span>
 
         <span class="n">cts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cts</span>
-        <span class="n">n_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_classes</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span>
         <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span>
 
         <span class="c1"># get the maj class</span>
-        <span class="n">majority</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">next_most</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># the next-most-populous class label - we know there are at least two! (validation)</span>
+        <span class="n">majority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">next_most</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># the next-most-populous class label - we know there are at least two! (validation)</span>
         <span class="n">n_required</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mi">1</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">cts</span><span class="p">[</span><span class="n">next_most</span><span class="p">])</span>  <span class="c1"># i.e., if ratio == 0.5 and next_most == 30, n_required = 60</span>
         <span class="n">all_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
@@ -400,7 +396,7 @@
             <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">all_indices</span><span class="p">))</span>
 
         <span class="c1"># if not returned early, drop some indices</span>
-        <span class="n">target_col</span> <span class="o">=</span> <span class="n">_pd_frame_to_np</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">])</span>
+        <span class="n">target_col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_col</span>
         <span class="n">majority_recs</span> <span class="o">=</span> <span class="n">all_indices</span><span class="p">[</span><span class="n">target_col</span> <span class="o">==</span> <span class="n">majority</span><span class="p">]</span>
         <span class="n">idcs</span> <span class="o">=</span> <span class="n">choice</span><span class="p">(</span><span class="n">majority_recs</span><span class="p">,</span> <span class="n">n_required</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -641,16 +637,16 @@
         <span class="c1"># in case X is the result of a slice and they&#39;re out of order.</span>
         <span class="n">X</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span>
-        <span class="n">cts</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span> <span class="o">=</span> <span class="n">_validate_x_y_ratio</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
+        <span class="n">cts</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">target_col</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span> <span class="o">=</span> <span class="n">_validate_x_y_ratio</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
 
         <span class="c1"># if we don&#39;t need balancing, then just return the indices as is</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">needs_balancing</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">X</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="k">else</span> <span class="n">shuffle_dataframe</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
 
         <span class="c1"># get the maj class</span>
-        <span class="n">majority</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">majority</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">n_required</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">ratio</span> <span class="o">*</span> <span class="n">cts</span><span class="p">[</span><span class="n">majority</span><span class="p">]))</span>
-        <span class="k">for</span> <span class="n">minority</span> <span class="ow">in</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">minority</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">minority</span> <span class="o">==</span> <span class="n">majority</span><span class="p">:</span>
                 <span class="k">break</span>
 
@@ -816,7 +812,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

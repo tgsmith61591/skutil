@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.grid_search &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o.grid_search &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -159,15 +159,7 @@
 <span class="kn">from</span> <span class="nn">..grid_search</span> <span class="k">import</span> <span class="n">_CVScoreTuple</span><span class="p">,</span> <span class="n">_check_param_grid</span>
 <span class="kn">from</span> <span class="nn">..metrics</span> <span class="k">import</span> <span class="n">GainsStatisticalReport</span>
 <span class="kn">from</span> <span class="nn">.split</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.metrics</span> <span class="k">import</span> <span class="p">(</span><span class="n">h2o_accuracy_score</span><span class="p">,</span>
-                      <span class="n">h2o_f1_score</span><span class="p">,</span>
-                      <span class="n">h2o_mean_absolute_error</span><span class="p">,</span>
-                      <span class="n">h2o_mean_squared_error</span><span class="p">,</span>
-                      <span class="n">h2o_median_absolute_error</span><span class="p">,</span>
-                      <span class="n">h2o_precision_score</span><span class="p">,</span>
-                      <span class="n">h2o_recall_score</span><span class="p">,</span>
-                      <span class="n">h2o_r2_score</span><span class="p">,</span>
-                      <span class="n">make_h2o_scorer</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">metrics</span>
 
 <span class="kn">from</span> <span class="nn">sklearn.externals.joblib</span> <span class="k">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="k">import</span> <span class="n">clone</span>
@@ -200,17 +192,8 @@
     <span class="s1">&#39;H2OGainsRandomizedSearchCV&#39;</span>
 <span class="p">]</span>
 
-<span class="n">SCORERS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;accuracy_score&#39;</span><span class="p">:</span>        <span class="n">h2o_accuracy_score</span><span class="p">,</span>
-    <span class="s1">&#39;f1_score&#39;</span><span class="p">:</span>              <span class="n">h2o_f1_score</span><span class="p">,</span>
-    <span class="c1"># &#39;log_loss&#39; :,</span>
-    <span class="s1">&#39;mean_absolute_error&#39;</span><span class="p">:</span>   <span class="n">h2o_mean_absolute_error</span><span class="p">,</span>
-    <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span>    <span class="n">h2o_mean_squared_error</span><span class="p">,</span>
-    <span class="s1">&#39;median_absolute_error&#39;</span><span class="p">:</span> <span class="n">h2o_median_absolute_error</span><span class="p">,</span>
-    <span class="s1">&#39;precision_score&#39;</span><span class="p">:</span>       <span class="n">h2o_precision_score</span><span class="p">,</span>
-    <span class="s1">&#39;r2_score&#39;</span><span class="p">:</span>              <span class="n">h2o_r2_score</span><span class="p">,</span>
-    <span class="s1">&#39;recall_score&#39;</span><span class="p">:</span>          <span class="n">h2o_recall_score</span>
-<span class="p">}</span>
+<span class="c1"># map for the metrics</span>
+<span class="n">SCORERS</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">SCORERS</span>
 
 <span class="sd">&quot;&quot;&quot;These parameters are ones h2o stores</span>
 <span class="sd">that we don&#39;t necessarily want to clone.</span>
@@ -598,7 +581,7 @@
                 
             <span class="c1"># make it a scorer</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span> <span class="o">=</span> <span class="n">make_h2o_scorer</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scoring_class_</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">make_h2o_scorer</span><span class="p">(</span><span class="n">scoring</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">target_feature</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># should be impossible to get here</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;expected string or callable for scorer, but got </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scoring</span><span class="p">))</span>
 
@@ -1541,7 +1524,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

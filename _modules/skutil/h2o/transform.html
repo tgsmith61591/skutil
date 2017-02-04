@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.transform &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o.transform &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -133,7 +133,9 @@
            <div itemprop="articleBody">
             
   <h1>Source code for skutil.h2o.transform</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span></span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">BaseH2OTransformer</span><span class="p">,</span> <span class="n">_frame_from_x_y</span><span class="p">,</span> <span class="n">check_frame</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">is_numeric</span><span class="p">,</span> <span class="n">flatten_all</span>
 <span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">dict_values</span>
@@ -272,6 +274,10 @@
         <span class="c1"># at this point, the entirety of frame can be operated on...</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>  <span class="c1"># convert to string...</span>
 
+        <span class="c1"># SHOULD we enforce this??...</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;enum&#39;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;can only impute numeric values&#39;</span><span class="p">)</span>
+
         <span class="c1"># validate the fill, do fit</span>
         <span class="n">fill</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fill</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
@@ -376,23 +382,31 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">is_int</span> <span class="ow">and</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fill_val</span><span class="p">:</span>  <span class="c1"># then it&#39;s a dict and this col doesn&#39;t exist in it...</span>
                 <span class="k">continue</span>
 
-            <span class="c1"># get the column index</span>
-            <span class="n">col_idx</span> <span class="o">=</span> <span class="n">X_columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-
             <span class="c1"># if it&#39;s a single int, easy, otherwise query dict</span>
             <span class="n">col_imp_value</span> <span class="o">=</span> <span class="n">fill_val</span> <span class="k">if</span> <span class="n">is_int</span> <span class="k">else</span> <span class="n">fill_val</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
 
             <span class="c1"># reassign the column itself, as we might need to make it</span>
             <span class="c1"># a float column for imputation to avoid numpy int64 bug</span>
-            <span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">col_imp_value</span> <span class="o">=</span> <span class="n">_transform_col</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="n">col_imp_value</span><span class="p">)</span>
+            <span class="c1"># X[col], col_imp_value = _transform_col(X[col], col_imp_value)</span>
 
             <span class="c1"># unfortunately, since we can&#39;t boolean index the</span>
             <span class="c1"># h2oframe, we have to convert pandas</span>
-            <span class="n">the_na_col</span> <span class="o">=</span> <span class="n">na_frame</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
-            <span class="n">na_mask_idcs</span> <span class="o">=</span> <span class="n">the_na_col</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">the_na_col</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">the_na_col_frame</span> <span class="o">=</span> <span class="n">na_frame</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">the_na_col_frame</span><span class="o">.</span><span class="n">sum</span><span class="p">():</span>  <span class="c1"># if there are no missing ones here, move on... faster than making local</span>
+                <span class="k">continue</span>
 
-            <span class="k">for</span> <span class="n">na_row</span> <span class="ow">in</span> <span class="n">na_mask_idcs</span><span class="p">:</span>
-                <span class="n">X</span><span class="p">[</span><span class="n">na_row</span><span class="p">,</span> <span class="n">col_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_imp_value</span>
+            <span class="n">the_na_col</span> <span class="o">=</span> <span class="n">the_na_col_frame</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span>
+            <span class="n">na_mask_idcs</span> <span class="o">=</span> <span class="n">the_na_col</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">the_na_col</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="c1"># if the mask is empty, move on - should be handled above...</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">na_mask_idcs</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># get the column index</span>
+            <span class="c1"># col_idx = X_columns.index(col)</span>
+            <span class="c1"># for na_row in na_mask_idcs:</span>
+            <span class="c1">#     X[na_row, col_idx] = col_imp_value</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">na_mask_idcs</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_imp_value</span>
 
         <span class="c1"># return the copy</span>
         <span class="k">return</span> <span class="n">X</span></div></div>
@@ -688,7 +702,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

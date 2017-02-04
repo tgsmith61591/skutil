@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.metrics &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o.metrics &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -143,17 +143,22 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics.ranking</span> <span class="k">import</span> <span class="n">roc_auc_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics.classification</span> <span class="k">import</span> <span class="n">log_loss</span>
+<span class="kn">from</span> <span class="nn">h2o.frame</span> <span class="k">import</span> <span class="n">H2OFrame</span>
 <span class="kn">from</span> <span class="nn">.frame</span> <span class="k">import</span> <span class="n">_check_is_1d_frame</span><span class="p">,</span> <span class="n">is_integer</span>
 <span class="kn">from</span> <span class="nn">.encode</span> <span class="k">import</span> <span class="n">H2OLabelEncoder</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">h2o_bincount</span><span class="p">,</span> <span class="n">h2o_col_to_numpy</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">h2o_bincount</span><span class="p">,</span> <span class="n">h2o_col_to_numpy</span><span class="p">,</span> <span class="n">reorder_h2o_frame</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">flatten_all</span>
 <span class="kn">from</span> <span class="nn">..utils.fixes</span> <span class="k">import</span> <span class="n">is_iterable</span>
 <span class="kn">from</span> <span class="nn">..base</span> <span class="k">import</span> <span class="n">since</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;h2o_accuracy_score&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_auc_score&#39;</span><span class="p">,</span>
     <span class="s1">&#39;h2o_f1_score&#39;</span><span class="p">,</span>
     <span class="s1">&#39;h2o_fbeta_score&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;h2o_log_loss&#39;</span><span class="p">,</span>
     <span class="s1">&#39;h2o_mean_absolute_error&#39;</span><span class="p">,</span>
     <span class="s1">&#39;h2o_mean_squared_error&#39;</span><span class="p">,</span>
     <span class="s1">&#39;h2o_median_absolute_error&#39;</span><span class="p">,</span>
@@ -241,7 +246,7 @@
     <span class="k">return</span> <span class="s1">&#39;continuous&#39;</span>
 
 
-<span class="k">def</span> <span class="nf">_check_targets</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_check_targets</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assert_finite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Ensures all the args are H2OFrames,</span>
 <span class="sd">    that each arg is 1 column, and that all</span>
 <span class="sd">    of the lengths of the columns match.</span>
@@ -261,6 +266,9 @@
 <span class="sd">        of column (for ``y_true``). Note that this can</span>
 <span class="sd">        be expensive. Thus, the ``make_h2o_scorer`` function</span>
 <span class="sd">        caches this variable in the scoring instance.</span>
+
+<span class="sd">    assert_finite : bool, optional (default=False)</span>
+<span class="sd">        If True, asserts there are no missing values in either frame.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -286,6 +294,10 @@
         <span class="n">y_type</span> <span class="o">=</span> <span class="n">_type_of_target</span><span class="p">(</span><span class="n">y_true</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">y_type</span> <span class="o">==</span> <span class="s1">&#39;unknown&#39;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot determine datatype of y_true: is it all the same value?&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">assert_finite</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">y_true</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NA values found in y_true&#39;</span>
+        <span class="k">assert</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NA values found in y_pred&#39;</span>
 
     <span class="k">return</span> <span class="n">y_type</span><span class="p">,</span> <span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span>
 
@@ -364,6 +376,145 @@
     <span class="n">y_type</span><span class="p">,</span> <span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span> <span class="o">=</span> <span class="n">_check_targets</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">y_type</span><span class="p">)</span>
     <span class="n">_err_for_continuous</span><span class="p">(</span><span class="n">y_type</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_weighted_sum</span><span class="p">(</span><span class="n">y_actual</span> <span class="o">==</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">sample_weight</span><span class="p">,</span> <span class="n">normalize</span><span class="p">)</span></div>
+
+
+<span class="nd">@since</span><span class="p">(</span><span class="s1">&#39;0.1.6&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="h2o_auc_score"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_auc_score">[docs]</a><span class="k">def</span> <span class="nf">h2o_auc_score</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;macro&quot;</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute Area Under the Curve (AUC) using the trapezoidal rule.</span>
+<span class="sd">    This implementation is restricted to the binary classification task</span>
+<span class="sd">    or multilabel classification task in label indicator format.</span>
+
+<span class="sd">    NOTE: using H2OFrames, this would require moving the predict vector locally for</span>
+<span class="sd">    each task in the average binary score task. It&#39;s more efficient simply to bring both</span>
+<span class="sd">    vectors local, and then use the sklearn h2o score. That&#39;s what we&#39;ll do for now.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_actual : ``H2OFrame``, shape=(n_samples,)</span>
+<span class="sd">        The one-dimensional ground truth</span>
+
+<span class="sd">    y_predict : ``H2OFrame``, shape=(n_samples,)</span>
+<span class="sd">        The one-dimensional predicted labels</span>
+
+<span class="sd">    average : string, optional (default=&#39;macro&#39;)</span>
+<span class="sd">        One of [None, &#39;micro&#39;, &#39;macro&#39; (default), &#39;samples&#39;, &#39;weighted&#39;].</span>
+<span class="sd">        If ``None``, the scores for each class are returned. Otherwise,</span>
+<span class="sd">        this determines the type of averaging performed on the data:</span>
+
+<span class="sd">        ``&#39;micro&#39;``:</span>
+<span class="sd">            Calculate metrics globally by considering each element of the label</span>
+<span class="sd">            indicator matrix as a label.</span>
+<span class="sd">        ``&#39;macro&#39;``:</span>
+<span class="sd">            Calculate metrics for each label, and find their unweighted</span>
+<span class="sd">            mean.  This does not take label imbalance into account.</span>
+<span class="sd">        ``&#39;weighted&#39;``:</span>
+<span class="sd">            Calculate metrics for each label, and find their average, weighted</span>
+<span class="sd">            by support (the number of true instances for each label).</span>
+<span class="sd">        ``&#39;samples&#39;``:</span>
+<span class="sd">            Calculate metrics for each instance, and find their average.</span>
+
+<span class="sd">    sample_weight : H2OFrame or float, optional (default=None)</span>
+<span class="sd">        A frame of sample weights of matching dims with</span>
+<span class="sd">        y_actual and y_predict.</span>
+
+<span class="sd">    y_type : string, optional (default=None)</span>
+<span class="sd">        The type of the column. If None, will be determined.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    auc : float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># SKIP THESE FOR NOW, SINCE VALIDATED IN SKLEARN PORTION</span>
+    <span class="c1"># y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)</span>
+    <span class="c1"># _err_for_continuous(y_type)  # this is restricted to classification tasks</span>
+
+    <span class="k">if</span> <span class="n">sample_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_weight</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">_check_targets</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">sample_weight</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>  <span class="c1">#  we don&#39;t care about y_type here</span>
+            <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">sample_weight</span><span class="p">)</span>
+        <span class="c1"># else we just duck type it later</span>
+
+    <span class="c1"># todo: do this better someday</span>
+    <span class="n">y_actual</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">y_actual</span><span class="p">)</span>
+    <span class="n">y_predict</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">y_predict</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="n">average</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">)</span></div>
+
+
+<span class="nd">@since</span><span class="p">(</span><span class="s1">&#39;0.1.6&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="h2o_log_loss"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.h2o_log_loss">[docs]</a><span class="k">def</span> <span class="nf">h2o_log_loss</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">15</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Log loss, aka logistic loss or cross-entropy loss.</span>
+<span class="sd">    This is the loss function used in (multinomial) logistic regression</span>
+<span class="sd">    and extensions of it such as neural networks, defined as the negative</span>
+<span class="sd">    log-likelihood of the true labels given a probabilistic classifier&#39;s</span>
+<span class="sd">    predictions. The log loss is only defined for two or more labels.</span>
+<span class="sd">    For a single sample with true label yt in {0,1} and</span>
+<span class="sd">    estimated probability yp that yt = 1, the log loss is</span>
+
+<span class="sd">        -log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))</span>
+
+<span class="sd">    This method is adapted from the ``sklearn.metrics.classification.log_loss``</span>
+<span class="sd">    function for use with ``H2OFrame``s in skutil.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y_actual : ``H2OFrame``, shape=(n_samples,)</span>
+<span class="sd">        The one-dimensional ground truth</span>
+
+<span class="sd">    y_predict : ``H2OFrame``, shape=(n_samples, [n_classes])</span>
+<span class="sd">        The predicted labels. Can represent a matrix. If</span>
+<span class="sd">        ``y_predict.shape = (n_samples,)`` the probabilities provided</span>
+<span class="sd">        are assumed to be that of the positive class. The labels in</span>
+<span class="sd">        ``y_predict`` are assumed to be ordered ordinally.</span>
+
+<span class="sd">    eps : float, optional (default=1e-15)</span>
+<span class="sd">        Log loss is undefined for p=0 or p=1, so probabilities are</span>
+<span class="sd">        clipped to max(eps, min(1 - eps, p)).</span>
+
+<span class="sd">    normalize : bool, optional (default=True)</span>
+<span class="sd">        If true, return the mean loss per sample.</span>
+<span class="sd">        Otherwise, return the sum of the per-sample losses.</span>
+
+<span class="sd">    sample_weight : H2OFrame or float, optional (default=None)</span>
+<span class="sd">        A frame of sample weights of matching dims with</span>
+<span class="sd">        y_actual and y_predict.</span>
+
+<span class="sd">    y_type : string, optional (default=None)</span>
+<span class="sd">        The type of the column. If None, will be determined.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    loss : float</span>
+
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The logarithm used is the natural logarithm (base-e).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># SKIP THESE FOR NOW, SINCE VALIDATED IN SKLEARN PORTION</span>
+    <span class="c1"># y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)</span>
+    <span class="c1"># _err_for_continuous(y_type)  # this is restricted to classification tasks</span>
+
+    <span class="k">if</span> <span class="n">sample_weight</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sample_weight</span><span class="p">,</span> <span class="n">H2OFrame</span><span class="p">):</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">_check_targets</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">sample_weight</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>  <span class="c1">#  we don&#39;t care about y_type here</span>
+            <span class="n">sample_weight</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">sample_weight</span><span class="p">)</span>
+        <span class="c1"># else we just duck type it later</span>
+
+    <span class="c1"># todo: do this better someday</span>
+    <span class="n">y_actual</span> <span class="o">=</span> <span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">y_actual</span><span class="p">)</span>  <span class="c1"># this is supposed to be a ONE-dim vector</span>
+    <span class="n">y_predict</span> <span class="o">=</span> <span class="n">y_predict</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">as_matrix</span><span class="p">()</span>  <span class="c1"># this might be 2-dim</span>
+
+    <span class="c1"># if it&#39;s a column, make it a vector.</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_predict</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">y_predict</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">y_predict</span> <span class="o">=</span> <span class="n">y_predict</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">y_actual</span><span class="p">,</span> <span class="n">y_predict</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">,</span>
+                    <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">,</span>
+                    <span class="n">sample_weight</span><span class="o">=</span><span class="n">sample_weight</span><span class="p">)</span></div>
 
 
 <span class="nd">@since</span><span class="p">(</span><span class="s1">&#39;0.1.0&#39;</span><span class="p">)</span>
@@ -1052,6 +1203,20 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fun_</span><span class="p">(</span><span class="n">y_actual</span><span class="o">=</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_predict</span><span class="o">=</span><span class="n">y_pred</span><span class="p">,</span>
                          <span class="n">y_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="n">SCORERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;accuracy_score&#39;</span><span class="p">:</span>        <span class="n">h2o_accuracy_score</span><span class="p">,</span>
+    <span class="s1">&#39;auc&#39;</span><span class="p">:</span>                   <span class="n">h2o_auc_score</span><span class="p">,</span>
+    <span class="s1">&#39;f1_score&#39;</span><span class="p">:</span>              <span class="n">h2o_f1_score</span><span class="p">,</span>
+    <span class="s1">&#39;log_loss&#39;</span><span class="p">:</span>             <span class="n">h2o_log_loss</span><span class="p">,</span>
+    <span class="s1">&#39;mean_absolute_error&#39;</span><span class="p">:</span>   <span class="n">h2o_mean_absolute_error</span><span class="p">,</span>
+    <span class="s1">&#39;mean_squared_error&#39;</span><span class="p">:</span>    <span class="n">h2o_mean_squared_error</span><span class="p">,</span>
+    <span class="s1">&#39;median_absolute_error&#39;</span><span class="p">:</span> <span class="n">h2o_median_absolute_error</span><span class="p">,</span>
+    <span class="s1">&#39;precision_score&#39;</span><span class="p">:</span>       <span class="n">h2o_precision_score</span><span class="p">,</span>
+    <span class="s1">&#39;r2_score&#39;</span><span class="p">:</span>              <span class="n">h2o_r2_score</span><span class="p">,</span>
+    <span class="s1">&#39;recall_score&#39;</span><span class="p">:</span>          <span class="n">h2o_recall_score</span>
+<span class="p">}</span>
 </pre></div>
 
            </div>
@@ -1085,7 +1250,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

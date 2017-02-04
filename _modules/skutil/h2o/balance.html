@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>skutil.h2o.balance &mdash; skutil 0.1.5 documentation</title>
+  <title>skutil.h2o.balance &mdash; skutil 0.1.6-dev documentation</title>
   
 
   
@@ -31,7 +31,7 @@
 
   
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="skutil 0.1.5 documentation" href="../../../index.html"/>
+    <link rel="top" title="skutil 0.1.6-dev documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.6-dev
               </div>
             
           
@@ -136,13 +136,15 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">sklearn.externals</span> <span class="k">import</span> <span class="n">six</span>
 <span class="kn">from</span> <span class="nn">skutil.base</span> <span class="k">import</span> <span class="n">overrides</span>
-<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">reorder_h2o_frame</span>
+<span class="kn">from</span> <span class="nn">.transform</span> <span class="k">import</span> <span class="n">_flatten_one</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">reorder_h2o_frame</span><span class="p">,</span> <span class="n">_gen_optimized_chunks</span><span class="p">,</span> <span class="n">h2o_col_to_numpy</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">check_frame</span><span class="p">,</span> <span class="n">BaseH2OFunctionWrapper</span>
 <span class="kn">from</span> <span class="nn">..preprocessing.balance</span> <span class="k">import</span> <span class="p">(</span><span class="n">_validate_ratio</span><span class="p">,</span> <span class="n">_validate_target</span><span class="p">,</span> <span class="n">_validate_num_classes</span><span class="p">,</span>
                                      <span class="n">_OversamplingBalancePartitioner</span><span class="p">,</span> <span class="n">_UndersamplingBalancePartitioner</span><span class="p">,</span>
-                                     <span class="n">BalancerMixin</span><span class="p">,</span> <span class="n">SamplingWarning</span><span class="p">)</span>
+                                     <span class="n">BalancerMixin</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;H2OOversamplingClassBalancer&#39;</span><span class="p">,</span>
@@ -191,18 +193,31 @@
     <span class="c1"># validate ratio, if the current ratio is &gt;= the ratio, it&#39;s &quot;balanced enough&quot;</span>
     <span class="n">ratio</span> <span class="o">=</span> <span class="n">_validate_ratio</span><span class="p">(</span><span class="n">ratio</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">_validate_target</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>  <span class="c1"># cast to string type</span>
+    <span class="n">is_factor</span> <span class="o">=</span> <span class="n">_flatten_one</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">isfactor</span><span class="p">())</span>  <span class="c1"># is the target a factor?</span>
 
-    <span class="c1"># generate cts. Have to get kludgier in h2o...</span>
-    <span class="n">unq_vals</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-    <span class="n">unq_vals</span> <span class="o">=</span> <span class="n">unq_vals</span><span class="o">.</span><span class="n">as_data_frame</span><span class="p">(</span><span class="n">use_pandas</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">unq_vals</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>  <span class="c1"># numpy array of unique vals</span>
-    <span class="n">unq_cts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">val</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">][</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="n">val</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">unq_vals</span><span class="p">])</span>
+    <span class="c1"># if the target is a factor, we might have an issue here...</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    if is_factor:</span>
+<span class="sd">        warnings.warn(&#39;Balancing with the target as a factor can cause unpredictable &#39;</span>
+<span class="sd">                      &#39;sampling behavior (H2O makes it difficult to assess equality &#39;</span>
+<span class="sd">                      &#39;between two factors). Balancing works best when the target &#39;</span>
+<span class="sd">                      &#39;is an int. If possible, consider using `asnumeric`.&#39;, UserWarning)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># validate is &lt; max classes</span>
-    <span class="n">cts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">unq_cts</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># generate cts. Have to get kludgier in h2o... then validate is &lt; max classes</span>
+    <span class="c1"># we have to do it this way, because H2O might treat the vals as enum, and we cannot</span>
+    <span class="c1"># slice based on equality (dernit, H2O).</span>
+    <span class="n">target_col</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">h2o_col_to_numpy</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="p">]))</span>
+    <span class="n">cts</span> <span class="o">=</span> <span class="n">target_col</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">n_classes</span> <span class="o">=</span> <span class="n">_validate_num_classes</span><span class="p">(</span><span class="n">cts</span><span class="p">)</span>
     <span class="n">needs_balancing</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">ratio</span>
 
-    <span class="n">out_tup</span> <span class="o">=</span> <span class="p">(</span><span class="n">cts</span><span class="p">,</span> <span class="n">n_classes</span><span class="p">,</span> <span class="n">needs_balancing</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_factor</span> <span class="k">else</span> <span class="n">cts</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
+    <span class="n">out_tup</span> <span class="o">=</span> <span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">cts</span><span class="o">.</span><span class="n">values</span><span class="p">)),</span>  <span class="c1"># cts</span>
+               <span class="n">index</span><span class="p">,</span>  <span class="c1"># labels sorted ascending by commonality</span>
+               <span class="n">target_col</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_factor</span> <span class="k">else</span> <span class="n">target_col</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>  <span class="c1"># the target</span>
+               <span class="n">n_classes</span><span class="p">,</span>
+               <span class="n">needs_balancing</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_tup</span>
 
 
@@ -220,6 +235,13 @@
                                                <span class="n">max_version</span><span class="o">=</span><span class="n">max_version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+
+        <span class="c1"># this is a new warning</span>
+        <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Setting shuffle=True will eventually be deprecated, as H2O &#39;</span>
+                          <span class="s1">&#39;does not allow re-ordering of frames by row. The current work-around &#39;</span>
+                          <span class="s1">&#39;(rbinding the rows) is known to cause issues in the H2O ExprNode &#39;</span>
+                          <span class="s1">&#39;cache for very large frames.&#39;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="H2OOversamplingClassBalancer"><a class="viewcode-back" href="../../../rsts/codebase/skutil_h2o.html#skutil.h2o.H2OOversamplingClassBalancer">[docs]</a><span class="k">class</span> <span class="nc">H2OOversamplingClassBalancer</span><span class="p">(</span><span class="n">_BaseH2OBalancer</span><span class="p">):</span>
@@ -318,7 +340,7 @@
         <span class="c1"># since H2O won&#39;t allow us to resample (it&#39;s considered rearranging)</span>
         <span class="c1"># we need to rbind at each point of duplication... this can be pretty</span>
         <span class="c1"># inefficient, so we might need to get clever about this...</span>
-        <span class="n">Xb</span> <span class="o">=</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">sample_idcs</span><span class="p">)</span>
+        <span class="n">Xb</span> <span class="o">=</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">_gen_optimized_chunks</span><span class="p">(</span><span class="n">sample_idcs</span><span class="p">),</span> <span class="n">from_chunks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Xb</span></div></div>
 
 
@@ -421,7 +443,9 @@
         <span class="c1"># since there are no feature_names, we can just slice</span>
         <span class="c1"># the h2o frame as is, given the indices:</span>
         <span class="n">idcs</span> <span class="o">=</span> <span class="n">partitioner</span><span class="o">.</span><span class="n">get_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">)</span>
-        <span class="n">Xb</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">idcs</span><span class="p">,</span> <span class="p">:]</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="k">else</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">idcs</span><span class="p">)</span>
+        <span class="n">Xb</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">idcs</span><span class="p">,</span> <span class="p">:]</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="k">else</span> <span class="n">reorder_h2o_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span>
+                                                                       <span class="n">_gen_optimized_chunks</span><span class="p">(</span><span class="n">idcs</span><span class="p">),</span>
+                                                                       <span class="n">from_chunks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Xb</span></div></div>
 </pre></div>
 
@@ -456,7 +480,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.1.5',
+            VERSION:'0.1.6-dev',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
