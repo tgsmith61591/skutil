@@ -12,7 +12,7 @@ from skutil.decomposition import *
 from skutil.grid_search import _as_numpy
 from skutil.preprocessing import *
 from skutil.utils import report_grid_score_detail
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 
 try:
     # this causes a UserWarning to be thrown by matplotlib... should we squelch this?

@@ -8,17 +8,22 @@ import abc
 import warnings
 import numpy as np
 from sklearn.externals import six
+from sklearn.metrics.ranking import roc_auc_score
+from sklearn.metrics.classification import log_loss
+from h2o.frame import H2OFrame
 from .frame import _check_is_1d_frame, is_integer
 from .encode import H2OLabelEncoder
-from .util import h2o_bincount, h2o_col_to_numpy
+from .util import h2o_bincount, h2o_col_to_numpy, reorder_h2o_frame
 from ..utils import flatten_all
 from ..utils.fixes import is_iterable
 from ..base import since
 
 __all__ = [
     'h2o_accuracy_score',
+    'h2o_auc_score',
     'h2o_f1_score',
     'h2o_fbeta_score',
+    'h2o_log_loss',
     'h2o_mean_absolute_error',
     'h2o_mean_squared_error',
     'h2o_median_absolute_error',
@@ -106,7 +111,7 @@ def _type_of_target(y):
     return 'continuous'
 
 
-def _check_targets(y_true, y_pred, y_type=None):
+def _check_targets(y_true, y_pred, y_type=None, assert_finite=False):
     """Ensures all the args are H2OFrames,
     that each arg is 1 column, and that all
     of the lengths of the columns match.
@@ -126,6 +131,9 @@ def _check_targets(y_true, y_pred, y_type=None):
         of column (for ``y_true``). Note that this can
         be expensive. Thus, the ``make_h2o_scorer`` function
         caches this variable in the scoring instance.
+
+    assert_finite : bool, optional (default=False)
+        If True, asserts there are no missing values in either frame.
 
     Returns
     -------
@@ -151,6 +159,10 @@ def _check_targets(y_true, y_pred, y_type=None):
         y_type = _type_of_target(y_true)
         if y_type == 'unknown':
             raise ValueError('cannot determine datatype of y_true: is it all the same value?')
+
+    if assert_finite:
+        assert y_true.isna().sum() == 0, 'NA values found in y_true'
+        assert y_pred.isna().sum() == 0, 'NA values found in y_pred'
 
     return y_type, y_true, y_pred
 
@@ -229,6 +241,145 @@ def h2o_accuracy_score(y_actual, y_predict, normalize=True,
     y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
     _err_for_continuous(y_type)
     return _weighted_sum(y_actual == y_predict, sample_weight, normalize)
+
+
+@since('0.1.6')
+def h2o_auc_score(y_actual, y_predict, average="macro", sample_weight=None, y_type=None):
+    """Compute Area Under the Curve (AUC) using the trapezoidal rule.
+    This implementation is restricted to the binary classification task
+    or multilabel classification task in label indicator format.
+
+    NOTE: using H2OFrames, this would require moving the predict vector locally for
+    each task in the average binary score task. It's more efficient simply to bring both
+    vectors local, and then use the sklearn h2o score. That's what we'll do for now.
+
+    Parameters
+    ----------
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
+
+    y_predict : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional predicted labels
+
+    average : string, optional (default='macro')
+        One of [None, 'micro', 'macro' (default), 'samples', 'weighted'].
+        If ``None``, the scores for each class are returned. Otherwise,
+        this determines the type of averaging performed on the data:
+
+        ``'micro'``:
+            Calculate metrics globally by considering each element of the label
+            indicator matrix as a label.
+        ``'macro'``:
+            Calculate metrics for each label, and find their unweighted
+            mean.  This does not take label imbalance into account.
+        ``'weighted'``:
+            Calculate metrics for each label, and find their average, weighted
+            by support (the number of true instances for each label).
+        ``'samples'``:
+            Calculate metrics for each instance, and find their average.
+
+    sample_weight : H2OFrame or float, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+
+    Returns
+    -------
+    auc : float
+    """
+    # SKIP THESE FOR NOW, SINCE VALIDATED IN SKLEARN PORTION
+    # y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
+    # _err_for_continuous(y_type)  # this is restricted to classification tasks
+
+    if sample_weight is not None:
+        if isinstance(sample_weight, H2OFrame):
+            _, _, sample_weight = _check_targets(y_actual, sample_weight, 'unknown')  #  we don't care about y_type here
+            sample_weight = h2o_col_to_numpy(sample_weight)
+        # else we just duck type it later
+
+    # todo: do this better someday
+    y_actual = h2o_col_to_numpy(y_actual)
+    y_predict = h2o_col_to_numpy(y_predict)
+
+    return roc_auc_score(y_actual, y_predict, average=average, sample_weight=sample_weight)
+
+
+@since('0.1.6')
+def h2o_log_loss(y_actual, y_predict, eps=1e-15, normalize=True, sample_weight=None, y_type=None):
+    """Log loss, aka logistic loss or cross-entropy loss.
+    This is the loss function used in (multinomial) logistic regression
+    and extensions of it such as neural networks, defined as the negative
+    log-likelihood of the true labels given a probabilistic classifier's
+    predictions. The log loss is only defined for two or more labels.
+    For a single sample with true label yt in {0,1} and
+    estimated probability yp that yt = 1, the log loss is
+
+        -log P(yt|yp) = -(yt log(yp) + (1 - yt) log(1 - yp))
+
+    This method is adapted from the ``sklearn.metrics.classification.log_loss``
+    function for use with ``H2OFrame``s in skutil.
+
+
+    Parameters
+    ----------
+    y_actual : ``H2OFrame``, shape=(n_samples,)
+        The one-dimensional ground truth
+
+    y_predict : ``H2OFrame``, shape=(n_samples, [n_classes])
+        The predicted labels. Can represent a matrix. If
+        ``y_predict.shape = (n_samples,)`` the probabilities provided
+        are assumed to be that of the positive class. The labels in
+        ``y_predict`` are assumed to be ordered ordinally.
+
+    eps : float, optional (default=1e-15)
+        Log loss is undefined for p=0 or p=1, so probabilities are
+        clipped to max(eps, min(1 - eps, p)).
+
+    normalize : bool, optional (default=True)
+        If true, return the mean loss per sample.
+        Otherwise, return the sum of the per-sample losses.
+
+    sample_weight : H2OFrame or float, optional (default=None)
+        A frame of sample weights of matching dims with
+        y_actual and y_predict.
+
+    y_type : string, optional (default=None)
+        The type of the column. If None, will be determined.
+
+
+    Returns
+    -------
+    loss : float
+
+
+    Notes
+    -----
+    The logarithm used is the natural logarithm (base-e).
+    """
+    # SKIP THESE FOR NOW, SINCE VALIDATED IN SKLEARN PORTION
+    # y_type, y_actual, y_predict = _check_targets(y_actual, y_predict, y_type)
+    # _err_for_continuous(y_type)  # this is restricted to classification tasks
+
+    if sample_weight is not None:
+        if isinstance(sample_weight, H2OFrame):
+            _, _, sample_weight = _check_targets(y_actual, sample_weight, 'unknown')  #  we don't care about y_type here
+            sample_weight = h2o_col_to_numpy(sample_weight)
+        # else we just duck type it later
+
+    # todo: do this better someday
+    y_actual = h2o_col_to_numpy(y_actual)  # this is supposed to be a ONE-dim vector
+    y_predict = y_predict.as_data_frame(use_pandas=True).as_matrix()  # this might be 2-dim
+
+    # if it's a column, make it a vector.
+    if len(y_predict.shape) == 2 and y_predict.shape[1] == 1:
+        y_predict = y_predict.T[0]
+
+    return log_loss(y_actual, y_predict, eps=eps,
+                    normalize=normalize,
+                    sample_weight=sample_weight)
 
 
 @since('0.1.0')
@@ -917,3 +1068,17 @@ class _H2OScorer(six.with_metaclass(abc.ABCMeta)):
 
         return self.fun_(y_actual=y_true, y_predict=y_pred,
                          y_type=self.y_type, **kwargs)
+
+
+SCORERS = {
+    'accuracy_score':        h2o_accuracy_score,
+    'auc':                   h2o_auc_score,
+    'f1_score':              h2o_f1_score,
+    'log_loss':             h2o_log_loss,
+    'mean_absolute_error':   h2o_mean_absolute_error,
+    'mean_squared_error':    h2o_mean_squared_error,
+    'median_absolute_error': h2o_median_absolute_error,
+    'precision_score':       h2o_precision_score,
+    'r2_score':              h2o_r2_score,
+    'recall_score':          h2o_recall_score
+}

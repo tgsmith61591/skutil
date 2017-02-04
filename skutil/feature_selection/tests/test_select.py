@@ -7,7 +7,7 @@ from skutil.feature_selection import combos
 from numpy.testing import (assert_array_equal, assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.feature_selection import *
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 
 # Def data for testing
 iris = load_iris()

@@ -3,7 +3,7 @@ import numpy as np
 from skutil.metrics.kernel import (_hilbert_dot,
                                    _hilbert_matrix)
 from skutil.metrics import GainsStatisticalReport
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 from numpy.testing import (assert_array_equal, assert_array_almost_equal)
 
 sigma = 0.05

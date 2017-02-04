@@ -8,6 +8,7 @@ from numpy.random import choice
 from sklearn.externals import six
 from sklearn.neighbors import NearestNeighbors
 from skutil.base import overrides, BaseSkutil
+from ..utils.fixes import dict_keys
 from ..utils import *
 
 __all__ = [
@@ -87,24 +88,20 @@ def _validate_x_y_ratio(X, y, ratio):
     """
     ratio = _validate_ratio(ratio)
     y = _validate_target(y)  # force to string
+    is_factor = X.dtypes[y] == 'object'
 
     # validate is < max classes
     cts = X[y].value_counts().sort_values(ascending=True)
     n_classes = _validate_num_classes(cts)
     needs_balancing = (cts.values[0] / cts.values[-1]) < ratio
 
-    out_tup = (cts, n_classes, needs_balancing)
+    index = cts.index if not is_factor else cts.index.astype('str')
+    out_tup = (dict(zip(index.values, cts.values)),  # cts
+               index,  # labels sorted ascending by commonality
+               X[y].values if not is_factor else X[y].astype('str').values,  # the target
+               n_classes,
+               needs_balancing)
     return out_tup
-
-
-def _pd_frame_to_np(x):
-    if isinstance(x, pd.Series):
-        return x.values
-    if isinstance(x, H2OFrame):
-        return x[x.columns[0]].as_data_frame(use_pandas=True)[x.columns[0]].values
-
-    # assume is np and return
-    return x
 
 
 class BalancerMixin:
@@ -165,9 +162,10 @@ class _BaseBalancePartitioner(six.with_metaclass(abc.ABCMeta, object)):
         self.ratio = ratio
 
         # perform validation_function
-        cts, n_classes, needs_balancing = validation_function(X, y_name, ratio)
+        cts, index, target_col, n_classes, needs_balancing = validation_function(X, y_name, ratio)
         self.cts = cts
-        self.n_classes = n_classes
+        self.index = index
+        self.target_col = target_col
         self.needs_balancing = needs_balancing
 
     def get_indices(self, shuffle):
@@ -193,20 +191,19 @@ class _OversamplingBalancePartitioner(_BaseBalancePartitioner):
             return _default_indices(self.X.shape[0], shuffle)
 
         cts = self.cts
-        n_classes = self.n_classes
         ratio = self.ratio
         X, y = self.X, self.y
 
         # get the maj class
-        majority = cts.index[-1]
+        majority = self.index[-1]
         n_required = np.maximum(1, int(ratio * cts[majority]))
 
         # target_col needs to be np array
-        target_col = _pd_frame_to_np(X[y])
+        target_col = self.target_col  # already computed and in a NP array
         all_indices = np.arange(X.shape[0])
 
         sample_indices = []
-        for minority in cts.index:
+        for minority in self.index:
             # since it's sorted, it means we've hit the end
             if minority == majority:
                 break
@@ -250,13 +247,12 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
             return _default_indices(self.X.shape[0], shuffle)
 
         cts = self.cts
-        n_classes = self.n_classes
         ratio = self.ratio
         X, y = self.X, self.y
 
         # get the maj class
-        majority = cts.index[-1]
-        next_most = cts.index[-2]  # the next-most-populous class label - we know there are at least two! (validation)
+        majority = self.index[-1]
+        next_most = self.index[-2]  # the next-most-populous class label - we know there are at least two! (validation)
         n_required = int((1 / ratio) * cts[next_most])  # i.e., if ratio == 0.5 and next_most == 30, n_required = 60
         all_indices = np.arange(X.shape[0])
 
@@ -265,7 +261,7 @@ class _UndersamplingBalancePartitioner(_BaseBalancePartitioner):
             return sorted(list(all_indices))
 
         # if not returned early, drop some indices
-        target_col = _pd_frame_to_np(X[y])
+        target_col = self.target_col
         majority_recs = all_indices[target_col == majority]
         idcs = choice(majority_recs, n_required, replace=False)
 
@@ -506,16 +502,16 @@ class SMOTEClassBalancer(_BaseBalancer):
         # in case X is the result of a slice and they're out of order.
         X.index = np.arange(0, X.shape[0])
         ratio = self.ratio
-        cts, n_classes, needs_balancing = _validate_x_y_ratio(X, self.y_, ratio)
+        cts, index, target_col, n_classes, needs_balancing = _validate_x_y_ratio(X, self.y_, ratio)
 
         # if we don't need balancing, then just return the indices as is
         if not needs_balancing:
             return X if not self.shuffle else shuffle_dataframe(X)
 
         # get the maj class
-        majority = cts.index[-1]
+        majority = index[-1]
         n_required = np.maximum(1, int(ratio * cts[majority]))
-        for minority in cts.index:
+        for minority in index:
             if minority == majority:
                 break
 

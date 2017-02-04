@@ -1,4 +1,6 @@
+
 from __future__ import print_function, division, absolute_import
+import numpy as np
 from .base import BaseH2OTransformer, _frame_from_x_y, check_frame
 from ..utils import is_numeric, flatten_all
 from ..utils.fixes import is_iterable, dict_values
@@ -137,6 +139,10 @@ class H2OSelectiveImputer(_H2OBaseImputer):
         # at this point, the entirety of frame can be operated on...
         cols = [str(u) for u in frame.columns]  # convert to string...
 
+        # SHOULD we enforce this??...
+        if any(frame.types[c] == 'enum' for c in cols):
+            raise ValueError('can only impute numeric values')
+
         # validate the fill, do fit
         fill = self.fill_
         if isinstance(fill, six.string_types):
@@ -241,23 +247,31 @@ class H2OSelectiveImputer(_H2OBaseImputer):
             if not is_int and col not in fill_val:  # then it's a dict and this col doesn't exist in it...
                 continue
 
-            # get the column index
-            col_idx = X_columns.index(col)
-
             # if it's a single int, easy, otherwise query dict
             col_imp_value = fill_val if is_int else fill_val[col]
 
             # reassign the column itself, as we might need to make it
             # a float column for imputation to avoid numpy int64 bug
-            X[col], col_imp_value = _transform_col(X[col], col_imp_value)
+            # X[col], col_imp_value = _transform_col(X[col], col_imp_value)
 
             # unfortunately, since we can't boolean index the
             # h2oframe, we have to convert pandas
-            the_na_col = na_frame[col].as_data_frame(use_pandas=True)[col]
-            na_mask_idcs = the_na_col.index[the_na_col == 1].tolist()
+            the_na_col_frame = na_frame[col]
+            if not the_na_col_frame.sum():  # if there are no missing ones here, move on... faster than making local
+                continue
 
-            for na_row in na_mask_idcs:
-                X[na_row, col_idx] = col_imp_value
+            the_na_col = the_na_col_frame.as_data_frame(use_pandas=True)[col]
+            na_mask_idcs = the_na_col.index[the_na_col.astype(np.bool)].tolist()
+
+            # if the mask is empty, move on - should be handled above...
+            if not na_mask_idcs:
+                continue
+
+            # get the column index
+            # col_idx = X_columns.index(col)
+            # for na_row in na_mask_idcs:
+            #     X[na_row, col_idx] = col_imp_value
+            X[na_mask_idcs, col] = col_imp_value
 
         # return the copy
         return X

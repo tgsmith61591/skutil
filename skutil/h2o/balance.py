@@ -1,13 +1,15 @@
 from __future__ import absolute_import, division, print_function
 import pandas as pd
 from abc import ABCMeta
+import warnings
 from sklearn.externals import six
 from skutil.base import overrides
-from .util import reorder_h2o_frame
+from .transform import _flatten_one
+from .util import reorder_h2o_frame, _gen_optimized_chunks, h2o_col_to_numpy
 from .base import check_frame, BaseH2OFunctionWrapper
 from ..preprocessing.balance import (_validate_ratio, _validate_target, _validate_num_classes,
                                      _OversamplingBalancePartitioner, _UndersamplingBalancePartitioner,
-                                     BalancerMixin, SamplingWarning)
+                                     BalancerMixin)
 
 __all__ = [
     'H2OOversamplingClassBalancer',
@@ -56,18 +58,31 @@ def _validate_x_y_ratio(X, y, ratio):
     # validate ratio, if the current ratio is >= the ratio, it's "balanced enough"
     ratio = _validate_ratio(ratio)
     y = _validate_target(y)  # cast to string type
+    is_factor = _flatten_one(X[y].isfactor())  # is the target a factor?
 
-    # generate cts. Have to get kludgier in h2o...
-    unq_vals = X[y].unique()
-    unq_vals = unq_vals.as_data_frame(use_pandas=True)[unq_vals.columns[0]].values  # numpy array of unique vals
-    unq_cts = dict([(val, X[y][X[y] == val].shape[0]) for val in unq_vals])
+    # if the target is a factor, we might have an issue here...
+    """
+    if is_factor:
+        warnings.warn('Balancing with the target as a factor can cause unpredictable '
+                      'sampling behavior (H2O makes it difficult to assess equality '
+                      'between two factors). Balancing works best when the target '
+                      'is an int. If possible, consider using `asnumeric`.', UserWarning)
+    """
 
-    # validate is < max classes
-    cts = pd.Series(unq_cts).sort_values(ascending=True)
+    # generate cts. Have to get kludgier in h2o... then validate is < max classes
+    # we have to do it this way, because H2O might treat the vals as enum, and we cannot
+    # slice based on equality (dernit, H2O).
+    target_col = pd.Series(h2o_col_to_numpy(X[y]))
+    cts = target_col.value_counts().sort_values(ascending=True)
     n_classes = _validate_num_classes(cts)
     needs_balancing = (cts.values[0] / cts.values[-1]) < ratio
 
-    out_tup = (cts, n_classes, needs_balancing)
+    index = cts.index if not is_factor else cts.index.astype('str')
+    out_tup = (dict(zip(index, cts.values)),  # cts
+               index,  # labels sorted ascending by commonality
+               target_col.values if not is_factor else target_col.astype('str').values,  # the target
+               n_classes,
+               needs_balancing)
     return out_tup
 
 
@@ -85,6 +100,13 @@ class _BaseH2OBalancer(six.with_metaclass(ABCMeta,
                                                max_version=max_version)
         self.ratio = ratio
         self.shuffle = shuffle
+
+        # this is a new warning
+        if shuffle:
+            warnings.warn('Setting shuffle=True will eventually be deprecated, as H2O '
+                          'does not allow re-ordering of frames by row. The current work-around '
+                          '(rbinding the rows) is known to cause issues in the H2O ExprNode '
+                          'cache for very large frames.', DeprecationWarning)
 
 
 class H2OOversamplingClassBalancer(_BaseH2OBalancer):
@@ -183,7 +205,7 @@ class H2OOversamplingClassBalancer(_BaseH2OBalancer):
         # since H2O won't allow us to resample (it's considered rearranging)
         # we need to rbind at each point of duplication... this can be pretty
         # inefficient, so we might need to get clever about this...
-        Xb = reorder_h2o_frame(frame, sample_idcs)
+        Xb = reorder_h2o_frame(frame, _gen_optimized_chunks(sample_idcs), from_chunks=True)
         return Xb
 
 
@@ -286,5 +308,7 @@ class H2OUndersamplingClassBalancer(_BaseH2OBalancer):
         # since there are no feature_names, we can just slice
         # the h2o frame as is, given the indices:
         idcs = partitioner.get_indices(self.shuffle)
-        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame, idcs)
+        Xb = frame[idcs, :] if not self.shuffle else reorder_h2o_frame(frame,
+                                                                       _gen_optimized_chunks(idcs),
+                                                                       from_chunks=True)
         return Xb

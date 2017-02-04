@@ -7,7 +7,7 @@ from numpy.testing import (assert_almost_equal, assert_array_almost_equal)
 from sklearn.datasets import load_iris
 from skutil.base import suppress_warnings
 from skutil.utils import *
-from skutil.utils.tests.utils import assert_fails
+from skutil.testing import assert_fails
 from skutil.utils.fixes import _SK17GridSearchCV, _SK17RandomizedSearchCV
 from skutil.decomposition import SelectivePCA
 from sklearn.ensemble import RandomForestClassifier
