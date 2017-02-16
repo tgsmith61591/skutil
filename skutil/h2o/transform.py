@@ -370,11 +370,15 @@ class H2OSelectiveScaler(BaseH2OTransformer):
         if (not self.with_mean) and (not self.with_std):
             return frame  # nothing to change...
 
+        # assignment is expensive in H2O... let's only assign ONCE and not inplace:
         for nm in self.cols_:
-            if self.with_mean:
-                frame[nm] -= self.means[nm]
-            if self.with_std:
-                frame[nm] /= self.stds[nm]
+            col_frm = frame[nm]
+            if self.with_mean and self.with_std:
+                frame[nm] = (col_frm - self.means[nm]) / self.stds[nm]
+            elif self.with_mean:
+                frame[nm] = col_frm - self.means[nm]
+            elif self.with_std:
+                frame[nm] = col_frm / self.stds[nm]
 
         return frame
 
